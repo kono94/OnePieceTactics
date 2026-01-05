@@ -1,0 +1,55 @@
+Okay, as you see I want to implement a teamfight tactics clone in the browser but with One Piece theme.
+
+For this, I want to use a Java25 Spring Boot backend service that works with STOMP websocket.
+
+And a Javascript frontend to render the GameState.
+
+
+The technology stack:
+- Docker
+- Docker compose
+- No database for now
+- Nginx for reverse proxy
+- Java 25 Spring Boot 4, maven
+- For Frontend, I dont know, backend rendering with Thymleaf and HTMX could be too hard, maybe Vue.js? or is there a simpler way to just draw the GameState and interact.
+
+
+
+Should I use websocket connection and "sync" the GameState every e.g. 100ms?
+Or should I use events from frontend and have all replicated on the backend, but the frontend keeps some informations for itsself like bench position of units for example... But then the validation is harder I guess?`Like swapping units requires backend check?
+
+
+Also, make it as production and clean as possible.
+I dont want to fixate one one piece theme, so the theme should be replaceable.
+
+Like I want a clean abstract core and then just define different names, classes, origins, characters and image to e.g. have it in another world, like Pokemon for example.
+
+
+
+I want to have the game available in the browser, with game rooms, and max 8 connected players per room. in Order to start a match.
+No fancy login or user logic, just "select or name" and go (safe session in browser cookie or sth) like in geo guesser.
+
+
+
+Also adhere and create coding rules for Java:
+- Java 25
+- Java Streams if possible
+- "var" keyword if possible
+-  no * imports
+- camelCase for everything, also for Id or AI, like userId for example.
+- only comment very complex parts of the code
+- no javadoc
+
+
+
+For the game mechanics:
+- Like TFT most of the time but simplified
+- Simplified combat, no 3D stuff or animation
+- square grid (but illusion of hexagone in the frontend), but its easier for combat simulation in backend (nearest neihbours and stuff)
+- Leveling, XP, Gold, Items (same as TFT), Item combinations (same as TFT), Abilities, Mana
+- Bench with 10 units
+- 100 character pool
+- traits like "crew" Straw Hat, Marine, etc. and fithing style like "swordsman", "Fighter", "Devel fruit" etc.
+- gold income per round, same as tft
+- Generate One piece related character icons for all the characters
+- Simple but nice looking UI that renders the GameState

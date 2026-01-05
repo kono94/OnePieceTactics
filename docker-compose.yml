@@ -1,0 +1,23 @@
+services:
+  backend:
+    build: ./backend
+    container_name: tft-backend
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build: ./frontend
+    container_name: tft-frontend
+    ports:
+      - "3000:80" # Expose directly for debug if needed, but nginx handles it
+
+  nginx:
+    image: nginx:alpine
+    container_name: tft-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
