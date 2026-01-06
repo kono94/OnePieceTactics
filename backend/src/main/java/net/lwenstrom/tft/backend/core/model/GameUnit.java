@@ -44,4 +44,14 @@ public interface GameUnit {
     void takeDamage(int amount);
 
     void gainMana(int amount);
+
+    int getStarLevel();
+
+    String getOwnerId();
+
+    void setOwnerId(String ownerId);
+
+    long getNextAttackTime();
+
+    void setNextAttackTime(long time);
 }

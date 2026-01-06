@@ -1,7 +1,6 @@
 package net.lwenstrom.tft.backend.infrastructure.controller;
 
 import net.lwenstrom.tft.backend.core.model.GameAction;
-import net.lwenstrom.tft.backend.core.model.GameState;
 import net.lwenstrom.tft.backend.engine.GameEngine;
 import net.lwenstrom.tft.backend.engine.GameRoom;
 import net.lwenstrom.tft.backend.engine.Player;
@@ -29,48 +28,39 @@ public class GameController {
     @Scheduled(fixedRate = 100)
     public void tick() {
         gameEngine.tick();
-        // Broadcast state updates
+        // Broadcast state updates to each room's topic
         gameEngine.getAllRooms().forEach(room -> {
-            // For now, simplify and assume we broadcast 'default' room to the main topic
-            if (room.getId().equals("default")) {
-                messagingTemplate.convertAndSend("/topic/gamestate", room.getState());
-            }
-            // Also broadcast to specific room topic if we were fully multi-room
             messagingTemplate.convertAndSend("/topic/room/" + room.getId(), room.getState());
         });
     }
 
-    @MessageMapping("/join")
-    public void joinRoom(@Payload String playerName) {
-        // Simplified: Force usage of "default" room
-        GameRoom room = gameEngine.getRoom("default");
+    public record RoomRequest(String roomId, String playerName) {
+    }
+
+    @MessageMapping("/create")
+    public void createRoom(@Payload RoomRequest request) {
+        // Prevent overwriting if exists, or just return existing?
+        // For simplicity, if exists, just join it (or we could error)
+        GameRoom room = gameEngine.getRoom(request.roomId());
         if (room == null) {
-            room = gameEngine.createRoom("default");
-        }
-        Player p = room.addPlayer(playerName);
-
-        // DEBUG: Add starter units to the board so the user sees something happening
-        java.util.List<net.lwenstrom.tft.backend.core.data.UnitDefinition> allUnits = gameEngine.getDataLoader()
-                .getAllUnits();
-        if (!allUnits.isEmpty()) {
-            // Unit 1
-            var u1 = new net.lwenstrom.tft.backend.core.impl.StandardGameUnit(allUnits.get(0));
-            u1.setPosition(2, 2);
-            // u1.setOwnerId(p.getId()); // Need to set owner if we track it on unit
-            p.getBoardUnits().add(u1);
-
-            // Unit 2 (Enemy? or same team? For now same team)
-            if (allUnits.size() > 1) {
-                var u2 = new net.lwenstrom.tft.backend.core.impl.StandardGameUnit(allUnits.get(1));
-                u2.setPosition(5, 5);
-                // u2.setOwnerId(p.getId());
-                p.getBoardUnits().add(u2);
-            }
+            room = gameEngine.createRoom(request.roomId());
+            // Add bots only on creation
+            for (int i = 0; i < 7; i++)
+                room.addBot();
         }
 
-        // Send back the room ID / private info?
-        // For now, just broadcast state to the room topic
-        messagingTemplate.convertAndSend("/topic/gamestate", room.getState());
+        room.addPlayer(request.playerName());
+        // Immediate update to the room
+        messagingTemplate.convertAndSend("/topic/room/" + room.getId(), room.getState());
+    }
+
+    @MessageMapping("/join")
+    public void joinRoom(@Payload RoomRequest request) {
+        GameRoom room = gameEngine.getRoom(request.roomId());
+        if (room != null) {
+            room.addPlayer(request.playerName());
+            messagingTemplate.convertAndSend("/topic/room/" + room.getId(), room.getState());
+        }
     }
 
     @MessageMapping("/room/{roomId}/action")
@@ -93,7 +83,7 @@ public class GameController {
                 }
             }
             case "MOVE" -> {
-                // Handle move logic (complex, depends on if on bench or board)
+                p.moveUnit(action.unitId(), action.targetX(), action.targetY());
             }
         }
 

@@ -52,7 +52,7 @@ public class Player {
         gold -= 2;
 
         // Simple random roll logic (weighted by level later)
-        List<UnitDefinition> allUnits = dataLoader.getAllUnits();
+        List<UnitDefinition> allUnits = new ArrayList<>(dataLoader.getAllUnits());
         Collections.shuffle(allUnits);
         shop = allUnits.stream().limit(5).collect(Collectors.toList());
     }
@@ -70,8 +70,61 @@ public class Player {
             return;
 
         gold -= def.cost();
-        bench.add(new StandardGameUnit(def));
+        StandardGameUnit newUnit = new StandardGameUnit(def);
+        newUnit.setOwnerId(this.id);
+        bench.add(newUnit);
         shop.set(shopIndex, null); // Remove from shop
+        checkUpgrade(def.name(), 1);
+    }
+
+    private void checkUpgrade(String unitName, int starLevel) {
+        List<GameUnit> candidates = new ArrayList<>();
+        candidates.addAll(
+                bench.stream().filter(u -> u.getName().equals(unitName) && u.getStarLevel() == starLevel).toList());
+        candidates.addAll(boardUnits.stream().filter(u -> u.getName().equals(unitName) && u.getStarLevel() == starLevel)
+                .toList());
+
+        if (candidates.size() >= 3) {
+            List<GameUnit> toRemove = candidates.subList(0, 3);
+            GameUnit targetPosUnit = toRemove.stream()
+                    .filter(u -> boardUnits.contains(u))
+                    .findFirst()
+                    .orElse(toRemove.get(0));
+
+            int x = targetPosUnit.getX();
+            int y = targetPosUnit.getY();
+
+            bench.removeAll(toRemove);
+            boardUnits.removeAll(toRemove);
+
+            UnitDefinition def = dataLoader.getAllUnits().stream().filter(d -> d.name().equals(unitName)).findFirst()
+                    .orElse(null);
+
+            if (def != null) {
+                // Scale stats
+                double scale = 1.8;
+                UnitDefinition upgradedDef = new UnitDefinition(
+                        def.id(), def.name(), def.cost(),
+                        (int) (def.maxHealth() * scale),
+                        def.maxMana(),
+                        (int) (def.attackDamage() * scale),
+                        def.abilityPower(), def.armor(), def.magicResist(), def.attackSpeed(), def.range(),
+                        def.traits());
+
+                StandardGameUnit upgraded = new StandardGameUnit(upgradedDef);
+                upgraded.setOwnerId(this.id);
+                upgraded.setStarLevel(starLevel + 1);
+                upgraded.setPosition(x, y);
+
+                if (y < 0) {
+                    bench.add(upgraded);
+                } else {
+                    boardUnits.add(upgraded);
+                }
+
+                checkUpgrade(unitName, starLevel + 1);
+            }
+        }
     }
 
     public void gainGold(int amount) {
@@ -80,6 +133,38 @@ public class Player {
 
     public void gainXp(int amount) {
         this.xp += amount;
-        // Level up logic check
+    }
+
+    public void moveUnit(String unitId, int x, int y) {
+        // Search bench
+        var benchUnit = bench.stream().filter(u -> u.getId().equals(unitId)).findFirst().orElse(null);
+        if (benchUnit != null) {
+            // Moving from Bench
+            if (y >= 0) { // To Board
+                // Check board limit (standard TFT is level based, for now unlimited or max 10)
+                if (boardUnits.size() >= level + 10)
+                    return; // Simplified limit
+
+                bench.remove(benchUnit);
+                benchUnit.setPosition(x, y);
+                boardUnits.add(benchUnit);
+            } else {
+                // To Bench (Reorder - ignored for now)
+            }
+        } else {
+            // Search board
+            var boardUnit = boardUnits.stream().filter(u -> u.getId().equals(unitId)).findFirst().orElse(null);
+            if (boardUnit != null) {
+                // Moving from Board
+                if (y < 0) { // To Bench
+                    if (bench.size() >= MAX_BENCH_SIZE)
+                        return;
+                    boardUnits.remove(boardUnit);
+                    bench.add(boardUnit);
+                } else { // To Board (Move)
+                    boardUnit.setPosition(x, y);
+                }
+            }
+        }
     }
 }

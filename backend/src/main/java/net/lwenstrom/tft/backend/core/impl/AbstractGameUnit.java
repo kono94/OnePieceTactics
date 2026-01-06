@@ -25,6 +25,8 @@ public abstract class AbstractGameUnit implements GameUnit {
     private final float attackSpeed;
     private final int range;
     private final Set<String> traits;
+    @Setter
+    private int starLevel = 1;
 
     @Setter
     private int currentHealth;
