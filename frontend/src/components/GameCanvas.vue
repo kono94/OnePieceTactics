@@ -38,7 +38,7 @@ const units = computed(() => {
 })
 
 const GRID_SIZE = 8
-const CELL_SIZE = 54
+const CELL_SIZE = 60
 
 // Drag state
 const isDragging = ref(false)
@@ -47,10 +47,10 @@ const hoveredUnitId = ref<string|null>(null)
 
 const getStyle = (unit: any) => {
     return {
-        left: (unit.x * CELL_SIZE) + 'px',
-        top: (unit.y * CELL_SIZE) + 'px',
-        width: (CELL_SIZE - 4) + 'px',
-        height: (CELL_SIZE - 4) + 'px',
+        left: (unit.x * CELL_SIZE + 5) + 'px',
+        top: (unit.y * CELL_SIZE + 5) + 'px',
+        width: '50px',
+        height: '50px',
         borderColor: getColor(unit.ownerId)
     }
 }
@@ -73,15 +73,18 @@ const onDragStart = (evt: DragEvent, unit: any) => {
     if (evt.dataTransfer) {
         evt.dataTransfer.setData('unitId', unit.id)
         evt.dataTransfer.effectAllowed = 'move'
-        // Create invisible drag image to prevent default browser ghost behavior if desired,
-        // or just let it be. User complained "character disappears", which usually means
-        // the original element is hidden or the drag image is transparency.
-        // We'll trust the default behavior but ensure we don't hide the original *too* much.
         
-        // Setting a custom drag image can help visibility
-        const img = new Image();
-        img.src = unit.image;
-        evt.dataTransfer.setDragImage(img, 25, 25);
+        // Use the actual DOM element for the drag image if possible
+        const target = evt.target as HTMLElement;
+        const img = target.querySelector('img');
+        if (img) {
+             evt.dataTransfer.setDragImage(img, 25, 25);
+        } else {
+            // Fallback
+             const fallbackImg = new Image();
+             fallbackImg.src = unit.image;
+             evt.dataTransfer.setDragImage(fallbackImg, 25, 25);
+        }
     }
 }
 

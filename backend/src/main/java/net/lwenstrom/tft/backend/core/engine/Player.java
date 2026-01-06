@@ -42,8 +42,9 @@ public class Player {
     }
 
     public void refreshShop() {
-        if (shopLocked) return;
-        if (gold < 2) return; // Cost 2 to reroll
+        if (shopLocked || gold < 2) {
+            return;
+        }
         gold -= 2;
 
         // Simple random roll logic (weighted by level later)
@@ -134,6 +135,33 @@ public class Player {
 
     public void gainXp(int amount) {
         this.xp += amount;
+        checkLevelUp();
+    }
+
+    private void checkLevelUp() {
+        while (true) {
+            int xpNeeded = getXpNeededForLevel(this.level);
+            if (this.xp >= xpNeeded) {
+                this.xp -= xpNeeded;
+                this.level++;
+            } else {
+                break;
+            }
+        }
+    }
+
+    private int getXpNeededForLevel(int currentLevel) {
+        // Simple XP curve
+        return switch (currentLevel) {
+            case 1 -> 2;
+            case 2 -> 6;
+            case 3 -> 10;
+            case 4 -> 20;
+            case 5 -> 36;
+            case 6 -> 56;
+            case 7 -> 80;
+            default -> 100;
+        };
     }
 
     public void moveUnit(String unitId, int x, int y) {

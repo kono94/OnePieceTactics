@@ -74,7 +74,9 @@ public class GameController {
                 }
             }
             case "MOVE" -> {
-                p.moveUnit(action.unitId(), action.targetX(), action.targetY());
+                if ("PLANNING".equals(room.getState().phase())) {
+                    p.moveUnit(action.unitId(), action.targetX(), action.targetY());
+                }
             }
         }
 

@@ -20,6 +20,7 @@ public class StandardGameUnit extends AbstractGameUnit {
                 def.attackSpeed(),
                 def.range(),
                 new HashSet<>(def.traits()));
+        setCurrentHealth(def.maxHealth());
     }
 
     public boolean isDead() {

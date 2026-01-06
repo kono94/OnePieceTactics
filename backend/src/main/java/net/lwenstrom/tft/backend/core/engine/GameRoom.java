@@ -107,7 +107,7 @@ public class GameRoom {
             unit.setOwnerId(bot.getId());
             // Simple random position for bot (on their board half?)
             // Just putting them randomly for now to ensure they are seen
-            unit.setPosition((int) (Math.random() * 8), (int) (Math.random() * 8));
+            unit.setPosition((int) (Math.random() * 8), (int) (Math.random() * 4));
             bot.getBoardUnits().add(unit);
         }
     }
