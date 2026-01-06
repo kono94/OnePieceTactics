@@ -43,7 +43,7 @@ public class GameRoom {
     }
 
     public Player addPlayer(String name) {
-        Player p = new Player(name, dataLoader);
+        var p = new Player(name, dataLoader);
         // Initial setup
         p.refreshShop();
         players.put(p.getId(), p);
@@ -60,8 +60,8 @@ public class GameRoom {
     }
 
     public void tick() {
-        long now = System.currentTimeMillis();
-        long timeLeft = phaseEndTime - now;
+        var now = System.currentTimeMillis();
+        var timeLeft = phaseEndTime - now;
 
         if (timeLeft <= 0) {
             nextPhase();
@@ -77,7 +77,7 @@ public class GameRoom {
 
     private void startPhase(GamePhase newPhase) {
         this.phase = newPhase;
-        long duration = (newPhase == GamePhase.PLANNING) ? PLANNING_DURATION_MS : COMBAT_DURATION_MS;
+        var duration = (newPhase == GamePhase.PLANNING) ? PLANNING_DURATION_MS : COMBAT_DURATION_MS;
         this.phaseEndTime = System.currentTimeMillis() + duration;
 
         if (newPhase == GamePhase.PLANNING) {
@@ -99,7 +99,7 @@ public class GameRoom {
     }
 
     public void addBot() {
-        Player bot = addPlayer("Bot-" + UUID.randomUUID().toString().substring(0, 4));
+        var bot = addPlayer("Bot-" + UUID.randomUUID().toString().substring(0, 4));
         var allUnits = dataLoader.getAllUnits();
         if (!allUnits.isEmpty()) {
             var unitDef = allUnits.get((int) (Math.random() * allUnits.size()));
@@ -113,8 +113,8 @@ public class GameRoom {
     }
 
     private void updateGameState(long timeLeft) {
-        Map<String, GameState.PlayerState> playerStates = new HashMap<>();
-        for (Player p : players.values()) {
+        var playerStates = new HashMap<String, GameState.PlayerState>();
+        for (var p : players.values()) {
             playerStates.put(
                     p.getId(),
                     new GameState.PlayerState(

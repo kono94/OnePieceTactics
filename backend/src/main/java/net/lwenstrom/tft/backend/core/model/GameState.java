@@ -2,6 +2,7 @@ package net.lwenstrom.tft.backend.core.model;
 
 import java.util.List;
 import java.util.Map;
+import net.lwenstrom.tft.backend.core.engine.UnitDefinition;
 
 public record GameState(
         String roomId,
@@ -21,8 +22,8 @@ public record GameState(
             int xp,
             List<GameUnit> bench,
             List<GameUnit> board,
-            List<net.lwenstrom.tft.backend.core.model.Trait> activeTraits,
-            List<net.lwenstrom.tft.backend.core.engine.UnitDefinition> shop) {}
+            List<Trait> activeTraits,
+            List<UnitDefinition> shop) {}
 
     public record CombatEvent(
             long timestamp,

@@ -1,5 +1,7 @@
 package net.lwenstrom.tft.backend.core.engine;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import net.lwenstrom.tft.backend.core.DataLoader;
@@ -31,8 +33,8 @@ public class GameEngine {
         return room;
     }
 
-    public java.util.Collection<GameRoom> getAllRooms() {
-        return rooms.values();
+    public Collection<GameRoom> getAllRooms() {
+        return Collections.unmodifiableCollection(rooms.values());
     }
 
     public GameRoom getRoom(String roomId) {

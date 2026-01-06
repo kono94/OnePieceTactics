@@ -1,18 +1,20 @@
 package net.lwenstrom.tft.backend.core.engine;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.lwenstrom.tft.backend.core.model.GameItem;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 
 @Getter
+@RequiredArgsConstructor
 public abstract class AbstractGameUnit implements GameUnit {
-    private final String id;
+    private final String id = UUID.randomUUID().toString();
     private final String name;
     private final int cost;
     private final int maxHealth;
@@ -23,6 +25,8 @@ public abstract class AbstractGameUnit implements GameUnit {
     private final int magicResist;
     private final float attackSpeed;
     private final int range;
+
+    @NonNull
     private final Set<String> traits;
 
     @Setter
@@ -32,7 +36,7 @@ public abstract class AbstractGameUnit implements GameUnit {
     private int currentHealth;
 
     @Setter
-    private int mana;
+    private int mana = 0; // Start with 0 mana usually
 
     @Setter
     private int x = -1;
@@ -41,34 +45,6 @@ public abstract class AbstractGameUnit implements GameUnit {
     private int y = -1;
 
     private final List<GameItem> items = new ArrayList<>();
-
-    public AbstractGameUnit(
-            String name,
-            int cost,
-            int maxHealth,
-            int maxMana,
-            int ad,
-            int ap,
-            int armor,
-            int mr,
-            float as,
-            int range,
-            Set<String> traits) {
-        this.id = UUID.randomUUID().toString();
-        this.name = name;
-        this.cost = cost;
-        this.maxHealth = maxHealth;
-        this.currentHealth = maxHealth;
-        this.maxMana = maxMana;
-        this.mana = 0; // Start with 0 mana usually
-        this.attackDamage = ad;
-        this.abilityPower = ap;
-        this.armor = armor;
-        this.magicResist = mr;
-        this.attackSpeed = as;
-        this.range = range;
-        this.traits = traits != null ? traits : new HashSet<>();
-    }
 
     @Override
     public void takeDamage(int amount) {

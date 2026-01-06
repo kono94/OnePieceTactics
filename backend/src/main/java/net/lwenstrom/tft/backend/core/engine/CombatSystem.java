@@ -7,24 +7,24 @@ import net.lwenstrom.tft.backend.core.model.GameUnit;
 public class CombatSystem {
 
     public void simulateTick(GameRoom room) {
-        long currentTime = System.currentTimeMillis();
-        List<GameUnit> allUnits = new ArrayList<>();
+        var currentTime = System.currentTimeMillis();
+        var allUnits = new ArrayList<GameUnit>();
         room.getPlayers().forEach(p -> {
             allUnits.addAll(p.getBoardUnits());
         });
 
         // Loop through units (simple snapshot to allow modification during iteration)
-        List<GameUnit> snapshot = new ArrayList<>(allUnits);
+        var snapshot = new ArrayList<>(allUnits);
 
-        for (GameUnit unit : snapshot) {
+        for (var unit : snapshot) {
             if (unit.getCurrentHealth() <= 0) continue;
 
             // Check Attack Cooldown
             if (currentTime < unit.getNextAttackTime()) continue;
 
-            GameUnit target = findNearestEnemy(unit, allUnits);
+            var target = findNearestEnemy(unit, allUnits);
             if (target != null) {
-                double distance = getDistance(unit, target);
+                var distance = getDistance(unit, target);
                 // Simple range check
                 if (distance <= unit.getRange()) {
                     // Attack
@@ -56,15 +56,15 @@ public class CombatSystem {
 
     private GameUnit findNearestEnemy(GameUnit source, List<GameUnit> candidates) {
         GameUnit nearest = null;
-        double minDst = Double.MAX_VALUE;
+        var minDst = Double.MAX_VALUE;
 
-        for (GameUnit c : candidates) {
+        for (var c : candidates) {
             if (c == source || c.getCurrentHealth() <= 0) continue;
 
             // Check owner
             if (source.getOwnerId() != null && source.getOwnerId().equals(c.getOwnerId())) continue;
 
-            double dst = getDistance(source, c);
+            var dst = getDistance(source, c);
             if (dst < minDst) {
                 minDst = dst;
                 nearest = c;
@@ -81,17 +81,17 @@ public class CombatSystem {
     }
 
     private void moveTowards(GameUnit mover, GameUnit target, List<GameUnit> allUnits) {
-        int dx = Integer.compare(target.getX(), mover.getX());
-        int dy = Integer.compare(target.getY(), mover.getY());
+        var dx = Integer.compare(target.getX(), mover.getX());
+        var dy = Integer.compare(target.getY(), mover.getY());
 
-        int newX = mover.getX() + dx;
-        int newY = mover.getY() + dy;
+        var newX = mover.getX() + dx;
+        var newY = mover.getY() + dy;
 
         // Check bounds (0-7)
         if (newX < 0 || newX > 7 || newY < 0 || newY > 7) return;
 
         // Check if occupied
-        boolean occupied =
+        var occupied =
                 allUnits.stream().anyMatch(u -> u.getCurrentHealth() > 0 && u.getX() == newX && u.getY() == newY);
 
         if (!occupied) {
