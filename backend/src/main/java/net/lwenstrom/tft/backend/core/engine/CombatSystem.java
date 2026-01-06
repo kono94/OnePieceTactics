@@ -1,8 +1,8 @@
-package net.lwenstrom.tft.backend.engine;
+package net.lwenstrom.tft.backend.core.engine;
 
-import net.lwenstrom.tft.backend.core.model.GameUnit;
 import java.util.ArrayList;
 import java.util.List;
+import net.lwenstrom.tft.backend.core.model.GameUnit;
 
 public class CombatSystem {
 
@@ -17,12 +17,10 @@ public class CombatSystem {
         List<GameUnit> snapshot = new ArrayList<>(allUnits);
 
         for (GameUnit unit : snapshot) {
-            if (unit.getCurrentHealth() <= 0)
-                continue;
+            if (unit.getCurrentHealth() <= 0) continue;
 
             // Check Attack Cooldown
-            if (currentTime < unit.getNextAttackTime())
-                continue;
+            if (currentTime < unit.getNextAttackTime()) continue;
 
             GameUnit target = findNearestEnemy(unit, allUnits);
             if (target != null) {
@@ -61,12 +59,10 @@ public class CombatSystem {
         double minDst = Double.MAX_VALUE;
 
         for (GameUnit c : candidates) {
-            if (c == source || c.getCurrentHealth() <= 0)
-                continue;
+            if (c == source || c.getCurrentHealth() <= 0) continue;
 
             // Check owner
-            if (source.getOwnerId() != null && source.getOwnerId().equals(c.getOwnerId()))
-                continue;
+            if (source.getOwnerId() != null && source.getOwnerId().equals(c.getOwnerId())) continue;
 
             double dst = getDistance(source, c);
             if (dst < minDst) {
@@ -92,12 +88,11 @@ public class CombatSystem {
         int newY = mover.getY() + dy;
 
         // Check bounds (0-7)
-        if (newX < 0 || newX > 7 || newY < 0 || newY > 7)
-            return;
+        if (newX < 0 || newX > 7 || newY < 0 || newY > 7) return;
 
         // Check if occupied
-        boolean occupied = allUnits.stream()
-                .anyMatch(u -> u.getCurrentHealth() > 0 && u.getX() == newX && u.getY() == newY);
+        boolean occupied =
+                allUnits.stream().anyMatch(u -> u.getCurrentHealth() > 0 && u.getX() == newX && u.getY() == newY);
 
         if (!occupied) {
             mover.setPosition(newX, newY);

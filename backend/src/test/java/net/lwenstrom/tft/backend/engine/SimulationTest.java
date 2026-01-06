@@ -1,13 +1,13 @@
 package net.lwenstrom.tft.backend.engine;
 
-import net.lwenstrom.tft.backend.core.data.DataLoader;
-import net.lwenstrom.tft.backend.core.data.UnitDefinition;
-import net.lwenstrom.tft.backend.engine.GameRoom;
-import net.lwenstrom.tft.backend.engine.Player;
-import org.junit.jupiter.api.Test;
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.List;
+import net.lwenstrom.tft.backend.core.DataLoader;
+import net.lwenstrom.tft.backend.core.engine.GameRoom;
+import net.lwenstrom.tft.backend.core.engine.Player;
+import net.lwenstrom.tft.backend.core.engine.UnitDefinition;
+import org.junit.jupiter.api.Test;
 
 public class SimulationTest {
 
@@ -17,8 +17,8 @@ public class SimulationTest {
         DataLoader dataLoader = new DataLoader(null) {
             @Override
             public List<UnitDefinition> getAllUnits() {
-                return List
-                        .of(new UnitDefinition("1", "TestUnit", 1, 100, 50, 50, 0, 10, 10, 1.0f, 1, List.of("Trait")));
+                return List.of(
+                        new UnitDefinition("1", "TestUnit", 1, 100, 50, 50, 0, 10, 10, 1.0f, 1, List.of("Trait")));
             }
 
             @Override
@@ -76,8 +76,8 @@ public class SimulationTest {
         DataLoader dataLoader = new DataLoader(null) {
             @Override
             public List<UnitDefinition> getAllUnits() {
-                return List
-                        .of(new UnitDefinition("1", "TestUnit", 1, 100, 50, 50, 0, 10, 10, 1.0f, 1, List.of("Trait")));
+                return List.of(
+                        new UnitDefinition("1", "TestUnit", 1, 100, 50, 50, 0, 10, 10, 1.0f, 1, List.of("Trait")));
             }
 
             @Override
