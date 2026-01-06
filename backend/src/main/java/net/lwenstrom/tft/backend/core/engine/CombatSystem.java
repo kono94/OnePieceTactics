@@ -6,52 +6,99 @@ import net.lwenstrom.tft.backend.core.model.GameUnit;
 
 public class CombatSystem {
 
-    public void simulateTick(GameRoom room) {
+    private final TraitManager traitManager = new TraitManager();
+
+    public void startCombat(java.util.Collection<Player> players) {
+        List<Player> sortedPlayers = new ArrayList<>(players);
+        sortedPlayers.sort(java.util.Comparator.comparing(Player::getId));
+
+        if (sortedPlayers.isEmpty())
+            return;
+
+        // Apply Traits per player BEFORE saving/mirroring
+        for (Player p : players) {
+            // Save state (positions + base stats)
+            for (GameUnit u : p.getBoardUnits()) {
+                u.savePlanningPosition();
+            }
+            // Apply traits (modifies stats)
+            traitManager.applyTraits(p.getBoardUnits());
+        }
+
+        if (sortedPlayers.size() > 1) {
+            // Player 2 (Top): Mirror coordinates
+            Player p2 = sortedPlayers.get(1);
+            for (GameUnit u : p2.getBoardUnits()) {
+                // Mirror logic: 4 rows (0-3) become rows 4-7.
+                int newX = 6 - u.getX(); // Mirror horizontal (Cols 0-6)
+                int newY = 7 - u.getY(); // Mirror vertical (Rows 0-3 -> 7-4)
+                u.setPosition(newX, newY);
+            }
+        }
+    }
+
+    public void endCombat(java.util.Collection<Player> players) {
+        for (Player p : players) {
+            for (GameUnit u : p.getBoardUnits()) {
+                u.restorePlanningPosition();
+            }
+        }
+    }
+
+    public CombatResult simulateTick(List<Player> participants) {
         var currentTime = System.currentTimeMillis();
         var allUnits = new ArrayList<GameUnit>();
-        room.getPlayers().forEach(p -> {
+        participants.forEach(p -> {
             allUnits.addAll(p.getBoardUnits());
         });
 
-        // Loop through units (simple snapshot to allow modification during iteration)
+        // Debug
+        // System.out.println("Simulating tick for " + participants.size() + " players.
+        // Total units: " + allUnits.size());
+
         var snapshot = new ArrayList<>(allUnits);
 
         for (var unit : snapshot) {
-            if (unit.getCurrentHealth() <= 0) continue;
+            if (unit.getCurrentHealth() <= 0)
+                continue;
 
-            // Check Attack Cooldown
-            if (currentTime < unit.getNextAttackTime()) continue;
+            if (currentTime < unit.getNextAttackTime())
+                continue;
 
             var target = findNearestEnemy(unit, allUnits);
             if (target != null) {
                 var distance = getDistance(unit, target);
-                // Simple range check
+                // Range check
                 if (distance <= unit.getRange()) {
-                    // Attack
                     target.takeDamage(unit.getAttackDamage());
                     unit.gainMana(10);
-
-                    // Set next attack time based on attack speed (attacks per second)
-                    // limit attack speed to avoid infinite loop or super fast attacks (div by zero
-                    // check)
                     float as = Math.max(0.1f, unit.getAttackSpeed());
                     long cooldownMs = (long) (1000 / as);
                     unit.setNextAttackTime(currentTime + cooldownMs);
-
                 } else {
-                    // Move
-                    // Only move if we can move (no cooldown on movement? or shared cooldown?)
-                    // For now, allow movement every tick (100ms) but maybe limit it?
-                    // Let's assume movement is free for now but maybe slower?
                     moveTowards(unit, target, allUnits);
                 }
             }
         }
+        // Cleanup dead units from board <-- REMOVED PERMANENT DELETION
+        // We leave them in the list so they can be revived next round.
+        // Combat logic ignores them via getCurrentHealth() <= 0 check.
 
-        // Cleanup dead units from board
-        room.getPlayers().forEach(p -> {
-            p.getBoardUnits().removeIf(u -> u.getCurrentHealth() <= 0);
-        });
+        long playersWithUnits = participants.stream()
+                .filter(p -> !p.getBoardUnits().isEmpty())
+                .count();
+
+        if (playersWithUnits <= 1) {
+            // Determine winner
+            Player winner = participants.stream()
+                    .filter(p -> !p.getBoardUnits().isEmpty())
+                    .findFirst()
+                    .orElse(null); // Null implies draw (0 players left)
+
+            return new CombatResult(true, winner != null ? winner.getId() : null);
+        }
+
+        return new CombatResult(false, null);
     }
 
     private GameUnit findNearestEnemy(GameUnit source, List<GameUnit> candidates) {
@@ -59,10 +106,12 @@ public class CombatSystem {
         var minDst = Double.MAX_VALUE;
 
         for (var c : candidates) {
-            if (c == source || c.getCurrentHealth() <= 0) continue;
+            if (c == source || c.getCurrentHealth() <= 0)
+                continue;
 
             // Check owner
-            if (source.getOwnerId() != null && source.getOwnerId().equals(c.getOwnerId())) continue;
+            if (source.getOwnerId() != null && source.getOwnerId().equals(c.getOwnerId()))
+                continue;
 
             var dst = getDistance(source, c);
             if (dst < minDst) {
@@ -74,9 +123,6 @@ public class CombatSystem {
     }
 
     private double getDistance(GameUnit u1, GameUnit u2) {
-        // Hex logic or Grid logic? Using Chebyshev distance for 8-way movement on grid,
-        // or Euclidean?
-        // Let's stick to Euclidean for range check, but movement might be Grid.
         return Math.sqrt(Math.pow(u1.getX() - u2.getX(), 2) + Math.pow(u1.getY() - u2.getY(), 2));
     }
 
@@ -88,14 +134,18 @@ public class CombatSystem {
         var newY = mover.getY() + dy;
 
         // Check bounds (0-7)
-        if (newX < 0 || newX > 7 || newY < 0 || newY > 7) return;
+        if (newX < 0 || newX > 7 || newY < 0 || newY > 7)
+            return;
 
         // Check if occupied
-        var occupied =
-                allUnits.stream().anyMatch(u -> u.getCurrentHealth() > 0 && u.getX() == newX && u.getY() == newY);
+        var occupied = allUnits.stream()
+                .anyMatch(u -> u.getCurrentHealth() > 0 && u.getX() == newX && u.getY() == newY);
 
         if (!occupied) {
             mover.setPosition(newX, newY);
         }
+    }
+
+    public record CombatResult(boolean ended, String winnerId) {
     }
 }

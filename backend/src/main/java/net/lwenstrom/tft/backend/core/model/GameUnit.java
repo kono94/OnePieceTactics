@@ -54,4 +54,8 @@ public interface GameUnit {
     long getNextAttackTime();
 
     void setNextAttackTime(long time);
+
+    void savePlanningPosition();
+
+    void restorePlanningPosition();
 }

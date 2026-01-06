@@ -2,6 +2,8 @@
 import { computed, ref } from 'vue'
 import GameCanvas from './GameCanvas.vue'
 import UnitTooltip from './UnitTooltip.vue'
+import PhaseAnnouncement from './PhaseAnnouncement.vue'
+import TraitSidebar from './TraitSidebar.vue'
 
 const props = defineProps<{
   state: any,
@@ -22,6 +24,11 @@ const shopCards = computed(() => {
 
 const benchUnits = computed(() => {
     return myPlayer.value?.bench || []
+})
+
+const myPlayerBoardUnits = computed(() => {
+    if (!myPlayer.value) return []
+    return myPlayer.value.boardUnits || myPlayer.value.board || []
 })
 
 function buyUnit(index: number) {
@@ -80,6 +87,7 @@ const hoveredShopIndex = ref<number|null>(null)
 
 <template>
   <div class="game-interface">
+    <PhaseAnnouncement v-if="state" :phase="state.phase" />
     <template v-if="state">
         <!-- Top Bar -->
         <div class="top-bar" :class="{ 'combat': state.phase === 'COMBAT' }">
@@ -90,7 +98,7 @@ const hoveredShopIndex = ref<number|null>(null)
             <div class="timer-bar-container">
                 <div class="timer-bar-fill" 
                      :style="{ 
-                        width: (state.timeRemainingMs / (state.phase === 'PLANNING' ? 30000 : 20000) * 100) + '%',
+                        width: (state.timeRemainingMs / (state.phase === 'PLANNING' ? 30000 : 60000) * 100) + '%',
                         backgroundColor: state.phase === 'COMBAT' ? '#ef4444' : '#3b82f6'
                      }">
                 </div>
@@ -99,6 +107,7 @@ const hoveredShopIndex = ref<number|null>(null)
 
         <!-- Main Game Area -->
         <div class="main-area">
+            <TraitSidebar v-if="myPlayer" :units="myPlayerBoardUnits" />
             <GameCanvas :state="state" :my-player-id="myPlayer?.playerId" @move="handleBoardMove" />
         </div>
 

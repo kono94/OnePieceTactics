@@ -17,6 +17,7 @@ trigger: always_on
 - Use `var` keyword explicitly for local variables.
 - Prefer **Java Stream API** over imperative loops for collections processing.
 - Use **Records** (`record`) for DTOs and immutable data structures.
+- Run `mvn spotless:apply` after completing a task in /backend folder to format the code
 
 ### Dependency Injection & IoC
 - **Constructor Injection ONLY**.

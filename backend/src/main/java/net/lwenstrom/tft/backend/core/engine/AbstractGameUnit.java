@@ -17,13 +17,28 @@ public abstract class AbstractGameUnit implements GameUnit {
     private final String id = UUID.randomUUID().toString();
     private final String name;
     private final int cost;
-    private final int maxHealth;
-    private final int maxMana;
-    private final int attackDamage;
-    private final int abilityPower;
-    private final int armor;
-    private final int magicResist;
-    private final float attackSpeed;
+
+    @Setter
+    private int maxHealth;
+
+    @Setter
+    private int maxMana;
+
+    @Setter
+    private int attackDamage;
+
+    @Setter
+    private int abilityPower;
+
+    @Setter
+    private int armor;
+
+    @Setter
+    private int magicResist;
+
+    @Setter
+    private float attackSpeed;
+
     private final int range;
 
     @NonNull
@@ -61,5 +76,40 @@ public abstract class AbstractGameUnit implements GameUnit {
     public void setPosition(int x, int y) {
         this.x = x;
         this.y = y;
+    }
+
+    private int planningX = -1;
+    private int planningY = -1;
+
+    // Saved stats for restoration after combat
+    private int savedMaxHealth;
+    private float savedAttackSpeed;
+
+    @Override
+    public void savePlanningPosition() {
+        this.planningX = x;
+        this.planningY = y;
+
+        // Save stats
+        this.savedMaxHealth = maxHealth;
+        this.savedAttackSpeed = attackSpeed;
+    }
+
+    @Override
+    public void restorePlanningPosition() {
+        if (planningX != -1) {
+            this.x = planningX;
+            this.y = planningY;
+        }
+
+        // Restore stats
+        if (savedMaxHealth > 0) {
+            this.maxHealth = savedMaxHealth;
+            // Fully heal after round
+            this.currentHealth = this.maxHealth;
+        }
+        if (savedAttackSpeed > 0) {
+            this.attackSpeed = savedAttackSpeed;
+        }
     }
 }
