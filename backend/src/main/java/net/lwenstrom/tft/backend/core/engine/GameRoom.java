@@ -102,6 +102,41 @@ public class GameRoom {
         updateGameState(timeLeft);
     }
 
+    private void updateGameState(long timeLeft) {
+        var playerStates = new HashMap<String, GameState.PlayerState>();
+        for (var p : players.values()) {
+            playerStates.put(
+                    p.getId(),
+                    new GameState.PlayerState(
+                            p.getId(),
+                            p.getName(),
+                            p.getHealth(),
+                            p.getGold(),
+                            p.getLevel(),
+                            p.getXp(),
+                            p.getNextLevelXp(),
+                            p.getPlace(), // Added
+                            new ArrayList<>(p.getBench()),
+                            new ArrayList<>(p.getBoardUnits()),
+                            new ArrayList<>(), // Active traits not yet implemented
+                            new ArrayList<>(p.getShop())));
+        }
+
+        long totalDuration = (phase == GamePhase.PLANNING) ? PLANNING_DURATION_MS : COMBAT_DURATION_MS;
+
+        this.currentState = new GameState(
+                id,
+                phase.name(),
+                round,
+                Math.max(0, timeLeft),
+                totalDuration,
+                playerStates,
+                new HashMap<>(currentMatchups),
+                new ArrayList<>());
+    }
+
+    // ... startPhase ...
+
     private void startPhase(GamePhase newPhase) {
         // Handle transitions
         if (this.phase == GamePhase.COMBAT && newPhase != GamePhase.COMBAT) {
@@ -109,6 +144,18 @@ public class GameRoom {
             activeCombats.clear();
             currentMatchups.clear();
             players.values().forEach(p -> p.setBoardLocked(false));
+
+            // Check if game ended in the previous tick (handleCombatEnd sets phase to END
+            // if applicable)
+            // But here we are forcefully transitioning.
+            // If we are already in END phase (set by handleCombatEnd), we should probably
+            // stay there or stop.
+            // However, nextPhase() calls startPhase().
+        }
+
+        // If game is over, ensure we don't restart cycles unless reset
+        if (this.phase == GamePhase.END) {
+            // Logic to stop? For now allow re-entry if needed, or just return.
         }
 
         this.phase = newPhase;
@@ -117,7 +164,7 @@ public class GameRoom {
 
         if (newPhase == GamePhase.PLANNING) {
             round++;
-            players.values().forEach(p -> {
+            players.values().stream().filter(p -> p.getHealth() > 0).forEach(p -> { // Only alive players gain resources
                 p.gainGold(5);
                 p.gainXp(2);
                 p.refreshShop();
@@ -129,14 +176,22 @@ public class GameRoom {
         } else if (newPhase == GamePhase.COMBAT) {
             players.values().forEach(p -> p.setBoardLocked(true));
 
-            // Create Pairings
-            List<Player> pList = new ArrayList<>(players.values());
-            java.util.Collections.shuffle(pList);
+            // Create Pairings ONLY for ALIVE players
+            List<Player> alivePlayers = players.values().stream()
+                    .filter(p -> p.getHealth() > 0)
+                    .collect(java.util.stream.Collectors.toList());
 
-            for (int i = 0; i < pList.size(); i += 2) {
-                if (i + 1 < pList.size()) {
-                    Player p1 = pList.get(i);
-                    Player p2 = pList.get(i + 1);
+            java.util.Collections.shuffle(alivePlayers);
+
+            // If 0 or 1 player alive, we probably shouldn't even start combat, or handled
+            // in prev phase?
+            // If 1 player, they fight a clone or just wait? Standard TFT: ghost or wait.
+            // If < 2 players, combat ends immediately in tick().
+
+            for (int i = 0; i < alivePlayers.size(); i += 2) {
+                if (i + 1 < alivePlayers.size()) {
+                    Player p1 = alivePlayers.get(i);
+                    Player p2 = alivePlayers.get(i + 1);
                     List<Player> pair = java.util.List.of(p1, p2);
 
                     currentMatchups.put(p1.getId(), p2.getId());
@@ -146,11 +201,85 @@ public class GameRoom {
                     combatSystem.startCombat(pair);
                     System.out.println("Started combat between " + p1.getName() + " and " + p2.getName());
                 } else {
-                    // Odd player out (Ghost? For now just do nothing or clone)
-                    // Leaving sitting out
-                    System.out.println("Player sitting out: " + pList.get(i).getName());
+                    // Odd player out
+                    System.out.println("Player sitting out: " + alivePlayers.get(i).getName());
                 }
             }
+        }
+    }
+
+    private void handleCombatEnd(boolean isTimeout, CombatSystem.CombatResult result, List<Player> participants) {
+        Player winner = null;
+        boolean draw = false;
+
+        if (isTimeout || result == null) {
+            // Timeout: Winner is player with highest total HP on board
+            int maxHp = -1;
+
+            for (Player p : participants) {
+                int totalHp = p.getBoardUnits().stream()
+                        .mapToInt(net.lwenstrom.tft.backend.core.model.GameUnit::getCurrentHealth)
+                        .sum();
+                if (totalHp > maxHp) {
+                    maxHp = totalHp;
+                    winner = p;
+                    draw = false;
+                } else if (totalHp == maxHp) {
+                    draw = true;
+                }
+            }
+        } else {
+            // Elimination: Use result
+            if (result.winnerId() != null) {
+                winner = players.get(result.winnerId());
+            } else {
+                draw = true;
+            }
+        }
+
+        if (!draw && winner != null) {
+            final Player finalWinner = winner;
+            // Calculate Damage - FIXED 5 HP
+            int damage = 5;
+
+            Player loser = participants.stream()
+                    .filter(p -> !p.getId().equals(finalWinner.getId()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (loser != null) {
+                loser.takeDamage(damage);
+
+                // Check Death
+                if (loser.getHealth() <= 0 && loser.getPlace() == null) {
+                    long livingCount = players.values().stream().filter(p -> p.getHealth() > 0).count();
+                    // If I just died, I am at place (livingCount + 1).
+                    // Wait, livingCount does NOT include me if I am <= 0.
+                    // Example: 8 players. 1 dies. Living=7. Place = 8.
+                    // Example: 2 players. 1 dies. Living=1. Place = 2.
+                    loser.setPlace((int) livingCount + 1);
+                }
+
+                if (eventListener != null) {
+                    var payload = Map.of(
+                            "winnerId", finalWinner.getId(),
+                            "loserId", loser.getId(),
+                            "damageDealt", damage);
+                    // System.out.println("Dispatching COMBAT_RESULT: " + payload);
+                    eventListener.accept(new GameEvent("COMBAT_RESULT", payload));
+                }
+            }
+        }
+
+        // Check Game Over
+        long livingCount = players.values().stream().filter(p -> p.getHealth() > 0).count();
+        if (livingCount <= 1 && players.size() > 1) { // Ensure >1 start so single-player testing doesn't instant-end
+            Player survivor = players.values().stream().filter(p -> p.getHealth() > 0).findFirst().orElse(null);
+            if (survivor != null && survivor.getPlace() == null) {
+                survivor.setPlace(1);
+            }
+            this.phase = GamePhase.END;
+            this.phaseEndTime = System.currentTimeMillis() + 60000; // Stay in END for a while
         }
     }
 
@@ -192,10 +321,10 @@ public class GameRoom {
             int starLevel = (Math.random() < 0.2) ? 2 : 1;
 
             // Adjust stats for star level (simplified logic, similar to Player upgrade)
-            UnitDefinition actualDef = unitDef;
+            net.lwenstrom.tft.backend.core.engine.UnitDefinition actualDef = unitDef;
             if (starLevel == 2) {
                 double scale = 1.8;
-                actualDef = new UnitDefinition(
+                actualDef = new net.lwenstrom.tft.backend.core.engine.UnitDefinition(
                         unitDef.id(),
                         unitDef.name(),
                         unitDef.cost(),
@@ -231,9 +360,6 @@ public class GameRoom {
                 attempts++;
             }
             if (!placed) {
-                // Determine finding nearest empty spot or just put on bench?
-                // For simplicity, put on bench if grid is full/fails (though with max 7 units
-                // and 28 slots, unlikely)
                 bot.getBench().add(unit);
             }
         }
@@ -247,38 +373,6 @@ public class GameRoom {
         refreshBotRoster(bot);
     }
 
-    private void updateGameState(long timeLeft) {
-        var playerStates = new HashMap<String, GameState.PlayerState>();
-        for (var p : players.values()) {
-            playerStates.put(
-                    p.getId(),
-                    new GameState.PlayerState(
-                            p.getId(),
-                            p.getName(),
-                            p.getHealth(),
-                            p.getGold(),
-                            p.getLevel(),
-                            p.getXp(),
-                            p.getNextLevelXp(), // Added for frontend scaling
-                            new ArrayList<>(p.getBench()),
-                            new ArrayList<>(p.getBoardUnits()),
-                            new ArrayList<>(), // Active traits not yet implemented
-                            new ArrayList<>(p.getShop())));
-        }
-
-        long totalDuration = (phase == GamePhase.PLANNING) ? PLANNING_DURATION_MS : COMBAT_DURATION_MS;
-
-        this.currentState = new GameState(
-                id,
-                phase.name(),
-                round,
-                Math.max(0, timeLeft),
-                totalDuration, // Added
-                playerStates,
-                new HashMap<>(currentMatchups),
-                new ArrayList<>());
-    }
-
     public GameState getState() {
         return currentState;
     }
@@ -290,60 +384,6 @@ public class GameRoom {
     }
 
     public record GameEvent(String type, Object payload) {
-    }
-
-    private void handleCombatEnd(boolean isTimeout, CombatSystem.CombatResult result, List<Player> participants) {
-        Player winner = null;
-        boolean draw = false;
-
-        if (isTimeout || result == null) {
-            // Timeout: Winner is player with highest total HP on board
-            int maxHp = -1;
-
-            for (Player p : participants) {
-                int totalHp = p.getBoardUnits().stream()
-                        .mapToInt(net.lwenstrom.tft.backend.core.model.GameUnit::getCurrentHealth)
-                        .sum();
-                if (totalHp > maxHp) {
-                    maxHp = totalHp;
-                    winner = p;
-                    draw = false;
-                } else if (totalHp == maxHp) {
-                    draw = true;
-                }
-            }
-        } else {
-            // Elimination: Use result
-            if (result.winnerId() != null) {
-                winner = players.get(result.winnerId());
-            } else {
-                draw = true;
-            }
-        }
-
-        if (!draw && winner != null) {
-            final Player finalWinner = winner;
-            // Calculate Damage
-            int damage = 2 + finalWinner.getBoardUnits().size();
-
-            Player loser = participants.stream()
-                    .filter(p -> !p.getId().equals(finalWinner.getId()))
-                    .findFirst()
-                    .orElse(null);
-
-            if (loser != null) {
-                loser.takeDamage(damage);
-
-                if (eventListener != null) {
-                    var payload = Map.of(
-                            "winnerId", finalWinner.getId(),
-                            "loserId", loser.getId(),
-                            "damageDealt", damage);
-                    System.out.println("Dispatching COMBAT_RESULT: " + payload);
-                    eventListener.accept(new GameEvent("COMBAT_RESULT", payload));
-                }
-            }
-        }
     }
 
     public enum GamePhase {

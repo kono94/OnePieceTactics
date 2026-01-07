@@ -15,6 +15,7 @@ import net.lwenstrom.tft.backend.core.model.GameUnit;
 public class Player {
     private final String id;
     private String name;
+    private Integer place; // Null if still playing, 1-8 if finished
 
     private int health = 100;
     private int gold = 10; // Starting gold
@@ -53,12 +54,16 @@ public class Player {
     }
 
     public void buyUnit(int shopIndex) {
-        if (shopIndex < 0 || shopIndex >= shop.size()) return;
+        if (shopIndex < 0 || shopIndex >= shop.size())
+            return;
         UnitDefinition def = shop.get(shopIndex);
 
-        if (def == null) return;
-        if (gold < def.cost()) return;
-        if (bench.size() >= MAX_BENCH_SIZE) return;
+        if (def == null)
+            return;
+        if (gold < def.cost())
+            return;
+        if (bench.size() >= MAX_BENCH_SIZE)
+            return;
 
         gold -= def.cost();
         StandardGameUnit newUnit = new StandardGameUnit(def);
@@ -184,16 +189,18 @@ public class Player {
     }
 
     public void moveUnit(String unitId, int x, int y) {
-        if (boardLocked) return;
+        if (boardLocked)
+            return;
         // Validation: 4x7 grid
-        if (y >= 0 && !grid.isValid(x, y)) return;
+        if (y >= 0 && !grid.isValid(x, y))
+            return;
 
-        var benchUnit =
-                bench.stream().filter(u -> u.getId().equals(unitId)).findFirst().orElse(null);
+        var benchUnit = bench.stream().filter(u -> u.getId().equals(unitId)).findFirst().orElse(null);
         if (benchUnit != null) {
             // Bench -> Board
             if (y >= 0 && grid.isEmpty(x, y)) {
-                if (boardUnits.size() >= level) return; // Cap
+                if (boardUnits.size() >= level)
+                    return; // Cap
 
                 bench.remove(benchUnit);
                 grid.placeUnit(benchUnit, x, y);
@@ -207,7 +214,8 @@ public class Player {
             if (boardUnit != null) {
                 // Board -> Bench
                 if (y < 0) {
-                    if (bench.size() >= MAX_BENCH_SIZE) return;
+                    if (bench.size() >= MAX_BENCH_SIZE)
+                        return;
                     grid.removeUnit(boardUnit); // Remove from grid
                     boardUnits.remove(boardUnit);
                     boardUnit.setPosition(-1, -1);

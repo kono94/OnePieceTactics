@@ -4,6 +4,8 @@ import GameCanvas from './GameCanvas.vue'
 import UnitTooltip from './UnitTooltip.vue'
 import PhaseAnnouncement from './PhaseAnnouncement.vue'
 import TraitSidebar from './TraitSidebar.vue'
+import PlayerList from './PlayerList.vue'
+import EndScreen from './EndScreen.vue'
 
 const props = defineProps<{
   state: any,
@@ -16,6 +18,15 @@ const myPlayer = computed(() => {
     if (!props.state?.players) return null
     // Find player by name
     return Object.values(props.state.players).find((p: any) => p.name === props.currentPlayerName) as any
+})
+
+const allPlayers = computed(() => {
+    if (!props.state?.players) return []
+    return Object.values(props.state.players)
+})
+
+const isDead = computed(() => {
+    return myPlayer.value && myPlayer.value.health <= 0
 })
 
 const shopCards = computed(() => {
@@ -88,6 +99,9 @@ const hoveredShopIndex = ref<number|null>(null)
 <template>
   <div class="game-interface">
     <PhaseAnnouncement v-if="state" :phase="state.phase" />
+    <EndScreen v-if="state?.phase === 'END'" :players="allPlayers" :my-player-id="myPlayer?.playerId" />
+
+
     <template v-if="state">
         <!-- Top Bar -->
         <div class="top-bar" :class="{ 'combat': state.phase === 'COMBAT' }">
@@ -106,13 +120,14 @@ const hoveredShopIndex = ref<number|null>(null)
         </div>
 
         <!-- Main Game Area -->
-        <div class="main-area">
+        <div class="main-area" :class="{ 'dead-state': isDead }">
             <TraitSidebar v-if="myPlayer" :units="myPlayerBoardUnits" />
             <GameCanvas :state="state" :my-player-id="myPlayer?.playerId" @move="handleBoardMove" />
+            <PlayerList v-if="state" :players="allPlayers" :my-player-id="myPlayer?.playerId" />
         </div>
 
         <!-- Bottom UI -->
-        <div class="bottom-ui" v-if="myPlayer">
+        <div class="bottom-ui" v-if="myPlayer" :class="{ 'dead-state': isDead }">
             <!-- Player Stats -->
             <div class="stats-panel">
                 <div class="level-info">
@@ -284,6 +299,7 @@ const hoveredShopIndex = ref<number|null>(null)
 }
 
 .main-area {
+    position: relative; /* Added for positioning children like PlayerList */
     flex: 1;
     display: flex;
     justify-content: center;
@@ -500,5 +516,11 @@ const hoveredShopIndex = ref<number|null>(null)
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.dead-state {
+    filter: grayscale(100%) brightness(0.6);
+    pointer-events: none;
+    transition: all 1s ease;
 }
 </style>
