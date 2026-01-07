@@ -2,6 +2,7 @@ package net.lwenstrom.tft.backend.core.engine;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 
 public class CombatSystem {
@@ -65,6 +66,18 @@ public class CombatSystem {
             if (currentTime < unit.getNextAttackTime())
                 continue;
 
+            // Reset active ability flag
+            unit.setActiveAbility(null);
+
+            // Cast Check
+            if (unit.getMaxMana() > 0 && unit.getMana() >= unit.getMaxMana()) {
+                castAbility(unit, allUnits);
+                unit.setMana(0);
+                // Cast Time / Global Cooldown (e.g. 1 second)
+                unit.setNextAttackTime(currentTime + 1000);
+                continue;
+            }
+
             var target = findNearestEnemy(unit, allUnits);
             if (target != null) {
                 var distance = getDistance(unit, target);
@@ -84,9 +97,7 @@ public class CombatSystem {
         // We leave them in the list so they can be revived next round.
         // Combat logic ignores them via getCurrentHealth() <= 0 check.
 
-        long playersWithUnits = participants.stream()
-                .filter(p -> !p.getBoardUnits().isEmpty())
-                .count();
+        long playersWithUnits = participants.stream().filter(p -> !p.getBoardUnits().isEmpty()).count();
 
         if (playersWithUnits <= 1) {
             // Determine winner
@@ -127,6 +138,11 @@ public class CombatSystem {
     }
 
     private void moveTowards(GameUnit mover, GameUnit target, List<GameUnit> allUnits) {
+        // Staggered Movement: Check if enough time passed
+        if (System.currentTimeMillis() < mover.getNextMoveTime()) {
+            return;
+        }
+
         var dx = Integer.compare(target.getX(), mover.getX());
         var dy = Integer.compare(target.getY(), mover.getY());
 
@@ -137,13 +153,84 @@ public class CombatSystem {
         if (newX < 0 || newX > 7 || newY < 0 || newY > 7)
             return;
 
-        // Check if occupied
+        // Check if occupied by any LIVING unit
         var occupied = allUnits.stream()
                 .anyMatch(u -> u.getCurrentHealth() > 0 && u.getX() == newX && u.getY() == newY);
 
         if (!occupied) {
             mover.setPosition(newX, newY);
+            // 500ms delay for staggered movement
+            mover.setNextMoveTime(System.currentTimeMillis() + 500);
         }
+    }
+
+    private void castAbility(GameUnit source, List<GameUnit> allUnits) {
+        AbilityDefinition ability = source.getAbility();
+        if (ability == null)
+            return;
+
+        source.setActiveAbility(ability.name());
+        // System.out.println(source.getName() + " casts " + ability.name() + "!");
+
+        // Scaling: Value * StarLevel
+        int damage = ability.value() * source.getStarLevel(); // Simple scaling
+        // If abilityPower is used, could be: damage * (1 + ap/100.0)
+
+        GameUnit target = findNearestEnemy(source, allUnits);
+        if (target == null && "DMG".equals(ability.type()))
+            return;
+        // Heals might target allies, but assume DMG for now based on requirements.
+
+        String pattern = ability.pattern();
+        switch (pattern) {
+            case "SINGLE" -> {
+                if (target != null) {
+                    target.takeDamage(damage);
+                }
+            }
+            case "LINE_3" -> {
+                if (target != null) {
+                    // Line towards target
+                    int dx = Integer.compare(target.getX(), source.getX());
+                    int dy = Integer.compare(target.getY(), source.getY());
+                    // 3 cells in that direction
+                    for (int i = 1; i <= 3; i++) {
+                        int tx = source.getX() + dx * i;
+                        int ty = source.getY() + dy * i;
+                        final int fX = tx; // effectively final for lambda
+                        final int fY = ty;
+
+                        allUnits.stream()
+                                .filter(u -> u.getX() == fX && u.getY() == fY && u.getCurrentHealth() > 0)
+                                .filter(u -> isEnemy(source, u))
+                                .forEach(u -> u.takeDamage(damage));
+                    }
+                }
+            }
+            case "SURROUND_8" -> {
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dy = -1; dy <= 1; dy++) {
+                        if (dx == 0 && dy == 0)
+                            continue;
+                        int tx = source.getX() + dx;
+                        int ty = source.getY() + dy;
+                        final int fX = tx;
+                        final int fY = ty;
+
+                        allUnits.stream()
+                                .filter(u -> u.getX() == fX && u.getY() == fY && u.getCurrentHealth() > 0)
+                                .filter(u -> isEnemy(source, u))
+                                .forEach(u -> u.takeDamage(damage));
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean isEnemy(GameUnit u1, GameUnit u2) {
+        if (u1.getOwnerId() == null || u2.getOwnerId() == null)
+            return true; // Monster?
+        return !u1.getOwnerId().equals(u2.getOwnerId());
     }
 
     public record CombatResult(boolean ended, String winnerId) {

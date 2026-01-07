@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { Client } from '@stomp/stompjs'
 import Lobby from './components/Lobby.vue'
 import GameInterface from './components/GameInterface.vue'
+import OutcomeOverlay from './components/game/OutcomeOverlay.vue'
 
 const isConnected = ref(false)
 const gameState = ref<any>(null)
@@ -33,11 +34,12 @@ onUnmounted(() => {
     client.value?.deactivate()
 })
 
+const encounterResult = ref<'WON' | 'LOST' | 'DRAW' | null>(null)
+
 const subscribeToRoom = (roomId: string) => {
     if (!client.value || !isConnected.value) return
     
-    // Unsubscribe previous if any? (Not needed for single game session)
-    
+    // Subscribe to state updates
     client.value.subscribe(`/topic/room/${roomId}`, (message) => {
         try {
             gameState.value = JSON.parse(message.body)
@@ -45,6 +47,46 @@ const subscribeToRoom = (roomId: string) => {
             console.error("Failed to parse game state", e)
         }
     })
+
+    // Subscribe to events
+    client.value.subscribe(`/topic/room/${roomId}/event`, (message) => {
+        try {
+            const event = JSON.parse(message.body)
+            console.log("Received Game Event:", event)
+            if (event.type === 'COMBAT_RESULT') {
+                handleCombatResult(event.payload)
+            }
+        } catch (e) {
+            console.error("Failed to parse event", e)
+        }
+    })
+}
+
+const handleCombatResult = (payload: any) => {
+    console.log("Handling Combat Result:", payload)
+    // Determine if I won or lost
+    if (!gameState.value) return
+    
+    // Find my ID
+    const myPlayerEntry = Object.values(gameState.value.players).find((p: any) => p.name === PLAYER_NAME) as any
+    if (!myPlayerEntry) return
+    
+    const myId = myPlayerEntry.playerId
+
+    if (payload.winnerId === myId) {
+        encounterResult.value = 'WON'
+    } else if (payload.loserId === myId) {
+        encounterResult.value = 'LOST'
+    } else {
+        // Maybe a draw or unrelated combat (if >2 players)
+        // If unrelated, ignore.
+        return 
+    }
+
+    // Clear after 2 seconds
+    setTimeout(() => {
+        encounterResult.value = null
+    }, 2000)
 }
 
 const handleCreate = (roomId: string) => {
@@ -98,11 +140,13 @@ const handleGameAction = (action: any) => {
                @create="handleCreate" 
                @join="handleJoin" />
                
-        <GameInterface v-else 
-                       :state="gameState" 
-                       :current-player-name="PLAYER_NAME"
-                       :is-connected="isConnected"
-                       @action="handleGameAction" />
+        <div v-else class="game-container">
+             <GameInterface :state="gameState" 
+                            :current-player-name="PLAYER_NAME"
+                            :is-connected="isConnected"
+                            @action="handleGameAction" />
+             <OutcomeOverlay :type="encounterResult" />
+        </div>
     </template>
   </div>
 </template>

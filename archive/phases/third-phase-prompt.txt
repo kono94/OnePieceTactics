@@ -1,0 +1,25 @@
+Okay, we have a good state of the current applcation.
+
+But we still have some bugs and need more features.
+
+
+1. The combat and combat sync is still broken. The units instantly PORT to another position, stay there and some HP bars are lowered. 
+1.1 Make it so units only move 1 every 0,5 second so the user actually SEEs how the units move during the fight.
+1.2 When units have 0 hp, they do not disappear during combat , and units down look for a new target to hit
+1.3 There is not feedback whether one lost or won the round. It should say like instantly after one player has no units left, or the timer ends and the team with the higher total hp is determined. (But wait for next planning phase, until all fights are resolved, PLANNING and COMBAT phases are synced globally of course
+
+2. The AI only has ther same line up of units, regardless the round or the AI BOT player.
+2.1 Every AI should have a differnt set of units and change it every round
+
+3. Leveling and progression.
+3.1 currently leveling does not have any usage. It should be like in TFT, where lvl 1 you can place 1 unit, level 2 you can place 2 units, level 3 you can place 3 units, etc. Display the current units and the maximum amount of units allowed on your field
+
+4. Come up with a way for units to use abilites. They start at 0 mana each combat. They have a manareg/second. If they reach their "maxMana" they cast their one spell.
+4.1 In the frontend there should be an identifier of the name of the ability for a short time, so one can see that a unit just casted (e.g. "GUM GUM PISTOL") for example for ruffy.
+4.1 Plan that the abilities are different per level. So e.g. ruffy starts offf with gum gum pistol buzt this ability gets replaced by another gum gum attack when ruffy is star level 2.
+4.2 To make it simple. Abilities have to be generic. There should be ability classes like DMG or HEALING and the grids they affect. E.g. gum gum pistol will DEAL X DMG to the one neighbor target opponnent (instead of auto-attacking). Nami can have something like lighitng strike that DEALS X DMG in a straight LINE, hitting all opponent units in 3 grids line (up, top, left, right) for example. Or zorro can have like "360 slash" hitting all 8 neighbours surrounding him. So come up with a generic ability system that can be defined in the unit.json file so it is reusable for other themes (like pokemon)
+
+
+The focus now should be the improvment of the combat system and displayment in the frontend, because this is the most improtant player experience.
+
+Create an implementation plan for each point an create the necessary, very detailed prompts for each of them with additional context, so I can prompt in parallel

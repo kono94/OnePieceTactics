@@ -41,10 +41,23 @@ const renderedUnits = computed(() => {
     }
     
     Object.values(props.state.players).forEach((player: any) => {
+        // Filter: Only show My Units and My Opponent's Units (during combat)
+        // During Planning, only show Mine (unless we implement scouting later)
+        if (player.playerId !== myId) {
+             if (isCombat) {
+                 const oppId = props.state.matchups ? props.state.matchups[myId] : null
+                 if (player.playerId !== oppId) {
+                     return; // Skip irrelevant players
+                 }
+             } else {
+                 return; // In planning, only show me
+             }
+        }
+
         const board = player.boardUnits || player.board
         if (board) {
             allUnits = allUnits.concat(board
-                .filter((u:any) => u.x >= 0 && u.y >= 0)
+                .filter((u:any) => u.x >= 0 && u.y >= 0 && u.currentHealth > 0)
                 .map((u: any) => {
                     let visualX = u.x;
                     let visualY = u.y;
@@ -96,7 +109,8 @@ const getUnitStyle = (unit: any) => {
         borderColor: unit.isMine ? '#10b981' : '#ef4444', 
         borderWidth: '2px',
         borderStyle: 'solid',
-        boxShadow: unit.isMine ? '0 0 10px rgba(16, 185, 129, 0.6)' : 'none'
+        boxShadow: unit.isMine ? '0 0 10px rgba(16, 185, 129, 0.6)' : 'none',
+        zIndex: hoveredUnitId.value === unit.id ? 100 : 10
     }
 }
 
@@ -192,6 +206,82 @@ const onUnitMouseLeave = () => {
     hoveredUnitId.value = null
 }
 
+// Floating Text Logic
+interface FloatingText {
+    id: number
+    x: number
+    y: number
+    text: string
+}
+const castingAnimations = ref<FloatingText[]>([])
+let nextAnimId = 0
+// Track last cast to avoid duplicate inputs if backend sends same state twice (should be fine if activeAbility is transient)
+const lastCastMap = ref<Record<string, string>>({}) 
+
+import { watch } from 'vue'
+
+watch(() => renderedUnits.value, (newUnits) => {
+    newUnits.forEach((u: any) => {
+        if (u.activeAbility) {
+            // Only trigger if not already handled for this exact capability instance?
+            // Since activeAbility is just a name, and we get updates frequently, 
+            // we rely on backend clearing it.
+            // But if we get 2 updates with same 'activeAbility', we might duplicate.
+            // But backend clears it after tick. Ticks are 100ms. Frontend sync might be faster or slower.
+            // To be safe, we can debounce per unit?
+            
+            // Check if we just showed this?
+            // Let's rely on backend clearing it.
+            // But if the "flash" lasts 1 tick, we might see it once.
+            
+            // Note: Since we don't have a unique ID for the CAST event, we might re-trigger if state remains same.
+            // But backend clears it immediately after logic. So next tick it's null.
+            // So as long as we don't process the *same* state object twice...
+            
+            // Let's implement a simple check: activeAbility is transient.
+            // We just push animation.
+            
+            // Deduplication: check if we already have an animation for this unit with same text created recently (< 200ms)
+            // Or just trust the transient nature.
+            
+            // Wait, we need to locate where to spawn text.
+            // u.visualX, u.visualY are grid coords.
+            const x = u.visualX * CELL_SIZE + 30; // Center ish
+            const y = u.visualY * CELL_SIZE; 
+            
+            // Avoid adding duplicate if one exists for this unit recently?
+            // Ideally we'd have a castId.
+            // For now, let's just add it.
+            
+            // We need to NOT add it if we already added it for this 'turn' of data.
+            // But watch triggers on change.
+            // If u.activeAbility changes from null to "Foo", we add.
+            // If it stays "Foo" (lag?), we might add again.
+            // We can check `lastCastMap`.
+            
+            if (lastCastMap.value[u.id] !== u.activeAbility) {
+                 lastCastMap.value[u.id] = u.activeAbility
+                 castingAnimations.value.push({
+                    id: nextAnimId++,
+                    x,
+                    y,
+                    text: u.activeAbility
+                 })
+                 
+                 // Cleanup
+                 setTimeout(() => {
+                    castingAnimations.value.shift() // Remove oldest. 
+                    // Or filter.
+                 }, 1000)
+            }
+        } else {
+            if (lastCastMap.value[u.id]) {
+                delete lastCastMap.value[u.id]
+            }
+        }
+    })
+})
+
 </script>
 
 <template>
@@ -234,12 +324,20 @@ const onUnitMouseLeave = () => {
         <div class="overlays">
              <div class="name-tag enemy" v-if="opponentName">{{ opponentName }}</div>
              <div class="name-tag me" v-if="myPlayerName">{{ myPlayerName }}</div>
+             
+             <!-- Ability Floating Text -->
+             <div v-for="anim in castingAnimations" :key="anim.id"
+                  class="floating-text"
+                  :style="{ left: anim.x + 'px', top: anim.y + 'px' }">
+                  {{ anim.text }}
+             </div>
         </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+/* (Keep existing styles) */
 .board-container {
     display: flex;
     justify-content: center;
@@ -298,7 +396,6 @@ const onUnitMouseLeave = () => {
     z-index: 10;
     pointer-events: auto; 
     background-color: #1e293b; 
-    /* removed border:none to keep the colored border from getStyle */
 }
 .unit.mine {
     cursor: grab;
@@ -310,8 +407,8 @@ const onUnitMouseLeave = () => {
 .unit-img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Changed to cover for better look in circle */
-    border-radius: 50%; /* Ensure image is clipped */
+    object-fit: cover; 
+    border-radius: 50%;
     pointer-events: none;
 }
 
@@ -319,7 +416,7 @@ const onUnitMouseLeave = () => {
     position: absolute;
     top: -8px; 
     left: 0;
-    width: 100%; /* controlled by style width, but container is full width */
+    width: 100%; 
     height: 4px;
     background-color: #ef4444;
     border-radius: 2px;
@@ -363,6 +460,26 @@ const onUnitMouseLeave = () => {
 .name-tag.me {
     bottom: 20px;
     border-left: 4px solid #10b981;
+}
+
+.floating-text {
+    position: absolute;
+    color: #fbbf24; /* Amber */
+    font-weight: bold;
+    font-size: 14px;
+    text-shadow: 0 2px 2px black;
+    pointer-events: none;
+    animation: floatUp 1s ease-out forwards;
+    z-index: 20;
+    width: 100px; /* arbitrary, prevents wrapping too early */
+    text-align: center;
+    transform: translate(-25px, -20px); /* Centerish above unit */
+}
+
+@keyframes floatUp {
+    0% { transform: translate(-25px, -20px); opacity: 0; scale: 0.5; }
+    20% { transform: translate(-25px, -40px); opacity: 1; scale: 1.2; }
+    100% { transform: translate(-25px, -60px); opacity: 0; scale: 1.0; }
 }
 </style>
 

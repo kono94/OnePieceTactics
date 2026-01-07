@@ -98,7 +98,7 @@ const hoveredShopIndex = ref<number|null>(null)
             <div class="timer-bar-container">
                 <div class="timer-bar-fill" 
                      :style="{ 
-                        width: (state.timeRemainingMs / (state.phase === 'PLANNING' ? 30000 : 60000) * 100) + '%',
+                        width: (state.timeRemainingMs / Math.max(1, state.totalPhaseDuration || (state.phase === 'PLANNING' ? 8000 : 20000)) * 100) + '%',
                         backgroundColor: state.phase === 'COMBAT' ? '#ef4444' : '#3b82f6'
                      }">
                 </div>
@@ -117,14 +117,17 @@ const hoveredShopIndex = ref<number|null>(null)
             <div class="stats-panel">
                 <div class="level-info">
                     <div class="level-badge">Lvl {{ myPlayer.level }}</div>
-                    <div class="xp-bar">
-                        <div class="xp-fill" :style="{ width: (myPlayer.xp / 10 * 100) + '%' }"></div>
-                        <span class="xp-text">{{ myPlayer.xp }} / 10 XP</span>
+                    <div class="xp-bar" :title="`XP: ${myPlayer.xp} / ${myPlayer.nextLevelXp || 10}`">
+                        <div class="xp-fill" :style="{ width: (myPlayer.xp / (myPlayer.nextLevelXp || 10) * 100) + '%' }"></div>
+                        <span class="xp-text">{{ myPlayer.xp }} / {{ myPlayer.nextLevelXp || 10 }} XP</span>
                     </div>
                 </div>
                 <div class="gold-info">
                     <span class="gold-amount">{{ myPlayer.gold }}</span>
                     <span class="gold-label">Gold</span>
+                </div>
+                <div class="unit-count" :class="{ 'max-units': myPlayerBoardUnits.length >= myPlayer.level }">
+                     Units: {{ myPlayerBoardUnits.length }} / {{ myPlayer.level }}
                 </div>
                 <button class="xp-btn" @click="buyXp" :disabled="myPlayer.gold < 4">
                     Buy XP (4g)
@@ -354,6 +357,21 @@ const hoveredShopIndex = ref<number|null>(null)
     color: #eab308;
     font-size: 24px;
     font-weight: bold;
+}
+
+
+
+.unit-count {
+    background: rgba(0,0,0,0.3);
+    padding: 5px;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+}
+.unit-count.max-units {
+    color: #ef4444; /* Red warning */
+    border: 1px solid #ef4444;
 }
 
 /* Bench */

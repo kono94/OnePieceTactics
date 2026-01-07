@@ -9,6 +9,7 @@ public record GameState(
                 String phase, // e.g., PLANNING, COMBAT, END
                 long round,
                 long timeRemainingMs,
+                long totalPhaseDuration, // Added for frontend scaling
                 Map<String, PlayerState> players,
                 // For combat phase, simplified representation of board
                 Map<String, String> matchups,
@@ -21,6 +22,7 @@ public record GameState(
                         int gold,
                         int level,
                         int xp,
+                        int nextLevelXp, // Added for frontend scaling
                         List<GameUnit> bench,
                         List<GameUnit> board,
                         List<Trait> activeTraits,

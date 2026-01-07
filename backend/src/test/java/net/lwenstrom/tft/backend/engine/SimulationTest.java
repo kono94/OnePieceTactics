@@ -17,8 +17,8 @@ public class SimulationTest {
         DataLoader dataLoader = new DataLoader(null) {
             @Override
             public List<UnitDefinition> getAllUnits() {
-                return List.of(
-                        new UnitDefinition("1", "TestUnit", 1, 100, 50, 50, 0, 10, 10, 1.0f, 1, List.of("Trait")));
+                return List.of(new UnitDefinition(
+                        "1", "TestUnit", 1, 100, 50, 50, 0, 10, 10, 1.0f, 1, List.of("Trait"), null));
             }
 
             @Override
@@ -76,8 +76,8 @@ public class SimulationTest {
         DataLoader dataLoader = new DataLoader(null) {
             @Override
             public List<UnitDefinition> getAllUnits() {
-                return List.of(
-                        new UnitDefinition("1", "TestUnit", 1, 100, 50, 50, 0, 10, 10, 1.0f, 1, List.of("Trait")));
+                return List.of(new UnitDefinition(
+                        "1", "TestUnit", 1, 100, 50, 50, 0, 10, 10, 1.0f, 1, List.of("Trait"), null));
             }
 
             @Override

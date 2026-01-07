@@ -38,6 +38,12 @@ public class GameController {
         var room = gameEngine.getRoom(request.roomId());
         if (room == null) {
             room = gameEngine.createRoom(request.roomId());
+            // Hook up events
+            final String rid = room.getId();
+            room.setEventListener(event -> {
+                messagingTemplate.convertAndSend("/topic/room/" + rid + "/event", event);
+            });
+
             // Add bots only on creation
             for (int i = 0; i < 7; i++) room.addBot();
         }

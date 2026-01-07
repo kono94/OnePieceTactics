@@ -2,10 +2,9 @@ package net.lwenstrom.tft.backend.core.engine;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.List;
-import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import net.lwenstrom.tft.backend.core.DataLoader;
 import net.lwenstrom.tft.backend.core.model.GameState;
@@ -24,8 +23,8 @@ public class GameRoom {
     private int round = 0;
 
     // Constants
-    private static final long PLANNING_DURATION_MS = 30000;
-    private static final long COMBAT_DURATION_MS = 60000;
+    private static final long PLANNING_DURATION_MS = 8000;
+    private static final long COMBAT_DURATION_MS = 20000;
 
     private final CombatSystem combatSystem = new CombatSystem();
 
@@ -37,7 +36,8 @@ public class GameRoom {
         this.id = id;
         this.dataLoader = dataLoader;
         // Initial dummy state (will be updated)
-        this.currentState = new GameState(id, phase.name(), round, 0, new HashMap<>(), new HashMap<>(),
+        this.currentState = new GameState(id, phase.name(), round, 0, PLANNING_DURATION_MS, new HashMap<>(),
+                new HashMap<>(),
                 new ArrayList<>());
         startPhase(GamePhase.PLANNING);
         updateGameState(PLANNING_DURATION_MS); // Ensure state reflects initial phase
@@ -121,6 +121,10 @@ public class GameRoom {
                 p.gainGold(5);
                 p.gainXp(2);
                 p.refreshShop();
+
+                if (isBot(p)) {
+                    refreshBotRoster(p);
+                }
             });
         } else if (newPhase == GamePhase.COMBAT) {
             players.values().forEach(p -> p.setBoardLocked(true));
@@ -158,18 +162,89 @@ public class GameRoom {
         }
     }
 
+    private boolean isBot(Player p) {
+        return p.getId().startsWith("Bot-") || p.getName().startsWith("Bot-");
+    }
+
+    private void refreshBotRoster(Player bot) {
+        System.out.println("Refreshing roster for " + bot.getName() + " (Round " + round + ")");
+        // 1. Clear current units
+        // Remove from grid
+        for (var u : bot.getBoardUnits()) {
+            bot.getGrid().removeUnit(u);
+        }
+        bot.getBoardUnits().clear();
+        bot.getBench().clear();
+
+        // 2. Determine target unit count based on round (max 7)
+        int targetCount = Math.min(7, (round / 2) + 1);
+        targetCount = Math.max(1, targetCount); // At least 1 unit
+
+        // 3. Select random units
+        var allUnits = dataLoader.getAllUnits();
+        if (allUnits.isEmpty())
+            return;
+
+        for (int i = 0; i < targetCount; i++) {
+            var unitDef = allUnits.get((int) (Math.random() * allUnits.size()));
+
+            // 20% chance for 2-star
+            int starLevel = (Math.random() < 0.2) ? 2 : 1;
+
+            // Adjust stats for star level (simplified logic, similar to Player upgrade)
+            UnitDefinition actualDef = unitDef;
+            if (starLevel == 2) {
+                double scale = 1.8;
+                actualDef = new UnitDefinition(
+                        unitDef.id(),
+                        unitDef.name(),
+                        unitDef.cost(),
+                        (int) (unitDef.maxHealth() * scale),
+                        unitDef.maxMana(),
+                        (int) (unitDef.attackDamage() * scale),
+                        unitDef.abilityPower(),
+                        unitDef.armor(),
+                        unitDef.magicResist(),
+                        unitDef.attackSpeed(),
+                        unitDef.range(),
+                        unitDef.traits(),
+                        unitDef.ability());
+            }
+
+            var unit = new net.lwenstrom.tft.backend.core.engine.StandardGameUnit(actualDef);
+            unit.setOwnerId(bot.getId());
+            unit.setStarLevel(starLevel);
+
+            // 4. Place on grid (Rows 0-3, Cols 0-6)
+            // Try random positions until valid
+            boolean placed = false;
+            int attempts = 0;
+            while (!placed && attempts < 20) {
+                int x = (int) (Math.random() * 7);
+                int y = (int) (Math.random() * 4); // Player area is rows 0-3
+
+                if (bot.getGrid().isValid(x, y) && bot.getGrid().isEmpty(x, y)) {
+                    bot.getGrid().placeUnit(unit, x, y);
+                    bot.getBoardUnits().add(unit);
+                    placed = true;
+                }
+                attempts++;
+            }
+            if (!placed) {
+                // Determine finding nearest empty spot or just put on bench?
+                // For simplicity, put on bench if grid is full/fails (though with max 7 units
+                // and 28 slots, unlikely)
+                bot.getBench().add(unit);
+            }
+        }
+
+        // Scale bot level
+        bot.setLevel(targetCount); // Sync level with unit count for simplicity
+    }
+
     public void addBot() {
         var bot = addPlayer("Bot-" + UUID.randomUUID().toString().substring(0, 4));
-        var allUnits = dataLoader.getAllUnits();
-        if (!allUnits.isEmpty()) {
-            var unitDef = allUnits.get((int) (Math.random() * allUnits.size()));
-            var unit = new net.lwenstrom.tft.backend.core.engine.StandardGameUnit(unitDef);
-            unit.setOwnerId(bot.getId());
-            // Simple random position for bot (on their board half?)
-            // Just putting them randomly for now to ensure they are seen
-            unit.setPosition((int) (Math.random() * 7), (int) (Math.random() * 4));
-            bot.getBoardUnits().add(unit);
-        }
+        refreshBotRoster(bot);
     }
 
     private void updateGameState(long timeLeft) {
@@ -184,17 +259,37 @@ public class GameRoom {
                             p.getGold(),
                             p.getLevel(),
                             p.getXp(),
+                            p.getNextLevelXp(), // Added for frontend scaling
                             new ArrayList<>(p.getBench()),
                             new ArrayList<>(p.getBoardUnits()),
                             new ArrayList<>(), // Active traits not yet implemented
                             new ArrayList<>(p.getShop())));
         }
-        this.currentState = new GameState(id, phase.name(), round, Math.max(0, timeLeft), playerStates,
-                new HashMap<>(currentMatchups), new ArrayList<>());
+
+        long totalDuration = (phase == GamePhase.PLANNING) ? PLANNING_DURATION_MS : COMBAT_DURATION_MS;
+
+        this.currentState = new GameState(
+                id,
+                phase.name(),
+                round,
+                Math.max(0, timeLeft),
+                totalDuration, // Added
+                playerStates,
+                new HashMap<>(currentMatchups),
+                new ArrayList<>());
     }
 
     public GameState getState() {
         return currentState;
+    }
+
+    private java.util.function.Consumer<GameEvent> eventListener;
+
+    public void setEventListener(java.util.function.Consumer<GameEvent> listener) {
+        this.eventListener = listener;
+    }
+
+    public record GameEvent(String type, Object payload) {
     }
 
     private void handleCombatEnd(boolean isTimeout, CombatSystem.CombatResult result, List<Player> participants) {
@@ -231,9 +326,23 @@ public class GameRoom {
             // Calculate Damage
             int damage = 2 + finalWinner.getBoardUnits().size();
 
-            participants.stream()
+            Player loser = participants.stream()
                     .filter(p -> !p.getId().equals(finalWinner.getId()))
-                    .forEach(p -> p.takeDamage(damage));
+                    .findFirst()
+                    .orElse(null);
+
+            if (loser != null) {
+                loser.takeDamage(damage);
+
+                if (eventListener != null) {
+                    var payload = Map.of(
+                            "winnerId", finalWinner.getId(),
+                            "loserId", loser.getId(),
+                            "damageDealt", damage);
+                    System.out.println("Dispatching COMBAT_RESULT: " + payload);
+                    eventListener.accept(new GameEvent("COMBAT_RESULT", payload));
+                }
+            }
         }
     }
 

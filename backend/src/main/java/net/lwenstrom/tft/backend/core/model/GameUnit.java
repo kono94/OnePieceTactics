@@ -2,6 +2,7 @@ package net.lwenstrom.tft.backend.core.model;
 
 import java.util.List;
 import java.util.Set;
+import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
 
 public interface GameUnit {
     String getId();
@@ -55,7 +56,19 @@ public interface GameUnit {
 
     void setNextAttackTime(long time);
 
+    long getNextMoveTime();
+
+    void setNextMoveTime(long time);
+
     void savePlanningPosition();
 
     void restorePlanningPosition();
+
+    AbilityDefinition getAbility();
+
+    String getActiveAbility();
+
+    void setActiveAbility(String abilityName);
+
+    void setMana(int mana);
 }

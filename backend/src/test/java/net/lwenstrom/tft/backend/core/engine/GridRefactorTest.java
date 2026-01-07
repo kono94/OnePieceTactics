@@ -22,7 +22,7 @@ class GridRefactorTest {
     }
 
     private UnitDefinition createDummyDef() {
-        return new UnitDefinition("1", "Dummy", 1, 100, 100, 10, 0, 0, 0, 1.0f, 1, Collections.emptyList());
+        return new UnitDefinition("1", "Dummy", 1, 100, 100, 10, 0, 0, 0, 1.0f, 1, Collections.emptyList(), null);
     }
 
     @Test

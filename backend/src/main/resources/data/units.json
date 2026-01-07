@@ -11,7 +11,16 @@
     "magicResist": 20,
     "attackSpeed": 0.65,
     "range": 1,
-    "traits": ["Straw Hat", "Fighter"]
+    "traits": [
+      "Straw Hat",
+      "Fighter"
+    ],
+    "ability": {
+      "name": "Gum Gum Pistol",
+      "type": "DMG",
+      "pattern": "SINGLE",
+      "value": 200
+    }
   },
   {
     "id": "zoro_v1",
@@ -25,7 +34,16 @@
     "magicResist": 20,
     "attackSpeed": 0.7,
     "range": 1,
-    "traits": ["Straw Hat", "Swordsman"]
+    "traits": [
+      "Straw Hat",
+      "Swordsman"
+    ],
+    "ability": {
+      "name": "360 Pound",
+      "type": "DMG",
+      "pattern": "SURROUND_8",
+      "value": 100
+    }
   },
   {
     "id": "nami_v1",
@@ -39,6 +57,15 @@
     "magicResist": 25,
     "attackSpeed": 0.6,
     "range": 4,
-    "traits": ["Straw Hat", "Navigator"]
+    "traits": [
+      "Straw Hat",
+      "Navigator"
+    ],
+    "ability": {
+      "name": "Thunderbolt",
+      "type": "DMG",
+      "pattern": "LINE_3",
+      "value": 150
+    }
   }
 ]

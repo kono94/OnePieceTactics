@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.lwenstrom.tft.backend.core.model.GameItem;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
+import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
 
 @Getter
 @RequiredArgsConstructor
@@ -17,6 +18,7 @@ public abstract class AbstractGameUnit implements GameUnit {
     private final String id = UUID.randomUUID().toString();
     private final String name;
     private final int cost;
+    private final AbilityDefinition ability;
 
     @Setter
     private int maxHealth;
@@ -111,5 +113,28 @@ public abstract class AbstractGameUnit implements GameUnit {
         if (savedAttackSpeed > 0) {
             this.attackSpeed = savedAttackSpeed;
         }
+    }
+
+    private long nextMoveTime;
+
+    @Override
+    public long getNextMoveTime() {
+        return nextMoveTime;
+    }
+
+    @Override
+    public void setNextMoveTime(long time) {
+        this.nextMoveTime = time;
+    }
+
+    public AbilityDefinition getAbility() {
+        return ability;
+    }
+
+    @Setter
+    private String activeAbility;
+
+    public String getActiveAbility() {
+        return activeAbility;
     }
 }
