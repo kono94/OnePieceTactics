@@ -4,17 +4,18 @@
 > **Main Responsibility**: Managing real-time game state, simulating combat (Auto-Battler), and broadcasting updates to clients via WebSocket.
 
 ## 1. System Overview
-The backend is a monolithic Spring Boot application acting as the authoritative server for the TFT-Clone. It does *not* just CRUD data; it runs a live simulation.
--   **State Management**: All active games are held in-memory within `GameEngine`.
--   **Concurrency**: Uses `ConcurrentHashMap` for rooms/players globally.
--   **Simulation**: A central "Game Loop" ticks every 100ms (10Hz), driving phase transitions and combat logic.
+The backend is a monolithic Spring Boot application acting as the authoritative server for the One Piece TFT-Clone.
+- **State Management**: All active games are held in-memory within the `GameEngine`.
+- **Concurrency**: Uses `ConcurrentHashMap` for rooms/players globally.
+- **Simulation**: A central "Game Loop" ticks every 100ms (10Hz).
+- **Separation of Concerns**: The core engine is theme-agnostic, loading specific data (Luffy, Pirate) from `units.json`.
 
 ## 2. Tech Stack & Standards
--   **Language**: **Java 25** (Preview features enabled: Records, Pattern Matching, Virtual Threads anticipated).
--   **Framework**: **Spring Boot 3.x**
--   **Communication**: **WebSocket (STOMP)** over SockJS fallback.
--   **Data Structures**: Heavy usage of Java Records (`record`) for immutable DTOs and internal state snapshots.
--   **DI Pattern**: Constructor Injection via `lombok.@RequiredArgsConstructor`.
+- **Language**: **Java 25** (Heavy use of `record`, `var`, and Modern Stream API).
+- **Framework**: **Spring Boot 4+** (Latest features).
+- **Communication**: **STOMP WebSockets**.
+- **Build**: **Maven** (with `mvn spotless:apply` for formatting).
+- **DI Pattern**: **Constructor Injection** only, using Lombok `@RequiredArgsConstructor` and `final` fields.
 
 ## 3. Architecture Map
 The application resides in `net.lwenstrom.tft.backend`.
@@ -26,84 +27,59 @@ src/main/java/net/lwenstrom/tft/backend/
 │   └── WebSocketConfig.java      // STOMP Setup (Broker: /topic, App: /app)
 └── core/
     ├── GameController.java       // API Gateway: Handles WS messages & Scheduled Game Loop
-    ├── DataLoader.java           // Static Data loading (Units/Traits JSON)
+    ├── DataLoader.java           // Static Data loading (units.json)
     ├── engine/                   // THE BRAIN (Game Logic)
     │   ├── GameEngine.java       // Singleton Manager of all GameRooms
     │   ├── GameRoom.java         // Instance of a match. Holds State + Players.
-    │   ├── CombatSystem.java     // Logic for calculating damage/movement during COMBAT
-    │   ├── Grid.java             // Hex/Grid logic
-    │   └── Player.java           // Player entity (Gold, XP, Bench, Board)
+    │   ├── CombatSystem.java     // Logic for combat simulation (Ticks, Elimination, Damage)
+    │   ├── Grid.java             // 4x7 grid logic & distance calculations
+    │   ├── TraitManager.java     // Logic for calculating tiered trait bonuses
+    │   └── Player.java           // Player entity (Gold, XP, Health, Hand/Board)
     └── model/                    // THE DATA (DTOs/State)
-        ├── GameState.java        // [Record] The "World State" sent to clients
+        ├── GameState.java        // [Record] The world state snapshot sent to clients
         ├── GameAction.java       // [Record] Incoming commands (BUY, MOVE, etc.)
-        └── GameUnit.java         // Mutable unit instance
+        ├── GameUnit.java         // [Interface] Core unit model
+        └── Trait.java            // [Record] Definition of a trait / origin
 ```
 
 ## 4. The "Game Loop" Explained
-Unlike a standard web app, this server "beats" like a heart.
+The engine runs on a fixed-rate heartbeat:
 
-1.  **Trigger**: `GameController.tick()` is `@Scheduled(fixedRate = 100)`.
-2.  **Flow**: `GameController` -> `GameEngine.tick()` -> `GameRoom.tick()` -> `CombatSystem.simulate()` (if in COMBAT).
-3.  **Phase Management**:
-    -   `GameRoom` tracks time.
-    -   **PLANNING** (30s): Shop open, moving units allowed.
-    -   **COMBAT** (20s): Units move/attack automatically via `CombatSystem`.
-4.  **Broadcast**: Immediately after every tick, the *entire* `GameState` is broadcast to `/topic/room/{roomId}`.
-    -   *Note*: This is "Snapshot Synchronization" (sending the whole state), not just delta updates.
+1. **Trigger**: `GameController.tick()` is `@Scheduled(fixedRate = 100)`.
+2. **Flow**: `GameController` -> `GameEngine.tick()` -> `GameRoom.tick()`.
+3. **Phases**:
+   - **PLANNING** (30s): Board units are moveable. Players gain gold/XP and roll shops.
+   - **COMBAT** (60s): Board units move/attack autonomously. `CombatSystem` simulates each tick.
+4. **Broadcast**: After every tick, the entire `GameState` record is broadcast to `/topic/room/{roomId}` for immediate UI synchronization.
 
 ## 5. API & Event Intermediary
-Communication is primarily asynchronous via WebSocket events.
 
 ### WebSocket Configuration
--   **Endpoint**: `/tft-websocket`
--   **Allowed Origins**: `*` (Dev mode)
+- **STOMP Endpoint**: `/tft-websocket`
+- **Application Prefix**: `/app`
+- **Broker Prefix**: `/topic`
 
-### Channel Structure
-| Channel / Destination | Direction | Payload Type | Description |
+### System Events
+| Destination | Direction | Payload Type | Description |
 | :--- | :--- | :--- | :--- |
-| `/tft-websocket` | Connect | - | Handshake URL |
-| `/topic/room/{roomId}` | **S -> C** | `GameState` (JSON) | The full game state update (10Hz). |
-| `/app/create` | **C -> S** | `RoomRequest` | Create a new room (auto-joins). |
-| `/app/join` | **C -> S** | `RoomRequest` | Join an existing room. |
-| `/app/room/{roomId}/action` | **C -> S** | `GameAction` | Player commands (Buy, Move, Reroll). |
+| `/topic/room/{roomId}` | **S -> C** | `GameState` | 10Hz "World State" broadcast. |
+| `/app/create` | **C -> S** | `RoomRequest` | Initialize a new room + match. |
+| `/app/join` | **C -> S** | `RoomRequest` | Join an existing room via ID. |
+| `/app/room/{roomId}/action`| **C -> S** | `GameAction` | Commands: `BUY`, `REROLL`, `EXP`, `MOVE`. |
 
-### Action Payloads (JSON)
-Incoming `GameAction` must match this structure:
+### Action Specification
 ```json
 {
-  "roomId": "room-123",
-  "playerId": "player-abc",
-  "type": "MOVE",  // Options: BUY, REROLL, EXP, MOVE
-  // Optional Fields based on type:
-  "shopIndex": 0,    // For BUY
-  "unitId": "u-1",   // For MOVE
-  "targetX": 4,      // For MOVE
-  "targetY": 3       // For MOVE
-}
-```
-
-### GameState Payload (JSON)
-The `GameState` record is the Source of Truth for the UI.
-```json
-{
-  "roomId": "...",
-  "phase": "PLANNING", // or COMBAT
-  "round": 1,
-  "timeRemainingMs": 28500,
-  "players": {
-    "player-id": {
-      "health": 100,
-      "gold": 50,
-      "bench": [ ... ],
-      "board": [ ... ],
-      "shop": [ ... ]
-    }
-  }
+  "type": "MOVE",
+  "playerId": "...",
+  "unitId": "...",
+  "targetX": 0,
+  "targetY": 0
 }
 ```
 
 ## 6. Key File Locations
--   **Main Entry**: [BackendApplication.java](file:///home/kono/projects/tft-clone/backend/src/main/java/net/lwenstrom/tft/backend/BackendApplication.java)
--   **Game Loop (Scheduler)**: [GameController.java](file:///home/kono/projects/tft-clone/backend/src/main/java/net/lwenstrom/tft/backend/core/GameController.java)
--   **Room Logic**: [GameRoom.java](file:///home/kono/projects/tft-clone/backend/src/main/java/net/lwenstrom/tft/backend/core/engine/GameRoom.java)
--   **Data Models**: [GameState.java](file:///home/kono/projects/tft-clone/backend/src/main/java/net/lwenstrom/tft/backend/core/model/GameState.java)
+- **Main Entry**: [BackendApplication.java](file:///home/kono/projects/tft-clone/backend/src/main/java/net/lwenstrom/tft/backend/BackendApplication.java)
+- **Scheduler**: [GameController.java](file:///home/kono/projects/tft-clone/backend/src/main/java/net/lwenstrom/tft/backend/core/GameController.java)
+- **State Definition**: [GameState.java](file:///home/kono/projects/tft-clone/backend/src/main/java/net/lwenstrom/tft/backend/core/model/GameState.java)
+- **Game Logic**: [GameRoom.java](file:///home/kono/projects/tft-clone/backend/src/main/java/net/lwenstrom/tft/backend/core/engine/GameRoom.java)
