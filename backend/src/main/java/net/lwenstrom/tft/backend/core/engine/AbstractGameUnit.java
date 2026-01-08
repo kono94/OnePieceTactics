@@ -8,9 +8,9 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
 import net.lwenstrom.tft.backend.core.model.GameItem;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
-import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
 
 @Getter
 @RequiredArgsConstructor

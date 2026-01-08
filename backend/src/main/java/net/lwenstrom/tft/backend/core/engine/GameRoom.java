@@ -36,9 +36,8 @@ public class GameRoom {
         this.id = id;
         this.dataLoader = dataLoader;
         // Initial dummy state (will be updated)
-        this.currentState = new GameState(id, phase.name(), round, 0, PLANNING_DURATION_MS, new HashMap<>(),
-                new HashMap<>(),
-                new ArrayList<>());
+        this.currentState = new GameState(
+                id, phase.name(), round, 0, PLANNING_DURATION_MS, new HashMap<>(), new HashMap<>(), new ArrayList<>());
         startPhase(GamePhase.PLANNING);
         updateGameState(PLANNING_DURATION_MS); // Ensure state reflects initial phase
     }
@@ -164,15 +163,18 @@ public class GameRoom {
 
         if (newPhase == GamePhase.PLANNING) {
             round++;
-            players.values().stream().filter(p -> p.getHealth() > 0).forEach(p -> { // Only alive players gain resources
-                p.gainGold(5);
-                p.gainXp(2);
-                p.refreshShop();
+            players.values().stream()
+                    .filter(p -> p.getHealth() > 0)
+                    .forEach(
+                            p -> { // Only alive players gain resources
+                                p.gainGold(5);
+                                p.gainXp(2);
+                                p.refreshShop();
 
-                if (isBot(p)) {
-                    refreshBotRoster(p);
-                }
-            });
+                                if (isBot(p)) {
+                                    refreshBotRoster(p);
+                                }
+                            });
         } else if (newPhase == GamePhase.COMBAT) {
             players.values().forEach(p -> p.setBoardLocked(true));
 
@@ -202,7 +204,8 @@ public class GameRoom {
                     System.out.println("Started combat between " + p1.getName() + " and " + p2.getName());
                 } else {
                     // Odd player out
-                    System.out.println("Player sitting out: " + alivePlayers.get(i).getName());
+                    System.out.println(
+                            "Player sitting out: " + alivePlayers.get(i).getName());
                 }
             }
         }
@@ -252,7 +255,9 @@ public class GameRoom {
 
                 // Check Death
                 if (loser.getHealth() <= 0 && loser.getPlace() == null) {
-                    long livingCount = players.values().stream().filter(p -> p.getHealth() > 0).count();
+                    long livingCount = players.values().stream()
+                            .filter(p -> p.getHealth() > 0)
+                            .count();
                     // If I just died, I am at place (livingCount + 1).
                     // Wait, livingCount does NOT include me if I am <= 0.
                     // Example: 8 players. 1 dies. Living=7. Place = 8.
@@ -272,9 +277,13 @@ public class GameRoom {
         }
 
         // Check Game Over
-        long livingCount = players.values().stream().filter(p -> p.getHealth() > 0).count();
+        long livingCount =
+                players.values().stream().filter(p -> p.getHealth() > 0).count();
         if (livingCount <= 1 && players.size() > 1) { // Ensure >1 start so single-player testing doesn't instant-end
-            Player survivor = players.values().stream().filter(p -> p.getHealth() > 0).findFirst().orElse(null);
+            Player survivor = players.values().stream()
+                    .filter(p -> p.getHealth() > 0)
+                    .findFirst()
+                    .orElse(null);
             if (survivor != null && survivor.getPlace() == null) {
                 survivor.setPlace(1);
             }
@@ -311,8 +320,7 @@ public class GameRoom {
 
         // 3. Select random units
         var allUnits = dataLoader.getAllUnits();
-        if (allUnits.isEmpty())
-            return;
+        if (allUnits.isEmpty()) return;
 
         for (int i = 0; i < targetCount; i++) {
             var unitDef = allUnits.get((int) (Math.random() * allUnits.size()));
@@ -383,8 +391,7 @@ public class GameRoom {
         this.eventListener = listener;
     }
 
-    public record GameEvent(String type, Object payload) {
-    }
+    public record GameEvent(String type, Object payload) {}
 
     public enum GamePhase {
         PLANNING,

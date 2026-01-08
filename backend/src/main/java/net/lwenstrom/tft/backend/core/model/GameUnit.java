@@ -2,7 +2,6 @@ package net.lwenstrom.tft.backend.core.model;
 
 import java.util.List;
 import java.util.Set;
-import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
 
 public interface GameUnit {
     String getId();

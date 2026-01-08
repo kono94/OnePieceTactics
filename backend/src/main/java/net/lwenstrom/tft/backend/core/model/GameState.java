@@ -5,36 +5,34 @@ import java.util.Map;
 import net.lwenstrom.tft.backend.core.engine.UnitDefinition;
 
 public record GameState(
-                String roomId,
-                String phase, // e.g., PLANNING, COMBAT, END
-                long round,
-                long timeRemainingMs,
-                long totalPhaseDuration, // Added for frontend scaling
-                Map<String, PlayerState> players,
-                // For combat phase, simplified representation of board
-                Map<String, String> matchups,
-                List<CombatEvent> recentEvents) {
+        String roomId,
+        String phase, // e.g., PLANNING, COMBAT, END
+        long round,
+        long timeRemainingMs,
+        long totalPhaseDuration, // Added for frontend scaling
+        Map<String, PlayerState> players,
+        // For combat phase, simplified representation of board
+        Map<String, String> matchups,
+        List<CombatEvent> recentEvents) {
 
-        public record PlayerState(
-                        String playerId,
-                        String name, // Added name for UI
-                        int health,
-                        int gold,
-                        int level,
-                        int xp,
-                        int nextLevelXp, // Added for frontend scaling
-                        Integer place, // Added for game end
-                        List<GameUnit> bench,
-                        List<GameUnit> board,
-                        List<Trait> activeTraits,
-                        List<UnitDefinition> shop) {
-        }
+    public record PlayerState(
+            String playerId,
+            String name, // Added name for UI
+            int health,
+            int gold,
+            int level,
+            int xp,
+            int nextLevelXp, // Added for frontend scaling
+            Integer place, // Added for game end
+            List<GameUnit> bench,
+            List<GameUnit> board,
+            List<Trait> activeTraits,
+            List<UnitDefinition> shop) {}
 
-        public record CombatEvent(
-                        long timestamp,
-                        String type, // DAMAGE, SKILL, DEATH, MOVE
-                        String sourceId,
-                        String targetId,
-                        int value) {
-        }
+    public record CombatEvent(
+            long timestamp,
+            String type, // DAMAGE, SKILL, DEATH, MOVE
+            String sourceId,
+            String targetId,
+            int value) {}
 }
