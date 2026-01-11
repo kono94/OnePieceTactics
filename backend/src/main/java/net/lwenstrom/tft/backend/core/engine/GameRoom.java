@@ -115,6 +115,7 @@ public class GameRoom {
                             p.getXp(),
                             p.getNextLevelXp(),
                             p.getPlace(), // Added
+                            p.getCombatSide(),
                             new ArrayList<>(p.getBench()),
                             new ArrayList<>(p.getBoardUnits()),
                             new ArrayList<>(), // Active traits not yet implemented

@@ -24,6 +24,7 @@ public record GameState(
             int xp,
             int nextLevelXp, // Added for frontend scaling
             Integer place, // Added for game end
+            String combatSide, // "TOP" or "BOTTOM"
             List<GameUnit> bench,
             List<GameUnit> board,
             List<Trait> activeTraits,

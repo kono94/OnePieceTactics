@@ -26,19 +26,29 @@ public class CombatSystem {
         }
 
         if (sortedPlayers.size() > 1) {
-            // Player 2 (Top): Mirror coordinates
+            // Player 1 (Top)
+            Player p1 = sortedPlayers.get(0);
+            p1.setCombatSide("TOP");
+
+            // Player 2 (Bottom): Mirror coordinates
             Player p2 = sortedPlayers.get(1);
+            p2.setCombatSide("BOTTOM");
+
             for (GameUnit u : p2.getBoardUnits()) {
                 // Mirror logic: 4 rows (0-3) become rows 4-7.
                 int newX = 6 - u.getX(); // Mirror horizontal (Cols 0-6)
                 int newY = 7 - u.getY(); // Mirror vertical (Rows 0-3 -> 7-4)
                 u.setPosition(newX, newY);
             }
+        } else {
+            // Single player testing? Treat as Bottom so no flip
+            sortedPlayers.get(0).setCombatSide("BOTTOM");
         }
     }
 
     public void endCombat(java.util.Collection<Player> players) {
         for (Player p : players) {
+            p.setCombatSide(null);
             for (GameUnit u : p.getBoardUnits()) {
                 u.restorePlanningPosition();
             }
@@ -130,6 +140,7 @@ public class CombatSystem {
     }
 
     private double getDistance(GameUnit u1, GameUnit u2) {
+        // Use Euclidean for check, but BFS for path
         return Math.sqrt(Math.pow(u1.getX() - u2.getX(), 2) + Math.pow(u1.getY() - u2.getY(), 2));
     }
 
@@ -139,25 +150,104 @@ public class CombatSystem {
             return;
         }
 
-        var dx = Integer.compare(target.getX(), mover.getX());
-        var dy = Integer.compare(target.getY(), mover.getY());
+        // BFS Pathfinding
+        Point nextStep = findNextStep(mover, target, allUnits);
 
-        var newX = mover.getX() + dx;
-        var newY = mover.getY() + dy;
-
-        // Check bounds (0-7)
-        if (newX < 0 || newX > 7 || newY < 0 || newY > 7) return;
-
-        // Check if occupied by any LIVING unit
-        var occupied =
-                allUnits.stream().anyMatch(u -> u.getCurrentHealth() > 0 && u.getX() == newX && u.getY() == newY);
-
-        if (!occupied) {
-            mover.setPosition(newX, newY);
+        if (nextStep != null) {
+            mover.setPosition(nextStep.x, nextStep.y);
             // 500ms delay for staggered movement
             mover.setNextMoveTime(System.currentTimeMillis() + 500);
         }
     }
+
+    private Point findNextStep(GameUnit start, GameUnit target, List<GameUnit> allUnits) {
+        // Grid size
+        int rows = 8;
+        int cols = 7;
+
+        boolean[][] occupied = new boolean[rows][cols];
+        for (GameUnit u : allUnits) {
+            if (u.getCurrentHealth() > 0 && u != start) { // Treat self as not occupied (obviously)
+                if (u.getX() >= 0 && u.getX() < cols && u.getY() >= 0 && u.getY() < rows) {
+                    occupied[u.getY()][u.getX()] = true;
+                }
+            }
+        }
+        // Target position is occupied, but it is our destination.
+        // We want to reach a neighbor of target.
+        // BFS to find shortest path to "Attack Range" of target.
+        // For simplicity, let's path to any neighbor of target (Range 1).
+        // If unit has range > 1, we could stop earlier, but let's stick to simple
+        // movement.
+        // Actually, if range > 1, pathing to neighbor is "too close" but safe.
+
+        // BFS State
+        var queue = new java.util.ArrayDeque<Point>();
+        var parent = new java.util.HashMap<Point, Point>();
+        var visited = new java.util.HashSet<Point>();
+
+        Point startPt = new Point(start.getX(), start.getY());
+        queue.add(startPt);
+        visited.add(startPt);
+
+        Point foundDest = null;
+
+        while (!queue.isEmpty()) {
+            Point current = queue.poll();
+
+            // Check if this point is in range of target
+            double dist = Math.sqrt(Math.pow(current.x - target.getX(), 2) + Math.pow(current.y - target.getY(), 2));
+            if (dist <= start.getRange()) {
+                // Found a valid position in range!
+                // BUT: We can't actually stop ON an occupied tile unless it's the start tile.
+                // We need to check if 'current' is occupied.
+                // If 'current' is occupied, we can't stand there.
+                // EXCEPTION: If we are already there (startPt).
+                if (current.equals(startPt) || !occupied[current.y][current.x]) {
+                    foundDest = current;
+                    break;
+                }
+            }
+
+            // Neighbors
+            int[] dx = {0, 0, 1, -1};
+            int[] dy = {1, -1, 0, 0};
+
+            for (int i = 0; i < 4; i++) {
+                int nx = current.x + dx[i];
+                int ny = current.y + dy[i];
+
+                if (nx >= 0 && nx < cols && ny >= 0 && ny < rows) {
+                    // Start point is always valid. Other points must be empty.
+                    // Actually, for BFS exploration, we can only walk through empty tiles.
+                    if (!occupied[ny][nx]) {
+                        Point next = new Point(nx, ny);
+                        if (!visited.contains(next)) {
+                            visited.add(next);
+                            parent.put(next, current);
+                            queue.add(next);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (foundDest != null) {
+            // Reconstruct path to find the first step (the one after startPt)
+            Point curr = foundDest;
+            while (curr != null && parent.containsKey(curr) && !parent.get(curr).equals(startPt)) {
+                curr = parent.get(curr);
+            }
+            // If curr is foundDest and parent[curr] is startPt, then curr is the step.
+            // If curr is startPt (already in range), return null (don't move).
+            if (curr.equals(startPt)) return null;
+            return curr;
+        }
+
+        return null; // No path
+    }
+
+    private record Point(int x, int y) {}
 
     private void castAbility(GameUnit source, List<GameUnit> allUnits) {
         AbilityDefinition ability = source.getAbility();

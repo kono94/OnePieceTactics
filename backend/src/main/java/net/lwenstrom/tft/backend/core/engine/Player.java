@@ -16,6 +16,7 @@ public class Player {
     private final String id;
     private String name;
     private Integer place; // Null if still playing, 1-8 if finished
+    private String combatSide; // "TOP" or "BOTTOM" during combat, null otherwise
 
     private int health = 100;
     private int gold = 10; // Starting gold

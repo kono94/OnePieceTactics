@@ -28,15 +28,12 @@ const renderedUnits = computed(() => {
     // How do we know if we are P1 or P2? 
     // We check our units' backend positions. If any of our units is at y < 4, we assume we are P1.
     
-    let amITopPlayer = false
+    // Check explicit combatSide from backend
+    let shouldFlip = false
     if (isCombat && myId) {
-        // Find my units
         const myPlayer = props.state.players[myId]
-        if (myPlayer && myPlayer.board) {
-            const hasTopUnits = myPlayer.board.some((u: any) => u.y < 4)
-            if (hasTopUnits) {
-                amITopPlayer = true
-            }
+        if (myPlayer && myPlayer.combatSide === 'TOP') {
+            shouldFlip = true
         }
     }
     
@@ -45,7 +42,7 @@ const renderedUnits = computed(() => {
         // During Planning, only show Mine (unless we implement scouting later)
         if (player.playerId !== myId) {
              if (isCombat) {
-                 const oppId = props.state.matchups ? props.state.matchups[myId] : null
+                 const oppId = (props.state.matchups && myId) ? props.state.matchups[myId] : null
                  if (player.playerId !== oppId) {
                      return; // Skip irrelevant players
                  }
@@ -66,7 +63,7 @@ const renderedUnits = computed(() => {
                         // If I am the Top player (backend 0-3), I want to see myself at Bottom (4-7).
                         // So I flip everyone.
                         // P1 (y=0) becomes y=7. P2 (y=7) becomes y=0.
-                        if (amITopPlayer) {
+                        if (shouldFlip) {
                             visualX = 6 - u.x;
                             visualY = 7 - u.y;
                         }
