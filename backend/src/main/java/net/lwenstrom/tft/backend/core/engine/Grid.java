@@ -4,13 +4,14 @@ import java.util.Optional;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 
 public class Grid {
-    public static final int ROWS = 4;
     public static final int COLS = 7;
+    public static final int PLAYER_ROWS = 4;
+    public static final int COMBAT_ROWS = PLAYER_ROWS * 2; // 8
 
     private final GameUnit[][] board;
 
     public Grid() {
-        this.board = new GameUnit[ROWS][COLS];
+        this.board = new GameUnit[PLAYER_ROWS][COLS];
     }
 
     public void placeUnit(GameUnit unit, int x, int y) {
@@ -36,7 +37,7 @@ public class Grid {
     }
 
     public boolean isValid(int x, int y) {
-        return y >= 0 && y < ROWS && x >= 0 && x < COLS;
+        return y >= 0 && y < PLAYER_ROWS && x >= 0 && x < COLS;
     }
 
     public boolean isEmpty(int x, int y) {

@@ -278,8 +278,7 @@ public class GameRoom {
         }
 
         // Check Game Over
-        long livingCount =
-                players.values().stream().filter(p -> p.getHealth() > 0).count();
+        long livingCount = players.values().stream().filter(p -> p.getHealth() > 0).count();
         if (livingCount <= 1 && players.size() > 1) { // Ensure >1 start so single-player testing doesn't instant-end
             Player survivor = players.values().stream()
                     .filter(p -> p.getHealth() > 0)
@@ -321,7 +320,8 @@ public class GameRoom {
 
         // 3. Select random units
         var allUnits = dataLoader.getAllUnits();
-        if (allUnits.isEmpty()) return;
+        if (allUnits.isEmpty())
+            return;
 
         for (int i = 0; i < targetCount; i++) {
             var unitDef = allUnits.get((int) (Math.random() * allUnits.size()));
@@ -358,8 +358,8 @@ public class GameRoom {
             boolean placed = false;
             int attempts = 0;
             while (!placed && attempts < 20) {
-                int x = (int) (Math.random() * 7);
-                int y = (int) (Math.random() * 4); // Player area is rows 0-3
+                int x = (int) (Math.random() * Grid.COLS);
+                int y = (int) (Math.random() * Grid.PLAYER_ROWS); // Player area is rows 0-3
 
                 if (bot.getGrid().isValid(x, y) && bot.getGrid().isEmpty(x, y)) {
                     bot.getGrid().placeUnit(unit, x, y);
@@ -392,7 +392,8 @@ public class GameRoom {
         this.eventListener = listener;
     }
 
-    public record GameEvent(String type, Object payload) {}
+    public record GameEvent(String type, Object payload) {
+    }
 
     public enum GamePhase {
         PLANNING,

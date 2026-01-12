@@ -9,9 +9,10 @@ const props = defineProps<{
 
 const emit = defineEmits(['move'])
 
-// 8 Rows x 7 Cols grid
+// Grid Constants
 const GRID_ROWS = 8
 const GRID_COLS = 7
+const PLAYER_ROWS = 4 // Height of one player's board (half of arena)
 
 const renderedUnits = computed(() => {
     if (!props.state || !props.state.players) return []
@@ -19,14 +20,6 @@ const renderedUnits = computed(() => {
     
     const isCombat = props.state.phase === 'COMBAT'
     const myId = props.myPlayerId
-    
-    // Heuristic to detect if we are the "Top" player (Rows 0-3) in combat
-    // If we are, we need to flip the view.
-    // However, the backend mirrors P2 to rows 4-7. 
-    // If I am P2, my units are at 4-7. I want to see them at 4-7 (Bottom). OK.
-    // If I am P1, my units are at 0-3. I want to see them at 4-7 (Bottom). Need Flip.
-    // How do we know if we are P1 or P2? 
-    // We check our units' backend positions. If any of our units is at y < 4, we assume we are P1.
     
     // Check explicit combatSide from backend
     let shouldFlip = false
@@ -38,16 +31,14 @@ const renderedUnits = computed(() => {
     }
     
     Object.values(props.state.players).forEach((player: any) => {
-        // Filter: Only show My Units and My Opponent's Units (during combat)
-        // During Planning, only show Mine (unless we implement scouting later)
         if (player.playerId !== myId) {
              if (isCombat) {
                  const oppId = (props.state.matchups && myId) ? props.state.matchups[myId] : null
                  if (player.playerId !== oppId) {
-                     return; // Skip irrelevant players
+                     return; 
                  }
              } else {
-                 return; // In planning, only show me
+                 return; 
              }
         }
 
@@ -60,18 +51,16 @@ const renderedUnits = computed(() => {
                     let visualY = u.y;
                     
                     if (isCombat) {
-                        // If I am the Top player (backend 0-3), I want to see myself at Bottom (4-7).
-                        // So I flip everyone.
-                        // P1 (y=0) becomes y=7. P2 (y=7) becomes y=0.
+                        // Combat Logic using Constants
                         if (shouldFlip) {
-                            visualX = 6 - u.x;
-                            visualY = 7 - u.y;
+                            visualX = (GRID_COLS - 1) - u.x;
+                            visualY = (GRID_ROWS - 1) - u.y;
                         }
                     } else {
                         // Planning Phase: I see only my units (0-3).
-                        // I want them at 4-7.
+                        // I want them at Bottom (4-7).
                         if (player.playerId === myId) {
-                             visualY = u.y + 4;
+                             visualY = u.y + PLAYER_ROWS;
                         }
                     }
                     
@@ -89,7 +78,6 @@ const renderedUnits = computed(() => {
     return allUnits
 })
 
-const GRID_SIZE = 8
 const CELL_SIZE = 60
 
 // Drag state
@@ -172,8 +160,8 @@ const onDrop = (evt: DragEvent, x: number, y: number) => {
         const unitId = evt.dataTransfer.getData('unitId')
         if (unitId) {
             // Translate Visual Drop Y to Backend Y (Planning Phase)
-            // Visual 4-7 -> Backend 0-3
-            const backendY = y - 4
+            // Visual (PLAYER_ROWS -> GRID_ROWS-1) -> Backend (0 -> PLAYER_ROWS-1)
+            const backendY = y - PLAYER_ROWS
             if (backendY >= 0) {
                  emit('move', { unitId, x, y: backendY })
             }
@@ -284,17 +272,17 @@ watch(() => renderedUnits.value, (newUnits) => {
 <template>
   <div class="board-container">
     <div class="grid" @mouseleave="dragOverCellIndex = -1">
-        <!-- Render Grid Cells as Drop Zones (8 rows x 7 cols = 56 cells) -->
-        <div v-for="i in 56" :key="'cell-'+i" 
+        <!-- Render Grid Cells as Drop Zones -->
+        <div v-for="i in (GRID_ROWS * GRID_COLS)" :key="'cell-'+i" 
              class="cell" 
              :class="{ 
-                'player-half': Math.floor((i-1)/7) >= 4, 
-                'enemy-half': Math.floor((i-1)/7) < 4,
-                'highlight-drop': isDragging && Math.floor((i-1)/7) >= 4,
-                'active-drop': dragOverCellIndex === (i-1) && Math.floor((i-1)/7) >= 4
+                'player-half': Math.floor((i-1)/GRID_COLS) >= PLAYER_ROWS, 
+                'enemy-half': Math.floor((i-1)/GRID_COLS) < PLAYER_ROWS,
+                'highlight-drop': isDragging && Math.floor((i-1)/GRID_COLS) >= PLAYER_ROWS,
+                'active-drop': dragOverCellIndex === (i-1) && Math.floor((i-1)/GRID_COLS) >= PLAYER_ROWS
              }"
              @dragover="(e) => onDragOver(e, i-1)"
-             @drop="(e) => onDrop(e, (i-1)%7, Math.floor((i-1)/7))">
+             @drop="(e) => onDrop(e, (i-1)%GRID_COLS, Math.floor((i-1)/GRID_COLS))">
         </div>
         
         <!-- Render Units -->
@@ -343,8 +331,8 @@ watch(() => renderedUnits.value, (newUnits) => {
 
 .grid {
     position: relative;
-    width: 420px; 
-    height: 480px;
+    width: 420px; /* GRID_COLS * CELL_SIZE */
+    height: 480px; /* GRID_ROWS * CELL_SIZE */
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     grid-template-rows: repeat(8, 1fr);
