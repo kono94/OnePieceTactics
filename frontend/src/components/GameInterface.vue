@@ -314,6 +314,8 @@ const hoveredShopIndex = ref<number|null>(null)
     display: flex;
     padding: 10px 20px;
     gap: 20px;
+    position: relative;
+    z-index: 60; /* Above Grid (50) and PlayerList (40) */
 }
 
 /* Stats Panel */

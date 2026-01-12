@@ -1,0 +1,36 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Straw Hat Design -->
+  <!-- 1. Brim -->
+  <ellipse cx="50" cy="65" rx="48" ry="18" fill="#FACC15" stroke="#EAB308" stroke-width="2"/>
+  
+  <!-- 2. Dome (Back/Main Body) -->
+  <path d="M 25 65 Q 25 20 50 20 Q 75 20 75 65" fill="#FACC15" stroke="#EAB308" stroke-width="2" />
+  
+  <!-- 3. Ribbon -->
+  <path d="M 25 65 Q 25 55 50 55 Q 75 55 75 65 L 75 60 Q 75 50 50 50 Q 25 50 25 60 Z" fill="#EF4444" />
+  
+  <!-- 4. Brim Front overlay (to make dome look like it sits inside/on brim properly) -->
+  <!-- Actually the simple stack above is slightly wrong perspective. 
+       Correct stack: Brim Back -> Dome -> Ribbon -> Brim Front? 
+       No, Brim is a single flat disc. Dome sits on it. 
+       Perspective from slightly above: 
+       1. Full Brim. 
+       2. Dome starts from inner ellipse of brim.
+  -->
+  
+  <!-- Improved Layering -->
+  <!-- Solid Brim -->
+  <ellipse cx="50" cy="70" rx="48" ry="15" fill="#FACC15" stroke="#CA8A04" stroke-width="1.5"/>
+  
+  <!-- Dome -->
+  <path d="M 28 70 C 28 25, 72 25, 72 70" fill="#FACC15" stroke="#CA8A04" stroke-width="1.5"/>
+  
+  <!-- Ribbon Band -->
+  <path d="M 28 68 C 28 60 72 60 72 68 C 72 75 28 75 28 68" fill="none" stroke="#EF4444" stroke-width="10" stroke-linecap="butt" />
+  <!-- Clip ribbon to not exceed dome width visually if needed, but path matches dome base roughly -->
+  
+  <!-- Fix Ribbon visual: Just a thick red stroke following the curve -->
+  <path d="M 29 69 C 29 62, 71 62, 71 69" fill="none" stroke="#EF4444" stroke-width="8" />
+
+  <!-- Texture/Details (Optional) -->
+</svg>

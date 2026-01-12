@@ -113,6 +113,23 @@ const opponentName = computed(() => {
      return p ? p.name : 'Opponent'
 })
 
+const hoveredUnit = computed(() => {
+    if (!hoveredUnitId.value) return null
+    return renderedUnits.value.find((u: any) => u.id === hoveredUnitId.value)
+})
+
+const getTooltipAnchorStyle = (unit: any) => {
+    return {
+        left: (unit.visualX * CELL_SIZE + 5) + 'px',
+        top: (unit.visualY * CELL_SIZE + 5) + 'px',
+        width: '50px',
+        height: '50px',
+        position: 'absolute' as const,
+        zIndex: 1000,
+        pointerEvents: 'none' as const
+    }
+}
+
 const getColor = (id: string) => {
     let hash = 0;
     for (let i = 0; i < id.length; i++) {
@@ -299,11 +316,15 @@ watch(() => renderedUnits.value, (newUnits) => {
             <div class="hp-bar" :style="{ width: (unit.currentHealth / unit.maxHealth * 100) + '%' }"></div>
             <div v-if="unit.maxMana > 0" class="mana-bar" :style="{ width: (unit.mana / unit.maxMana * 100) + '%' }"></div>
             <img :src="unit.image" class="unit-img" :alt="unit.name" />
-            
-            <!-- Tooltip -->
-            <transition name="fade">
-                <UnitTooltip v-if="hoveredUnitId === unit.id" :unit="unit" />
-            </transition>
+        </div>
+
+        <!-- Shared Tooltip Anchor -->
+         <div v-if="hoveredUnit" 
+             class="tooltip-anchor"
+             :style="getTooltipAnchorStyle(hoveredUnit)">
+             <transition name="fade">
+                 <UnitTooltip :unit="hoveredUnit" />
+             </transition>
         </div>
         <!-- Player Names Overlay -->
         <div class="overlays">
@@ -339,6 +360,7 @@ watch(() => renderedUnits.value, (newUnits) => {
     background-color: #1e293b;
     border: 2px solid #555;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    z-index: 50;
 }
 
 .cell {

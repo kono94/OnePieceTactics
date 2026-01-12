@@ -110,6 +110,7 @@ function getHealthBarClass(health) {
     right: 20px;
     top: 10px;
     width: 250px;
+    max-height: calc(100% - 20px); /* Constrain to parent height minus padding */
     background: rgba(15, 23, 42, 0.9);
     border: 1px solid #334155;
     border-radius: 8px;
@@ -137,7 +138,8 @@ function getHealthBarClass(health) {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    max-height: 60vh;
+    flex: 1; /* Fill remaining space */
+    min-height: 0; /* Allow shrinking */
     overflow-y: auto;
 }
 
