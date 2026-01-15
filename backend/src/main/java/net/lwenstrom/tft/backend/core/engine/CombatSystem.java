@@ -13,8 +13,7 @@ public class CombatSystem {
         List<Player> sortedPlayers = new ArrayList<>(players);
         sortedPlayers.sort(java.util.Comparator.comparing(Player::getId));
 
-        if (sortedPlayers.isEmpty())
-            return;
+        if (sortedPlayers.isEmpty()) return;
 
         // Apply Traits per player BEFORE saving/mirroring
         for (Player p : players) {
@@ -80,11 +79,9 @@ public class CombatSystem {
         var snapshot = new ArrayList<>(allUnits);
 
         for (var unit : snapshot) {
-            if (unit.getCurrentHealth() <= 0)
-                continue;
+            if (unit.getCurrentHealth() <= 0) continue;
 
-            if (currentTime < unit.getNextAttackTime())
-                continue;
+            if (currentTime < unit.getNextAttackTime()) continue;
 
             // Reset active ability flag
             unit.setActiveAbility(null);
@@ -117,7 +114,8 @@ public class CombatSystem {
         // We leave them in the list so they can be revived next round.
         // Combat logic ignores them via getCurrentHealth() <= 0 check.
 
-        long playersWithUnits = participants.stream().filter(p -> !p.getBoardUnits().isEmpty()).count();
+        long playersWithUnits =
+                participants.stream().filter(p -> !p.getBoardUnits().isEmpty()).count();
 
         if (playersWithUnits <= 1) {
             // Determine winner
@@ -137,12 +135,10 @@ public class CombatSystem {
         var minDst = Double.MAX_VALUE;
 
         for (var c : candidates) {
-            if (c == source || c.getCurrentHealth() <= 0)
-                continue;
+            if (c == source || c.getCurrentHealth() <= 0) continue;
 
             // Check owner
-            if (source.getOwnerId() != null && source.getOwnerId().equals(c.getOwnerId()))
-                continue;
+            if (source.getOwnerId() != null && source.getOwnerId().equals(c.getOwnerId())) continue;
 
             var dst = getDistance(source, c);
             if (dst < minDst) {
@@ -224,8 +220,8 @@ public class CombatSystem {
             }
 
             // Neighbors
-            int[] dx = { 0, 0, 1, -1 };
-            int[] dy = { 1, -1, 0, 0 };
+            int[] dx = {0, 0, 1, -1};
+            int[] dy = {1, -1, 0, 0};
 
             for (int i = 0; i < 4; i++) {
                 int nx = current.x + dx[i];
@@ -254,21 +250,18 @@ public class CombatSystem {
             }
             // If curr is foundDest and parent[curr] is startPt, then curr is the step.
             // If curr is startPt (already in range), return null (don't move).
-            if (curr.equals(startPt))
-                return null;
+            if (curr.equals(startPt)) return null;
             return curr;
         }
 
         return null; // No path
     }
 
-    private record Point(int x, int y) {
-    }
+    private record Point(int x, int y) {}
 
     private void castAbility(GameUnit source, List<GameUnit> allUnits) {
         AbilityDefinition ability = source.getAbility();
-        if (ability == null)
-            return;
+        if (ability == null) return;
 
         source.setActiveAbility(ability.name());
         // System.out.println(source.getName() + " casts " + ability.name() + "!");
@@ -278,8 +271,7 @@ public class CombatSystem {
         // If abilityPower is used, could be: damage * (1 + ap/100.0)
 
         GameUnit target = findNearestEnemy(source, allUnits);
-        if (target == null && "DMG".equals(ability.type()))
-            return;
+        if (target == null && "DMG".equals(ability.type())) return;
         // Heals might target allies, but assume DMG for now based on requirements.
 
         String pattern = ability.pattern();
@@ -311,8 +303,7 @@ public class CombatSystem {
             case "SURROUND_8" -> {
                 for (int dx = -1; dx <= 1; dx++) {
                     for (int dy = -1; dy <= 1; dy++) {
-                        if (dx == 0 && dy == 0)
-                            continue;
+                        if (dx == 0 && dy == 0) continue;
                         int tx = source.getX() + dx;
                         int ty = source.getY() + dy;
                         final int fX = tx;
@@ -329,11 +320,9 @@ public class CombatSystem {
     }
 
     private boolean isEnemy(GameUnit u1, GameUnit u2) {
-        if (u1.getOwnerId() == null || u2.getOwnerId() == null)
-            return true; // Monster?
+        if (u1.getOwnerId() == null || u2.getOwnerId() == null) return true; // Monster?
         return !u1.getOwnerId().equals(u2.getOwnerId());
     }
 
-    public record CombatResult(boolean ended, String winnerId) {
-    }
+    public record CombatResult(boolean ended, String winnerId) {}
 }
