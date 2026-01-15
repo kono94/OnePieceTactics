@@ -1,78 +1,87 @@
-# FRONTEND_CONTEXT.md
+# Frontend Context & Architecture
 
-## High-Level Summary
-The One Piece TFT Clone frontend is a **Vue.js 3** application acting as a real-time visualizer and input interface for the Java/Spring backend. It follows a strict **Backend Authority** model where the frontend holds no game logic, only rendering the snapshot of the `GameState` received via WebSockets (STOMP). It uses a "God Component" architecture centered around `App.vue` for state management and communication.
+> **Auto-Generated Source of Truth**
+> Please update this file when making significant architectural changes.
 
-## Tech Stack Table
-| Core Library | Version | Role | Status |
+## 1. High-Level Summary
+The frontend is a **Real-Time Auto-Battler Client** built with **Vue 3** and **Vite**. It acts as a visual renderer for the authoritative Java backend.
+
+The application follows a **Single Page Application (SPA)** model but primarily functions as a single "Game View" once connected. The core architecture relies on **Unidirectional Data Flow**: the Backend sends a complete snapshot of the `GameState` via WebSockets (STOMP), which is received by the root `App.vue` and propagated down to child components via props.
+
+## 2. Technology Stack
+
+| Category | Technology | Version | Notes |
 | :--- | :--- | :--- | :--- |
-| **Vue.js** | `^3.4.0` | UI Framework (Composition API + `<script setup>`) | Active |
-| **Vite** | `^5.0.0` | Build Tool & Dev Server | Active |
-| **TypeScript** | `^5.2.0` | Language | Active |
-| **@stomp/stompjs** | `^7.0.0` | WebSocket / Messaging Protocol | Active |
-| **Pinia** | `^2.1.7` | State Management | Installed, **Unused** |
-| **TailwindCSS** | N/A | Utility-first CSS | **Not Installed** (Vanilla CSS used) |
+| **Build Tool** | [Vite](https://vitejs.dev/) | ^5.0.0 | Fast HMR and build. |
+| **Framework** | [Vue.js](https://vuejs.org/) | ^3.4.0 | Using **Composition API** (`<script setup>`). |
+| **Language** | [TypeScript](https://www.typescriptlang.org/) | ^5.2.0 | Strict typing enabled. |
+| **State Management** | Ref (Local) | - | **Pinia** is installed but currently **unused**. State is managed in `App.vue`. |
+| **Networking** | [@stomp/stompjs](https://github.com/stomp-js/stompjs) | ^7.0.0 | WebSocket client for real-time game state sync. |
+| **Styling** | Vanilla CSS | - | **TailwindCSS** is NOT currently implemented. Styles are written in Scoped CSS blocks. |
 
-> **Note**: While project guidelines mention TailwindCSS, the current implementation relies entirely on Vanilla CSS (Global variables in `style.css` + Scoped Component Styles).
+## 3. Directory Structure
 
-## folder-structure.md
 ```text
 frontend/
-├── dist/                   # Production build output
-├── public/                 # Static assets (images, icons)
-├── src/                    # Application source code
-│   ├── components/         # UI Components
-│   │   ├── game/           # In-game specific overlays
-│   │   │   └── OutcomeOverlay.vue # "Victory/Defeat" splash text
-│   │   ├── EndScreen.vue   # Match conclusion screen
-│   │   ├── GameCanvas.vue  # CORE: Grid, Units, Drag & Drop, Animations
-│   │   ├── GameInterface.vue # HUD Wrapper, Shop, XP Bar, Bench
-│   │   ├── Lobby.vue       # Room creation/joining form
-│   │   ├── PhaseAnnouncement.vue # "Planning" / "Combat" transition animations
-│   │   ├── PlayerList.vue  # Right-side leaderboard/player status
-│   │   ├── TraitSidebar.vue # Left-side trait synergies & counters
-│   │   └── UnitTooltip.vue # Hover detail card for units
-│   ├── data/               # Static game data
-│   │   └── traitData.ts    # Trait definitions, icons, and descriptions
-│   ├── App.vue             # ROOT: WebSocket Client, Global State, View Switching
-│   ├── main.ts             # Entry point
-│   ├── style.css           # Global CSS variables & reset
-│   └── env.d.ts            # TS definitions
-├── index.html              # HTML entry
-├── vite.config.ts          # Vite configuration
-└── package.json            # Dependencies
+├── src/
+│   ├── components/            # UI Components
+│   │   ├── game/              # Game-specific sub-components (overlays, etc.)
+│   │   ├── EndScreen.vue      # Game over screen
+│   │   ├── GameCanvas.vue     # The main grid/board renderer
+│   │   ├── GameInterface.vue  # The HUD (Shop, Bench, Stats, Timer)
+│   │   ├── Lobby.vue          # Entry screen (Create/Join room)
+│   │   ├── PhaseAnnouncement.vue # Big text overlays for phase changes
+│   │   ├── PlayerList.vue     # Right-side scoreboard/player list
+│   │   ├── TraitSidebar.vue   # Left-side active traits display
+│   │   └── UnitTooltip.vue    # Hover details for units
+│   ├── data/                  # Static data definitions
+│   │   └── traitData.ts       # Trait metadata (icons, tiers, descriptions)
+│   ├── App.vue                # Root Component & "Smart" Container (WebSocket logic)
+│   ├── main.ts                # Application Entry Point
+│   └── style.css              # Global styles (resets, fonts)
+├── index.html                 # HTML Entry point
+├── package.json               # Dependencies
+├── tsconfig.json              # TypeScript Config
+└── vite.config.ts             # Vite Config
 ```
 
-## Key Architectural Decisions
+## 4. Key Architectural Decisions
 
-### 1. Backend Authority & State
-- **Single Source of Truth**: The Backend is the sole authority. The frontend does not calculate damage, gold interest, or movement.
-- **State Object**: `App.vue` receives a massive JSON `GameState` via `/topic/room/{id}` and replaces the local `gameState` ref entirely or incrementally updates it. This state is prop-drilled down to `GameInterface` -> `GameCanvas`.
+### State Management Strategy
+- **Centralized "Smart" Parent (`App.vue`)**:
+  - The `App.vue` component acts as the Controller. It creates the WebSocket connection and subscribes to the game topic.
+  - It holds the source-of-truth `gameState` object (received from Backend).
+  - It handles all WebSocket publishing (actions like `BUY`, `MOVE`, `REROLL`).
+- **Dumb Components**:
+  - Components like `GameInterface`, `Lobby`, and `GameCanvas` receive `state` as props.
+  - They emit events (e.g., `@action`) back up to `App.vue` to trigger server updates.
+- **Pinia Usage**: While installed, Pinia stores are not currently the primary driver of state. The real-time nature of receiving full snapshots makes local stores less critical vs prop drilling the snapshot.
 
-### 2. Communication Strategy (STOMP)
-- **Centralized Handler**: `App.vue` owns the `Client` instance.
-- **Inbound**:
-    - **State Update**: `/topic/room/{id}` -> Parsed -> Replaces `gameState`.
-    - **Events**: `/topic/room/{id}/event` -> Parsed -> Triggers instant UI effects (e.g., `COMBAT_RESULT` for the Overlay).
-- **Outbound**: Components emit generic `@action` events up to `App.vue`, which publishes to `/app/room/{id}/action`.
+### API & Data Flow
+1.  **Server -> Client**:
+    -   Protocol: STOMP over WebSockets.
+    -   Topic: `/topic/room/{roomId}` (State Updates), `/topic/room/{roomId}/event` (One-off events like Combat Results).
+    -   Handling: `App.vue` parses the JSON payload and updates `gameState.value`.
+2.  **Client -> Server**:
+    -   Components emit events (e.g., `emit('action', { type: 'BUY', ... })`).
+    -   `App.vue` listens to these events and publishes strict JSON commands to `/app/room/{roomId}/action`.
 
-### 3. Component Hierarchy
-- **App.vue**: The "God Component". Manages Connection, Routing (Lobby vs Game).
-- **GameInterface.vue**: Layout orchestrator. Arranges Sidebar, Canvas, and Player List.
-- **GameCanvas.vue**: The heaviest component.
-    - Handles Grid logic (8x7).
-    - **Coordinate Flipping**: Mirrors the grid if the player is "Player 1" (backend y: 0-3) to ensure self is always drawn at the bottom.
-    - **Drag & Drop**: Native HTML5 Drag API. Translates visual drop coordinates back to backend coordinates before emitting.
-    - **Visual Interpolation**: Basic CSS transitions for smoothing, but relies on tick frequency.
+### Styling Approach
+- **Scoped CSS**: Styles are encapsulated within each component's `<style scoped>` block.
+- **Design System**: Currently ad-hoc. Flexbox is heavily used for layout. Colors are manually defined (e.g., `#0f172a` for background).
 
-### 4. Styling & Theming
-- **Approach**: Scoped CSS blocks (`<style scoped>`) in single-file components.
-- **Design System**: None formal. Uses literal hex codes (e.g., `#1e293b`) and ad-hoc transparency.
-- **Assets**: Unit images loaded from `/assets/units/..`.
+## 5. Important File Locations
 
-## Important File Paths
-- **Entry Point**: [main.ts](file:///home/kono/projects/tft-clone/frontend/src/main.ts)
-- **App Controller**: [App.vue](file:///home/kono/projects/tft-clone/frontend/src/App.vue)
-- **Grid & Rendering**: [GameCanvas.vue](file:///home/kono/projects/tft-clone/frontend/src/components/GameCanvas.vue)
-- **Layout Manager**: [GameInterface.vue](file:///home/kono/projects/tft-clone/frontend/src/components/GameInterface.vue)
-- **Combat Overlay**: [OutcomeOverlay.vue](file:///home/kono/projects/tft-clone/frontend/src/components/game/OutcomeOverlay.vue)
+-   **App Entry / State Controller**:
+    `frontend/src/App.vue`
+-   **Main Game HUD**:
+    `frontend/src/components/GameInterface.vue`
+-   **Game Board / Grid Implementation**:
+    `frontend/src/components/GameCanvas.vue`
+-   **WebSocket Client Setup**:
+    Inside `App.vue` (`onMounted` hook).
+
+## 6. Development Notes
+-   **Running**: `npm run dev` starts the Vite server on port 5173 (usually).
+-   **Connecting**: Requires the Backend Spring Boot server running on port 8080.
+-   **Assets**: Images for units (Luffy, Zoro, etc.) are expected in `public/assets/units/`.
