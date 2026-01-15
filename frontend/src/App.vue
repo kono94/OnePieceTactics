@@ -5,6 +5,8 @@ import Lobby from './components/Lobby.vue'
 import GameInterface from './components/GameInterface.vue'
 import OutcomeOverlay from './components/game/OutcomeOverlay.vue'
 
+import { setTraitData } from './data/traitData'
+
 const isConnected = ref(false)
 const gameState = ref<any>(null)
 const client = ref<Client | null>(null)
@@ -16,11 +18,15 @@ const gameTitle = ref('OnePieceTactics')
 const PLAYER_NAME = "Player_" + Math.floor(Math.random() * 10000)
 
 onMounted(async () => {
-    // Fetch Global Config
+    // Fetch Global Config and Traits
     try {
-        const res = await fetch('http://localhost:8080/api/config');
-        if (res.ok) {
-            const data = await res.json();
+        const [configRes, traitsRes] = await Promise.all([
+            fetch('http://localhost:8080/api/config'),
+            fetch('http://localhost:8080/api/traits')
+        ]);
+
+        if (configRes.ok) {
+            const data = await configRes.json();
             const mode = data.gameMode;
             console.log("Global Config Loaded:", mode);
             
@@ -35,8 +41,14 @@ onMounted(async () => {
                 if (link && !link.href.includes('favicon.svg')) link.href = '/favicon.svg';
             }
         }
+
+        if (traitsRes.ok) {
+            const traits = await traitsRes.json();
+            console.log("Traits Loaded:", traits);
+            setTraitData(traits);
+        }
     } catch (e) {
-        console.error("Failed to fetch config", e);
+        console.error("Failed to fetch initial data", e);
     }
 
     client.value = new Client({

@@ -4,21 +4,48 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import net.lwenstrom.tft.backend.core.DataLoader;
+import net.lwenstrom.tft.backend.core.GameModeProvider;
+import net.lwenstrom.tft.backend.core.GameModeRegistry;
+import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 import org.junit.jupiter.api.Test;
 
 class GridRefactorTest {
 
     static class MockDataLoader extends DataLoader {
-        public MockDataLoader() {
-            super(null);
+        public MockDataLoader(GameModeRegistry registry) {
+            super(registry);
         }
 
         @Override
         public java.util.List<UnitDefinition> getAllUnits() {
             return Collections.emptyList();
         }
+    }
+
+    private GameModeRegistry createMockRegistry() {
+        GameModeProvider provider = new GameModeProvider() {
+            @Override
+            public GameMode getMode() {
+                return GameMode.ONEPIECE;
+            }
+
+            @Override
+            public String getUnitsPath() {
+                return "";
+            }
+
+            @Override
+            public String getTraitsPath() {
+                return "";
+            }
+
+            @Override
+            public void registerTraitEffects(TraitManager traitManager) {}
+        };
+        return new GameModeRegistry(List.of(provider), "onepiece");
     }
 
     private UnitDefinition createDummyDef() {
@@ -47,8 +74,9 @@ class GridRefactorTest {
 
     @Test
     void testCombatMerging() {
-        Player p1 = new Player("P1", new MockDataLoader());
-        Player p2 = new Player("P2", new MockDataLoader());
+        GameModeRegistry registry = createMockRegistry();
+        Player p1 = new Player("P1", new MockDataLoader(registry));
+        Player p2 = new Player("P2", new MockDataLoader(registry));
 
         GameUnit u1 = new StandardGameUnit(createDummyDef());
         u1.setOwnerId(p1.getId());

@@ -18,6 +18,6 @@ public class InfoController {
 
     @GetMapping("/config")
     public Map<String, String> getConfig() {
-        return Map.of("gameMode", dataLoader.getGameMode());
+        return Map.of("gameMode", dataLoader.getGameMode().getValue());
     }
 }

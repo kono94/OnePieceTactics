@@ -1,0 +1,59 @@
+[
+    {
+        "id": "fire",
+        "name": "Fire",
+        "type": "origin",
+        "description": "Fire types burn enemies on attack.",
+        "iconColor": "#f97316",
+        "effects": [
+            {
+                "minUnits": 2,
+                "description": "Small burn damage",
+                "style": "bronze"
+            },
+            {
+                "minUnits": 4,
+                "description": "Medium burn damage",
+                "style": "silver"
+            }
+        ]
+    },
+    {
+        "id": "water",
+        "name": "Water",
+        "type": "origin",
+        "description": "Water types gain mana faster.",
+        "iconColor": "#3b82f6",
+        "effects": [
+            {
+                "minUnits": 2,
+                "description": "+20% Mana gen",
+                "style": "bronze"
+            },
+            {
+                "minUnits": 4,
+                "description": "+40% Mana gen",
+                "style": "silver"
+            }
+        ]
+    },
+    {
+        "id": "grass",
+        "name": "Grass",
+        "type": "origin",
+        "description": "Grass types heal over time.",
+        "iconColor": "#22c55e",
+        "effects": [
+            {
+                "minUnits": 2,
+                "description": "Small heal",
+                "style": "bronze"
+            },
+            {
+                "minUnits": 4,
+                "description": "Large heal",
+                "style": "silver"
+            }
+        ]
+    }
+]

@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import net.lwenstrom.tft.backend.core.DataLoader;
+import net.lwenstrom.tft.backend.core.model.GameState.PlayerState;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 
 @Getter
@@ -26,6 +27,7 @@ public class Player {
     // Limits
     private static final int MAX_BENCH_SIZE = 9;
 
+    @Getter
     private final Grid grid = new Grid();
 
     private final List<GameUnit> bench = new ArrayList<>();
@@ -234,5 +236,39 @@ public class Player {
                 }
             }
         }
+    }
+
+    public void removeAllUnits() {
+        new ArrayList<>(boardUnits).forEach(u -> {
+            grid.removeUnit(u);
+            boardUnits.remove(u);
+        });
+    }
+
+    public void addUnitToBoard(UnitDefinition def, int x, int y) {
+        if (boardUnits.size() >= level) return;
+        StandardGameUnit unit = new StandardGameUnit(def);
+        unit.setOwnerId(this.id);
+        if (grid.isValid(x, y) && grid.isEmpty(x, y)) {
+            grid.placeUnit(unit, x, y);
+            boardUnits.add(unit);
+        }
+    }
+
+    public PlayerState toState() {
+        return new PlayerState(
+                id,
+                name,
+                health,
+                gold,
+                level,
+                xp,
+                getNextLevelXp(),
+                place,
+                combatSide,
+                new ArrayList<>(bench),
+                new ArrayList<>(boardUnits),
+                new ArrayList<>(), // TODO: Calculate active traits
+                new ArrayList<>(shop));
     }
 }

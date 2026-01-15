@@ -1,0 +1,88 @@
+[
+    {
+        "id": "straw_hat",
+        "name": "Straw Hat",
+        "type": "origin",
+        "description": "Straw Hats gain Health and Attack Speed.",
+        "iconColor": "#facc15",
+        "effects": [
+            {
+                "minUnits": 2,
+                "description": "+200 HP, +10% AS",
+                "style": "bronze"
+            },
+            {
+                "minUnits": 4,
+                "description": "+400 HP, +25% AS",
+                "style": "silver"
+            },
+            {
+                "minUnits": 6,
+                "description": "+700 HP, +50% AS",
+                "style": "gold"
+            }
+        ]
+    },
+    {
+        "id": "fighter",
+        "name": "Fighter",
+        "type": "class",
+        "description": "Fighters gain bonus Max Health.",
+        "iconColor": "#ef4444",
+        "effects": [
+            {
+                "minUnits": 2,
+                "description": "+150 Health",
+                "style": "bronze"
+            },
+            {
+                "minUnits": 4,
+                "description": "+350 Health",
+                "style": "silver"
+            },
+            {
+                "minUnits": 6,
+                "description": "+700 Health",
+                "style": "gold"
+            }
+        ]
+    },
+    {
+        "id": "swordsman",
+        "name": "Swordsman",
+        "type": "class",
+        "description": "Swordsmen have a chance to trigger 2 extra attacks.",
+        "iconColor": "#94a3b8",
+        "effects": [
+            {
+                "minUnits": 2,
+                "description": "30% chance",
+                "style": "bronze"
+            },
+            {
+                "minUnits": 4,
+                "description": "55% chance",
+                "style": "silver"
+            },
+            {
+                "minUnits": 6,
+                "description": "80% chance",
+                "style": "gold"
+            }
+        ]
+    },
+    {
+        "id": "navigator",
+        "name": "Navigator",
+        "type": "class",
+        "description": "Navigators grant gold at end of combat.",
+        "iconColor": "#3b82f6",
+        "effects": [
+            {
+                "minUnits": 1,
+                "description": "1-3 Gold per round",
+                "style": "gold"
+            }
+        ]
+    }
+]

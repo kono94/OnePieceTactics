@@ -1,47 +1,40 @@
 package net.lwenstrom.tft.backend.core.engine;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.RequiredArgsConstructor;
 import net.lwenstrom.tft.backend.core.DataLoader;
-import org.springframework.stereotype.Component;
+import net.lwenstrom.tft.backend.core.GameModeRegistry;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
+@RequiredArgsConstructor
 public class GameEngine {
 
-    private final Map<String, GameRoom> rooms = new ConcurrentHashMap<>();
     private final DataLoader dataLoader;
-
-    public GameEngine(DataLoader dataLoader) {
-        this.dataLoader = dataLoader;
-    }
-
-    public DataLoader getDataLoader() {
-        return dataLoader;
-    }
+    private final GameModeRegistry gameModeRegistry;
+    private final Map<String, GameRoom> rooms = new ConcurrentHashMap<>();
 
     public GameRoom createRoom() {
-        var room = new GameRoom(dataLoader);
-        rooms.put(room.getId(), room);
-        return room;
+        return createRoom(UUID.randomUUID().toString());
     }
 
     public GameRoom createRoom(String id) {
-        var room = new GameRoom(id, dataLoader);
+        GameRoom room = new GameRoom(id, dataLoader, gameModeRegistry);
         rooms.put(room.getId(), room);
         return room;
     }
 
-    public Collection<GameRoom> getAllRooms() {
-        return Collections.unmodifiableCollection(rooms.values());
+    public GameRoom getRoom(String id) {
+        return rooms.get(id);
     }
 
-    public GameRoom getRoom(String roomId) {
-        return rooms.get(roomId);
+    public Collection<GameRoom> getActiveRooms() {
+        return rooms.values();
     }
 
-    // Engine tick method called by scheduler
     public void tick() {
         rooms.values().forEach(GameRoom::tick);
     }

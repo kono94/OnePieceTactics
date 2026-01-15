@@ -6,15 +6,14 @@ import net.lwenstrom.tft.backend.core.engine.UnitDefinition;
 
 public record GameState(
         String roomId,
-        String phase, // e.g., PLANNING, COMBAT, END
+        GamePhase phase,
         long round,
         long timeRemainingMs,
-        long totalPhaseDuration, // Added for frontend scaling
+        long totalPhaseDuration,
         Map<String, PlayerState> players,
-        // For combat phase, simplified representation of board
         Map<String, String> matchups,
         List<CombatEvent> recentEvents,
-        String gameMode) {
+        GameMode gameMode) {
 
     public record PlayerState(
             String playerId,
