@@ -31,6 +31,11 @@ public class CombatPathingTest {
         }
 
         @Override
+        public String getDefinitionId() {
+            return id;
+        }
+
+        @Override
         public String getName() {
             return "MockUnit";
         }
@@ -178,6 +183,17 @@ public class CombatPathingTest {
 
         @Override
         public void setMana(int mana) {}
+
+        @Override
+        public void setMaxHealth(int maxHealth) {}
+
+        @Override
+        public void setCurrentHealth(int currentHealth) {
+            this.hp = currentHealth;
+        }
+
+        @Override
+        public void setAttackSpeed(float attackSpeed) {}
     }
 
     @Test

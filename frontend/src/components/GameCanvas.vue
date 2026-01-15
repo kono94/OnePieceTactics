@@ -70,7 +70,7 @@ const renderedUnits = computed(() => {
                         visualY,
                         ownerId: player.playerId,
                         isMine: player.playerId === myId,
-                        image: `/assets/units/${u.name === 'Monkey D. Luffy' ? 'luffy_v1' : u.name === 'Roronoa Zoro' ? 'zoro_v1' : 'nami_v1'}.png`
+                        image: `/assets/units/${u.definitionId}.png`
                     }
                 }))
         }

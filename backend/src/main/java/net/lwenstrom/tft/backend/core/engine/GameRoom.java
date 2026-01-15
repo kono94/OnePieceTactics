@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import net.lwenstrom.tft.backend.core.DataLoader;
 import net.lwenstrom.tft.backend.core.model.GameState;
+import net.lwenstrom.tft.backend.game.onepiece.OnePieceTraitLoader;
 
 public class GameRoom {
     private final String id;
@@ -26,7 +27,8 @@ public class GameRoom {
     private static final long PLANNING_DURATION_MS = 8000;
     private static final long COMBAT_DURATION_MS = 20000;
 
-    private final CombatSystem combatSystem = new CombatSystem();
+    private final TraitManager traitManager;
+    private final CombatSystem combatSystem;
 
     public GameRoom(DataLoader dataLoader) {
         this(UUID.randomUUID().toString(), dataLoader);
@@ -35,9 +37,23 @@ public class GameRoom {
     public GameRoom(String id, DataLoader dataLoader) {
         this.id = id;
         this.dataLoader = dataLoader;
+
+        // Initialize Trait Manager based on Mode
+        String mode = dataLoader.getGameMode();
+        this.traitManager = createTraitManager(mode);
+        this.combatSystem = new CombatSystem(traitManager);
+
         // Initial dummy state (will be updated)
         this.currentState = new GameState(
-                id, phase.name(), round, 0, PLANNING_DURATION_MS, new HashMap<>(), new HashMap<>(), new ArrayList<>());
+                id,
+                phase.name(),
+                round,
+                0,
+                PLANNING_DURATION_MS,
+                new HashMap<>(),
+                new HashMap<>(),
+                new ArrayList<>(),
+                mode);
         startPhase(GamePhase.PLANNING);
         updateGameState(PLANNING_DURATION_MS); // Ensure state reflects initial phase
     }
@@ -132,7 +148,8 @@ public class GameRoom {
                 totalDuration,
                 playerStates,
                 new HashMap<>(currentMatchups),
-                new ArrayList<>());
+                new ArrayList<>(),
+                dataLoader.getGameMode());
     }
 
     // ... startPhase ...
@@ -398,5 +415,15 @@ public class GameRoom {
         PLANNING,
         COMBAT,
         END
+    }
+
+    private static TraitManager createTraitManager(String mode) {
+        TraitManager tm = new TraitManager();
+        if ("pokemon".equalsIgnoreCase(mode)) {
+            net.lwenstrom.tft.backend.game.pokemon.PokemonTraitLoader.load(tm);
+        } else {
+            OnePieceTraitLoader.load(tm);
+        }
+        return tm;
     }
 }

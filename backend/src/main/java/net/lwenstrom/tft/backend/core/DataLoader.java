@@ -20,11 +20,15 @@ public class DataLoader {
         this.objectMapper = objectMapper;
     }
 
+    @org.springframework.beans.factory.annotation.Value("${game.mode:onepiece}")
+    private String gameMode;
+
     @PostConstruct
     public void loadData() {
         try {
             // Load units
-            var is = getClass().getResourceAsStream("/data/units.json");
+            String path = "/data/units_" + gameMode + ".json";
+            var is = getClass().getResourceAsStream(path);
             if (is != null) {
                 List<UnitDefinition> units = objectMapper.readValue(is, new TypeReference<>() {});
                 unitRegistry = units.stream().collect(Collectors.toMap(UnitDefinition::id, u -> u));
@@ -44,5 +48,9 @@ public class DataLoader {
 
     public List<UnitDefinition> getAllUnits() {
         return List.copyOf(unitRegistry.values());
+    }
+
+    public String getGameMode() {
+        return gameMode;
     }
 }

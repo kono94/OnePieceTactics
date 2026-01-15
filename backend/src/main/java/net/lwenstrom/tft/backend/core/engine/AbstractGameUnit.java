@@ -16,6 +16,7 @@ import net.lwenstrom.tft.backend.core.model.GameUnit;
 @RequiredArgsConstructor
 public abstract class AbstractGameUnit implements GameUnit {
     private final String id = UUID.randomUUID().toString();
+    private final String definitionId;
     private final String name;
     private final int cost;
     private final AbilityDefinition ability;

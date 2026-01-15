@@ -6,6 +6,8 @@ import java.util.Set;
 public interface GameUnit {
     String getId();
 
+    String getDefinitionId();
+
     String getName();
 
     int getCost();
@@ -58,6 +60,12 @@ public interface GameUnit {
     long getNextMoveTime();
 
     void setNextMoveTime(long time);
+
+    void setMaxHealth(int maxHealth);
+
+    void setCurrentHealth(int currentHealth);
+
+    void setAttackSpeed(float attackSpeed);
 
     void savePlanningPosition();
 

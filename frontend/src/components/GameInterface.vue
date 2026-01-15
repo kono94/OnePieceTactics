@@ -107,6 +107,7 @@ const hoveredShopIndex = ref<number|null>(null)
         <div class="top-bar" :class="{ 'combat': state.phase === 'COMBAT' }">
             <div class="phase-info">
                 <span class="phase-name">{{ state.phase }}</span>
+                <span class="round-name" style="font-size: 12px; opacity: 0.7;">{{ state.gameMode }}</span>
                 <span class="round-name">Round {{ state.round }}</span>
             </div>
             <div class="timer-bar-container">
@@ -166,7 +167,7 @@ const hoveredShopIndex = ref<number|null>(null)
                             @mouseleave="hoveredBenchUnitId = null">
                           
                           <div class="bench-unit-inner">
-                             <img :src="`/assets/units/${benchUnits[i-1].name === 'Monkey D. Luffy' ? 'luffy_v1' : benchUnits[i-1].name === 'Roronoa Zoro' ? 'zoro_v1' : 'nami_v1'}.png`" 
+                             <img :src="`/assets/units/${benchUnits[i-1].definitionId}.png`" 
                                   class="bench-unit-img" />
                           </div>
                           
@@ -190,7 +191,7 @@ const hoveredShopIndex = ref<number|null>(null)
                           @mouseleave="hoveredShopIndex = null">
                           <template v-if="card">
                               <div class="shop-card-inner">
-                                  <img :src="`/assets/units/${card.name === 'Monkey D. Luffy' ? 'luffy_v1' : card.name === 'Roronoa Zoro' ? 'zoro_v1' : 'nami_v1'}.png`" 
+                                  <img :src="`/assets/units/${card.id}.png`" 
                                        class="shop-card-img" />
                                   <div class="shop-card-info">
                                       <div class="cost">{{ card.cost }}</div>

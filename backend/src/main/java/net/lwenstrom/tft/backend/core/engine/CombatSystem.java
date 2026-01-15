@@ -7,7 +7,15 @@ import net.lwenstrom.tft.backend.core.model.GameUnit;
 
 public class CombatSystem {
 
-    private final TraitManager traitManager = new TraitManager();
+    private final TraitManager traitManager;
+
+    public CombatSystem() {
+        this(new TraitManager());
+    }
+
+    public CombatSystem(TraitManager traitManager) {
+        this.traitManager = traitManager;
+    }
 
     public void startCombat(java.util.Collection<Player> players) {
         List<Player> sortedPlayers = new ArrayList<>(players);

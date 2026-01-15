@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
+const props = defineProps<{
+  title: string
+}>()
+
 const createId = ref('')
 const joinId = ref('')
 
@@ -10,7 +14,7 @@ defineEmits(['create', 'join'])
 <template>
   <div class="lobby">
     <div class="title">
-        <h1>One Piece TFT</h1>
+        <h1>{{ title }}</h1>
         <p>Tactical Auto Battler</p>
     </div>
     

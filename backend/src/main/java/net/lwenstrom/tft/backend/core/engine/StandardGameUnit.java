@@ -8,7 +8,7 @@ public class StandardGameUnit extends AbstractGameUnit {
     private long nextAttackTime;
 
     public StandardGameUnit(UnitDefinition def) {
-        super(def.name(), def.cost(), def.ability(), def.range(), new HashSet<>(def.traits()));
+        super(def.id(), def.name(), def.cost(), def.ability(), def.range(), new HashSet<>(def.traits()));
         setMaxHealth(def.maxHealth());
         setMaxMana(def.maxMana());
         setAttackDamage(def.attackDamage());

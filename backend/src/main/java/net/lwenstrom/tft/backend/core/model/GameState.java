@@ -13,7 +13,8 @@ public record GameState(
         Map<String, PlayerState> players,
         // For combat phase, simplified representation of board
         Map<String, String> matchups,
-        List<CombatEvent> recentEvents) {
+        List<CombatEvent> recentEvents,
+        String gameMode) {
 
     public record PlayerState(
             String playerId,

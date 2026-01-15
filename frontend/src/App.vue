@@ -10,11 +10,35 @@ const gameState = ref<any>(null)
 const client = ref<Client | null>(null)
 const currentView = ref<'lobby' | 'game'>('lobby')
 const currentRoomId = ref('')
+const gameTitle = ref('OnePieceTactics')
 
 // Random player name for now
 const PLAYER_NAME = "Player_" + Math.floor(Math.random() * 10000)
 
-onMounted(() => {
+onMounted(async () => {
+    // Fetch Global Config
+    try {
+        const res = await fetch('http://localhost:8080/api/config');
+        if (res.ok) {
+            const data = await res.json();
+            const mode = data.gameMode;
+            console.log("Global Config Loaded:", mode);
+            
+            const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+            if (mode === 'pokemon') {
+                gameTitle.value = 'Pokemon TFT';
+                document.title = 'Pokemon TFT';
+                if (link) link.href = '/pokeball.png';
+            } else {
+                gameTitle.value = 'OnePieceTactics';
+                document.title = 'OnePieceTactics';
+                if (link && !link.href.includes('favicon.svg')) link.href = '/favicon.svg';
+            }
+        }
+    } catch (e) {
+        console.error("Failed to fetch config", e);
+    }
+
     client.value = new Client({
         brokerURL: 'ws://localhost:8080/tft-websocket',
         onConnect: () => {
@@ -43,6 +67,28 @@ const subscribeToRoom = (roomId: string) => {
     client.value.subscribe(`/topic/room/${roomId}`, (message) => {
         try {
             gameState.value = JSON.parse(message.body)
+            
+            // Check Game Mode and Update Title
+            const mode = gameState.value.gameMode;
+            // console.log("Received Game Mode:", mode);
+            
+            const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+            if (mode === 'pokemon') {
+                if (document.title !== 'Pokemon TFT') document.title = 'Pokemon TFT';
+                if (link && !link.href.includes('pokeball.png')) link.href = '/pokeball.png';
+            } else {
+                if (document.title !== 'OnePieceTactics') document.title = 'OnePieceTactics';
+                // Assuming original favicon is favicon.svg or similar. 
+                // index.html said /favicon.svg originally?
+                // Step 187 showed <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+                // Step 217 changed it to pokeball.png.
+                // If we want to support switching back, we should know the OnePiece icon path.
+                // Use /favicon.svg if it exists, or just leave it. 
+                // But user complained it's not working, maybe because index.html is hardcoded to pokeball now?
+                // I will set it to /favicon.svg if not Pokemon.
+                if (link && !link.href.includes('favicon.svg')) link.href = '/favicon.svg';
+            }
+
         } catch (e) {
             console.error("Failed to parse game state", e)
         }
@@ -137,6 +183,7 @@ const handleGameAction = (action: any) => {
     
     <template v-else>
         <Lobby v-if="currentView === 'lobby'" 
+               :title="gameTitle"
                @create="handleCreate" 
                @join="handleJoin" />
                
