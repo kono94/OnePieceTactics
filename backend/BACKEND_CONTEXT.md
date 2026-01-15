@@ -1,128 +1,86 @@
-# Backend Architectural Context
+# Backend Architecture & Context
 
 ## 1. System Overview
-The backend is a **Stateful Game Server** built with **Spring Boot 4** and **Java 25**. It acts as the authoritative source of truth for the "One Piece Tactics" Auto Battler. It manages the game loop, combat simulation, and state synchronization entirely in-memory, without a persistent database for match state.
+The backend is a **Stateful Real-Time Game Server** built with **Spring Boot 3+** and **Java 25**. It serves as the authoritative source of truth for the game, managing all logic, state, and simulation in-memory.
 
-**Core Responsibilities:**
-*   **Game Loop Authority**: Runs a deterministic 10Hz tick loop to drive phases and combat.
-*   **State Management**: Holds the `GameRoom` and `GameState` in memory.
-*   **Real-time Sync**: Pushes full state updates to clients via STOMP WebSockets.
-*   **Combat Simulation**: Resolves auto-battler logic (pathing, attacking, damage) on the server.
+- **Role**: Validates actions, simulates combat, maintains game consistency, and broadcasts state updates.
+- **Persistence**: Short-term in-memory storage (RAM). No database is currently used for match state.
+- **Communication**: Event-driven architecture using **STOMP over WebSockets**.
 
----
-
-## 2. Tech Stack & Standards
-| Component | Technology | Version | Notes |
-| :--- | :--- | :--- | :--- |
-| **Language** | Java | **25** | Uses Preview Features (Records, Pattern Matching) |
-| **Framework** | Spring Boot | **4.0.1** | Latest Spring ecosystem |
-| **Build Tool** | Maven | Latest | Uses `spotless` for formatting |
-| **Communication** | WebSocket | STOMP | `spring-boot-starter-websocket` |
-| **Data Mapping** | Jackson | Latest | JSON serialization |
-| **Boilerplate** | Lombok | Latest | `@RequiredArgsConstructor` for IoC |
-
-**Coding Standards:**
-*   **DTOs**: Use Java `record` exclusively for data transfer (GameState, GameAction).
-*   **Injection**: Constructor Injection (`final` fields + `@RequiredArgsConstructor`).
-*   **State**: In-memory `ConcurrentHashMap` for active rooms.
-*   **Formatting**: Enforced via `mvn spotless:apply`.
-
----
+## 2. Technology Stack
+| Component | Technology | Version |
+| :--- | :--- | :--- |
+| **Language** | Java | 25 (Preview Features) |
+| **Framework** | Spring Boot | 3.x / 4.x |
+| **Build Tool** | Maven | Latest |
+| **Communication** | WebSocket (STOMP) | Spring Messaging |
+| **Concurrency** | Virtual Threads | Implied readiness |
+| **Utilities** | Lombok | Setup |
 
 ## 3. Architecture Map
-The codebase is structured within `net.lwenstrom.tft.backend`:
+The codebase is organized in `net.lwenstrom.tft.backend`:
 
-```text
-backend/
-├── config/
-│   └── WebSocketConfig.java       # STOMP Endpoint configuration
-├── core/
-│   ├── DataLoader.java            # Loads Units/Traits from JSON/Static data
-│   ├── GameController.java        # WebSocket Entrypoint & Main Tick Host
-│   ├── engine/                    # CORE DISPATCHER & LOGIC
-│   │   ├── GameEngine.java        # Service managing multiple GameRooms
-│   │   ├── GameRoom.java          # State Machine for a single match (Phases, Loop)
-│   │   ├── CombatSystem.java      # Combat simulation logic (Pathing, Damage)
-│   │   ├── Player.java            # Player state (Gold, XP, Board logic)
-│   │   └── Grid.java              # 7x8 Hex/Grid logic
-│   └── model/                     # DATA TRANSFER OBJECTS (Records)
-│       ├── GameState.java         # The "Snapshot" sent to frontend
-│       └── GameAction.java        # Incoming commands (Move, Buy, etc.)
-```
+- **`config`**: Configuration classes (e.g., `WebSocketConfig`).
+- **`core`**: The heart of the game engine.
+    - **`GameController`**: The bridge between WebSockets and the Engine. Ticks the loop.
+    - **`DataLoader`**: Loads JSON resources (Units, Traits).
+    - **`engine`**: Contains the simulation logic.
+        - `GameEngine`: Manager of all `GameRoom` instances.
+        - `GameRoom`: Represents a single match execution unit.
+        - `CombatSystem`: Logic for pathfinding, attacking, and damage.
+        - `Player`, `Grid`, `TraitManager`: Core entities.
+    - **`model`**: Immutable Data Transfer Objects (DTOs) and Records.
+        - `GameState`: The specific snapshot sent to clients.
+        - `GameAction`, `GameEvent`: Messages.
+- **`game`**: Theme-specific implementations (e.g., `onepiece`, `pokemon`) that load traits and factories.
+- **`api`**: REST controllers for meta-info (minimal usage).
 
----
+## 4. The Game Loop ("The Pulse")
+The system follows a **Server-Authoritative Tick-Based** model.
 
-## 4. The "Game Loop" Explained
-The game does NOT rely on client-side updating for logic. It is a **Server-Authoritative** loop.
-
-### A. The Tick
-1.  **Driver**: `GameController.java` has a `@Scheduled(fixedRate = 100)` method.
-2.  **Flow**:
-    *   `GameController` -> `GameEngine.tick()` -> `GameRoom.tick()`
-    *   **Planning Phase**: Updates timers. Checks for phase transitions.
-    *   **Combat Phase**: Calls `CombatSystem.simulateTick()` for every active pair of players.
-3.  **Broadcasting**: After *every* 100ms tick, the new `GameState` is broadcast to `/topic/room/{id}`.
-
-### B. State Logic (`GameRoom.java`)
-*   **Phases**: `PLANNING` (Buy/Move units) -> `COMBAT` (Simulation) -> `END`.
-*   **Units**: Stored in `Player.boardUnits` (List). Backend calculates positions.
-*   **Combat**:
-    *   Pairs players randomly.
-    *   Runs simulation ticks (Move -> Attack -> Mana -> Spell).
-    *   If a fight ends, it emits `COMBAT_RESULT` event but waits for all fights to end or timeout before next phase.
-
----
+1.  **The Beat**: `GameController` runs a `@Scheduled` task every **100ms**.
+2.  **Engine Tick**: It calls `gameEngine.tick()`, which iterates over every active `GameRoom`.
+3.  **Room Simulation**:
+    -   Inside `GameRoom.tick()`, the engine checks the **Phase Timer**.
+    -   If in **COMBAT Phase**, it calls `combatSystem.simulateTick()`:
+        -   Units regain mana, move (using BFS/Euclidean heuristic), attack, or cast abilities.
+        -   Damage is applied immediately.
+    -   If Timer expires, it transitions phases (PLANNING <-> COMBAT).
+4.  **Broadcast**: Immediately after the tick, `GameController` pushes the updated `GameState` to the specific room's WebSocket topic.
 
 ## 5. API & Event Intermediary
-Communication is exclusively **STOMP over WebSockets**.
+Communication is strictly **WebSocket-first**. REST is rarely used.
 
-### Connection Details
-*   **Endpoint**: `/tft-websocket`
-*   **Allowed Origins**: `*` (configured for dev)
+### WebSocket Configuration
+- **Broker Endpoint**: `/tft-websocket`
+- **Application Prefix**: `/app` (Client -> Server)
+- **Topic Prefix**: `/topic` (Server -> Client)
 
-### Client -> Server (Commands)
-Sent to `/app/...`.
-| Destination | Payload (JSON) | Description |
-| :--- | :--- | :--- |
-| `/app/create` | `RoomRequest { roomId, playerName }` | Creates a room and adds user |
-| `/app/join` | `RoomRequest { roomId, playerName }` | Joins an existing room |
-| `/app/room/{id}/action` | `GameAction` | Gameplay commands |
+### Message Protocols
 
-**`GameAction` Structure:**
-```json
-{
-  "type": "MOVE",       // BUY, SELL, REROLL, EXP, MOVE
-  "playerId": "...",
-  "unitId": "...",      // For MOVE/SELL
-  "targetX": 0,         // For MOVE
-  "targetY": 0,         // For MOVE
-  "shopIndex": 0        // For BUY
-}
-```
+| Direction | Destination | Type | Payload Structure (JSON) | Note |
+| :--- | :--- | :--- | :--- | :--- |
+| **C -> S** | `/app/create` | Room Setup | `{"roomId": "...", "playerName": "..."}` | Creates or Gets room |
+| **C -> S** | `/app/join` | Room Setup | `{"roomId": "...", "playerName": "..."}` | Joins existing room |
+| **C -> S** | `/app/room/{id}/action` | Gameplay | `{"type": "MOVE|BUY|REROLL|EXP", "playerId": "...", ...}` | See `GameAction` record |
+| **S -> C** | `/topic/room/{id}` | State Sync | `GameState` (Compete JSON Snapshot) | Sent every ~100ms |
+| **S -> C** | `/topic/room/{id}/event` | One-off | `{"type": "COMBAT_RESULT", "payload": {...}}` | For animations/toasts |
 
-### Server -> Client (Updates)
-Subscribed to `/topic/...`.
-| Topic | Payload | Frequency | Description |
-| :--- | :--- | :--- | :--- |
-| `/topic/room/{id}` | `GameState` (JSON) | **10Hz** | Full snapshot of the game. Contains Players, Board, Timer, Phase. |
-| `/topic/room/{id}/event` | `GameEvent` (JSON) | On Occurence | One-off events (e.g., Damage dealt, Match end). |
-
-**`GameEvent` Structure:**
-```json
-{
-  "type": "COMBAT_RESULT",
-  "payload": {
-    "winnerId": "...",
-    "loserId": "...",
-    "damageDealt": 5
-  }
-}
-```
-
----
+### Key Data Structures (Java Records)
+- **GameAction**: `type`, `playerId`, `unitId`, `targetX`, `targetY`, `shopIndex`.
+- **GameState**: `phase`, `round`, `timeRemainingMs`, `players` (Map), `matchups`.
 
 ## 6. Key File Locations
-*   **Main Application**: `src/main/java/net/lwenstrom/tft/backend/BackendApplication.java`
-*   **Game Loop Driver**: `src/main/java/net/lwenstrom/tft/backend/core/GameController.java`
-*   **State Machine**: `src/main/java/net/lwenstrom/tft/backend/core/engine/GameRoom.java`
-*   **Data Models**: `src/main/java/net/lwenstrom/tft/backend/core/model/GameState.java`
+- **Main Entry**: `BackendApplication.java`
+- **Game Loop Driver**: `core/GameController.java`
+- **Room Logic**: `core/engine/GameRoom.java`
+- **Combat Logic**: `core/engine/CombatSystem.java`
+- **State Definition**: `core/model/GameState.java`
+
+## 7. Development Guidelines
+- **Zero Database Dependency**: All state is transient.
+- **Constructor Injection**: Use `@RequiredArgsConstructor` and `final` fields.
+- **Logic Separation**:
+    - **Controllers** handle I/O.
+    - **Rooms** handle Rules.
+    - **Systems** (Combat) handle Math/Simulation.

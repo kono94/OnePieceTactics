@@ -2,6 +2,12 @@
 
 A browser-based auto-battler game inspired by Teamfight Tactics, featuring a replaceable One Piece theme. This project focuses on a clean, abstract core with a simplified combat system and real-time multiplayer interactions.
 
+## Documentation & Context
+For a comprehensive understanding of the codebase, architecture, and developer guidelines, please refer to the context files. These documents serve as the **Source of Truth** for this project:
+
+- **[Backend Context](backend/BACKEND_CONTEXT.md)**: Architecture, Game Loop, APIs, and Java/Spring patterns.
+- **[Frontend Context](frontend/FRONTEND_CONTEXT.md)**: Vue.js structure, State Management, and Component hierarchy.
+
 ## Project Goal
 To create a production-ready, clean, and extensible auto-battler engine in Java, with a modern reactive frontend. The core logic is abstract, allowing the "One Piece" theme to be easily swapped for others (e.g., Pokemon).
 
