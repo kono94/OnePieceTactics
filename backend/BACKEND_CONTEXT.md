@@ -1,7 +1,7 @@
 # Backend Architecture & Context
 
 ## 1. System Overview
-The backend is a **Stateful Real-Time Game Server** built with **Spring Boot 3+** and **Java 25**. It serves as the authoritative source of truth for the game, managing all logic, state, and simulation in-memory.
+The backend is a **Stateful Real-Time Game Server** built with **Spring Boot 4+** and **Java 25**. It serves as the authoritative source of truth for the game, managing all logic, state, and simulation in-memory.
 
 - **Role**: Validates actions, simulates combat, maintains game consistency, and broadcasts state updates.
 - **Persistence**: Short-term in-memory storage (RAM). No database is currently used for match state.
@@ -11,7 +11,7 @@ The backend is a **Stateful Real-Time Game Server** built with **Spring Boot 3+*
 | Component | Technology | Version |
 | :--- | :--- | :--- |
 | **Language** | Java | 25 (Preview Features) |
-| **Framework** | Spring Boot | 3.x / 4.x |
+| **Framework** | Spring Boot | 4.x |
 | **Build Tool** | Maven | Latest |
 | **Communication** | WebSocket (STOMP) | Spring Messaging |
 | **Concurrency** | Virtual Threads | Implied readiness |
