@@ -6,6 +6,7 @@ import net.lwenstrom.tft.backend.core.engine.UnitDefinition;
 
 public record GameState(
         String roomId,
+        String hostId,
         GamePhase phase,
         long round,
         long timeRemainingMs,

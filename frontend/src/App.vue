@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { Client } from '@stomp/stompjs'
 import Lobby from './components/Lobby.vue'
+import WaitingRoom from './components/WaitingRoom.vue'
 import GameInterface from './components/GameInterface.vue'
 import OutcomeOverlay from './components/game/OutcomeOverlay.vue'
 
@@ -13,6 +14,8 @@ const client = ref<Client | null>(null)
 const currentView = ref<'lobby' | 'game'>('lobby')
 const currentRoomId = ref('')
 const gameTitle = ref('OnePieceTactics')
+const roomSubscription = ref<any>(null)
+const eventSubscription = ref<any>(null)
 
 // Random player name for now
 const PLAYER_NAME = "Player_" + Math.floor(Math.random() * 10000)
@@ -75,8 +78,18 @@ const encounterResult = ref<'WON' | 'LOST' | 'DRAW' | null>(null)
 const subscribeToRoom = (roomId: string) => {
     if (!client.value || !isConnected.value) return
     
+    // Unsubscribe from previous if exists
+    if (roomSubscription.value) {
+        roomSubscription.value.unsubscribe()
+        roomSubscription.value = null
+    }
+    if (eventSubscription.value) {
+        eventSubscription.value.unsubscribe()
+        eventSubscription.value = null
+    }
+    
     // Subscribe to state updates
-    client.value.subscribe(`/topic/room/${roomId}`, (message) => {
+    roomSubscription.value = client.value.subscribe(`/topic/room/${roomId}`, (message) => {
         try {
             gameState.value = JSON.parse(message.body)
             
@@ -90,14 +103,6 @@ const subscribeToRoom = (roomId: string) => {
                 if (link && !link.href.includes('pokeball.png')) link.href = '/pokeball.png';
             } else {
                 if (document.title !== 'OnePieceTactics') document.title = 'OnePieceTactics';
-                // Assuming original favicon is favicon.svg or similar. 
-                // index.html said /favicon.svg originally?
-                // Step 187 showed <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-                // Step 217 changed it to pokeball.png.
-                // If we want to support switching back, we should know the OnePiece icon path.
-                // Use /favicon.svg if it exists, or just leave it. 
-                // But user complained it's not working, maybe because index.html is hardcoded to pokeball now?
-                // I will set it to /favicon.svg if not Pokemon.
                 if (link && !link.href.includes('favicon.svg')) link.href = '/favicon.svg';
             }
 
@@ -107,7 +112,7 @@ const subscribeToRoom = (roomId: string) => {
     })
 
     // Subscribe to events
-    client.value.subscribe(`/topic/room/${roomId}/event`, (message) => {
+    eventSubscription.value = client.value.subscribe(`/topic/room/${roomId}/event`, (message) => {
         try {
             const event = JSON.parse(message.body)
             console.log("Received Game Event:", event)
@@ -185,6 +190,41 @@ const handleGameAction = (action: any) => {
     })
 }
 
+const handleStartGame = () => {
+    console.log("handleStartGame called");
+    if (!client.value || !isConnected.value) {
+        console.error("Cannot start game: Disconnected");
+        return;
+    }
+    console.log("Publishing /app/start for room:", currentRoomId.value);
+    client.value.publish({
+        destination: '/app/start',
+        body: JSON.stringify({ roomId: currentRoomId.value, playerName: PLAYER_NAME })
+    })
+}
+
+const handleLeaveLobby = () => {
+    if (client.value && isConnected.value) {
+        client.value.publish({
+            destination: '/app/leave',
+            body: JSON.stringify({ roomId: currentRoomId.value, playerName: PLAYER_NAME })
+        })
+    }
+    
+    if (roomSubscription.value) {
+        roomSubscription.value.unsubscribe()
+        roomSubscription.value = null
+    }
+    if (eventSubscription.value) {
+        eventSubscription.value.unsubscribe()
+        eventSubscription.value = null
+    }
+    
+    currentView.value = 'lobby'
+    gameState.value = null
+    currentRoomId.value = ''
+}
+
 </script>
 
 <template>
@@ -200,11 +240,21 @@ const handleGameAction = (action: any) => {
                @join="handleJoin" />
                
         <div v-else class="game-container">
-             <GameInterface :state="gameState" 
-                            :current-player-name="PLAYER_NAME"
-                            :is-connected="isConnected"
-                            @action="handleGameAction" />
-             <OutcomeOverlay :type="encounterResult" />
+             <!-- If in LOBBY phase, show WaitingRoom -->
+             <WaitingRoom v-if="gameState && gameState.phase === 'LOBBY'"
+                          :game-state="gameState"
+                          :current-player-name="PLAYER_NAME"
+                          @start="handleStartGame"
+                          @leave="handleLeaveLobby" />
+                          
+             <!-- Otherwise show GameInterface -->
+             <template v-else>
+                 <GameInterface :state="gameState" 
+                                :current-player-name="PLAYER_NAME"
+                                :is-connected="isConnected"
+                                @action="handleGameAction" />
+                 <OutcomeOverlay :type="encounterResult" />
+             </template>
         </div>
     </template>
   </div>

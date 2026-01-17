@@ -18,6 +18,7 @@ import net.lwenstrom.tft.backend.core.model.GameState.PlayerState;
 
 public class GameRoom {
     private final String id;
+    private String hostId;
     private GameState currentState;
 
     private final DataLoader dataLoader;
@@ -25,15 +26,15 @@ public class GameRoom {
     private final Map<String, String> currentMatchups = new ConcurrentHashMap<>();
     private final List<List<Player>> activeCombats = new ArrayList<>();
 
-    private GamePhase phase = GamePhase.PLANNING;
+    private GamePhase phase = GamePhase.LOBBY;
     private long phaseEndTime;
     private int round = 0;
 
     private Consumer<Object> eventListener;
 
     // Constants
-    private static final long PLANNING_DURATION_MS = 60000;
-    private static final long COMBAT_DURATION_MS = 30000;
+    // Constants
+    private long currentPhaseDuration;
 
     private final GameModeRegistry gameModeRegistry;
     private final TraitManager traitManager;
@@ -48,22 +49,22 @@ public class GameRoom {
         gameModeRegistry.getActiveProvider().registerTraitEffects(this.traitManager);
         this.combatSystem = new CombatSystem(traitManager);
 
-        this.round = 1;
+        this.round = 0;
 
         this.currentState = new GameState(
                 id,
+                null,
                 phase,
                 round,
                 0,
-                PLANNING_DURATION_MS,
+                0,
                 new HashMap<>(),
                 new HashMap<>(),
                 new ArrayList<>(),
                 gameModeRegistry.getActiveMode());
 
-        long duration = PLANNING_DURATION_MS;
-        this.phaseEndTime = System.currentTimeMillis() + duration;
-        updateGameState(PLANNING_DURATION_MS);
+        // In LOBBY, no timer runs until startMatch is called
+        this.phaseEndTime = Long.MAX_VALUE;
     }
 
     public String getId() {
@@ -81,9 +82,35 @@ public class GameRoom {
     public Player addPlayer(String name) {
         Player player = new Player(name, dataLoader);
         players.put(player.getId(), player);
+
+        if (hostId == null) {
+            hostId = player.getId();
+        }
+
         player.refreshShop();
-        updateGameState(phaseEndTime - System.currentTimeMillis());
+        updateGameState(0); // Time remaining generic for lobby
         return player;
+    }
+
+    public void removePlayer(String playerId) {
+        players.remove(playerId);
+        if (playerId.equals(hostId)) {
+            // Assign new host
+            hostId = players.isEmpty() ? null : players.keySet().iterator().next();
+        }
+        updateGameState(0);
+    }
+
+    public void startMatch() {
+        if (phase != GamePhase.LOBBY) return;
+
+        // Fill with bots if needed (up to 8)
+        int currentCount = players.size();
+        for (int i = 0; i < 8 - currentCount; i++) {
+            addBot();
+        }
+
+        startPhase(GamePhase.PLANNING);
     }
 
     public void addBot() {
@@ -111,6 +138,8 @@ public class GameRoom {
     }
 
     public void tick() {
+        if (phase == GamePhase.LOBBY) return;
+
         long now = System.currentTimeMillis();
         if (now >= phaseEndTime) {
             nextPhase();
@@ -133,8 +162,6 @@ public class GameRoom {
 
     private void startPhase(GamePhase newPhase) {
         this.phase = newPhase;
-        long duration = (phase == GamePhase.PLANNING) ? PLANNING_DURATION_MS : COMBAT_DURATION_MS;
-        this.phaseEndTime = System.currentTimeMillis() + duration;
 
         if (phase == GamePhase.PLANNING) {
             round++;
@@ -146,7 +173,13 @@ public class GameRoom {
                     refreshBotRoster(p);
                 }
             });
-        } else if (phase == GamePhase.COMBAT) {
+        }
+
+        this.currentPhaseDuration = calculatePhaseDuration(newPhase, round);
+        this.phaseEndTime = System.currentTimeMillis() + currentPhaseDuration;
+        updateGameState(currentPhaseDuration);
+
+        if (phase == GamePhase.COMBAT) {
             activeCombats.clear();
             List<Player> shuffled = new ArrayList<>(players.values());
             Collections.shuffle(shuffled);
@@ -174,13 +207,21 @@ public class GameRoom {
 
         this.currentState = new GameState(
                 id,
+                hostId,
                 phase,
                 round,
                 timeLeft,
-                (phase == GamePhase.PLANNING) ? PLANNING_DURATION_MS : COMBAT_DURATION_MS,
+                calculatePhaseDuration(phase, round),
                 playerStates,
                 new HashMap<>(),
                 new ArrayList<>(),
                 gameModeRegistry.getActiveMode());
+    }
+
+    private long calculatePhaseDuration(GamePhase phase, int round) {
+        // Base 10s + 2s per round index (0-based)
+        // Round 1: 10 + 0 = 10s
+        // Round 2: 10 + 2 = 12s
+        return 10000 + (round - 1) * 2000;
     }
 }

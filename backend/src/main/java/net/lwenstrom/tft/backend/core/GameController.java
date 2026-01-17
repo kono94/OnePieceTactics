@@ -52,10 +52,7 @@ public class GameController {
             messagingTemplate.convertAndSend("/topic/room/" + room.getId() + "/event", event);
         });
 
-        // Add 7 bots
-        for (int i = 0; i < 7; i++) {
-            room.addBot();
-        }
+        // Do not add bots initially
 
         joinRoom(new RoomRequest(room.getId(), request.playerName()));
     }
@@ -69,11 +66,54 @@ public class GameController {
         }
     }
 
+    @MessageMapping("/leave")
+    public void leaveRoom(@Payload RoomRequest request) {
+        GameRoom room = gameEngine.getRoom(request.roomId());
+        if (room != null) {
+            room.removePlayer(request.playerName()); // Assuming playerName is used as ID or we have ID mapping
+            // Ideally request should send playerId if possible, or we assume name is unique
+            // per room for now.
+            // Using player name as ID for simplicity in this MVP as seen in addPlayer
+            messagingTemplate.convertAndSend("/topic/room/" + room.getId(), room.getState());
+        }
+    }
+
+    @MessageMapping("/start")
+    public void startRoom(@Payload RoomRequest request) {
+        System.out.println(
+                "Received start request for room: " + request.roomId() + " from player: " + request.playerName());
+        GameRoom room = gameEngine.getRoom(request.roomId());
+        if (room != null) {
+            // Find player by name to get their ID
+            Player player = room.getPlayers().stream()
+                    .filter(p -> p.getName().equals(request.playerName()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (player != null) {
+                System.out.println("Found player: " + player.getName() + " ID: " + player.getId() + " Host ID: "
+                        + room.getState().hostId());
+                if (room.getState().hostId().equals(player.getId())) {
+                    System.out.println("Host verified. Starting match.");
+                    room.startMatch();
+                    messagingTemplate.convertAndSend("/topic/room/" + room.getId(), room.getState());
+                } else {
+                    System.out.println("Player is not host.");
+                }
+            } else {
+                System.out.println("Player not found in room.");
+            }
+        } else {
+            System.out.println("Room not found.");
+        }
+    }
+
     @MessageMapping("/room/{id}/add-bot")
     public void addBot(@DestinationVariable String id) {
         GameRoom room = gameEngine.getRoom(id);
         if (room != null) {
             room.addBot();
+            messagingTemplate.convertAndSend("/topic/room/" + room.getId(), room.getState());
         }
     }
 
