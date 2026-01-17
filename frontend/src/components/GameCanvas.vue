@@ -53,7 +53,7 @@ const renderedUnits = computed(() => {
                     if (isCombat) {
                         // Combat Logic using Constants
                         if (shouldFlip) {
-                            visualX = (GRID_COLS - 1) - u.x;
+                            visualX = u.x; // No X-flip, strict reflection
                             visualY = (GRID_ROWS - 1) - u.y;
                         }
                     } else {

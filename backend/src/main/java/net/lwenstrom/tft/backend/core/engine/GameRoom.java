@@ -102,7 +102,9 @@ public class GameRoom {
     }
 
     public void startMatch() {
-        if (phase != GamePhase.LOBBY) return;
+        if (phase != GamePhase.LOBBY) {
+            return;
+        }
 
         // Fill with bots if needed (up to 8)
         int currentCount = players.size();
@@ -138,7 +140,9 @@ public class GameRoom {
     }
 
     public void tick() {
-        if (phase == GamePhase.LOBBY) return;
+        if (phase == GamePhase.LOBBY) {
+            return;
+        }
 
         long now = System.currentTimeMillis();
         if (now >= phaseEndTime) {
@@ -146,7 +150,7 @@ public class GameRoom {
         }
 
         if (phase == GamePhase.COMBAT) {
-            combatSystem.simulateTick(new ArrayList<>(players.values()));
+            activeCombats.forEach(combat -> combatSystem.simulateTick(combat));
         }
 
         updateGameState(phaseEndTime - now);
@@ -162,8 +166,13 @@ public class GameRoom {
 
     private void startPhase(GamePhase newPhase) {
         this.phase = newPhase;
+        System.err.println("StartPhase called: " + newPhase);
 
         if (phase == GamePhase.PLANNING) {
+            System.err.println("Starting PLANNING phase. Restoring units.");
+            // Restore units from combat positions
+            combatSystem.endCombat(players.values());
+
             round++;
             players.values().forEach(p -> {
                 p.gainGold(5 + Math.min(p.getGold() / 10, 5));
@@ -177,17 +186,23 @@ public class GameRoom {
 
         this.currentPhaseDuration = calculatePhaseDuration(newPhase, round);
         this.phaseEndTime = System.currentTimeMillis() + currentPhaseDuration;
-        updateGameState(currentPhaseDuration);
 
         if (phase == GamePhase.COMBAT) {
             activeCombats.clear();
+            currentMatchups.clear();
             List<Player> shuffled = new ArrayList<>(players.values());
             Collections.shuffle(shuffled);
             for (int i = 0; i < shuffled.size() - 1; i += 2) {
-                activeCombats.add(List.of(shuffled.get(i), shuffled.get(i + 1)));
+                Player p1 = shuffled.get(i);
+                Player p2 = shuffled.get(i + 1);
+                activeCombats.add(List.of(p1, p2));
+                currentMatchups.put(p1.getId(), p2.getId());
+                currentMatchups.put(p2.getId(), p1.getId());
             }
             activeCombats.forEach(combatSystem::startCombat);
         }
+
+        updateGameState(currentPhaseDuration);
     }
 
     private void refreshBotRoster(Player bot) {
@@ -197,7 +212,7 @@ public class GameRoom {
         List<UnitDefinition> available = dataLoader.getAllUnits();
         for (int i = 0; i < unitCount; i++) {
             UnitDefinition def = available.get((int) (Math.random() * available.size()));
-            bot.addUnitToBoard(def, i, 0);
+            bot.addUnitToBoard(def, i, 3);
         }
     }
 
@@ -213,7 +228,7 @@ public class GameRoom {
                 timeLeft,
                 calculatePhaseDuration(phase, round),
                 playerStates,
-                new HashMap<>(),
+                new HashMap<>(currentMatchups),
                 new ArrayList<>(),
                 gameModeRegistry.getActiveMode());
     }

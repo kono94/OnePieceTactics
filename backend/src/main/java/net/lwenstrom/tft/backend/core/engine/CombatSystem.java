@@ -39,9 +39,11 @@ public class CombatSystem {
             p1.setCombatSide("TOP");
             for (GameUnit u : p1.getBoardUnits()) {
                 // Top Player: Rotate 180 locally (Front 0->3 Mid, Back 3->0 Top)
-                int newX = (Grid.COLS - 1) - u.getX(); // Mirror Horizontal
+                // We do NOT mirror Horizontal, so Local Left = Global Left.
+                int newX = u.getX();
                 int newY = (Grid.PLAYER_ROWS - 1) - u.getY(); // Invert Vertical
                 u.setPosition(newX, newY);
+                System.out.println("CombatPos: " + u.getName() + " (TOP) -> " + newX + "," + newY);
             }
 
             // Player 2 (Bottom): Just offset
@@ -51,6 +53,7 @@ public class CombatSystem {
                 // Bottom Player: Front 0->4 Mid, Back 3->7 Bottom
                 int newY = Grid.PLAYER_ROWS + u.getY();
                 u.setPosition(u.getX(), newY);
+                System.out.println("CombatPos: " + u.getName() + " (BOT) -> " + u.getX() + "," + newY);
             }
         } else {
             // Single player testing? Treat as Bottom.
@@ -65,6 +68,7 @@ public class CombatSystem {
     }
 
     public void endCombat(java.util.Collection<Player> players) {
+        System.out.println("Restoring units for " + players.size() + " players.");
         for (Player p : players) {
             p.setCombatSide(null);
             for (GameUnit u : p.getBoardUnits()) {
@@ -108,6 +112,8 @@ public class CombatSystem {
                 var distance = getDistance(unit, target);
                 // Range check
                 if (distance <= unit.getRange()) {
+                    System.out.println(
+                            unit.getName() + " attacks " + target.getName() + " for " + unit.getAttackDamage());
                     target.takeDamage(unit.getAttackDamage());
                     unit.gainMana(10);
                     float as = Math.max(0.1f, unit.getAttackSpeed());
@@ -146,7 +152,14 @@ public class CombatSystem {
             if (c == source || c.getCurrentHealth() <= 0) continue;
 
             // Check owner
-            if (source.getOwnerId() != null && source.getOwnerId().equals(c.getOwnerId())) continue;
+            if (source.getOwnerId() != null && source.getOwnerId().equals(c.getOwnerId())) {
+                // System.out.println("Ignoring ally: " + c.getName() + " (" + c.getOwnerId() +
+                // ")");
+                continue;
+            } else {
+                // System.out.println("Found enemy: " + c.getName() + " (" + c.getOwnerId() + ")
+                // vs Me (" + source.getOwnerId() + ")");
+            }
 
             var dst = getDistance(source, c);
             if (dst < minDst) {
@@ -271,15 +284,13 @@ public class CombatSystem {
         AbilityDefinition ability = source.getAbility();
         if (ability == null) return;
 
+        GameUnit target = findNearestEnemy(source, allUnits);
+        if (target == null && "DMG".equals(ability.type())) return;
+
         source.setActiveAbility(ability.name());
-        // System.out.println(source.getName() + " casts " + ability.name() + "!");
 
         // Scaling: Value * StarLevel
         int damage = ability.value() * source.getStarLevel(); // Simple scaling
-        // If abilityPower is used, could be: damage * (1 + ap/100.0)
-
-        GameUnit target = findNearestEnemy(source, allUnits);
-        if (target == null && "DMG".equals(ability.type())) return;
         // Heals might target allies, but assume DMG for now based on requirements.
 
         String pattern = ability.pattern();
