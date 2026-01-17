@@ -65,9 +65,14 @@ public class SimulationTest {
         room.addPlayer("P1");
         room.addPlayer("P2");
 
-        // Initial State
-        assertEquals(1, room.getState().round(), "Should start at Round 1");
-        assertEquals(GamePhase.PLANNING, room.getState().phase(), "Should start in PLANNING phase");
+        // Initial State - starts in LOBBY with round 0
+        assertEquals(0, room.getState().round(), "Should start at Round 0 in LOBBY");
+        assertEquals(GamePhase.LOBBY, room.getState().phase(), "Should start in LOBBY phase");
+
+        // Start match transitions to PLANNING
+        room.startMatch();
+        assertEquals(1, room.getState().round(), "Should be at Round 1 after startMatch");
+        assertEquals(GamePhase.PLANNING, room.getState().phase(), "Should be in PLANNING after startMatch");
 
         try {
             java.lang.reflect.Method nextPhaseMethod = GameRoom.class.getDeclaredMethod("nextPhase");

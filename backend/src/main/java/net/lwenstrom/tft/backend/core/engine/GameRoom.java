@@ -150,13 +150,29 @@ public class GameRoom {
         }
 
         if (phase == GamePhase.COMBAT) {
-            activeCombats.forEach(combat -> combatSystem.simulateTick(combat));
+            var it = activeCombats.iterator();
+            while (it.hasNext()) {
+                var pair = it.next();
+                var result = combatSystem.simulateTick(pair);
+                if (result.ended()) {
+                    handleCombatEnd(false, result, pair);
+                    it.remove();
+                }
+            }
         }
 
         updateGameState(phaseEndTime - now);
     }
 
     private void nextPhase() {
+        // Handle timeout: force-end any remaining combats before phase change
+        if (phase == GamePhase.COMBAT && !activeCombats.isEmpty()) {
+            for (var pair : activeCombats) {
+                handleCombatEnd(true, null, pair);
+            }
+            activeCombats.clear();
+        }
+
         if (phase == GamePhase.PLANNING) {
             startPhase(GamePhase.COMBAT);
         } else {
@@ -238,5 +254,51 @@ public class GameRoom {
         // Round 1: 10 + 0 = 10s
         // Round 2: 10 + 2 = 12s
         return 10000 + (round - 1) * 2000;
+    }
+
+    private void handleCombatEnd(boolean isTimeout, CombatSystem.CombatResult result, List<Player> participants) {
+        Player winner = null;
+        var draw = false;
+
+        if (isTimeout || result == null) {
+            // Timeout: Winner is player with highest total HP on board
+            var maxHp = -1;
+            for (var p : participants) {
+                var totalHp = p.getBoardUnits().stream()
+                        .mapToInt(net.lwenstrom.tft.backend.core.model.GameUnit::getCurrentHealth)
+                        .sum();
+                if (totalHp > maxHp) {
+                    maxHp = totalHp;
+                    winner = p;
+                    draw = false;
+                } else if (totalHp == maxHp) {
+                    draw = true;
+                }
+            }
+        } else {
+            // Elimination: Use result
+            if (result.winnerId() != null) {
+                winner = players.get(result.winnerId());
+            } else {
+                draw = true;
+            }
+        }
+
+        if (!draw && winner != null) {
+            // Calculate Damage: base 2 + number of surviving units
+            var damage = 2 + winner.getBoardUnits().size();
+
+            final var finalWinner = winner;
+            var loser = participants.stream()
+                    .filter(p -> !p.getId().equals(finalWinner.getId()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (loser != null) {
+                loser.takeDamage(damage);
+                System.out.println("Combat ended: " + winner.getName() + " wins! " + loser.getName() + " takes "
+                        + damage + " damage.");
+            }
+        }
     }
 }
