@@ -1,6 +1,9 @@
 package net.lwenstrom.tft.backend.core.engine;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
@@ -18,38 +21,40 @@ public class CombatSystem {
     }
 
     public void startCombat(java.util.Collection<Player> players) {
-        List<Player> sortedPlayers = new ArrayList<>(players);
+        var sortedPlayers = new ArrayList<Player>(players);
         sortedPlayers.sort(java.util.Comparator.comparing(Player::getId));
 
-        if (sortedPlayers.isEmpty()) return;
+        if (sortedPlayers.isEmpty()) {
+            return;
+        }
 
         // Apply Traits per player BEFORE saving/mirroring
-        for (Player p : players) {
+        for (var player : players) {
             // Save state (positions + base stats)
-            for (GameUnit u : p.getBoardUnits()) {
-                u.savePlanningPosition();
+            for (var unit : player.getBoardUnits()) {
+                unit.savePlanningPosition();
             }
             // Apply traits (modifies stats)
-            traitManager.applyTraits(p.getBoardUnits());
+            traitManager.applyTraits(player.getBoardUnits());
         }
 
         if (sortedPlayers.size() > 1) {
             // Player 1 (Top)
-            Player p1 = sortedPlayers.get(0);
+            var p1 = sortedPlayers.get(0);
             p1.setCombatSide("TOP");
-            for (GameUnit u : p1.getBoardUnits()) {
+            for (var unit : p1.getBoardUnits()) {
                 // Top Player: Rotate 180 locally (Front 0->3 Mid, Back 3->0 Top)
                 // We do NOT mirror Horizontal, so Local Left = Global Left.
-                int newX = u.getX();
-                int newY = (Grid.PLAYER_ROWS - 1) - u.getY(); // Invert Vertical
-                u.setPosition(newX, newY);
-                System.out.println("CombatPos: " + u.getName() + " (TOP) -> " + newX + "," + newY);
+                int newX = unit.getX();
+                int newY = (Grid.PLAYER_ROWS - 1) - unit.getY(); // Invert Vertical
+                unit.setPosition(newX, newY);
+                System.out.println("CombatPos: " + unit.getName() + " (TOP) -> " + newX + "," + newY);
             }
 
             // Player 2 (Bottom): Just offset
-            Player p2 = sortedPlayers.get(1);
+            var p2 = sortedPlayers.get(1);
             p2.setCombatSide("BOTTOM");
-            for (GameUnit u : p2.getBoardUnits()) {
+            for (var u : p2.getBoardUnits()) {
                 // Bottom Player: Front 0->4 Mid, Back 3->7 Bottom
                 int newY = Grid.PLAYER_ROWS + u.getY();
                 u.setPosition(u.getX(), newY);
@@ -57,22 +62,22 @@ public class CombatSystem {
             }
         } else {
             // Single player testing? Treat as Bottom.
-            Player p1 = sortedPlayers.get(0);
+            var p1 = sortedPlayers.get(0);
             p1.setCombatSide("BOTTOM");
-            for (GameUnit u : p1.getBoardUnits()) {
+            for (var unit : p1.getBoardUnits()) {
                 // Bottom Player: Front 0->4 Mid, Back 3->7 Bottom
-                int newY = Grid.PLAYER_ROWS + u.getY();
-                u.setPosition(u.getX(), newY);
+                int newY = Grid.PLAYER_ROWS + unit.getY();
+                unit.setPosition(unit.getX(), newY);
             }
         }
     }
 
     public void endCombat(java.util.Collection<Player> players) {
         System.out.println("Restoring units for " + players.size() + " players.");
-        for (Player p : players) {
-            p.setCombatSide(null);
-            for (GameUnit u : p.getBoardUnits()) {
-                u.restorePlanningPosition();
+        for (var player : players) {
+            player.setCombatSide(null);
+            for (var unit : player.getBoardUnits()) {
+                unit.restorePlanningPosition();
             }
         }
     }
@@ -91,9 +96,13 @@ public class CombatSystem {
         var snapshot = new ArrayList<>(allUnits);
 
         for (var unit : snapshot) {
-            if (unit.getCurrentHealth() <= 0) continue;
+            if (unit.getCurrentHealth() <= 0) {
+                continue;
+            }
 
-            if (currentTime < unit.getNextAttackTime()) continue;
+            if (currentTime < unit.getNextAttackTime()) {
+                continue;
+            }
 
             // Reset active ability flag
             unit.setActiveAbility(null);
@@ -145,29 +154,10 @@ public class CombatSystem {
     }
 
     private GameUnit findNearestEnemy(GameUnit source, List<GameUnit> candidates) {
-        GameUnit nearest = null;
-        var minDst = Double.MAX_VALUE;
-
-        for (var c : candidates) {
-            if (c == source || c.getCurrentHealth() <= 0) continue;
-
-            // Check owner
-            if (source.getOwnerId() != null && source.getOwnerId().equals(c.getOwnerId())) {
-                // System.out.println("Ignoring ally: " + c.getName() + " (" + c.getOwnerId() +
-                // ")");
-                continue;
-            } else {
-                // System.out.println("Found enemy: " + c.getName() + " (" + c.getOwnerId() + ")
-                // vs Me (" + source.getOwnerId() + ")");
-            }
-
-            var dst = getDistance(source, c);
-            if (dst < minDst) {
-                minDst = dst;
-                nearest = c;
-            }
-        }
-        return nearest;
+        return candidates.stream()
+                .filter(c -> c != source && c.getCurrentHealth() > 0 && isEnemy(source, c))
+                .min(java.util.Comparator.comparingDouble(c -> getDistance(source, c)))
+                .orElse(null);
     }
 
     private double getDistance(GameUnit u1, GameUnit u2) {
@@ -196,14 +186,12 @@ public class CombatSystem {
         int rows = Grid.COMBAT_ROWS;
         int cols = Grid.COLS;
 
-        boolean[][] occupied = new boolean[rows][cols];
-        for (GameUnit u : allUnits) {
-            if (u.getCurrentHealth() > 0 && u != start) { // Treat self as not occupied (obviously)
-                if (u.getX() >= 0 && u.getX() < cols && u.getY() >= 0 && u.getY() < rows) {
-                    occupied[u.getY()][u.getX()] = true;
-                }
-            }
-        }
+        var occupied = new boolean[rows][cols];
+        allUnits.stream()
+                .filter(unit -> unit.getCurrentHealth() > 0 && unit != start)
+                .filter(unit -> unit.getX() >= 0 && unit.getX() < cols && unit.getY() >= 0 && unit.getY() < rows)
+                .forEach(unit -> occupied[unit.getY()][unit.getX()] = true);
+
         // Target position is occupied, but it is our destination.
         // We want to reach a neighbor of target.
         // BFS to find shortest path to "Attack Range" of target.
@@ -213,9 +201,9 @@ public class CombatSystem {
         // Actually, if range > 1, pathing to neighbor is "too close" but safe.
 
         // BFS State
-        var queue = new java.util.ArrayDeque<Point>();
-        var parent = new java.util.HashMap<Point, Point>();
-        var visited = new java.util.HashSet<Point>();
+        var queue = new ArrayDeque<Point>();
+        var parent = new HashMap<Point, Point>();
+        var visited = new HashSet<Point>();
 
         Point startPt = new Point(start.getX(), start.getY());
         queue.add(startPt);
