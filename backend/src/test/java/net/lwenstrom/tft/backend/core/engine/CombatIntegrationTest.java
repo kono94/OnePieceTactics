@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
 import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
 import net.lwenstrom.tft.backend.test.MockUnit;
+import net.lwenstrom.tft.backend.test.TestHelpers;
 import org.junit.jupiter.api.Test;
 
 class CombatIntegrationTest {
@@ -159,15 +160,6 @@ class CombatIntegrationTest {
     }
 
     private void addUnitToPlayer(Player player, MockUnit unit) {
-        try {
-            var field = Player.class.getDeclaredField("boardUnits");
-            field.setAccessible(true);
-            @SuppressWarnings("unchecked")
-            var boardUnits = (List<net.lwenstrom.tft.backend.core.model.GameUnit>) field.get(player);
-            boardUnits.add(unit);
-            unit.setOwnerId(player.getId());
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to add unit to player", e);
-        }
+        TestHelpers.addUnitToPlayer(player, unit);
     }
 }

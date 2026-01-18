@@ -168,4 +168,17 @@ public final class TestHelpers {
             throw new RuntimeException("Failed to set phase", e);
         }
     }
+
+    public static void addUnitToPlayer(Player player, net.lwenstrom.tft.backend.core.model.GameUnit unit) {
+        try {
+            var field = Player.class.getDeclaredField("boardUnits");
+            field.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            var boardUnits = (java.util.List<net.lwenstrom.tft.backend.core.model.GameUnit>) field.get(player);
+            boardUnits.add(unit);
+            unit.setOwnerId(player.getId());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to add unit to player", e);
+        }
+    }
 }

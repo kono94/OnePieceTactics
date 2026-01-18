@@ -9,6 +9,7 @@ import net.lwenstrom.tft.backend.core.combat.NearestEnemyTargetSelector;
 import net.lwenstrom.tft.backend.core.combat.TargetSelector;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 import net.lwenstrom.tft.backend.test.MockUnit;
+import net.lwenstrom.tft.backend.test.TestHelpers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -166,15 +167,6 @@ class CombatSystemUnitTest {
     }
 
     private void addUnitToPlayer(Player player, GameUnit unit) {
-        try {
-            var field = Player.class.getDeclaredField("boardUnits");
-            field.setAccessible(true);
-            @SuppressWarnings("unchecked")
-            List<GameUnit> boardUnits = (List<GameUnit>) field.get(player);
-            boardUnits.add(unit);
-            unit.setOwnerId(player.getId());
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to add unit to player", e);
-        }
+        TestHelpers.addUnitToPlayer(player, unit);
     }
 }

@@ -96,21 +96,16 @@ class GameRoomBotTest {
         // Alternative: Verify refreshBotRoster logic via reflection or just trust
         // addBot works
         // and knowing I hooked it in startPhase.
-        // Actually, I can use reflection to call startPhase(GamePhase.PLANNING) if I
-        // really want.
-
+        // Use reflection to call startPhase
         try {
             var method = GameRoom.class.getDeclaredMethod("startPhase", GamePhase.class);
             method.setAccessible(true);
 
-            // Advance round
-            // Round is private, but increments in PLANNING.
-            // Let's call it multiple times to ensure round count goes up and unit count
-            // increases
-
             // Call startPhase(COMBAT) then startPhase(PLANNING) to trigger new round logic
             method.invoke(gameRoom, GamePhase.COMBAT);
-            method.invoke(gameRoom, GamePhase.PLANNING); // // Verify roster exists
+            method.invoke(gameRoom, GamePhase.PLANNING);
+
+            // Verify roster exists
             assertFalse(bot.getBoardUnits().isEmpty(), "Roster should not be empty");
             System.out.println("Bot units after refresh: " + bot.getBoardUnits().size());
 
