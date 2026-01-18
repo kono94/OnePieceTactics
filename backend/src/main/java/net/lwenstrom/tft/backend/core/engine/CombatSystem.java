@@ -137,13 +137,14 @@ public class CombatSystem {
         // We leave them in the list so they can be revived next round.
         // Combat logic ignores them via getCurrentHealth() <= 0 check.
 
-        long playersWithUnits =
-                participants.stream().filter(p -> !p.getBoardUnits().isEmpty()).count();
+        long playersWithUnits = participants.stream()
+                .filter(p -> p.getBoardUnits().stream().anyMatch(u -> u.getCurrentHealth() > 0))
+                .count();
 
         if (playersWithUnits <= 1) {
             // Determine winner
             Player winner = participants.stream()
-                    .filter(p -> !p.getBoardUnits().isEmpty())
+                    .filter(p -> p.getBoardUnits().stream().anyMatch(u -> u.getCurrentHealth() > 0))
                     .findFirst()
                     .orElse(null); // Null implies draw (0 players left)
 

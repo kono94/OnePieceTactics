@@ -3,6 +3,7 @@ package net.lwenstrom.tft.backend.core.engine;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.Getter;
@@ -26,6 +27,9 @@ public class Player {
 
     // Limits
     private static final int MAX_BENCH_SIZE = 9;
+
+    // Optional: For deterministic testing
+    private Random random;
 
     @Getter
     private final Grid grid = new Grid();
@@ -52,7 +56,11 @@ public class Player {
         gold -= 2;
 
         List<UnitDefinition> allUnits = new ArrayList<>(dataLoader.getAllUnits());
-        Collections.shuffle(allUnits);
+        if (random != null) {
+            Collections.shuffle(allUnits, random);
+        } else {
+            Collections.shuffle(allUnits);
+        }
         shop = allUnits.stream().limit(5).collect(Collectors.toList());
     }
 
