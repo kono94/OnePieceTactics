@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 import net.lwenstrom.tft.backend.core.model.GamePhase;
+import net.lwenstrom.tft.backend.test.TestClock;
 import net.lwenstrom.tft.backend.test.TestHelpers;
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +24,8 @@ class EliminationFlowTest {
     void testGameRoom_EliminatesPlayerAt0Health() {
         var strongDef = TestHelpers.createUnitDef("strong", "StrongUnit", 1, 500, 100);
         var dataLoader = TestHelpers.createMockDataLoader(List.of(strongDef));
-        var room = TestHelpers.createTestGameRoom(dataLoader);
+        var testClock = new TestClock();
+        var room = TestHelpers.createTestGameRoom(dataLoader, testClock);
 
         var p1 = room.addPlayer("P1");
         var p2 = room.addPlayer("P2");
@@ -38,11 +40,9 @@ class EliminationFlowTest {
 
         room.startMatch();
 
-        // Run through multiple rounds using real time
-        long maxMillis = 5000;
-        long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < maxMillis) {
-            TestHelpers.fastForwardPhase(room);
+        // Use TestClock for deterministic phase transitions
+        for (int i = 0; i < 10; i++) {
+            testClock.advance(30000); // Fast forward past phase end
             room.tick();
 
             if (p2.getHealth() <= 0) {
@@ -57,7 +57,8 @@ class EliminationFlowTest {
     void testMultipleEliminationsOrderedByTime() {
         var unitDef = TestHelpers.createUnitDef("unit", "Unit", 1, 500, 100);
         var dataLoader = TestHelpers.createMockDataLoader(List.of(unitDef));
-        var room = TestHelpers.createTestGameRoom(dataLoader);
+        var testClock = new TestClock();
+        var room = TestHelpers.createTestGameRoom(dataLoader, testClock);
 
         var p1 = room.addPlayer("P1");
         var p2 = room.addPlayer("P2");
@@ -75,11 +76,9 @@ class EliminationFlowTest {
 
         room.startMatch();
 
-        // Run through rounds
-        long maxMillis = 5000;
-        long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < maxMillis) {
-            TestHelpers.fastForwardPhase(room);
+        // Use TestClock for deterministic phase transitions
+        for (int i = 0; i < 10; i++) {
+            testClock.advance(30000);
             room.tick();
 
             long eliminated =
@@ -99,7 +98,8 @@ class EliminationFlowTest {
         var strongDef = TestHelpers.createUnitDef("strong", "StrongUnit", 1, 300, 80);
         var weakDef = TestHelpers.createUnitDef("weak", "WeakUnit", 1, 30, 5);
         var dataLoader = TestHelpers.createMockDataLoader(List.of(strongDef, weakDef));
-        var room = TestHelpers.createTestGameRoom(dataLoader);
+        var testClock = new TestClock();
+        var room = TestHelpers.createTestGameRoom(dataLoader, testClock);
 
         var p1 = room.addPlayer("P1");
         var p2 = room.addPlayer("P2");
@@ -114,23 +114,19 @@ class EliminationFlowTest {
 
         room.startMatch();
 
-        // Run through combat with real time
-        TestHelpers.fastForwardPhase(room);
-        room.tick(); // Enter combat
+        // Enter combat phase
+        testClock.advance(30000);
+        room.tick();
 
-        long maxMillis = 5000;
-        long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < maxMillis) {
+        // Run combat simulation with multiple ticks so units can attack
+        for (int i = 0; i < 50; i++) {
+            testClock.advance(200); // Small advances for attack cooldowns
             room.tick();
-            if (room.getState().phase() == GamePhase.PLANNING && room.getState().round() > 1) {
-                break;
-            }
-            try {
-                Thread.sleep(5);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
         }
+
+        // End combat and transition to next planning phase
+        testClock.advance(30000);
+        room.tick();
 
         // Check that combat actually ended and we're back in planning
         if (room.getState().phase() == GamePhase.PLANNING && room.getState().round() > 1) {
@@ -140,8 +136,8 @@ class EliminationFlowTest {
                             "One player should take damage. P1: %d->%d, P2: %d->%d",
                             p1HealthBefore, p1.getHealth(), p2HealthBefore, p2.getHealth()));
         } else {
-            // Combat didn't complete in time - this is fine, just check combat ran
-            assertTrue(true, "Combat phase ran but didn't complete in time limit");
+            // Combat didn't complete - check if at least one phase transition happened
+            assertTrue(room.getState().round() >= 1, "At least one round should have started");
         }
     }
 
@@ -149,7 +145,8 @@ class EliminationFlowTest {
     void testDamageCalculation_BasedOnSurvivingUnits() {
         var strongDef = TestHelpers.createUnitDef("strong", "StrongUnit", 5, 500, 100);
         var dataLoader = TestHelpers.createMockDataLoader(List.of(strongDef));
-        var room = TestHelpers.createTestGameRoom(dataLoader);
+        var testClock = new TestClock();
+        var room = TestHelpers.createTestGameRoom(dataLoader, testClock);
 
         var p1 = room.addPlayer("P1");
         var p2 = room.addPlayer("P2");
@@ -166,11 +163,11 @@ class EliminationFlowTest {
 
         room.startMatch();
 
-        // Run through one combat round
-        TestHelpers.fastForwardPhase(room);
+        // Use TestClock for deterministic phase transitions
+        testClock.advance(30000);
         room.tick(); // To combat
 
-        TestHelpers.fastForwardPhase(room);
+        testClock.advance(30000);
         room.tick(); // End combat
 
         // P2 should have taken damage (timeout damage is based on HP comparison)

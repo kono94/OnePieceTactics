@@ -1,5 +1,6 @@
 package net.lwenstrom.tft.backend.core.engine;
 
+import static net.lwenstrom.tft.backend.test.TestHelpers.createTestCombatSystem;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
@@ -211,7 +212,7 @@ public class CombatPathingTest {
 
         List<GameUnit> allUnits = new ArrayList<>(List.of(mover, blocker, target));
 
-        CombatSystem cs = new CombatSystem();
+        var cs = createTestCombatSystem();
 
         // We need to access private method `moveTowards` via reflection or test effect?
         // Or since `moveTowards` is private, we test simulateTick behavior OR make it

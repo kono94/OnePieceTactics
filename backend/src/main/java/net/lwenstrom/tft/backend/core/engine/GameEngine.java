@@ -7,6 +7,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import net.lwenstrom.tft.backend.core.DataLoader;
 import net.lwenstrom.tft.backend.core.GameModeRegistry;
+import net.lwenstrom.tft.backend.core.random.RandomProvider;
+import net.lwenstrom.tft.backend.core.time.Clock;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,6 +17,8 @@ public class GameEngine {
 
     private final DataLoader dataLoader;
     private final GameModeRegistry gameModeRegistry;
+    private final Clock clock;
+    private final RandomProvider randomProvider;
     private final Map<String, GameRoom> rooms = new ConcurrentHashMap<>();
 
     public GameRoom createRoom() {
@@ -22,7 +26,7 @@ public class GameEngine {
     }
 
     public GameRoom createRoom(String id) {
-        GameRoom room = new GameRoom(id, dataLoader, gameModeRegistry);
+        var room = new GameRoom(id, dataLoader, gameModeRegistry, clock, randomProvider);
         rooms.put(room.getId(), room);
         return room;
     }

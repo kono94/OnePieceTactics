@@ -1,5 +1,7 @@
 package net.lwenstrom.tft.backend.core.engine;
 
+import static net.lwenstrom.tft.backend.test.TestHelpers.createSeededRandomProvider;
+import static net.lwenstrom.tft.backend.test.TestHelpers.createTestClock;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
@@ -8,12 +10,14 @@ import net.lwenstrom.tft.backend.core.GameModeProvider;
 import net.lwenstrom.tft.backend.core.GameModeRegistry;
 import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GamePhase;
+import net.lwenstrom.tft.backend.test.TestClock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class PhaseDurationTest {
 
     private GameRoom room;
+    private TestClock testClock;
 
     @BeforeEach
     public void setup() {
@@ -56,7 +60,8 @@ public class PhaseDurationTest {
             }
         };
 
-        room = new GameRoom("test-room", dataLoader, registry);
+        testClock = createTestClock();
+        room = new GameRoom("test-room", dataLoader, registry, testClock, createSeededRandomProvider());
         room.addPlayer("P1");
     }
 
@@ -117,10 +122,8 @@ public class PhaseDurationTest {
         assertEquals(28000, room.getState().totalPhaseDuration(), "Round 10 Planning should be 28s");
     }
 
-    private void fastForward() throws NoSuchFieldException, IllegalAccessException {
-        // Reflection to set phaseEndTime to now
-        var field = GameRoom.class.getDeclaredField("phaseEndTime");
-        field.setAccessible(true);
-        field.set(room, System.currentTimeMillis() - 1);
+    private void fastForward() {
+        // Use TestClock to advance time past phase end
+        testClock.advance(30000);
     }
 }

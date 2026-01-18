@@ -1,16 +1,18 @@
 package net.lwenstrom.tft.backend.test;
 
 import java.util.List;
-import java.util.Random;
 import net.lwenstrom.tft.backend.core.DataLoader;
 import net.lwenstrom.tft.backend.core.GameModeProvider;
 import net.lwenstrom.tft.backend.core.GameModeRegistry;
+import net.lwenstrom.tft.backend.core.engine.CombatSystem;
 import net.lwenstrom.tft.backend.core.engine.GameRoom;
 import net.lwenstrom.tft.backend.core.engine.Player;
 import net.lwenstrom.tft.backend.core.engine.TraitManager;
 import net.lwenstrom.tft.backend.core.engine.UnitDefinition;
 import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
 import net.lwenstrom.tft.backend.core.model.GameMode;
+import net.lwenstrom.tft.backend.core.random.RandomProvider;
+import net.lwenstrom.tft.backend.core.time.Clock;
 
 public final class TestHelpers {
 
@@ -81,14 +83,36 @@ public final class TestHelpers {
         return new UnitDefinition(id, name, cost, health, maxMana, 10, 0, 0, 0, 1.0f, 1, List.of(), ability);
     }
 
+    public static SeededRandomProvider createSeededRandomProvider() {
+        return new SeededRandomProvider(TEST_SEED);
+    }
+
+    public static SeededRandomProvider createSeededRandomProvider(long seed) {
+        return new SeededRandomProvider(seed);
+    }
+
     public static Player createTestPlayer(String name) {
         return createTestPlayer(name, createMockDataLoader());
     }
 
     public static Player createTestPlayer(String name, DataLoader dataLoader) {
-        var player = new Player(name, dataLoader);
-        player.setRandom(new Random(TEST_SEED));
-        return player;
+        return new Player(name, dataLoader, createSeededRandomProvider());
+    }
+
+    public static Player createTestPlayer(String name, DataLoader dataLoader, RandomProvider randomProvider) {
+        return new Player(name, dataLoader, randomProvider);
+    }
+
+    public static TestClock createTestClock() {
+        return new TestClock();
+    }
+
+    public static CombatSystem createTestCombatSystem() {
+        return new CombatSystem(new TraitManager(), createTestClock());
+    }
+
+    public static CombatSystem createTestCombatSystem(Clock clock) {
+        return new CombatSystem(new TraitManager(), clock);
     }
 
     public static GameRoom createTestGameRoom() {
@@ -98,12 +122,22 @@ public final class TestHelpers {
     public static GameRoom createTestGameRoom(String roomId) {
         var registry = createMockRegistry();
         var dataLoader = createMockDataLoader();
-        return new GameRoom(roomId, dataLoader, registry);
+        var clock = createTestClock();
+        var randomProvider = createSeededRandomProvider();
+        return new GameRoom(roomId, dataLoader, registry, clock, randomProvider);
     }
 
     public static GameRoom createTestGameRoom(DataLoader dataLoader) {
         var registry = createMockRegistry();
-        return new GameRoom("test-room", dataLoader, registry);
+        var clock = createTestClock();
+        var randomProvider = createSeededRandomProvider();
+        return new GameRoom("test-room", dataLoader, registry, clock, randomProvider);
+    }
+
+    public static GameRoom createTestGameRoom(DataLoader dataLoader, Clock clock) {
+        var registry = createMockRegistry();
+        var randomProvider = createSeededRandomProvider();
+        return new GameRoom("test-room", dataLoader, registry, clock, randomProvider);
     }
 
     public static void fastForwardPhase(GameRoom room) {

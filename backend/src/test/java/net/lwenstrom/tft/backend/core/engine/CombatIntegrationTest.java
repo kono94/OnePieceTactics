@@ -1,5 +1,6 @@
 package net.lwenstrom.tft.backend.core.engine;
 
+import static net.lwenstrom.tft.backend.test.TestHelpers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
@@ -11,12 +12,10 @@ class CombatIntegrationTest {
 
     @Test
     void testCombat_TwoPlayers_WinnerDetermined() {
-        // Test combat damage mechanics (combat end detection has a known bug - dead
-        // units
-        // aren't filtered from boardUnits, so combat doesn't properly end)
-        var combatSystem = new CombatSystem();
-        var p1 = new Player("P1", null);
-        var p2 = new Player("P2", null);
+        var testClock = createTestClock();
+        var combatSystem = createTestCombatSystem(testClock);
+        var p1 = new Player("P1", null, createSeededRandomProvider());
+        var p2 = new Player("P2", null, createSeededRandomProvider());
 
         // Units placed directly adjacent for reliable combat
         var strongUnit = MockUnit.create("strong", p1.getId())
@@ -33,18 +32,11 @@ class CombatIntegrationTest {
         addUnitToPlayer(p1, strongUnit);
         addUnitToPlayer(p2, weakUnit);
 
-        // Run combat ticks with time delays for attacks
-        long maxMs = 3000;
-        long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < maxMs) {
+        // Run combat ticks using TestClock instead of System.currentTimeMillis
+        for (int i = 0; i < 60; i++) {
             combatSystem.simulateTick(List.of(p1, p2));
-            // Check if weak unit is dead (P1 wins)
             if (weakUnit.getCurrentHealth() <= 0) break;
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            testClock.advance(50);
         }
 
         // Verify combat happened - weak unit should be dead
@@ -55,9 +47,9 @@ class CombatIntegrationTest {
     @Test
     void testCombat_UnitsRestoreAfterCombat() {
         // Test at CombatSystem level for reliable position restoration
-        var combatSystem = new CombatSystem();
-        var p1 = new Player("P1", null);
-        var p2 = new Player("P2", null);
+        var combatSystem = createTestCombatSystem();
+        var p1 = new Player("P1", null, createSeededRandomProvider());
+        var p2 = new Player("P2", null, createSeededRandomProvider());
 
         var unit1 = MockUnit.create("unit1", p1.getId()).withPosition(3, 2).withHealth(100, 100);
         var unit2 = MockUnit.create("unit2", p2.getId()).withPosition(3, 2).withHealth(100, 100);
@@ -87,10 +79,10 @@ class CombatIntegrationTest {
 
     @Test
     void testCombat_DeadUnitsIgnored() {
-        var combatSystem = new CombatSystem();
+        var combatSystem = createTestCombatSystem();
 
-        var p1 = new Player("P1", null);
-        var p2 = new Player("P2", null);
+        var p1 = new Player("P1", null, createSeededRandomProvider());
+        var p2 = new Player("P2", null, createSeededRandomProvider());
 
         // Set up units already in combat positions (skip startCombat transformation)
         var aliveUnit = MockUnit.create("alive", p1.getId())
@@ -117,9 +109,9 @@ class CombatIntegrationTest {
     @Test
     void testCombat_AbilityDamage_Single() {
         var ability = new AbilityDefinition("TestAbility", "DMG", "SINGLE", 50);
-        var combatSystem = new CombatSystem();
-        var p1 = new Player("P1", null);
-        var p2 = new Player("P2", null);
+        var combatSystem = createTestCombatSystem();
+        var p1 = new Player("P1", null, createSeededRandomProvider());
+        var p2 = new Player("P2", null, createSeededRandomProvider());
 
         // Set up units in combat positions (skip startCombat)
         var caster = MockUnit.create("caster", p1.getId())
@@ -141,9 +133,9 @@ class CombatIntegrationTest {
     @Test
     void testCombat_AbilityDamage_Surround8() {
         var ability = new AbilityDefinition("AOE", "DMG", "SURROUND_8", 25);
-        var combatSystem = new CombatSystem();
-        var p1 = new Player("P1", null);
-        var p2 = new Player("P2", null);
+        var combatSystem = createTestCombatSystem();
+        var p1 = new Player("P1", null, createSeededRandomProvider());
+        var p2 = new Player("P2", null, createSeededRandomProvider());
 
         // Caster at center, enemies in surrounding tiles
         var caster = MockUnit.create("caster", p1.getId())

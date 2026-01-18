@@ -1,5 +1,6 @@
 package net.lwenstrom.tft.backend.core.engine;
 
+import static net.lwenstrom.tft.backend.test.TestHelpers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.lang.reflect.Method;
@@ -15,7 +16,7 @@ class CombatSystemUnitTest {
 
     @BeforeEach
     void setUp() {
-        combatSystem = new CombatSystem();
+        combatSystem = createTestCombatSystem();
     }
 
     @Test
@@ -111,8 +112,8 @@ class CombatSystemUnitTest {
 
     @Test
     void testSimulateTick_UnitAttacksInRange() {
-        var p1 = new Player("P1", null);
-        var p2 = new Player("P2", null);
+        var p1 = new Player("P1", null, createSeededRandomProvider());
+        var p2 = new Player("P2", null, createSeededRandomProvider());
 
         // Position units at y=0 so they're adjacent AFTER combat positioning
         var attacker = MockUnit.create("attacker", p1.getId())
@@ -143,8 +144,8 @@ class CombatSystemUnitTest {
 
     @Test
     void testSimulateTick_ManaGain_OnAttack() {
-        var p1 = new Player("P1", null);
-        var p2 = new Player("P2", null);
+        var p1 = new Player("P1", null, createSeededRandomProvider());
+        var p2 = new Player("P2", null, createSeededRandomProvider());
 
         var attacker = MockUnit.create("attacker", p1.getId())
                 .withPosition(3, 0)

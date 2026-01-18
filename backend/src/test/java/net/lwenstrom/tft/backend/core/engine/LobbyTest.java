@@ -1,5 +1,7 @@
 package net.lwenstrom.tft.backend.core.engine;
 
+import static net.lwenstrom.tft.backend.test.TestHelpers.createSeededRandomProvider;
+import static net.lwenstrom.tft.backend.test.TestHelpers.createTestClock;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -33,7 +35,8 @@ public class LobbyTest {
         when(gameModeRegistry.getActiveMode()).thenReturn(GameMode.ONEPIECE);
         when(gameModeRegistry.getActiveProvider()).thenReturn(gameModeProvider);
 
-        gameRoom = new GameRoom("room-1", dataLoader, gameModeRegistry);
+        gameRoom =
+                new GameRoom("room-1", dataLoader, gameModeRegistry, createTestClock(), createSeededRandomProvider());
     }
 
     @Test

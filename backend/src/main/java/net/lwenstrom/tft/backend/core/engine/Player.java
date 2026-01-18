@@ -1,9 +1,7 @@
 package net.lwenstrom.tft.backend.core.engine;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.Getter;
@@ -11,6 +9,7 @@ import lombok.Setter;
 import net.lwenstrom.tft.backend.core.DataLoader;
 import net.lwenstrom.tft.backend.core.model.GameState.PlayerState;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
+import net.lwenstrom.tft.backend.core.random.RandomProvider;
 
 @Getter
 @Setter
@@ -28,8 +27,7 @@ public class Player {
     // Limits
     private static final int MAX_BENCH_SIZE = 9;
 
-    // Optional: For deterministic testing
-    private Random random;
+    private final RandomProvider randomProvider;
 
     @Getter
     private final Grid grid = new Grid();
@@ -43,10 +41,11 @@ public class Player {
 
     private final DataLoader dataLoader;
 
-    public Player(String name, DataLoader dataLoader) {
+    public Player(String name, DataLoader dataLoader, RandomProvider randomProvider) {
         this.id = UUID.randomUUID().toString();
         this.name = name;
         this.dataLoader = dataLoader;
+        this.randomProvider = randomProvider;
     }
 
     public void refreshShop() {
@@ -56,11 +55,7 @@ public class Player {
         gold -= 2;
 
         List<UnitDefinition> allUnits = new ArrayList<>(dataLoader.getAllUnits());
-        if (random != null) {
-            Collections.shuffle(allUnits, random);
-        } else {
-            Collections.shuffle(allUnits);
-        }
+        randomProvider.shuffle(allUnits);
         shop = allUnits.stream().limit(5).collect(Collectors.toList());
     }
 

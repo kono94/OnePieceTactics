@@ -1,9 +1,9 @@
 package net.lwenstrom.tft.backend.core.engine;
 
+import static net.lwenstrom.tft.backend.test.TestHelpers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
-import java.util.Random;
 import net.lwenstrom.tft.backend.test.TestHelpers;
 import org.junit.jupiter.api.Test;
 
@@ -65,8 +65,7 @@ class PlayerUnitTest {
     @Test
     void testBuyUnit_DeductsGold() {
         var dataLoader = TestHelpers.createMockDataLoader();
-        var player = new Player("TestPlayer", dataLoader);
-        player.setRandom(new Random(TestHelpers.TEST_SEED));
+        var player = createTestPlayer("TestPlayer", dataLoader);
         player.setGold(100);
         player.refreshShop();
 
@@ -82,8 +81,7 @@ class PlayerUnitTest {
     @Test
     void testBuyUnit_AddsToRoster() {
         var dataLoader = TestHelpers.createMockDataLoader();
-        var player = new Player("TestPlayer", dataLoader);
-        player.setRandom(new Random(TestHelpers.TEST_SEED));
+        var player = createTestPlayer("TestPlayer", dataLoader);
         player.setGold(100);
         player.refreshShop();
 
@@ -97,8 +95,7 @@ class PlayerUnitTest {
     @Test
     void testBuyUnit_RemovesFromShop() {
         var dataLoader = TestHelpers.createMockDataLoader();
-        var player = new Player("TestPlayer", dataLoader);
-        player.setRandom(new Random(TestHelpers.TEST_SEED));
+        var player = createTestPlayer("TestPlayer", dataLoader);
         player.setGold(100);
         player.refreshShop();
 
@@ -111,8 +108,7 @@ class PlayerUnitTest {
     void testBuyUnit_InsufficientGold_DoesNotBuy() {
         var units = List.of(TestHelpers.createUnitDef("expensive", "ExpensiveUnit", 50, 100, 10));
         var dataLoader = TestHelpers.createMockDataLoader(units);
-        var player = new Player("TestPlayer", dataLoader);
-        player.setRandom(new Random(TestHelpers.TEST_SEED));
+        var player = createTestPlayer("TestPlayer", dataLoader);
         player.setGold(10); // Not enough for 50 cost unit
         player.refreshShop();
 
@@ -124,8 +120,7 @@ class PlayerUnitTest {
     @Test
     void testRefreshShop_CostsGold() {
         var dataLoader = TestHelpers.createMockDataLoader();
-        var player = new Player("TestPlayer", dataLoader);
-        player.setRandom(new Random(TestHelpers.TEST_SEED));
+        var player = createTestPlayer("TestPlayer", dataLoader);
         player.setGold(10);
 
         player.refreshShop();
@@ -142,8 +137,7 @@ class PlayerUnitTest {
                 TestHelpers.createUnitDef("u4", "Unit4", 1, 100, 10),
                 TestHelpers.createUnitDef("u5", "Unit5", 1, 100, 10));
         var dataLoader = TestHelpers.createMockDataLoader(units);
-        var player = new Player("TestPlayer", dataLoader);
-        player.setRandom(new Random(TestHelpers.TEST_SEED));
+        var player = createTestPlayer("TestPlayer", dataLoader);
         player.setGold(10);
 
         player.refreshShop();
@@ -161,15 +155,13 @@ class PlayerUnitTest {
                 TestHelpers.createUnitDef("u5", "Unit5", 1, 100, 10));
         var dataLoader = TestHelpers.createMockDataLoader(units);
 
-        var player1 = new Player("P1", dataLoader);
-        player1.setRandom(new Random(123L));
+        var player1 = createTestPlayer("P1", dataLoader, createSeededRandomProvider(123L));
         player1.setGold(100);
         player1.refreshShop();
         var shop1 =
                 player1.getShop().stream().map(u -> u != null ? u.name() : null).toList();
 
-        var player2 = new Player("P2", dataLoader);
-        player2.setRandom(new Random(123L));
+        var player2 = createTestPlayer("P2", dataLoader, createSeededRandomProvider(123L));
         player2.setGold(100);
         player2.refreshShop();
         var shop2 =
@@ -181,8 +173,7 @@ class PlayerUnitTest {
     @Test
     void testMoveUnit_BenchToBoard() {
         var dataLoader = TestHelpers.createMockDataLoader();
-        var player = new Player("TestPlayer", dataLoader);
-        player.setRandom(new Random(TestHelpers.TEST_SEED));
+        var player = createTestPlayer("TestPlayer", dataLoader);
         player.setGold(100);
         player.setLevel(3); // Allow placing units
         player.refreshShop();
@@ -201,7 +192,7 @@ class PlayerUnitTest {
     @Test
     void testMoveUnit_BoardToBench() {
         var dataLoader = TestHelpers.createMockDataLoader();
-        var player = new Player("TestPlayer", dataLoader);
+        var player = createTestPlayer("TestPlayer", dataLoader);
         player.setLevel(3);
         var def = TestHelpers.createDefaultUnitDef();
         player.addUnitToBoard(def, 3, 2);
@@ -217,7 +208,7 @@ class PlayerUnitTest {
     @Test
     void testAddUnitToBoard_RespectsLevelCap() {
         var dataLoader = TestHelpers.createMockDataLoader();
-        var player = new Player("TestPlayer", dataLoader);
+        var player = createTestPlayer("TestPlayer", dataLoader);
         player.setLevel(1); // Can only have 1 unit on board
 
         var def = TestHelpers.createDefaultUnitDef();

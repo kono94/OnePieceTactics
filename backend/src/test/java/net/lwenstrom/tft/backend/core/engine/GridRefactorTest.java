@@ -1,5 +1,6 @@
 package net.lwenstrom.tft.backend.core.engine;
 
+import static net.lwenstrom.tft.backend.test.TestHelpers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
@@ -75,8 +76,8 @@ class GridRefactorTest {
     @Test
     void testCombatMerging() {
         GameModeRegistry registry = createMockRegistry();
-        Player p1 = new Player("P1", new MockDataLoader(registry));
-        Player p2 = new Player("P2", new MockDataLoader(registry));
+        Player p1 = new Player("P1", new MockDataLoader(registry), createSeededRandomProvider());
+        Player p2 = new Player("P2", new MockDataLoader(registry), createSeededRandomProvider());
 
         GameUnit u1 = new StandardGameUnit(createDummyDef());
         u1.setOwnerId(p1.getId());
@@ -84,11 +85,15 @@ class GridRefactorTest {
         try {
             java.lang.reflect.Field benchField = Player.class.getDeclaredField("bench");
             benchField.setAccessible(true);
-            ((java.util.List) benchField.get(p1)).add(u1);
+            @SuppressWarnings("unchecked")
+            List<GameUnit> bench1 = (List<GameUnit>) benchField.get(p1);
+            bench1.add(u1);
 
             GameUnit u2 = new StandardGameUnit(createDummyDef());
             u2.setOwnerId(p2.getId());
-            ((java.util.List) benchField.get(p2)).add(u2);
+            @SuppressWarnings("unchecked")
+            List<GameUnit> bench2 = (List<GameUnit>) benchField.get(p2);
+            bench2.add(u2);
 
             // Move P1 unit to (3, 3) - Back Center (Local Row 3 is Backline/Edge)
             p1.moveUnit(u1.getId(), 3, 3);
@@ -101,7 +106,7 @@ class GridRefactorTest {
             assertEquals(3, u2.getY());
 
             // Start Combat
-            CombatSystem cs = new CombatSystem();
+            var cs = createTestCombatSystem();
 
             // Ensure sorting P1 < P2 for test predictability (P1=Top, P2=Bottom)
             if (p1.getId().compareTo(p2.getId()) > 0) {

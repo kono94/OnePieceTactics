@@ -2,7 +2,6 @@ package net.lwenstrom.tft.backend.core.engine;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +14,8 @@ import net.lwenstrom.tft.backend.core.GameModeRegistry;
 import net.lwenstrom.tft.backend.core.model.GamePhase;
 import net.lwenstrom.tft.backend.core.model.GameState;
 import net.lwenstrom.tft.backend.core.model.GameState.PlayerState;
+import net.lwenstrom.tft.backend.core.random.RandomProvider;
+import net.lwenstrom.tft.backend.core.time.Clock;
 
 public class GameRoom {
     private final String id;
@@ -37,17 +38,26 @@ public class GameRoom {
     private long currentPhaseDuration;
 
     private final GameModeRegistry gameModeRegistry;
+    private final Clock clock;
+    private final RandomProvider randomProvider;
     private final TraitManager traitManager;
     private final CombatSystem combatSystem;
 
-    public GameRoom(String id, DataLoader dataLoader, GameModeRegistry gameModeRegistry) {
+    public GameRoom(
+            String id,
+            DataLoader dataLoader,
+            GameModeRegistry gameModeRegistry,
+            Clock clock,
+            RandomProvider randomProvider) {
         this.id = id;
         this.dataLoader = dataLoader;
         this.gameModeRegistry = gameModeRegistry;
+        this.clock = clock;
+        this.randomProvider = randomProvider;
 
         this.traitManager = new TraitManager();
         gameModeRegistry.getActiveProvider().registerTraitEffects(this.traitManager);
-        this.combatSystem = new CombatSystem(traitManager);
+        this.combatSystem = new CombatSystem(traitManager, clock);
 
         this.round = 0;
 
@@ -80,7 +90,7 @@ public class GameRoom {
     }
 
     public Player addPlayer(String name) {
-        Player player = new Player(name, dataLoader);
+        Player player = new Player(name, dataLoader, randomProvider);
         players.put(player.getId(), player);
 
         if (hostId == null) {
@@ -117,11 +127,11 @@ public class GameRoom {
 
     public void addBot() {
         String botId = "Bot-" + UUID.randomUUID().toString().substring(0, 4);
-        Player bot = new Player(botId, dataLoader);
+        Player bot = new Player(botId, dataLoader, randomProvider);
         players.put(bot.getId(), bot);
         bot.refreshShop();
         refreshBotRoster(bot);
-        updateGameState(phaseEndTime - System.currentTimeMillis());
+        updateGameState(phaseEndTime - clock.currentTimeMillis());
     }
 
     public Player getPlayer(String id) {
@@ -144,7 +154,7 @@ public class GameRoom {
             return;
         }
 
-        long now = System.currentTimeMillis();
+        long now = clock.currentTimeMillis();
         if (now >= phaseEndTime) {
             nextPhase();
         }
@@ -201,13 +211,13 @@ public class GameRoom {
         }
 
         this.currentPhaseDuration = calculatePhaseDuration(newPhase, round);
-        this.phaseEndTime = System.currentTimeMillis() + currentPhaseDuration;
+        this.phaseEndTime = clock.currentTimeMillis() + currentPhaseDuration;
 
         if (phase == GamePhase.COMBAT) {
             activeCombats.clear();
             currentMatchups.clear();
             List<Player> shuffled = new ArrayList<>(players.values());
-            Collections.shuffle(shuffled);
+            randomProvider.shuffle(shuffled);
             for (int i = 0; i < shuffled.size() - 1; i += 2) {
                 Player p1 = shuffled.get(i);
                 Player p2 = shuffled.get(i + 1);
@@ -227,7 +237,7 @@ public class GameRoom {
         int unitCount = Math.min((round / 2) + 1, 7); // Max 7 for first row
         List<UnitDefinition> available = dataLoader.getAllUnits();
         for (int i = 0; i < unitCount; i++) {
-            UnitDefinition def = available.get((int) (Math.random() * available.size()));
+            UnitDefinition def = available.get(randomProvider.nextInt(available.size()));
             bot.addUnitToBoard(def, i, 3);
         }
     }

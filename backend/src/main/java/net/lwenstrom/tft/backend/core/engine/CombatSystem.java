@@ -7,17 +7,16 @@ import java.util.HashSet;
 import java.util.List;
 import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
+import net.lwenstrom.tft.backend.core.time.Clock;
 
 public class CombatSystem {
 
     private final TraitManager traitManager;
+    private final Clock clock;
 
-    public CombatSystem() {
-        this(new TraitManager());
-    }
-
-    public CombatSystem(TraitManager traitManager) {
+    public CombatSystem(TraitManager traitManager, Clock clock) {
         this.traitManager = traitManager;
+        this.clock = clock;
     }
 
     public void startCombat(java.util.Collection<Player> players) {
@@ -83,7 +82,7 @@ public class CombatSystem {
     }
 
     public CombatResult simulateTick(List<Player> participants) {
-        var currentTime = System.currentTimeMillis();
+        var currentTime = clock.currentTimeMillis();
         var allUnits = new ArrayList<GameUnit>();
         participants.forEach(p -> {
             allUnits.addAll(p.getBoardUnits());
@@ -168,7 +167,7 @@ public class CombatSystem {
 
     private void moveTowards(GameUnit mover, GameUnit target, List<GameUnit> allUnits) {
         // Staggered Movement: Check if enough time passed
-        if (System.currentTimeMillis() < mover.getNextMoveTime()) {
+        if (clock.currentTimeMillis() < mover.getNextMoveTime()) {
             return;
         }
 
@@ -178,7 +177,7 @@ public class CombatSystem {
         if (nextStep != null) {
             mover.setPosition(nextStep.x, nextStep.y);
             // 800ms delay for staggered movement
-            mover.setNextMoveTime(System.currentTimeMillis() + 800);
+            mover.setNextMoveTime(clock.currentTimeMillis() + 800);
         }
     }
 

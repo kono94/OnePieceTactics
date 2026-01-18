@@ -1,5 +1,7 @@
 package net.lwenstrom.tft.backend.core.engine;
 
+import static net.lwenstrom.tft.backend.test.TestHelpers.createSeededRandomProvider;
+import static net.lwenstrom.tft.backend.test.TestHelpers.createTestClock;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
@@ -43,7 +45,8 @@ class GameRoomBotTest {
         dataLoader = new DataLoader(gameModeRegistry);
         dataLoader.loadData();
 
-        gameRoom = new GameRoom("bot-test-room", dataLoader, gameModeRegistry);
+        gameRoom = new GameRoom(
+                "bot-test-room", dataLoader, gameModeRegistry, createTestClock(), createSeededRandomProvider());
     }
 
     @Test

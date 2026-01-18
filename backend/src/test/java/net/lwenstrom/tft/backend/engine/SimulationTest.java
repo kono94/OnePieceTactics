@@ -1,5 +1,6 @@
 package net.lwenstrom.tft.backend.engine;
 
+import static net.lwenstrom.tft.backend.test.TestHelpers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Collection;
@@ -61,7 +62,8 @@ public class SimulationTest {
             }
         };
 
-        GameRoom room = new GameRoom("sim-room", dataLoader, registry);
+        var testClock = createTestClock();
+        var room = new GameRoom("sim-room", dataLoader, registry, testClock, createSeededRandomProvider());
         room.addPlayer("P1");
         room.addPlayer("P2");
 
@@ -79,26 +81,14 @@ public class SimulationTest {
             nextPhaseMethod.setAccessible(true);
 
             // Fast forward Planning to Combat
-            // Fast-forward to end of phase
-            try {
-                var field = net.lwenstrom.tft.backend.core.engine.GameRoom.class.getDeclaredField("phaseEndTime");
-                field.setAccessible(true);
-                field.set(room, System.currentTimeMillis() - 100);
-            } catch (Exception e) {
-            }
+            testClock.advance(30000);
 
             room.tick();
             assertEquals(GamePhase.COMBAT, room.getState().phase(), "Should switch to COMBAT phase");
             assertEquals(1, room.getState().round(), "Round should still be 1 in Combat");
 
             // Fast forward Combat to Planning
-            // Fast-forward back to PLANNING
-            try {
-                var field = net.lwenstrom.tft.backend.core.engine.GameRoom.class.getDeclaredField("phaseEndTime");
-                field.setAccessible(true);
-                field.set(room, System.currentTimeMillis() - 100);
-            } catch (Exception e) {
-            }
+            testClock.advance(30000);
 
             room.tick();
             assertEquals(
@@ -156,7 +146,8 @@ public class SimulationTest {
             }
         };
 
-        GameRoom room = new GameRoom("combat-room", dataLoader, registry);
+        var testClock = createTestClock();
+        var room = new GameRoom("combat-room", dataLoader, registry, testClock, createSeededRandomProvider());
         Player p1 = room.addPlayer("P1");
         Player p2 = room.addPlayer("P2");
         p1.setGold(100);
