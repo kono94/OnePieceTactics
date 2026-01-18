@@ -1,23 +1,25 @@
 package net.lwenstrom.tft.backend.core.engine;
 
-import static net.lwenstrom.tft.backend.test.TestHelpers.createTestCombatSystem;
+import static net.lwenstrom.tft.backend.test.TestHelpers.createTestClock;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.lwenstrom.tft.backend.core.combat.BfsUnitMover;
+import net.lwenstrom.tft.backend.core.combat.UnitMover;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
+import net.lwenstrom.tft.backend.test.TestClock;
 import org.junit.jupiter.api.Test;
 
 public class CombatPathingTest {
 
-    // Helper class to mock GameUnit
     private static class MockUnit implements GameUnit {
         private String id;
         private int x, y;
         private int hp = 100;
         private String ownerId;
         private long nextMoveTime = 0;
-        private int range = 1; // Default melee
+        private int range = 1;
 
         public MockUnit(String id, int x, int y, String ownerId) {
             this.id = id;
@@ -199,75 +201,38 @@ public class CombatPathingTest {
 
     @Test
     public void testBlockedPath() {
-        // P1 unit (Mover) at 0,0
-        // P1 ally (Blocker) at 0,1
-        // P2 enemy (Target) at 0,2
-        // Mover should go around to reach Target (e.g. via 1,0 -> 1,1 -> 0,1 (blocked)
-        // -> wait target is 0,2.
-        // Adjacent tiles of target: (1,2), (0,3), (0,1) [Occupied], (-1,2) [Invalid]
-
         GameUnit mover = new MockUnit("mover", 0, 0, "P1");
         GameUnit blocker = new MockUnit("blocker", 0, 1, "P1");
-        GameUnit target = new MockUnit("target", 0, 3, "P2"); // Farther away so we can see movement
+        GameUnit target = new MockUnit("target", 0, 3, "P2");
 
         List<GameUnit> allUnits = new ArrayList<>(List.of(mover, blocker, target));
 
-        var cs = createTestCombatSystem();
+        TestClock clock = createTestClock();
+        UnitMover unitMover = new BfsUnitMover(clock);
 
-        // We need to access private method `moveTowards` via reflection or test effect?
-        // Or since `moveTowards` is private, we test simulateTick behavior OR make it
-        // package-private for testing.
-        // For robustness, let's use reflection to invoke `findNextStep` or
-        // `moveTowards`.
-        // Better: Use `simulateTick` but mock time?
-        // Actually, `moveTowards` is void.
+        // Step 1: Should move sideways to avoid blocker
+        unitMover.moveTowards(mover, target, allUnits);
+        assertEquals(1, mover.getX(), "Should move sideways to avoid blocker");
+        assertEquals(0, mover.getY(), "Should stay on Y=0 line");
 
-        // Let's inspect unit position after `moveTowards` called.
-        // Since `moveTowards` checks time, we need to ensure nextMoveTime < now.
+        // Step 2: Advance clock and move again
+        clock.advance(1000);
+        unitMover.moveTowards(mover, target, allUnits);
+        assertEquals(1, mover.getX());
+        assertEquals(1, mover.getY());
 
-        try {
-            java.lang.reflect.Method moveMethod =
-                    CombatSystem.class.getDeclaredMethod("moveTowards", GameUnit.class, GameUnit.class, List.class);
-            moveMethod.setAccessible(true);
+        // Step 3
+        clock.advance(1000);
+        unitMover.moveTowards(mover, target, allUnits);
+        assertEquals(1, mover.getX());
+        assertEquals(2, mover.getY());
 
-            // Step 1
-            moveMethod.invoke(cs, mover, target, allUnits);
+        // Step 4: Should reach adjacent to target
+        clock.advance(1000);
+        unitMover.moveTowards(mover, target, allUnits);
 
-            // Expected: Mover cannot go (0,1) because blocker.
-            // Should go (1,0)
-            assertEquals(1, mover.getX(), "Should move sideways to avoid blocker");
-            assertEquals(0, mover.getY(), "Should stay on Y=0 line");
-
-            // Step 2
-            mover.setNextMoveTime(0); // Reset timer
-            moveMethod.invoke(cs, mover, target, allUnits);
-
-            // Expected: (1,1) moving parallel
-            assertEquals(1, mover.getX());
-            assertEquals(1, mover.getY());
-
-            // Step 3
-            mover.setNextMoveTime(0);
-            moveMethod.invoke(cs, mover, target, allUnits);
-
-            // Expected: (1,2)
-            assertEquals(1, mover.getX());
-            assertEquals(2, mover.getY());
-
-            // Step 4: Now adjacent to target (0,3) -> Distance is sqrt(1^2 + 1^2) = 1.41
-            // Range is 1. Is 1.41 <= 1? No.
-            // Next step should be (0,2) or (1,3)?
-            // (0,2) is dist 1 from (0,3). Valid.
-
-            mover.setNextMoveTime(0);
-            moveMethod.invoke(cs, mover, target, allUnits);
-
-            assertTrue(
-                    (mover.getX() == 0 && mover.getY() == 2) || (mover.getX() == 1 && mover.getY() == 3),
-                    "Should reach an adjacent tile to target");
-
-        } catch (Exception e) {
-            fail(e.getMessage());
-        }
+        assertTrue(
+                (mover.getX() == 0 && mover.getY() == 2) || (mover.getX() == 1 && mover.getY() == 3),
+                "Should reach an adjacent tile to target");
     }
 }

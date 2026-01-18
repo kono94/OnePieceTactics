@@ -4,6 +4,9 @@ import java.util.List;
 import net.lwenstrom.tft.backend.core.DataLoader;
 import net.lwenstrom.tft.backend.core.GameModeProvider;
 import net.lwenstrom.tft.backend.core.GameModeRegistry;
+import net.lwenstrom.tft.backend.core.combat.BfsUnitMover;
+import net.lwenstrom.tft.backend.core.combat.DefaultAbilityCaster;
+import net.lwenstrom.tft.backend.core.combat.NearestEnemyTargetSelector;
 import net.lwenstrom.tft.backend.core.engine.CombatSystem;
 import net.lwenstrom.tft.backend.core.engine.GameRoom;
 import net.lwenstrom.tft.backend.core.engine.Player;
@@ -108,11 +111,16 @@ public final class TestHelpers {
     }
 
     public static CombatSystem createTestCombatSystem() {
-        return new CombatSystem(new TraitManager(), createTestClock());
+        return createTestCombatSystem(createTestClock());
     }
 
     public static CombatSystem createTestCombatSystem(Clock clock) {
-        return new CombatSystem(new TraitManager(), clock);
+        return new CombatSystem(
+                new TraitManager(),
+                clock,
+                new NearestEnemyTargetSelector(),
+                new BfsUnitMover(clock),
+                new DefaultAbilityCaster());
     }
 
     public static GameRoom createTestGameRoom() {

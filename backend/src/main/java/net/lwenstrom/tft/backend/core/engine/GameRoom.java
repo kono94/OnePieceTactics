@@ -11,6 +11,9 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import net.lwenstrom.tft.backend.core.DataLoader;
 import net.lwenstrom.tft.backend.core.GameModeRegistry;
+import net.lwenstrom.tft.backend.core.combat.BfsUnitMover;
+import net.lwenstrom.tft.backend.core.combat.DefaultAbilityCaster;
+import net.lwenstrom.tft.backend.core.combat.NearestEnemyTargetSelector;
 import net.lwenstrom.tft.backend.core.model.GamePhase;
 import net.lwenstrom.tft.backend.core.model.GameState;
 import net.lwenstrom.tft.backend.core.model.GameState.PlayerState;
@@ -57,7 +60,12 @@ public class GameRoom {
 
         this.traitManager = new TraitManager();
         gameModeRegistry.getActiveProvider().registerTraitEffects(this.traitManager);
-        this.combatSystem = new CombatSystem(traitManager, clock);
+        this.combatSystem = new CombatSystem(
+                traitManager,
+                clock,
+                new NearestEnemyTargetSelector(),
+                new BfsUnitMover(clock),
+                new DefaultAbilityCaster());
 
         this.round = 0;
 
