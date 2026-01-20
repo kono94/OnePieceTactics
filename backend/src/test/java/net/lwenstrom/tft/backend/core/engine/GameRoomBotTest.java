@@ -38,7 +38,8 @@ class GameRoomBotTest {
             }
 
             @Override
-            public void registerTraitEffects(TraitManager traitManager) {}
+            public void registerTraitEffects(TraitManager traitManager) {
+            }
         };
 
         gameModeRegistry = new GameModeRegistry(List.of(provider), "onepiece");
@@ -76,9 +77,6 @@ class GameRoomBotTest {
     void testBotRosterRefreshesOnNewPhase() {
         gameRoom.addBot();
         Player bot = gameRoom.getPlayers().iterator().next();
-
-        // Initial units
-        var initialUnitIds = bot.getBoardUnits().stream().map(u -> u.getId()).toList();
 
         // Advance phase to COMBAT
         // To trigger nextPhase, we need to tick or call private methods.

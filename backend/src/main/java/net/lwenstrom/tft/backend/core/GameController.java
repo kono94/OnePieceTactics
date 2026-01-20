@@ -2,6 +2,7 @@ package net.lwenstrom.tft.backend.core;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.lwenstrom.tft.backend.core.engine.GameEngine;
 import net.lwenstrom.tft.backend.core.engine.GameRoom;
 import net.lwenstrom.tft.backend.core.engine.Player;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @CrossOrigin(origins = "*")
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class GameController {
 
     private final SimpMessagingTemplate messagingTemplate;
@@ -48,10 +50,6 @@ public class GameController {
     @MessageMapping("/create")
     public void createRoom(@Payload RoomRequest request) {
         GameRoom room = gameEngine.createRoom(request.roomId());
-        room.setEventListener(event -> {
-            messagingTemplate.convertAndSend("/topic/room/" + room.getId() + "/event", event);
-        });
-
         // Do not add bots initially
 
         joinRoom(new RoomRequest(room.getId(), request.playerName()));
@@ -80,8 +78,7 @@ public class GameController {
 
     @MessageMapping("/start")
     public void startRoom(@Payload RoomRequest request) {
-        System.out.println(
-                "Received start request for room: " + request.roomId() + " from player: " + request.playerName());
+        log.info("Received start request for room: {} from player: {}", request.roomId(), request.playerName());
         GameRoom room = gameEngine.getRoom(request.roomId());
         if (room != null) {
             // Find player by name to get their ID
@@ -91,20 +88,20 @@ public class GameController {
                     .orElse(null);
 
             if (player != null) {
-                System.out.println("Found player: " + player.getName() + " ID: " + player.getId() + " Host ID: "
-                        + room.getState().hostId());
+                log.info("Found player: {} ID: {} Host ID: {}", player.getName(), player.getId(),
+                        room.getState().hostId());
                 if (room.getState().hostId().equals(player.getId())) {
-                    System.out.println("Host verified. Starting match.");
+                    log.info("Host verified. Starting match.");
                     room.startMatch();
                     messagingTemplate.convertAndSend("/topic/room/" + room.getId(), room.getState());
                 } else {
-                    System.out.println("Player is not host.");
+                    log.info("Player is not host.");
                 }
             } else {
-                System.out.println("Player not found in room.");
+                log.info("Player not found in room.");
             }
         } else {
-            System.out.println("Room not found.");
+            log.info("Room not found.");
         }
     }
 
@@ -122,7 +119,8 @@ public class GameController {
         GameRoom room = gameEngine.getRoom(id);
         if (room != null) {
             Player p = room.getPlayer(action.playerId());
-            if (p == null) return;
+            if (p == null)
+                return;
 
             switch (action.type()) {
                 case BUY -> {
@@ -153,5 +151,6 @@ public class GameController {
         }
     }
 
-    public record RoomRequest(String roomId, String playerName) {}
+    public record RoomRequest(String roomId, String playerName) {
+    }
 }

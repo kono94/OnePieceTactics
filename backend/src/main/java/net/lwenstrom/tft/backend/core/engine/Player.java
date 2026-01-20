@@ -60,12 +60,16 @@ public class Player {
     }
 
     public void buyUnit(int shopIndex) {
-        if (shopIndex < 0 || shopIndex >= shop.size()) return;
+        if (shopIndex < 0 || shopIndex >= shop.size())
+            return;
         UnitDefinition def = shop.get(shopIndex);
 
-        if (def == null) return;
-        if (gold < def.cost()) return;
-        if (bench.size() >= MAX_BENCH_SIZE) return;
+        if (def == null)
+            return;
+        if (gold < def.cost())
+            return;
+        if (bench.size() >= MAX_BENCH_SIZE)
+            return;
 
         gold -= def.cost();
         StandardGameUnit newUnit = new StandardGameUnit(def);
@@ -76,7 +80,7 @@ public class Player {
     }
 
     private void checkUpgrade(String unitName, int starLevel) {
-        List<GameUnit> candidates = new ArrayList<>();
+        var candidates = new ArrayList<GameUnit>();
         candidates.addAll(bench.stream()
                 .filter(u -> u.getName().equals(unitName) && u.getStarLevel() == starLevel)
                 .toList());
@@ -85,23 +89,23 @@ public class Player {
                 .toList());
 
         if (candidates.size() >= 3) {
-            List<GameUnit> toRemove = candidates.subList(0, 3);
-            GameUnit targetPosUnit = toRemove.stream()
+            var unitsToRemove = candidates.subList(0, 3);
+            var targetPosUnit = unitsToRemove.stream()
                     .filter(u -> boardUnits.contains(u))
                     .findFirst()
-                    .orElse(toRemove.get(0));
+                    .orElse(unitsToRemove.get(0));
 
             int x = targetPosUnit.getX();
             int y = targetPosUnit.getY();
 
             // Clear from grid if necessary
-            for (GameUnit u : toRemove) {
+            for (var u : unitsToRemove) {
                 if (boardUnits.contains(u)) {
                     grid.removeUnit(u);
                 }
             }
-            bench.removeAll(toRemove);
-            boardUnits.removeAll(toRemove);
+            bench.removeAll(unitsToRemove);
+            boardUnits.removeAll(unitsToRemove);
 
             UnitDefinition def = dataLoader.getAllUnits().stream()
                     .filter(d -> d.name().equals(unitName))
@@ -125,7 +129,7 @@ public class Player {
                         def.traits(),
                         def.ability());
 
-                StandardGameUnit upgraded = new StandardGameUnit(upgradedDef);
+                var upgraded = new StandardGameUnit(upgradedDef);
                 upgraded.setOwnerId(this.id);
                 upgraded.setStarLevel(starLevel + 1);
 
@@ -191,16 +195,18 @@ public class Player {
     }
 
     public void moveUnit(String unitId, int x, int y) {
-        if (boardLocked) return;
+        if (boardLocked)
+            return;
         // Validation: Player grid check
-        if (y >= 0 && !grid.isValid(x, y)) return;
+        if (y >= 0 && !grid.isValid(x, y))
+            return;
 
-        var benchUnit =
-                bench.stream().filter(u -> u.getId().equals(unitId)).findFirst().orElse(null);
+        var benchUnit = bench.stream().filter(u -> u.getId().equals(unitId)).findFirst().orElse(null);
         if (benchUnit != null) {
             // Bench -> Board
             if (y >= 0 && grid.isEmpty(x, y)) {
-                if (boardUnits.size() >= level) return; // Cap
+                if (boardUnits.size() >= level)
+                    return; // Cap
 
                 bench.remove(benchUnit);
                 grid.placeUnit(benchUnit, x, y);
@@ -214,7 +220,8 @@ public class Player {
             if (boardUnit != null) {
                 // Board -> Bench
                 if (y < 0) {
-                    if (bench.size() >= MAX_BENCH_SIZE) return;
+                    if (bench.size() >= MAX_BENCH_SIZE)
+                        return;
                     grid.removeUnit(boardUnit); // Remove from grid
                     boardUnits.remove(boardUnit);
                     boardUnit.setPosition(-1, -1);
@@ -249,8 +256,9 @@ public class Player {
     }
 
     public void addUnitToBoard(UnitDefinition def, int x, int y) {
-        if (boardUnits.size() >= level) return;
-        StandardGameUnit unit = new StandardGameUnit(def);
+        if (boardUnits.size() >= level)
+            return;
+        var unit = new StandardGameUnit(def);
         unit.setOwnerId(this.id);
         if (grid.isValid(x, y) && grid.isEmpty(x, y)) {
             grid.placeUnit(unit, x, y);

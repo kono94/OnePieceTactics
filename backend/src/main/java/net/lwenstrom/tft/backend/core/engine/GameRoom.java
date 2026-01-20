@@ -7,8 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 import net.lwenstrom.tft.backend.core.DataLoader;
 import net.lwenstrom.tft.backend.core.GameModeRegistry;
 import net.lwenstrom.tft.backend.core.combat.BfsUnitMover;
@@ -17,9 +18,11 @@ import net.lwenstrom.tft.backend.core.combat.NearestEnemyTargetSelector;
 import net.lwenstrom.tft.backend.core.model.GamePhase;
 import net.lwenstrom.tft.backend.core.model.GameState;
 import net.lwenstrom.tft.backend.core.model.GameState.PlayerState;
+import net.lwenstrom.tft.backend.core.model.GameUnit;
 import net.lwenstrom.tft.backend.core.random.RandomProvider;
 import net.lwenstrom.tft.backend.core.time.Clock;
 
+@Slf4j
 public class GameRoom {
     private final String id;
     private String hostId;
@@ -34,10 +37,6 @@ public class GameRoom {
     private long phaseEndTime;
     private int round = 0;
 
-    private Consumer<Object> eventListener;
-
-    // Constants
-    // Constants
     private long currentPhaseDuration;
 
     private final GameModeRegistry gameModeRegistry;
@@ -91,10 +90,6 @@ public class GameRoom {
 
     public GameState getState() {
         return currentState;
-    }
-
-    public void setEventListener(Consumer<Object> eventListener) {
-        this.eventListener = eventListener;
     }
 
     public Player addPlayer(String name) {
@@ -200,10 +195,10 @@ public class GameRoom {
 
     private void startPhase(GamePhase newPhase) {
         this.phase = newPhase;
-        System.err.println("StartPhase called: " + newPhase);
+        log.info("Starting phase: {}", newPhase);
 
         if (phase == GamePhase.PLANNING) {
-            System.err.println("Starting PLANNING phase. Restoring units.");
+            log.info("Starting PLANNING phase. Restoring units.");
             // Restore units from combat positions
             combatSystem.endCombat(players.values());
 
@@ -224,7 +219,7 @@ public class GameRoom {
         if (phase == GamePhase.COMBAT) {
             activeCombats.clear();
             currentMatchups.clear();
-            List<Player> shuffled = new ArrayList<>(players.values());
+            var shuffled = new ArrayList<Player>(players.values());
             randomProvider.shuffle(shuffled);
             for (int i = 0; i < shuffled.size() - 1; i += 2) {
                 Player p1 = shuffled.get(i);
@@ -283,7 +278,7 @@ public class GameRoom {
             var maxHp = -1;
             for (var p : participants) {
                 var totalHp = p.getBoardUnits().stream()
-                        .mapToInt(net.lwenstrom.tft.backend.core.model.GameUnit::getCurrentHealth)
+                        .mapToInt(GameUnit::getCurrentHealth)
                         .sum();
                 if (totalHp > maxHp) {
                     maxHp = totalHp;
@@ -314,8 +309,7 @@ public class GameRoom {
 
             if (loser != null) {
                 loser.takeDamage(damage);
-                System.out.println("Combat ended: " + winner.getName() + " wins! " + loser.getName() + " takes "
-                        + damage + " damage.");
+                log.info("Combat ended: {} wins! {} takes {}", winner.getName(), loser.getName(), damage);
             }
         }
     }

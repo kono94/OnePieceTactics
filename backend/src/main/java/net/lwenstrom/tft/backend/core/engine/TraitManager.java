@@ -21,18 +21,18 @@ public class TraitManager {
 
     public void applyTraits(List<GameUnit> units) {
         // Map Trait ID -> Count (Unique Units)
-        Map<String, Set<String>> traitCounts = new HashMap<>();
+        var traitCounts = new HashMap<String, Set<String>>();
 
-        for (GameUnit unit : units) {
-            for (String traitName : unit.getTraits()) {
-                String id = normalizeTraitId(traitName);
-                traitCounts.computeIfAbsent(id, k -> new HashSet<>()).add(unit.getName());
+        for (var unit : units) {
+            for (var traitName : unit.getTraits()) {
+                var id = normalizeTraitId(traitName);
+                traitCounts.computeIfAbsent(id, k -> new HashSet<String>()).add(unit.getName());
             }
         }
 
         // Apply effects
         traitCounts.forEach((traitId, uniqueUnits) -> {
-            int count = uniqueUnits.size();
+            var count = uniqueUnits.size();
             if (effects.containsKey(traitId)) {
                 effects.get(traitId).apply(count, units);
             } else {
