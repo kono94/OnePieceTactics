@@ -169,6 +169,9 @@ const hoveredShopIndex = ref<number|null>(null)
                           <div class="bench-unit-inner">
                              <img :src="`/assets/units/${benchUnits[i-1].definitionId}.png`" 
                                   class="bench-unit-img" />
+                             <div class="star-indicator" :class="'stars-' + (benchUnits[i-1].starLevel || 1)">
+                                 <span v-for="n in (benchUnits[i-1].starLevel || 1)" :key="n" class="star-dot"></span>
+                             </div>
                           </div>
                           
                           <!-- Tooltip for Bench -->
@@ -282,6 +285,7 @@ const hoveredShopIndex = ref<number|null>(null)
 }
 
 .bench-unit-inner {
+    position: relative;
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -525,5 +529,38 @@ const hoveredShopIndex = ref<number|null>(null)
     filter: grayscale(100%) brightness(0.6);
     pointer-events: none;
     transition: all 1s ease;
+}
+
+/* Star Level Indicator */
+.star-indicator {
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 2px;
+    z-index: 5;
+}
+
+.star-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Enhanced glow for 2-star units */
+.stars-2 .star-dot {
+    background: linear-gradient(135deg, #fcd34d, #fbbf24);
+    box-shadow: 0 0 3px #fbbf24, 0 0 1px rgba(0, 0, 0, 0.5);
+}
+
+/* Bright gold glow for 3-star (max) units */
+.stars-3 .star-dot {
+    width: 7px;
+    height: 7px;
+    background: linear-gradient(135deg, #fef3c7, #fbbf24);
+    box-shadow: 0 0 4px #fbbf24, 0 0 8px rgba(251, 191, 36, 0.6);
 }
 </style>

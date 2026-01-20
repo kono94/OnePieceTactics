@@ -381,6 +381,9 @@ function removeAnimation(id: number) {
             <div class="hp-bar" :style="{ width: (unit.currentHealth / unit.maxHealth * 100) + '%' }"></div>
             <div v-if="unit.maxMana > 0" class="mana-bar" :style="{ width: (unit.mana / unit.maxMana * 100) + '%' }"></div>
             <img :src="unit.image" class="unit-img" :alt="unit.name" />
+            <div class="star-indicator" :class="'stars-' + (unit.starLevel || 1)">
+                <span v-for="n in (unit.starLevel || 1)" :key="n" class="star-dot"></span>
+            </div>
         </div>
 
         <!-- Attack & Ability Animations -->
@@ -569,4 +572,38 @@ function removeAnimation(id: number) {
     20% { transform: translate(-25px, -40px); opacity: 1; scale: 1.2; }
     100% { transform: translate(-25px, -60px); opacity: 0; scale: 1.0; }
 }
+
+/* Star Level Indicator */
+.star-indicator {
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 2px;
+    z-index: 5;
+}
+
+.star-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Enhanced glow for 2-star units */
+.stars-2 .star-dot {
+    background: linear-gradient(135deg, #fcd34d, #fbbf24);
+    box-shadow: 0 0 3px #fbbf24, 0 0 1px rgba(0, 0, 0, 0.5);
+}
+
+/* Bright gold glow for 3-star (max) units */
+.stars-3 .star-dot {
+    width: 7px;
+    height: 7px;
+    background: linear-gradient(135deg, #fef3c7, #fbbf24);
+    box-shadow: 0 0 4px #fbbf24, 0 0 8px rgba(251, 191, 36, 0.6);
+}
 </style>
+
