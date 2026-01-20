@@ -3,7 +3,6 @@ package net.lwenstrom.tft.backend.core.engine;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import net.lwenstrom.tft.backend.core.DataLoader;
@@ -48,15 +47,20 @@ public class Player {
         this.randomProvider = randomProvider;
     }
 
+    private static final int SHOP_SIZE = 5;
+
     public void refreshShop() {
         if (shopLocked || gold < 2) {
             return;
         }
         gold -= 2;
 
-        List<UnitDefinition> allUnits = new ArrayList<>(dataLoader.getAllUnits());
-        randomProvider.shuffle(allUnits);
-        shop = allUnits.stream().limit(5).collect(Collectors.toList());
+        var allUnits = dataLoader.getAllUnits();
+        shop = new ArrayList<>();
+        for (var i = 0; i < SHOP_SIZE; i++) {
+            var randomIndex = randomProvider.nextInt(allUnits.size());
+            shop.add(allUnits.get(randomIndex));
+        }
     }
 
     public void buyUnit(int shopIndex) {

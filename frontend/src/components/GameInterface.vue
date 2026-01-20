@@ -422,7 +422,7 @@ const hoveredShopIndex = ref<number|null>(null)
 
 /* Shop */
 .shop-area {
-    width: 500px;
+    width: 600px;
     display: flex;
     flex-direction: column;
     gap: 10px;
