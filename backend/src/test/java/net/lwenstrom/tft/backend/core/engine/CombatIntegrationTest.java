@@ -109,7 +109,7 @@ class CombatIntegrationTest {
 
     @Test
     void testCombat_AbilityDamage_Single() {
-        var ability = new AbilityDefinition("TestAbility", "DMG", "SINGLE", 50);
+        var ability = new AbilityDefinition("TestAbility", "DMG", "SINGLE", 50, 1);
         var combatSystem = createTestCombatSystem();
         var p1 = new Player("P1", null, createSeededRandomProvider());
         var p2 = new Player("P2", null, createSeededRandomProvider());
@@ -133,7 +133,7 @@ class CombatIntegrationTest {
 
     @Test
     void testCombat_AbilityDamage_Surround8() {
-        var ability = new AbilityDefinition("AOE", "DMG", "SURROUND_8", 25);
+        var ability = new AbilityDefinition("AOE", "DMG", "SURROUND", 25, 1);
         var combatSystem = createTestCombatSystem();
         var p1 = new Player("P1", null, createSeededRandomProvider());
         var p2 = new Player("P2", null, createSeededRandomProvider());

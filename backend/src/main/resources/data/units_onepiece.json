@@ -19,7 +19,8 @@
       "name": "Gum Gum Pistol",
       "type": "DMG",
       "pattern": "SINGLE",
-      "value": 200
+      "value": 200,
+      "range": 2
     }
   },
   {
@@ -41,8 +42,9 @@
     "ability": {
       "name": "360 Pound",
       "type": "DMG",
-      "pattern": "SURROUND_8",
-      "value": 100
+      "pattern": "SURROUND",
+      "value": 100,
+      "range": 1
     }
   },
   {
@@ -64,8 +66,9 @@
     "ability": {
       "name": "Thunderbolt",
       "type": "DMG",
-      "pattern": "LINE_3",
-      "value": 150
+      "pattern": "LINE",
+      "value": 150,
+      "range": 4
     }
   }
 ]

@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import UnitTooltip from './UnitTooltip.vue'
+import AttackAnimation from './game/AttackAnimation.vue'
+import { getAttackConfig, getAbilityConfig } from '../data/animationConfig'
 
 const props = defineProps<{
     state: any,
@@ -208,7 +210,30 @@ const onUnitMouseLeave = () => {
     hoveredUnitId.value = null
 }
 
-// Floating Text Logic
+// ========== ANIMATION SYSTEM ==========
+
+// Animation Types
+interface AttackAnimData {
+    id: number
+    type: 'attack' | 'ability'
+    attackType?: 'punch' | 'slash' | 'projectile'
+    pattern?: string
+    startX: number
+    startY: number
+    endX: number
+    endY: number
+    color: string
+    definitionId: string
+}
+
+const activeAnimations = ref<AttackAnimData[]>([])
+let nextAnimId = 0
+
+// Track previous health to detect attacks
+const prevHealthMap = ref<Record<string, number>>({})
+const lastCastMap = ref<Record<string, string>>({})
+
+// Floating Text for ability names (keep existing)
 interface FloatingText {
     id: number
     x: number
@@ -216,74 +241,114 @@ interface FloatingText {
     text: string
 }
 const castingAnimations = ref<FloatingText[]>([])
-let nextAnimId = 0
-// Track last cast to avoid duplicate inputs if backend sends same state twice (should be fine if activeAbility is transient)
-const lastCastMap = ref<Record<string, string>>({}) 
 
-import { watch } from 'vue'
+// Find nearest enemy for a unit (to animate attacks toward)
+function findNearestEnemy(unit: any, allUnits: any[]): any | null {
+    const enemies = allUnits.filter(u => u.ownerId !== unit.ownerId && u.currentHealth > 0)
+    if (enemies.length === 0) return null
+    
+    let nearest = enemies[0]
+    let minDist = Math.abs(nearest.visualX - unit.visualX) + Math.abs(nearest.visualY - unit.visualY)
+    
+    for (const enemy of enemies) {
+        const dist = Math.abs(enemy.visualX - unit.visualX) + Math.abs(enemy.visualY - unit.visualY)
+        if (dist < minDist) {
+            minDist = dist
+            nearest = enemy
+        }
+    }
+    return nearest
+}
 
-watch(() => renderedUnits.value, (newUnits) => {
-    newUnits.forEach((u: any) => {
-        if (u.activeAbility) {
-            // Only trigger if not already handled for this exact capability instance?
-            // Since activeAbility is just a name, and we get updates frequently, 
-            // we rely on backend clearing it.
-            // But if we get 2 updates with same 'activeAbility', we might duplicate.
-            // But backend clears it after tick. Ticks are 100ms. Frontend sync might be faster or slower.
-            // To be safe, we can debounce per unit?
-            
-            // Check if we just showed this?
-            // Let's rely on backend clearing it.
-            // But if the "flash" lasts 1 tick, we might see it once.
-            
-            // Note: Since we don't have a unique ID for the CAST event, we might re-trigger if state remains same.
-            // But backend clears it immediately after logic. So next tick it's null.
-            // So as long as we don't process the *same* state object twice...
-            
-            // Let's implement a simple check: activeAbility is transient.
-            // We just push animation.
-            
-            // Deduplication: check if we already have an animation for this unit with same text created recently (< 200ms)
-            // Or just trust the transient nature.
-            
-            // Wait, we need to locate where to spawn text.
-            // u.visualX, u.visualY are grid coords.
-            const x = u.visualX * CELL_SIZE + 30; // Center ish
-            const y = u.visualY * CELL_SIZE; 
-            
-            // Avoid adding duplicate if one exists for this unit recently?
-            // Ideally we'd have a castId.
-            // For now, let's just add it.
-            
-            // We need to NOT add it if we already added it for this 'turn' of data.
-            // But watch triggers on change.
-            // If u.activeAbility changes from null to "Foo", we add.
-            // If it stays "Foo" (lag?), we might add again.
-            // We can check `lastCastMap`.
-            
-            if (lastCastMap.value[u.id] !== u.activeAbility) {
-                 lastCastMap.value[u.id] = u.activeAbility
-                 castingAnimations.value.push({
+// Watch for health changes to spawn attack animations
+watch(() => renderedUnits.value, (newUnits, oldUnits) => {
+    const isCombat = props.state?.phase === 'COMBAT'
+    if (!isCombat) {
+        // Clear tracking when not in combat
+        prevHealthMap.value = {}
+        return
+    }
+    
+    // Build map of current units
+    const unitMap = new Map<string, any>()
+    newUnits.forEach(u => unitMap.set(u.id, u))
+    
+    // Check for health decreases (indicates unit was attacked)
+    newUnits.forEach((unit: any) => {
+        const prevHealth = prevHealthMap.value[unit.id]
+        
+        // If health decreased, spawn impact animation on this unit
+        if (prevHealth !== undefined && unit.currentHealth < prevHealth) {
+            // Find potential attacker - nearest enemy
+            const attacker = findNearestEnemy(unit, newUnits)
+            if (attacker && activeAnimations.value.length < 6) {
+                const config = getAttackConfig(attacker.definitionId)
+                activeAnimations.value.push({
+                    id: nextAnimId++,
+                    type: 'attack',
+                    attackType: config.type,
+                    startX: attacker.visualX,
+                    startY: attacker.visualY,
+                    endX: unit.visualX,
+                    endY: unit.visualY,
+                    color: config.color,
+                    definitionId: attacker.definitionId
+                })
+            }
+        }
+        
+        // Update health tracking
+        prevHealthMap.value[unit.id] = unit.currentHealth
+        
+        // Handle ability animations (enhanced version)
+        if (unit.activeAbility) {
+            if (lastCastMap.value[unit.id] !== unit.activeAbility) {
+                lastCastMap.value[unit.id] = unit.activeAbility
+                
+                // Spawn ability visual effect
+                const target = findNearestEnemy(unit, newUnits)
+                const config = getAbilityConfig(unit.definitionId)
+                
+                if (activeAnimations.value.length < 8) {
+                    activeAnimations.value.push({
+                        id: nextAnimId++,
+                        type: 'ability',
+                        pattern: unit.ability?.pattern || 'SINGLE',
+                        startX: unit.visualX,
+                        startY: unit.visualY,
+                        endX: target?.visualX ?? unit.visualX,
+                        endY: target?.visualY ?? unit.visualY,
+                        color: config.color,
+                        definitionId: unit.definitionId
+                    })
+                }
+                
+                // Also spawn floating text
+                const x = unit.visualX * CELL_SIZE + 30
+                const y = unit.visualY * CELL_SIZE
+                castingAnimations.value.push({
                     id: nextAnimId++,
                     x,
                     y,
-                    text: u.activeAbility
-                 })
-                 
-                 // Cleanup
-                 setTimeout(() => {
-                    castingAnimations.value.shift() // Remove oldest. 
-                    // Or filter.
-                 }, 1000)
+                    text: unit.activeAbility
+                })
+                
+                setTimeout(() => {
+                    castingAnimations.value.shift()
+                }, 1000)
             }
         } else {
-            if (lastCastMap.value[u.id]) {
-                delete lastCastMap.value[u.id]
+            if (lastCastMap.value[unit.id]) {
+                delete lastCastMap.value[unit.id]
             }
         }
     })
 })
 
+// Remove animation when complete
+function removeAnimation(id: number) {
+    activeAnimations.value = activeAnimations.value.filter(a => a.id !== id)
+}
 </script>
 
 <template>
@@ -317,6 +382,22 @@ watch(() => renderedUnits.value, (newUnits) => {
             <div v-if="unit.maxMana > 0" class="mana-bar" :style="{ width: (unit.mana / unit.maxMana * 100) + '%' }"></div>
             <img :src="unit.image" class="unit-img" :alt="unit.name" />
         </div>
+
+        <!-- Attack & Ability Animations -->
+        <AttackAnimation 
+            v-for="anim in activeAnimations" 
+            :key="anim.id"
+            :type="anim.type"
+            :attack-type="anim.attackType"
+            :pattern="anim.pattern"
+            :start-x="anim.startX"
+            :start-y="anim.startY"
+            :end-x="anim.endX"
+            :end-y="anim.endY"
+            :color="anim.color"
+            :definition-id="anim.definitionId"
+            @complete="removeAnimation(anim.id)"
+        />
 
         <!-- Shared Tooltip Anchor -->
          <div v-if="hoveredUnit" 
@@ -489,4 +570,3 @@ watch(() => renderedUnits.value, (newUnits) => {
     100% { transform: translate(-25px, -60px); opacity: 0; scale: 1.0; }
 }
 </style>
-

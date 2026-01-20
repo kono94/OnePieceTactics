@@ -19,7 +19,8 @@
             "name": "Ember",
             "type": "DMG",
             "pattern": "SINGLE",
-            "value": 150
+            "value": 150,
+            "range": 2
         }
     },
     {
@@ -41,8 +42,9 @@
         "ability": {
             "name": "Water Gun",
             "type": "DMG",
-            "pattern": "LINE_3",
-            "value": 120
+            "pattern": "LINE",
+            "value": 120,
+            "range": 3
         }
     },
     {
@@ -64,8 +66,9 @@
         "ability": {
             "name": "Vine Whip",
             "type": "DMG",
-            "pattern": "SURROUND_8",
-            "value": 100
+            "pattern": "SURROUND",
+            "value": 100,
+            "range": 1
         }
     }
 ]

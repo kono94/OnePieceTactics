@@ -26,11 +26,11 @@ public class DefaultAbilityCaster implements AbilityCaster {
                     target.takeDamage(damage);
                 }
             }
-            case "LINE_3" -> {
+            case "LINE" -> {
                 if (target != null) {
                     int dx = Integer.compare(target.getX(), source.getX());
                     int dy = Integer.compare(target.getY(), source.getY());
-                    for (int i = 1; i <= 3; i++) {
+                    for (int i = 1; i <= ability.range(); i++) {
                         int tx = source.getX() + dx * i;
                         int ty = source.getY() + dy * i;
                         final int fX = tx;
@@ -43,9 +43,10 @@ public class DefaultAbilityCaster implements AbilityCaster {
                     }
                 }
             }
-            case "SURROUND_8" -> {
-                for (int dx = -1; dx <= 1; dx++) {
-                    for (int dy = -1; dy <= 1; dy++) {
+            case "SURROUND" -> {
+                int r = ability.range();
+                for (int dx = -r; dx <= r; dx++) {
+                    for (int dy = -r; dy <= r; dy++) {
                         if (dx == 0 && dy == 0) continue;
                         int tx = source.getX() + dx;
                         int ty = source.getY() + dy;
