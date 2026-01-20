@@ -1,6 +1,6 @@
 # Backend Context - Architectural Blueprint
 
-> **Last Updated**: 2026-01-19
+> **Last Updated**: 2026-01-20
 > **Purpose**: Comprehensive technical reference for AI developers and engineers to understand the game server's architecture, game loop, and communication patterns.
 
 ---
@@ -116,6 +116,7 @@ GameController.tick()
                         └── [COMBAT phase] → CombatSystem.simulateTick() for each active matchup
                                              └── Check combat end → handleCombatEnd() → deduct HP
     └── Broadcast GameState to /topic/room/{id}
+    └── Remove ended games from active rooms
 ```
 
 ### 4.2 Phase Transitions
@@ -143,6 +144,7 @@ GameController.tick()
    - Units find targets, attack (if in range), or move closer.
    - Mana is gained on attack; abilities cast at full mana.
 4. Combat ends when only one player has surviving units → loser takes `2 + survivingUnits` damage.
+5. `CombatResultListener` emits `COMBAT_RESULT` event to `/topic/room/{id}/event` with winner/loser IDs.
 
 ### 4.3 Combat Simulation (`CombatSystem.simulateTick`)
 
@@ -174,7 +176,7 @@ These are injected into `CombatSystem`, enabling easy unit testing and swapping 
 | Entity | Scope | Lifecycle |
 |--------|-------|-----------|
 | `GameEngine` | Singleton (Spring `@Service`) | Application lifespan |
-| `GameRoom` | One per active room | Created on `/app/create`, persists until server restart |
+| `GameRoom` | One per active room | Created on `/app/create`, auto-removed when game ends |
 | `Player` | One per player in a room | Lives inside `GameRoom.players` map |
 | `GameUnit` | Per unit | Lives in `Player.boardUnits` or `Player.bench` |
 
@@ -230,7 +232,7 @@ public record GameState(
 | `/app/room/{id}/action` | Client → Server | `GameAction` | Player action (BUY, MOVE, REROLL, EXP) |
 | `/app/room/{id}/add-bot` | Client → Server | (none) | Add a bot to the room |
 | `/topic/room/{id}` | Server → Client | `GameState` | Full state broadcast every 100ms |
-| `/topic/room/{id}/event` | Server → Client | Event object | Future: combat events |
+| `/topic/room/{id}/event` | Server → Client | `{ type, payload }` | Combat result events (`COMBAT_RESULT`) |
 
 ### 6.2 `GameAction` Payload Structure
 

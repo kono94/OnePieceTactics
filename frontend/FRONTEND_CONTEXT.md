@@ -55,10 +55,12 @@ frontend/
     │   ├── PhaseAnnouncement.vue  # Animated PLANNING/COMBAT banners
     │   ├── EndScreen.vue     # Game-over leaderboard and "Play Again"
     │   └── game/
-    │       └── OutcomeOverlay.vue # "ROUND WON/LOST" splash after combat
+    │       ├── AttackAnimation.vue  # Renders attack & ability visual effects
+    │       └── OutcomeOverlay.vue   # "ROUND WON/LOST" splash after combat
     │
     └── data/
-        └── traitData.ts      # Trait definitions & helpers (loaded from backend)
+        ├── animationConfig.ts  # Per-unit attack/ability animation config (type, color)
+        └── traitData.ts        # Trait definitions & helpers (loaded from backend)
 ```
 
 ---
@@ -166,6 +168,27 @@ const CELL_SIZE = 60   // px
 
 Units are positioned absolutely within the grid container using inline styles.
 
+### 9. Animation System: Per-Unit Attack & Ability Effects
+
+Combat visuals are powered by a configurable animation system:
+
+| File                        | Role                                                                  |
+|-----------------------------|-----------------------------------------------------------------------|
+| `data/animationConfig.ts`   | Defines per-unit attack types (`punch`, `slash`, `projectile`) and colors |
+| `game/AttackAnimation.vue`  | Renders visual effects based on attack/ability type and pattern        |
+
+**Attack Types**:
+- **punch**: Expanding impact ring (e.g., Luffy)
+- **slash**: Rotating arc effect (e.g., Zoro)
+- **projectile**: Flying orb from source to target (e.g., Nami)
+
+**Ability Patterns** (determined by backend):
+- **SINGLE**: Burst effect on target
+- **LINE**: Beam from caster to target
+- **SURROUND**: AoE ring centered on target
+
+Animations auto-cleanup via `setTimeout` and emit `complete` event for removal from parent.
+
 ---
 
 ## Important File Paths
@@ -244,6 +267,7 @@ Units are positioned absolutely within the grid container using inline styles.
 | `PlayerList.vue`       | Displays all players' HP, level, sorted by health/elimination order            |
 | `UnitTooltip.vue`      | Displays unit stats (HP, ATK, SPD, Range, Mana, Traits) on hover               |
 | `PhaseAnnouncement.vue`| Animated banners for phase transitions (PLANNING PHASE / BATTLE START)        |
+| `AttackAnimation.vue`  | Renders per-unit attack effects (punch, slash, projectile) and ability bursts  |
 | `OutcomeOverlay.vue`   | Large "ROUND WON/LOST" splash after combat ends                                |
 | `EndScreen.vue`        | Final leaderboard with "Play Again" reload button                              |
 
