@@ -38,8 +38,7 @@ class GameRoomBotTest {
             }
 
             @Override
-            public void registerTraitEffects(TraitManager traitManager) {
-            }
+            public void registerTraitEffects(TraitManager traitManager) {}
         };
 
         gameModeRegistry = new GameModeRegistry(List.of(provider), "onepiece");

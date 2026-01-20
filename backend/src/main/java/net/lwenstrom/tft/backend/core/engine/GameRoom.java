@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
 import lombok.extern.slf4j.Slf4j;
 import net.lwenstrom.tft.backend.core.DataLoader;
 import net.lwenstrom.tft.backend.core.GameModeRegistry;
@@ -44,6 +43,17 @@ public class GameRoom {
     private final RandomProvider randomProvider;
     private final TraitManager traitManager;
     private final CombatSystem combatSystem;
+
+    private CombatResultListener combatResultListener;
+
+    @FunctionalInterface
+    public interface CombatResultListener {
+        void onCombatResult(String roomId, String winnerId, String loserId);
+    }
+
+    public void setCombatResultListener(CombatResultListener listener) {
+        this.combatResultListener = listener;
+    }
 
     public GameRoom(
             String id,
@@ -90,6 +100,10 @@ public class GameRoom {
 
     public GameState getState() {
         return currentState;
+    }
+
+    public boolean isEnded() {
+        return phase == GamePhase.END;
     }
 
     public Player addPlayer(String name) {
@@ -198,6 +212,16 @@ public class GameRoom {
         log.info("Starting phase: {}", newPhase);
 
         if (phase == GamePhase.PLANNING) {
+            // Check if game should end (only one player with health > 0)
+            var alivePlayers =
+                    players.values().stream().filter(p -> p.getHealth() > 0).count();
+            if (alivePlayers <= 1) {
+                log.info("Game ending: only {} player(s) remaining", alivePlayers);
+                this.phase = GamePhase.END;
+                updateGameState(0);
+                return;
+            }
+
             log.info("Starting PLANNING phase. Restoring units.");
             // Restore units from combat positions
             combatSystem.endCombat(players.values());
@@ -310,6 +334,11 @@ public class GameRoom {
             if (loser != null) {
                 loser.takeDamage(damage);
                 log.info("Combat ended: {} wins! {} takes {}", winner.getName(), loser.getName(), damage);
+
+                // Notify listener about combat result
+                if (combatResultListener != null) {
+                    combatResultListener.onCombatResult(id, winner.getId(), loser.getId());
+                }
             }
         }
     }

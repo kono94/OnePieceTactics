@@ -50,9 +50,17 @@ public class GameController {
     @MessageMapping("/create")
     public void createRoom(@Payload RoomRequest request) {
         GameRoom room = gameEngine.createRoom(request.roomId());
-        // Do not add bots initially
+        configureCombatResultListener(room);
 
         joinRoom(new RoomRequest(room.getId(), request.playerName()));
+    }
+
+    private void configureCombatResultListener(GameRoom room) {
+        room.setCombatResultListener((roomId, winnerId, loserId) -> {
+            var payload = java.util.Map.of("winnerId", winnerId, "loserId", loserId);
+            var event = java.util.Map.of("type", "COMBAT_RESULT", "payload", payload);
+            messagingTemplate.convertAndSend("/topic/room/" + roomId + "/event", (Object) event);
+        });
     }
 
     @MessageMapping("/join")
@@ -88,7 +96,10 @@ public class GameController {
                     .orElse(null);
 
             if (player != null) {
-                log.info("Found player: {} ID: {} Host ID: {}", player.getName(), player.getId(),
+                log.info(
+                        "Found player: {} ID: {} Host ID: {}",
+                        player.getName(),
+                        player.getId(),
                         room.getState().hostId());
                 if (room.getState().hostId().equals(player.getId())) {
                     log.info("Host verified. Starting match.");
@@ -119,8 +130,7 @@ public class GameController {
         GameRoom room = gameEngine.getRoom(id);
         if (room != null) {
             Player p = room.getPlayer(action.playerId());
-            if (p == null)
-                return;
+            if (p == null) return;
 
             switch (action.type()) {
                 case BUY -> {
@@ -151,6 +161,5 @@ public class GameController {
         }
     }
 
-    public record RoomRequest(String roomId, String playerName) {
-    }
+    public record RoomRequest(String roomId, String playerName) {}
 }

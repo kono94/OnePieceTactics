@@ -35,8 +35,8 @@ public class LobbyTest {
         when(gameModeRegistry.getActiveMode()).thenReturn(GameMode.ONEPIECE);
         when(gameModeRegistry.getActiveProvider()).thenReturn(gameModeProvider);
 
-        gameRoom = new GameRoom("room-1", dataLoader, gameModeRegistry, createTestClock(),
-                createSeededRandomProvider());
+        gameRoom =
+                new GameRoom("room-1", dataLoader, gameModeRegistry, createTestClock(), createSeededRandomProvider());
     }
 
     @Test
@@ -69,8 +69,8 @@ public class LobbyTest {
     @Test
     public void testStartMatch() {
         // Mock data loader for bots
-        UnitDefinition dummyUnit = new UnitDefinition("unit-1", "Luffy", 1, 100, 0, 10, 0, 0, 0, 1.0f, 1,
-                List.of("Pirate"), null);
+        UnitDefinition dummyUnit =
+                new UnitDefinition("unit-1", "Luffy", 1, 100, 0, 10, 0, 0, 0, 1.0f, 1, List.of("Pirate"), null);
         when(dataLoader.getAllUnits()).thenReturn(List.of(dummyUnit));
 
         gameRoom.addPlayer("Host");

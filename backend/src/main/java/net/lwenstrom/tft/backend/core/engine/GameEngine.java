@@ -39,7 +39,13 @@ public class GameEngine {
         return rooms.values();
     }
 
+    public void removeRoom(String id) {
+        rooms.remove(id);
+    }
+
     public void tick() {
         rooms.values().forEach(GameRoom::tick);
+        // Remove ended games
+        rooms.entrySet().removeIf(entry -> entry.getValue().isEnded());
     }
 }
