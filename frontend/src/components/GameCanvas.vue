@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onUnmounted } from 'vue'
 import UnitTooltip from './UnitTooltip.vue'
 import AttackAnimation from './game/AttackAnimation.vue'
 import { getAttackConfig, getAbilityConfig } from '../data/animationConfig'
+import type { GameState, GameUnit } from '../types'
 
 const props = defineProps<{
-    state: any,
+    state: GameState | null,
     myPlayerId?: string
 }>()
 
@@ -233,6 +234,25 @@ let nextAnimId = 0
 const prevHealthMap = ref<Record<string, number>>({})
 const lastCastMap = ref<Record<string, string>>({})
 
+// ========== DEATH ANIMATION SYSTEM ==========
+// Track units that are dying (animating death)
+const dyingUnits = ref<Set<string>>(new Set())
+// Store the last known position/data for dead units during animation
+const dyingUnitData = ref<Map<string, any>>(new Map())
+const DEATH_ANIMATION_DURATION = 600 // ms
+
+// Cleanup timers on unmount
+const deathTimers = ref<number[]>([])
+onUnmounted(() => {
+    deathTimers.value.forEach(timer => clearTimeout(timer))
+})
+
+// ========== STAR-UP CELEBRATION SYSTEM ==========
+// Track units that just leveled up for celebration animation
+const starUpUnits = ref<Set<string>>(new Set())
+const prevStarLevelMap = ref<Record<string, number>>({})
+const STAR_UP_ANIMATION_DURATION = 1200 // ms
+
 // Floating Text for ability names (keep existing)
 interface FloatingText {
     id: number
@@ -261,17 +281,38 @@ function findNearestEnemy(unit: any, allUnits: any[]): any | null {
 }
 
 // Watch for health changes to spawn attack animations
+// Store previous units for death detection
+const prevUnitsMap = ref<Map<string, any>>(new Map())
+const prevPhase = ref<string | null>(null)
+
 watch(() => renderedUnits.value, (newUnits, oldUnits) => {
-    const isCombat = props.state?.phase === 'COMBAT'
+    const currentPhase = props.state?.phase
+    const isCombat = currentPhase === 'COMBAT'
+    const wasInCombat = prevPhase.value === 'COMBAT'
+    
+    // Update phase tracking
+    prevPhase.value = currentPhase
+    
     if (!isCombat) {
         // Clear tracking when not in combat
         prevHealthMap.value = {}
+        prevUnitsMap.value.clear()
         return
     }
     
-    // Build map of current units
-    const unitMap = new Map<string, any>()
-    newUnits.forEach(u => unitMap.set(u.id, u))
+    // Build map of current alive units
+    const newUnitIds = new Set(newUnits.map((u: any) => u.id))
+    
+    // DEATH DETECTION: Only trigger if we were already in combat (not transitioning INTO combat)
+    // This prevents false deaths when combat starts or ends
+    if (wasInCombat) {
+        prevUnitsMap.value.forEach((prevUnit, unitId) => {
+            if (!newUnitIds.has(unitId) && !dyingUnits.value.has(unitId)) {
+                // Unit disappeared during combat - trigger death animation
+                triggerDeathAnimation(prevUnit)
+            }
+        })
+    }
     
     // Check for health decreases (indicates unit was attacked)
     newUnits.forEach((unit: any) => {
@@ -299,6 +340,9 @@ watch(() => renderedUnits.value, (newUnits, oldUnits) => {
         
         // Update health tracking
         prevHealthMap.value[unit.id] = unit.currentHealth
+        
+        // Store current unit data for next frame's death detection
+        prevUnitsMap.value.set(unit.id, { ...unit })
         
         // Handle ability animations (enhanced version)
         if (unit.activeAbility) {
@@ -349,6 +393,90 @@ watch(() => renderedUnits.value, (newUnits, oldUnits) => {
 function removeAnimation(id: number) {
     activeAnimations.value = activeAnimations.value.filter(a => a.id !== id)
 }
+
+// Trigger death animation for a unit
+function triggerDeathAnimation(unit: any) {
+    if (dyingUnits.value.has(unit.id)) return // Already dying
+    
+    console.log('🔴 Death animation triggered for:', unit.name, unit.id)
+    
+    dyingUnits.value.add(unit.id)
+    dyingUnitData.value.set(unit.id, { ...unit, isDying: true })
+    
+    // Remove after animation completes
+    const timer = window.setTimeout(() => {
+        dyingUnits.value.delete(unit.id)
+        dyingUnitData.value.delete(unit.id)
+        delete prevHealthMap.value[unit.id]
+    }, DEATH_ANIMATION_DURATION)
+    
+    deathTimers.value.push(timer)
+}
+
+// Combined units: alive units + dying units (for animation)
+const displayedUnits = computed(() => {
+    const alive = renderedUnits.value
+    const dying = Array.from(dyingUnitData.value.values())
+    return [...alive, ...dying]
+})
+
+// Trigger star-up celebration for a unit
+function triggerStarUpCelebration(unitId: string) {
+    if (starUpUnits.value.has(unitId)) return // Already celebrating
+    
+    console.log('⭐ Star-up celebration triggered for unit:', unitId)
+    
+    starUpUnits.value.add(unitId)
+    
+    // Remove after animation completes
+    const timer = window.setTimeout(() => {
+        starUpUnits.value.delete(unitId)
+    }, STAR_UP_ANIMATION_DURATION)
+    
+    deathTimers.value.push(timer)
+}
+
+// Watch for star level changes (happens during planning phase when combining units)
+watch(() => props.state, (newState) => {
+    if (!newState || !newState.players || !props.myPlayerId) return
+    
+    const myPlayer = newState.players[props.myPlayerId]
+    if (!myPlayer) return
+    
+    // Check all units (board and bench) for star level changes
+    const allMyUnits = [...(myPlayer.board || []), ...(myPlayer.bench || [])]
+    
+    allMyUnits.forEach((unit: any) => {
+        const prevStarLevel = prevStarLevelMap.value[unit.id]
+        const currentStarLevel = unit.starLevel || 1
+        
+        // Debug log to see all star level checks
+        if (currentStarLevel >= 2 || prevStarLevel !== undefined) {
+            console.log(`⭐ Star check: ${unit.name} (${unit.id.slice(0,8)}) - prev: ${prevStarLevel}, current: ${currentStarLevel}`)
+        }
+        
+        // Trigger celebration if:
+        // 1. Existing unit's star level increased, OR
+        // 2. New unit appeared with star level >= 2 (just combined)
+        if (prevStarLevel !== undefined && currentStarLevel > prevStarLevel) {
+            // Existing unit leveled up
+            console.log(`✨ TRIGGER (existing unit upgraded): ${unit.name}`)
+            triggerStarUpCelebration(unit.id)
+        } else if (prevStarLevel === undefined && currentStarLevel >= 2) {
+            // New high-star unit appeared (result of combining)
+            console.log(`✨ TRIGGER (new combined unit): ${unit.name} star=${currentStarLevel}`)
+            triggerStarUpCelebration(unit.id)
+        }
+        
+        // Update tracking
+        prevStarLevelMap.value[unit.id] = currentStarLevel
+    })
+}, { deep: true })
+
+// Check if a unit is celebrating star-up
+function isStarringUp(unitId: string): boolean {
+    return starUpUnits.value.has(unitId)
+}
 </script>
 
 <template>
@@ -367,12 +495,12 @@ function removeAnimation(id: number) {
              @drop="(e) => onDrop(e, (i-1)%GRID_COLS, Math.floor((i-1)/GRID_COLS))">
         </div>
         
-        <!-- Render Units -->
-        <div v-for="unit in renderedUnits" :key="unit.id" 
+        <!-- Render Units (including dying units for animation) -->
+        <div v-for="unit in displayedUnits" :key="unit.id" 
              class="unit" 
              :style="getUnitStyle(unit)"
-             :class="{ 'mine': unit.ownerId === myPlayerId }"
-             :draggable="unit.ownerId === myPlayerId"
+             :class="{ 'mine': unit.ownerId === myPlayerId, 'dying': unit.isDying, 'star-up': isStarringUp(unit.id) }"
+             :draggable="unit.ownerId === myPlayerId && !unit.isDying"
              @dragstart="(e) => onDragStart(e, unit)"
              @dragend="onDragEnd"
              @mouseenter="onUnitMouseEnter(unit.id)"
@@ -383,6 +511,11 @@ function removeAnimation(id: number) {
             <img :src="unit.image" class="unit-img" :alt="unit.name" />
             <div class="star-indicator" :class="'stars-' + (unit.starLevel || 1)">
                 <span v-for="n in (unit.starLevel || 1)" :key="n" class="star-dot"></span>
+            </div>
+            
+            <!-- Star-up celebration effect -->
+            <div v-if="isStarringUp(unit.id)" class="star-up-burst">
+                <span v-for="i in 8" :key="i" class="star-particle" :style="{ '--particle-index': i }"></span>
             </div>
         </div>
 
@@ -604,6 +737,92 @@ function removeAnimation(id: number) {
     height: 7px;
     background: linear-gradient(135deg, #fef3c7, #fbbf24);
     box-shadow: 0 0 4px #fbbf24, 0 0 8px rgba(251, 191, 36, 0.6);
+}
+
+/* ========== DEATH ANIMATION ========== */
+.unit.dying {
+    animation: unitDeath 0.6s ease-out forwards;
+    pointer-events: none;
+}
+
+@keyframes unitDeath {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+        filter: brightness(1);
+    }
+    30% {
+        opacity: 1;
+        transform: scale(1.1);
+        filter: brightness(1.5) saturate(0.5);
+        box-shadow: 0 0 20px rgba(239, 68, 68, 0.8);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.3);
+        filter: brightness(0.5) saturate(0);
+    }
+}
+
+/* ========== STAR-UP CELEBRATION ========== */
+.unit.star-up {
+    animation: starUpGlow 1.2s ease-out;
+}
+
+@keyframes starUpGlow {
+    0% {
+        filter: brightness(1);
+        box-shadow: 0 0 0 rgba(251, 191, 36, 0);
+    }
+    15% {
+        filter: brightness(2);
+        box-shadow: 0 0 30px rgba(251, 191, 36, 1);
+    }
+    50% {
+        filter: brightness(1.5);
+        box-shadow: 0 0 20px rgba(251, 191, 36, 0.8);
+    }
+    100% {
+        filter: brightness(1);
+        box-shadow: 0 0 0 rgba(251, 191, 36, 0);
+    }
+}
+
+.star-up-burst {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    z-index: 20;
+}
+
+.star-particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: linear-gradient(135deg, #fef3c7, #fbbf24);
+    border-radius: 50%;
+    animation: particleBurst 1s ease-out forwards;
+    /* Spread particles in a circle using CSS variable */
+    --angle: calc(var(--particle-index) * 45deg);
+    transform-origin: center;
+}
+
+@keyframes particleBurst {
+    0% {
+        opacity: 1;
+        transform: rotate(var(--angle)) translateY(0) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: rotate(var(--angle)) translateY(-35px) scale(1.2);
+    }
+    100% {
+        opacity: 0;
+        transform: rotate(var(--angle)) translateY(-50px) scale(0.5);
+    }
 }
 </style>
 

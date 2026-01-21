@@ -1,21 +1,23 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { Client } from '@stomp/stompjs'
+import { Client, type IMessage } from '@stomp/stompjs'
+import type { StompSubscription } from '@stomp/stompjs'
 import Lobby from './components/Lobby.vue'
 import WaitingRoom from './components/WaitingRoom.vue'
 import GameInterface from './components/GameInterface.vue'
 import OutcomeOverlay from './components/game/OutcomeOverlay.vue'
 
 import { setTraitData } from './data/traitData'
+import type { GameState, GameAction, CombatResultPayload, GameEvent } from './types'
 
 const isConnected = ref(false)
-const gameState = ref<any>(null)
+const gameState = ref<GameState | null>(null)
 const client = ref<Client | null>(null)
 const currentView = ref<'lobby' | 'game'>('lobby')
 const currentRoomId = ref('')
 const gameTitle = ref('OnePieceTactics')
-const roomSubscription = ref<any>(null)
-const eventSubscription = ref<any>(null)
+const roomSubscription = ref<StompSubscription | null>(null)
+const eventSubscription = ref<StompSubscription | null>(null)
 
 // Random player name for now
 const PLAYER_NAME = "Player_" + Math.floor(Math.random() * 10000)
@@ -125,13 +127,13 @@ const subscribeToRoom = (roomId: string) => {
     })
 }
 
-const handleCombatResult = (payload: any) => {
+const handleCombatResult = (payload: CombatResultPayload) => {
     console.log("Handling Combat Result:", payload)
     // Determine if I won or lost
     if (!gameState.value) return
     
     // Find my ID
-    const myPlayerEntry = Object.values(gameState.value.players).find((p: any) => p.name === PLAYER_NAME) as any
+    const myPlayerEntry = Object.values(gameState.value.players).find((p) => p.name === PLAYER_NAME)
     if (!myPlayerEntry) return
     
     const myId = myPlayerEntry.playerId
@@ -180,7 +182,7 @@ const handleJoin = (roomId: string) => {
     currentView.value = 'game'
 }
 
-const handleGameAction = (action: any) => {
+const handleGameAction = (action: GameAction) => {
     if (!client.value || !isConnected.value) return
     
     console.log("Publishing Action:", action)

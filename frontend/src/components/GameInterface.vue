@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch, onUnmounted } from 'vue'
 import GameCanvas from './GameCanvas.vue'
 import UnitTooltip from './UnitTooltip.vue'
 import PhaseAnnouncement from './PhaseAnnouncement.vue'
@@ -94,6 +94,48 @@ const handleBoardMove = (movePayload: any) => {
 const hoveredBenchUnitId = ref<string|null>(null)
 const hoveredShopIndex = ref<number|null>(null)
 
+// ========== STAR-UP CELEBRATION FOR BENCH ==========
+const starUpUnits = ref<Set<string>>(new Set())
+const prevStarLevelMap = ref<Record<string, number>>({})
+const STAR_UP_ANIMATION_DURATION = 1200
+
+// Cleanup timers on unmount
+const starUpTimers = ref<number[]>([])
+onUnmounted(() => {
+    starUpTimers.value.forEach(timer => clearTimeout(timer))
+})
+
+function triggerStarUpCelebration(unitId: string) {
+    if (starUpUnits.value.has(unitId)) return
+    console.log('⭐ Bench star-up celebration for:', unitId)
+    starUpUnits.value.add(unitId)
+    
+    const timer = window.setTimeout(() => {
+        starUpUnits.value.delete(unitId)
+    }, STAR_UP_ANIMATION_DURATION)
+    starUpTimers.value.push(timer)
+}
+
+function isStarringUp(unitId: string): boolean {
+    return starUpUnits.value.has(unitId)
+}
+
+// Watch for star level changes in bench units
+watch(() => benchUnits.value, (newBench) => {
+    newBench.forEach((unit: any) => {
+        const prevStarLevel = prevStarLevelMap.value[unit.id]
+        const currentStarLevel = unit.starLevel || 1
+        
+        if (prevStarLevel !== undefined && currentStarLevel > prevStarLevel) {
+            triggerStarUpCelebration(unit.id)
+        } else if (prevStarLevel === undefined && currentStarLevel >= 2) {
+            triggerStarUpCelebration(unit.id)
+        }
+        
+        prevStarLevelMap.value[unit.id] = currentStarLevel
+    })
+}, { deep: true })
+
 </script>
 
 <template>
@@ -161,6 +203,7 @@ const hoveredShopIndex = ref<number|null>(null)
                         
                        <div v-if="benchUnits[i-1]" 
                             class="bench-unit" 
+                            :class="{ 'star-up': isStarringUp(benchUnits[i-1].id) }"
                             draggable="true"
                             @dragstart="(e) => onBenchDragStart(e, benchUnits[i-1])"
                             @mouseenter="hoveredBenchUnitId = benchUnits[i-1].id"
@@ -171,6 +214,11 @@ const hoveredShopIndex = ref<number|null>(null)
                                   class="bench-unit-img" />
                              <div class="star-indicator" :class="'stars-' + (benchUnits[i-1].starLevel || 1)">
                                  <span v-for="n in (benchUnits[i-1].starLevel || 1)" :key="n" class="star-dot"></span>
+                             </div>
+                             
+                             <!-- Star-up celebration effect -->
+                             <div v-if="isStarringUp(benchUnits[i-1].id)" class="star-up-burst">
+                                 <span v-for="j in 8" :key="j" class="star-particle" :style="{ '--particle-index': j }"></span>
                              </div>
                           </div>
                           
@@ -562,5 +610,65 @@ const hoveredShopIndex = ref<number|null>(null)
     height: 7px;
     background: linear-gradient(135deg, #fef3c7, #fbbf24);
     box-shadow: 0 0 4px #fbbf24, 0 0 8px rgba(251, 191, 36, 0.6);
+}
+
+/* ========== STAR-UP CELEBRATION ========== */
+.bench-unit.star-up .bench-unit-inner {
+    animation: starUpGlow 1.2s ease-out;
+}
+
+@keyframes starUpGlow {
+    0% {
+        filter: brightness(1);
+        box-shadow: 0 0 0 rgba(251, 191, 36, 0);
+    }
+    15% {
+        filter: brightness(2);
+        box-shadow: 0 0 30px rgba(251, 191, 36, 1);
+    }
+    50% {
+        filter: brightness(1.5);
+        box-shadow: 0 0 20px rgba(251, 191, 36, 0.8);
+    }
+    100% {
+        filter: brightness(1);
+        box-shadow: 0 0 0 rgba(251, 191, 36, 0);
+    }
+}
+
+.star-up-burst {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    z-index: 20;
+}
+
+.star-particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: linear-gradient(135deg, #fef3c7, #fbbf24);
+    border-radius: 50%;
+    animation: particleBurst 1s ease-out forwards;
+    --angle: calc(var(--particle-index) * 45deg);
+    transform-origin: center;
+}
+
+@keyframes particleBurst {
+    0% {
+        opacity: 1;
+        transform: rotate(var(--angle)) translateY(0) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: rotate(var(--angle)) translateY(-35px) scale(1.2);
+    }
+    100% {
+        opacity: 0;
+        transform: rotate(var(--angle)) translateY(-50px) scale(0.5);
+    }
 }
 </style>
