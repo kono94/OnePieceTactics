@@ -10,7 +10,7 @@ const props = defineProps<{
     myPlayerId?: string
 }>()
 
-const emit = defineEmits(['move'])
+const emit = defineEmits(['move', 'drag-start', 'drag-end'])
 
 // Grid Constants
 const GRID_ROWS = 8
@@ -148,6 +148,7 @@ const onDragStart = (evt: DragEvent, unit: any) => {
         return
     }
     isDragging.value = true
+    emit('drag-start', unit)
     if (evt.dataTransfer) {
         evt.dataTransfer.setData('unitId', unit.id)
         evt.dataTransfer.effectAllowed = 'move'
@@ -169,6 +170,7 @@ const onDragStart = (evt: DragEvent, unit: any) => {
 const onDragEnd = () => {
     isDragging.value = false
     dragOverCellIndex.value = -1
+    emit('drag-end')
 }
 
 const onDrop = (evt: DragEvent, x: number, y: number) => {

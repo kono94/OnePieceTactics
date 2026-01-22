@@ -156,6 +156,44 @@ public class Player {
         this.gold += amount;
     }
 
+    public void sellUnit(String unitId, boolean allowBoardSell) {
+        // Try to find unit in bench first (always allowed)
+        var benchUnit =
+                bench.stream().filter(u -> u.getId().equals(unitId)).findFirst().orElse(null);
+        if (benchUnit != null) {
+            var refund = calculateSellValue(benchUnit);
+            bench.remove(benchUnit);
+            gold += refund;
+            return;
+        }
+
+        // Try to find unit on board (only if allowed, e.g., during PLANNING phase)
+        if (!allowBoardSell) {
+            return;
+        }
+        var boardUnit = boardUnits.stream()
+                .filter(u -> u.getId().equals(unitId))
+                .findFirst()
+                .orElse(null);
+        if (boardUnit != null) {
+            var refund = calculateSellValue(boardUnit);
+            grid.removeUnit(boardUnit);
+            boardUnits.remove(boardUnit);
+            gold += refund;
+        }
+    }
+
+    public int calculateSellValue(GameUnit unit) {
+        // Formula: cost × 3^(starLevel - 1)
+        // 1-star, 1-cost → 1 gold
+        // 2-star, 1-cost → 3 gold
+        // 3-star, 1-cost → 9 gold
+        // 3-star, 2-cost → 18 gold
+        var cost = unit.getCost();
+        var starLevel = unit.getStarLevel();
+        return cost * (int) Math.pow(3, starLevel - 1);
+    }
+
     public void gainXp(int amount) {
         this.xp += amount;
         checkLevelUp();

@@ -151,7 +151,8 @@ public class GameController {
                     }
                 }
                 case SELL -> {
-                    // TODO: Implement
+                    // Allow selling bench units anytime, but board units only during PLANNING
+                    p.sellUnit(action.unitId(), room.getState().phase() == GamePhase.PLANNING);
                 }
                 case LOCK -> {
                     // TODO: Implement

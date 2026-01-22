@@ -217,4 +217,126 @@ class PlayerUnitTest {
 
         assertEquals(1, player.getBoardUnits().size(), "Should only have 1 unit at level 1");
     }
+
+    // ========== SELL UNIT TESTS ==========
+
+    @Test
+    void testSellUnit_RefundsGold_1Star() {
+        var dataLoader = TestHelpers.createMockDataLoader();
+        var player = createTestPlayer("TestPlayer", dataLoader);
+        player.setGold(100);
+        player.refreshShop();
+        player.buyUnit(0);
+
+        var unit = player.getBench().get(0);
+        var goldBefore = player.getGold();
+
+        player.sellUnit(unit.getId(), true);
+
+        assertEquals(goldBefore + 1, player.getGold(), "Should refund 1 gold for 1-star, 1-cost unit");
+        assertEquals(0, player.getBench().size(), "Unit should be removed from bench");
+    }
+
+    @Test
+    void testSellUnit_RefundsGold_2Star() {
+        var units = List.of(TestHelpers.createUnitDef("u1", "TestUnit", 1, 100, 10));
+        var dataLoader = TestHelpers.createMockDataLoader(units);
+        var player = createTestPlayer("TestPlayer", dataLoader);
+        player.setGold(100);
+
+        // Buy 3 units to create a 2-star
+        player.refreshShop();
+        player.buyUnit(0);
+        player.refreshShop();
+        player.buyUnit(0);
+        player.refreshShop();
+        player.buyUnit(0);
+
+        // Should now have 1 2-star unit
+        var unit = player.getBench().get(0);
+        assertEquals(2, unit.getStarLevel(), "Should be 2-star after combining");
+
+        var goldBefore = player.getGold();
+        player.sellUnit(unit.getId(), true);
+
+        assertEquals(goldBefore + 3, player.getGold(), "Should refund 3 gold for 2-star, 1-cost unit");
+    }
+
+    @Test
+    void testSellUnit_RefundsGold_3Star_2Cost() {
+        var units = List.of(TestHelpers.createUnitDef("u1", "TestUnit", 2, 100, 10));
+        var dataLoader = TestHelpers.createMockDataLoader(units);
+        var player = createTestPlayer("TestPlayer", dataLoader);
+        player.setGold(200);
+
+        // Buy 9 units to create a 3-star (3 for 2-star, then 3 more 2-stars = 9 total)
+        for (var i = 0; i < 9; i++) {
+            player.refreshShop();
+            player.buyUnit(0);
+        }
+
+        // Should now have 1 3-star unit
+        assertEquals(1, player.getBench().size(), "Should have exactly 1 unit after combining to 3-star");
+        var unit = player.getBench().get(0);
+        assertEquals(3, unit.getStarLevel(), "Should be 3-star after combining");
+
+        var goldBefore = player.getGold();
+        player.sellUnit(unit.getId(), true);
+
+        assertEquals(goldBefore + 18, player.getGold(), "Should refund 18 gold for 3-star, 2-cost unit");
+    }
+
+    @Test
+    void testSellUnit_RemovesFromBoard() {
+        var dataLoader = TestHelpers.createMockDataLoader();
+        var player = createTestPlayer("TestPlayer", dataLoader);
+        player.setLevel(3);
+        var def = TestHelpers.createDefaultUnitDef();
+        player.addUnitToBoard(def, 3, 2);
+
+        var unitId = player.getBoardUnits().get(0).getId();
+        var goldBefore = player.getGold();
+
+        player.sellUnit(unitId, true);
+
+        assertEquals(0, player.getBoardUnits().size(), "Board should be empty after selling");
+        assertEquals(goldBefore + 1, player.getGold(), "Gold should be refunded");
+        assertTrue(player.getGrid().isEmpty(3, 2), "Grid cell should be empty");
+    }
+
+    @Test
+    void testSellUnit_InvalidId_NoOp() {
+        var dataLoader = TestHelpers.createMockDataLoader();
+        var player = createTestPlayer("TestPlayer", dataLoader);
+        player.setGold(10);
+
+        var goldBefore = player.getGold();
+        player.sellUnit("non-existent-id", true);
+
+        assertEquals(goldBefore, player.getGold(), "Gold should not change");
+    }
+
+    @Test
+    void testCalculateSellValue_Formula() {
+        var dataLoader = TestHelpers.createMockDataLoader();
+        var player = createTestPlayer("TestPlayer", dataLoader);
+
+        // Create units with different costs and star levels
+        var unit1Star1Cost = new StandardGameUnit(TestHelpers.createUnitDef("u1", "Unit", 1, 100, 10));
+        unit1Star1Cost.setStarLevel(1);
+
+        var unit2Star1Cost = new StandardGameUnit(TestHelpers.createUnitDef("u2", "Unit", 1, 100, 10));
+        unit2Star1Cost.setStarLevel(2);
+
+        var unit3Star1Cost = new StandardGameUnit(TestHelpers.createUnitDef("u3", "Unit", 1, 100, 10));
+        unit3Star1Cost.setStarLevel(3);
+
+        var unit3Star2Cost = new StandardGameUnit(TestHelpers.createUnitDef("u4", "Unit", 2, 100, 10));
+        unit3Star2Cost.setStarLevel(3);
+
+        assertEquals(1, player.calculateSellValue(unit1Star1Cost), "1-star, 1-cost = 1 gold");
+        assertEquals(3, player.calculateSellValue(unit2Star1Cost), "2-star, 1-cost = 3 gold");
+        assertEquals(9, player.calculateSellValue(unit3Star1Cost), "3-star, 1-cost = 9 gold");
+        assertEquals(18, player.calculateSellValue(unit3Star2Cost), "3-star, 2-cost = 18 gold");
+    }
 }

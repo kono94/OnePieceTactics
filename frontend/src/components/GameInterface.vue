@@ -58,6 +58,8 @@ function buyXp() {
 }
 
 const onBenchDragStart = (evt: DragEvent, unit: any) => {
+    isDraggingUnit.value = true
+    draggedUnit.value = unit
     if (evt.dataTransfer) {
         evt.dataTransfer.setData('unitId', unit.id)
         evt.dataTransfer.effectAllowed = 'move'
@@ -69,6 +71,12 @@ const onBenchDragStart = (evt: DragEvent, unit: any) => {
              evt.dataTransfer.setDragImage(img, 25, 25);
         }
     }
+}
+
+const onBenchDragEnd = () => {
+    isDraggingUnit.value = false
+    draggedUnit.value = null
+    isSellZoneHovered.value = false
 }
 
 const onBenchDrop = (evt: DragEvent, index: number) => {
@@ -93,6 +101,64 @@ const handleBoardMove = (movePayload: any) => {
 // Tooltip state for bench and shop
 const hoveredBenchUnitId = ref<string|null>(null)
 const hoveredShopIndex = ref<number|null>(null)
+
+// ========== DRAG AND SELL STATE ==========
+const isDraggingUnit = ref(false)
+const draggedUnit = ref<any>(null)
+const isSellZoneHovered = ref(false)
+const isDraggingFromGrid = ref(false)
+
+// Calculate sell value: cost × 3^(starLevel - 1)
+function calculateSellRefund(unit: any): number {
+    if (!unit) return 0
+    const cost = unit.cost || 1
+    const starLevel = unit.starLevel || 1
+    return cost * Math.pow(3, starLevel - 1)
+}
+
+function sellUnit(unitId: string) {
+    if (!myPlayer.value) return
+    emit('action', { type: 'SELL', unitId, playerId: myPlayer.value.playerId })
+}
+
+const onSellDragOver = (evt: DragEvent) => {
+    evt.preventDefault()
+    isSellZoneHovered.value = true
+    if (evt.dataTransfer) {
+        evt.dataTransfer.dropEffect = 'move'
+    }
+}
+
+const onSellDragLeave = () => {
+    isSellZoneHovered.value = false
+}
+
+const onSellDrop = (evt: DragEvent) => {
+    evt.preventDefault()
+    isSellZoneHovered.value = false
+    if (evt.dataTransfer) {
+        const unitId = evt.dataTransfer.getData('unitId')
+        if (unitId) {
+            sellUnit(unitId)
+        }
+    }
+    draggedUnit.value = null
+    isDraggingUnit.value = false
+}
+
+// Grid drag handlers
+const onGridDragStart = (unit: any) => {
+    isDraggingUnit.value = true
+    isDraggingFromGrid.value = true
+    draggedUnit.value = unit
+}
+
+const onGridDragEnd = () => {
+    isDraggingUnit.value = false
+    isDraggingFromGrid.value = false
+    draggedUnit.value = null
+    isSellZoneHovered.value = false
+}
 
 // ========== STAR-UP CELEBRATION FOR BENCH ==========
 const starUpUnits = ref<Set<string>>(new Set())
@@ -165,7 +231,10 @@ watch(() => benchUnits.value, (newBench) => {
         <!-- Main Game Area -->
         <div class="main-area" :class="{ 'dead-state': isDead }">
             <TraitSidebar v-if="myPlayer" :units="myPlayerBoardUnits" />
-            <GameCanvas :state="state" :my-player-id="myPlayer?.playerId" @move="handleBoardMove" />
+            <GameCanvas :state="state" :my-player-id="myPlayer?.playerId" 
+                @move="handleBoardMove" 
+                @drag-start="onGridDragStart"
+                @drag-end="onGridDragEnd" />
             <PlayerList v-if="state" :players="allPlayers" :my-player-id="myPlayer?.playerId" />
         </div>
 
@@ -192,41 +261,63 @@ watch(() => benchUnits.value, (newBench) => {
                 </button>
             </div>
 
-            <!-- Bench -->
-            <div class="bench-area">
-                <div class="bench-slots">
-                    <!-- 9 slots or however many -->
-                    <div v-for="i in 9" :key="'slot-'+(i-1)" 
-                         class="bench-slot"
-                         @dragover.prevent
-                         @drop="(e) => onBenchDrop(e, i-1)">
-                        
-                       <div v-if="benchUnits[i-1]" 
-                            class="bench-unit" 
-                            :class="{ 'star-up': isStarringUp(benchUnits[i-1].id) }"
-                            draggable="true"
-                            @dragstart="(e) => onBenchDragStart(e, benchUnits[i-1])"
-                            @mouseenter="hoveredBenchUnitId = benchUnits[i-1].id"
-                            @mouseleave="hoveredBenchUnitId = null">
-                          
-                          <div class="bench-unit-inner">
-                             <img :src="`/assets/units/${benchUnits[i-1].definitionId}.png`" 
-                                  class="bench-unit-img" />
-                             <div class="star-indicator" :class="'stars-' + (benchUnits[i-1].starLevel || 1)">
-                                 <span v-for="n in (benchUnits[i-1].starLevel || 1)" :key="n" class="star-dot"></span>
-                             </div>
-                             
-                             <!-- Star-up celebration effect -->
-                             <div v-if="isStarringUp(benchUnits[i-1].id)" class="star-up-burst">
-                                 <span v-for="j in 8" :key="j" class="star-particle" :style="{ '--particle-index': j }"></span>
-                             </div>
-                          </div>
-                          
-                          <!-- Tooltip for Bench -->
-                          <transition name="fade">
-                             <UnitTooltip v-if="hoveredBenchUnitId === benchUnits[i-1].id" :unit="benchUnits[i-1]" />
-                          </transition>
-                       </div>
+            <!-- Bench + Sell Zone -->
+            <div class="bench-sell-wrapper">
+                <div class="bench-area">
+                    <div class="bench-slots">
+                        <!-- 9 slots or however many -->
+                        <div v-for="i in 9" :key="'slot-'+(i-1)" 
+                             class="bench-slot"
+                             :class="{ 'highlight-drop': isDraggingFromGrid }"
+                             @dragover.prevent
+                             @drop="(e) => onBenchDrop(e, i-1)">
+                            
+                           <div v-if="benchUnits[i-1]" 
+                                class="bench-unit" 
+                                :class="{ 'star-up': isStarringUp(benchUnits[i-1].id) }"
+                                draggable="true"
+                                @dragstart="(e) => onBenchDragStart(e, benchUnits[i-1])"
+                                @dragend="onBenchDragEnd"
+                                @mouseenter="hoveredBenchUnitId = benchUnits[i-1].id"
+                                @mouseleave="hoveredBenchUnitId = null">
+                              
+                              <div class="bench-unit-inner">
+                                 <img :src="`/assets/units/${benchUnits[i-1].definitionId}.png`" 
+                                      class="bench-unit-img" />
+                                 <div class="star-indicator" :class="'stars-' + (benchUnits[i-1].starLevel || 1)">
+                                     <span v-for="n in (benchUnits[i-1].starLevel || 1)" :key="n" class="star-dot"></span>
+                                 </div>
+                                 
+                                 <!-- Star-up celebration effect -->
+                                 <div v-if="isStarringUp(benchUnits[i-1].id)" class="star-up-burst">
+                                     <span v-for="j in 8" :key="j" class="star-particle" :style="{ '--particle-index': j }"></span>
+                                 </div>
+                              </div>
+                              
+                              <!-- Tooltip for Bench -->
+                              <transition name="fade">
+                                 <UnitTooltip v-if="hoveredBenchUnitId === benchUnits[i-1].id" :unit="benchUnits[i-1]" />
+                              </transition>
+                           </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sell Zone -->
+                <div class="sell-zone" 
+                     :class="{ 
+                        'visible': isDraggingUnit, 
+                        'active': isSellZoneHovered 
+                     }"
+                     @dragover="onSellDragOver"
+                     @dragleave="onSellDragLeave"
+                     @drop="onSellDrop">
+                    <div class="sell-content">
+                        <div class="sell-icon">💰</div>
+                        <div class="sell-text">SELL</div>
+                        <div v-if="draggedUnit" class="sell-refund">
+                            +{{ calculateSellRefund(draggedUnit) }} gold
+                        </div>
                     </div>
                 </div>
             </div>
@@ -366,14 +457,17 @@ watch(() => benchUnits.value, (newBench) => {
     border-top: 2px solid #334155;
     display: flex;
     padding: 10px 20px;
-    gap: 20px;
+    gap: 15px;
     position: relative;
-    z-index: 60; /* Above Grid (50) and PlayerList (40) */
+    z-index: 60;
+    overflow: visible;
 }
 
 /* Stats Panel */
 .stats-panel {
     width: 200px;
+    min-width: 200px;
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -398,9 +492,11 @@ watch(() => benchUnits.value, (newBench) => {
 .xp-bar {
     flex: 1;
     height: 10px;
+    min-width: 80px;
     background: #334155;
     border-radius: 5px;
     position: relative;
+    overflow: visible;
 }
 
 .xp-fill {
@@ -411,8 +507,9 @@ watch(() => benchUnits.value, (newBench) => {
 .xp-text {
     font-size: 10px;
     position: absolute;
-    top: 12px;
-    right: 0;
+    top: 14px;
+    left: 0;
+    white-space: nowrap;
 }
 
 .gold-info {
@@ -447,12 +544,12 @@ watch(() => benchUnits.value, (newBench) => {
 
 /* Bench */
 .bench-area {
-    flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
     background: rgba(0,0,0,0.2);
     border-radius: 10px;
+    padding: 10px;
 }
 
 .bench-slots {
@@ -461,20 +558,98 @@ watch(() => benchUnits.value, (newBench) => {
 }
 
 .bench-slot {
-    width: 60px;
-    height: 60px;
+    width: 56px;
+    height: 56px;
     background: #1e293b;
     border: 2px dashed #475569;
     border-radius: 8px;
     display: flex;
     justify-content: center;
     align-items: center;
+    transition: all 0.2s ease;
 }
 
+.bench-slot.highlight-drop {
+    border-color: #60a5fa;
+    background: rgba(59, 130, 246, 0.2);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+}
+
+/* Bench + Sell Zone Wrapper */
+.bench-sell-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Sell Zone */
+.sell-zone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-width: 550px;
+    height: 50px;
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    border: 2px dashed #475569;
+    border-radius: 10px;
+    opacity: 0.4;
+    transform: scale(0.98);
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.sell-zone.visible {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+    border-color: #ef4444;
+    background: linear-gradient(135deg, rgba(127, 29, 29, 0.5), rgba(15, 23, 42, 0.9));
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+.sell-zone.active {
+    border-color: #fbbf24;
+    background: linear-gradient(135deg, rgba(234, 179, 8, 0.4), rgba(15, 23, 42, 0.9));
+    box-shadow: 0 0 30px rgba(251, 191, 36, 0.5);
+    transform: scale(1.02);
+}
+
+.sell-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sell-icon {
+    font-size: 24px;
+}
+
+.sell-text {
+    font-weight: bold;
+    font-size: 16px;
+    letter-spacing: 3px;
+    color: #f87171;
+}
+
+.sell-zone.active .sell-text {
+    color: #fbbf24;
+}
+
+.sell-refund {
+    font-size: 14px;
+    color: #fbbf24;
+    font-weight: bold;
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+}
 
 /* Shop */
 .shop-area {
-    width: 600px;
+    flex: 1;
+    min-width: 350px;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -482,12 +657,13 @@ watch(() => benchUnits.value, (newBench) => {
 
 .shop-cards {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     flex: 1;
 }
 
 .shop-card {
     flex: 1;
+    min-width: 0; /* Allow shrinking below content size */
     background: #1e293b;
     border: 1px solid #475569;
     border-radius: 6px;
@@ -497,6 +673,7 @@ watch(() => benchUnits.value, (newBench) => {
     flex-direction: column;
     justify-content: space-between;
     transition: all 0.2s;
+    overflow: hidden; /* Hide overflow content */
 }
 
 .shop-card.can-buy:hover {
