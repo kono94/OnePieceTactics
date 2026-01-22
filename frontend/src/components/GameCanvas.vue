@@ -7,7 +7,8 @@ import type { GameState, GameUnit } from '../types'
 
 const props = defineProps<{
     state: GameState | null,
-    myPlayerId?: string
+    myPlayerId?: string,
+    isDraggingProp?: boolean
 }>()
 
 const emit = defineEmits(['move', 'drag-start', 'drag-end'])
@@ -85,10 +86,16 @@ const CELL_SIZE = 55
 
 // Drag state
 const isDragging = ref(false)
+const draggingUnitId = ref<string|null>(null)
 const dragOverCellIndex = ref(-1)
 const hoveredUnitId = ref<string|null>(null)
 
 const getUnitStyle = (unit: any) => {
+    // Disable pointer events on units when dragging, EXCEPT the unit being dragged.
+    // This allows drops to fall through to the grid cell for swapping.
+    const shouldDisablePointer = (isDragging.value || props.isDraggingProp) 
+                                 && unit.id !== draggingUnitId.value;
+
     return {
         left: (unit.visualX * CELL_SIZE + 5) + 'px',
         top: (unit.visualY * CELL_SIZE + 5) + 'px',
@@ -98,7 +105,8 @@ const getUnitStyle = (unit: any) => {
         borderWidth: '2px',
         borderStyle: 'solid',
         boxShadow: unit.isMine ? '0 0 10px rgba(16, 185, 129, 0.6)' : 'none',
-        zIndex: hoveredUnitId.value === unit.id ? 100 : 10
+        zIndex: hoveredUnitId.value === unit.id ? 100 : 10,
+        pointerEvents: shouldDisablePointer ? 'none' : 'auto'
     }
 }
 
@@ -148,6 +156,7 @@ const onDragStart = (evt: DragEvent, unit: any) => {
         return
     }
     isDragging.value = true
+    draggingUnitId.value = unit.id
     emit('drag-start', unit)
     if (evt.dataTransfer) {
         evt.dataTransfer.setData('unitId', unit.id)
@@ -169,6 +178,7 @@ const onDragStart = (evt: DragEvent, unit: any) => {
 
 const onDragEnd = () => {
     isDragging.value = false
+    draggingUnitId.value = null
     dragOverCellIndex.value = -1
     emit('drag-end')
 }

@@ -232,6 +232,7 @@ watch(() => benchUnits.value, (newBench) => {
         <div class="main-area" :class="{ 'dead-state': isDead }">
             <TraitSidebar v-if="myPlayer" :units="myPlayerBoardUnits" />
             <GameCanvas :state="state" :my-player-id="myPlayer?.playerId" 
+                :is-dragging-prop="isDraggingUnit"
                 @move="handleBoardMove" 
                 @drag-start="onGridDragStart"
                 @drag-end="onGridDragEnd" />

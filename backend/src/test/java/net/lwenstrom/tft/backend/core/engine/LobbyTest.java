@@ -35,6 +35,11 @@ public class LobbyTest {
         when(gameModeRegistry.getActiveMode()).thenReturn(GameMode.ONEPIECE);
         when(gameModeRegistry.getActiveProvider()).thenReturn(gameModeProvider);
 
+        // Mock getAllUnits to avoid NPE in refreshShop during player add
+        UnitDefinition dummyUnit =
+                new UnitDefinition("unit-1", "Luffy", 1, 100, 0, 10, 0, 0, 0, 1.0f, 1, List.of("Pirate"), null);
+        when(dataLoader.getAllUnits()).thenReturn(List.of(dummyUnit));
+
         gameRoom =
                 new GameRoom("room-1", dataLoader, gameModeRegistry, createTestClock(), createSeededRandomProvider());
     }
@@ -68,11 +73,6 @@ public class LobbyTest {
 
     @Test
     public void testStartMatch() {
-        // Mock data loader for bots
-        UnitDefinition dummyUnit =
-                new UnitDefinition("unit-1", "Luffy", 1, 100, 0, 10, 0, 0, 0, 1.0f, 1, List.of("Pirate"), null);
-        when(dataLoader.getAllUnits()).thenReturn(List.of(dummyUnit));
-
         gameRoom.addPlayer("Host");
         gameRoom.startMatch();
 

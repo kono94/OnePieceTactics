@@ -37,6 +37,10 @@ public class Player {
     private List<UnitDefinition> shop = new ArrayList<>();
     private boolean shopLocked = false;
     private boolean boardLocked = false;
+    private boolean inCombat = false;
+    private final List<PendingUpgrade> pendingUpgrades = new ArrayList<>();
+
+    private record PendingUpgrade(String unitName, int starLevel) {}
 
     private final DataLoader dataLoader;
 
@@ -76,7 +80,12 @@ public class Player {
         newUnit.setOwnerId(this.id);
         bench.add(newUnit);
         shop.set(shopIndex, null);
-        checkUpgrade(def.name(), 1);
+        if (inCombat) {
+            // Defer upgrade check until combat ends
+            pendingUpgrades.add(new PendingUpgrade(def.name(), 1));
+        } else {
+            checkUpgrade(def.name(), 1);
+        }
     }
 
     private void checkUpgrade(String unitName, int starLevel) {
@@ -194,6 +203,19 @@ public class Player {
         return cost * (int) Math.pow(3, starLevel - 1);
     }
 
+    public void setInCombat(boolean inCombat) {
+        this.inCombat = inCombat;
+    }
+
+    public void processPendingUpgrades() {
+        // Process all pending upgrades that were deferred during combat
+        var upgradesToProcess = new ArrayList<>(pendingUpgrades);
+        pendingUpgrades.clear();
+        for (var pending : upgradesToProcess) {
+            checkUpgrade(pending.unitName(), pending.starLevel());
+        }
+    }
+
     public void gainXp(int amount) {
         this.xp += amount;
         checkLevelUp();
@@ -241,12 +263,26 @@ public class Player {
                 bench.stream().filter(u -> u.getId().equals(unitId)).findFirst().orElse(null);
         if (benchUnit != null) {
             // Bench -> Board
-            if (y >= 0 && grid.isEmpty(x, y)) {
-                if (boardUnits.size() >= level) return; // Cap
+            if (y >= 0) {
+                var targetUnit = grid.getUnitAt(x, y).orElse(null);
+                if (targetUnit != null) {
+                    // Swap: Board unit goes to bench, bench unit goes to board
+                    grid.removeUnit(targetUnit);
+                    boardUnits.remove(targetUnit);
+                    targetUnit.setPosition(-1, -1);
+                    bench.add(targetUnit);
 
-                bench.remove(benchUnit);
-                grid.placeUnit(benchUnit, x, y);
-                boardUnits.add(benchUnit);
+                    bench.remove(benchUnit);
+                    grid.placeUnit(benchUnit, x, y);
+                    boardUnits.add(benchUnit);
+                } else {
+                    // Empty cell - standard move
+                    if (boardUnits.size() >= level) return; // Cap
+
+                    bench.remove(benchUnit);
+                    grid.placeUnit(benchUnit, x, y);
+                    boardUnits.add(benchUnit);
+                }
             }
         } else {
             var boardUnit = boardUnits.stream()

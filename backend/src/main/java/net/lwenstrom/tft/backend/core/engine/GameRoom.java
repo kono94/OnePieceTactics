@@ -226,6 +226,12 @@ public class GameRoom {
             // Restore units from combat positions
             combatSystem.endCombat(players.values());
 
+            // Exit combat mode and process pending upgrades
+            players.values().forEach(p -> {
+                p.setInCombat(false);
+                p.processPendingUpgrades();
+            });
+
             round++;
             players.values().forEach(p -> {
                 p.gainGold(5 + Math.min(p.getGold() / 10, 5));
@@ -241,6 +247,9 @@ public class GameRoom {
         this.phaseEndTime = clock.currentTimeMillis() + currentPhaseDuration;
 
         if (phase == GamePhase.COMBAT) {
+            // Set all players to combat mode
+            players.values().forEach(p -> p.setInCombat(true));
+
             activeCombats.clear();
             currentMatchups.clear();
             var shuffled = new ArrayList<Player>(players.values());
@@ -293,10 +302,10 @@ public class GameRoom {
     }
 
     private long calculatePhaseDuration(GamePhase phase, int round) {
-        // Base 10s + 2s per round index (0-based)
-        // Round 1: 10 + 0 = 10s
-        // Round 2: 10 + 2 = 12s
-        return 10000 + (round - 1) * 2000;
+        // Base 15s + 2s per round index (0-based)
+        // Round 1: 15 + 0 = 15s
+        // Round 2: 15 + 2 = 17s
+        return 15000 + (round - 1) * 2000;
     }
 
     private void handleCombatEnd(boolean isTimeout, CombatSystem.CombatResult result, List<Player> participants) {
