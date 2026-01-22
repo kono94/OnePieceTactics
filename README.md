@@ -4,6 +4,8 @@ A browser-based **auto-battler game** inspired by Teamfight Tactics, featuring a
 
 ![Java 25](https://img.shields.io/badge/Java-25-orange) ![Spring Boot 4](https://img.shields.io/badge/Spring%20Boot-4.0.1-green) ![Vue 3](https://img.shields.io/badge/Vue.js-3.4-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.2-blue)
 
+![One Piece Tactics Board](docs/board_preview.jpg)
+
 ---
 
 ## 📖 Documentation
@@ -37,7 +39,7 @@ For detailed architectural information, refer to the context documents:
 │  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────────┐ │
 │  │ GameEngine │──│  GameRoom  │──│   Player   │──│   GameUnit     │ │
 │  └────────────┘  └────────────┘  └────────────┘  └────────────────┘ │
-│        │                │                                            │
+│        │                │                                           │
 │  ┌─────┴──────┐  ┌──────┴───────┐  ┌──────────────────────────────┐ │
 │  │ DataLoader │  │ CombatSystem │  │ TraitManager                 │ │
 │  └────────────┘  └──────────────┘  └──────────────────────────────┘ │
@@ -45,7 +47,7 @@ For detailed architectural information, refer to the context documents:
                            │ WebSocket (STOMP)
                            ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                      FRONTEND (Vue 3 + TypeScript)                   │
+│                      FRONTEND (Vue 3 + TypeScript)                  │
 │  ┌───────────┐  ┌───────────────┐  ┌────────────┐  ┌──────────────┐ │
 │  │  App.vue  │──│ GameInterface │──│ GameCanvas │──│ Animations   │ │
 │  └───────────┘  └───────────────┘  └────────────┘  └──────────────┘ │
@@ -92,7 +94,7 @@ For detailed architectural information, refer to the context documents:
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Java 25 (with preview features enabled)
+- Java 25
 - Node.js 18+ & npm
 - Docker (optional, for containerized deployment)
 
