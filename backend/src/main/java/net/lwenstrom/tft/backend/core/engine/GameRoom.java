@@ -231,7 +231,7 @@ public class GameRoom {
                 p.gainGold(5 + Math.min(p.getGold() / 10, 5));
                 p.gainXp(2);
                 p.refreshShop();
-                if (p.getId().startsWith("Bot-")) {
+                if (p.getName().startsWith("Bot-")) {
                     refreshBotRoster(p);
                 }
             });
@@ -261,10 +261,16 @@ public class GameRoom {
     private void refreshBotRoster(Player bot) {
         bot.removeAllUnits();
 
-        int unitCount = Math.min((round / 2) + 1, 7); // Max 7 for first row
-        List<UnitDefinition> available = dataLoader.getAllUnits();
-        for (int i = 0; i < unitCount; i++) {
-            UnitDefinition def = available.get(randomProvider.nextInt(available.size()));
+        // Scale bot level with rounds: starts at 2, increases every 2 rounds, max 9
+        var botLevel = Math.min(2 + (round / 2), 9);
+        bot.setLevel(botLevel);
+
+        // Unit count scales with round: round 1 → 2 units, round 2 → 3 units, etc.
+        // Capped by bot level and max 7 (first row limit)
+        var unitCount = Math.min(Math.min(round + 1, botLevel), 7);
+        var available = dataLoader.getAllUnits();
+        for (var i = 0; i < unitCount; i++) {
+            var def = available.get(randomProvider.nextInt(available.size()));
             bot.addUnitToBoard(def, i, 3);
         }
     }
