@@ -81,7 +81,7 @@ const renderedUnits = computed(() => {
     return allUnits
 })
 
-const CELL_SIZE = 60
+const CELL_SIZE = 55
 
 // Drag state
 const isDragging = ref(false)
@@ -92,8 +92,8 @@ const getUnitStyle = (unit: any) => {
     return {
         left: (unit.visualX * CELL_SIZE + 5) + 'px',
         top: (unit.visualY * CELL_SIZE + 5) + 'px',
-        width: '50px',
-        height: '50px',
+        width: '45px',
+        height: '45px',
         borderColor: unit.isMine ? '#10b981' : '#ef4444', 
         borderWidth: '2px',
         borderStyle: 'solid',
@@ -125,8 +125,8 @@ const getTooltipAnchorStyle = (unit: any) => {
     return {
         left: (unit.visualX * CELL_SIZE + 5) + 'px',
         top: (unit.visualY * CELL_SIZE + 5) + 'px',
-        width: '50px',
-        height: '50px',
+        width: '45px',
+        height: '45px',
         position: 'absolute' as const,
         zIndex: 1000,
         pointerEvents: 'none' as const
@@ -296,9 +296,12 @@ watch(() => renderedUnits.value, (newUnits, oldUnits) => {
     prevPhase.value = currentPhase
     
     if (!isCombat) {
-        // Clear tracking when not in combat
+        // Clear tracking when not in combat, including dying units
         prevHealthMap.value = {}
         prevUnitsMap.value.clear()
+        // Clear dying units to stop any looping death animations
+        dyingUnits.value.clear()
+        dyingUnitData.value.clear()
         return
     }
     
@@ -312,6 +315,8 @@ watch(() => renderedUnits.value, (newUnits, oldUnits) => {
             if (!newUnitIds.has(unitId) && !dyingUnits.value.has(unitId)) {
                 // Unit disappeared during combat - trigger death animation
                 triggerDeathAnimation(prevUnit)
+                // IMPORTANT: Remove from prevUnitsMap to prevent re-triggering
+                prevUnitsMap.value.delete(unitId)
             }
         })
     }
@@ -566,13 +571,13 @@ function isStarringUp(unitId: string): boolean {
 .board-container {
     display: flex;
     justify-content: center;
-    margin-top: 20px;
+    margin-top: 5px;
 }
 
 .grid {
     position: relative;
-    width: 420px; /* GRID_COLS * CELL_SIZE */
-    height: 480px; /* GRID_ROWS * CELL_SIZE */
+    width: 385px; /* GRID_COLS * CELL_SIZE (7*55) */
+    height: 440px; /* GRID_ROWS * CELL_SIZE (8*55) */
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     grid-template-rows: repeat(8, 1fr);

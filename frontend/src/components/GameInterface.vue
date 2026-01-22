@@ -392,8 +392,8 @@ watch(() => benchUnits.value, (newBench) => {
 .phase-info {
     display: flex;
     justify-content: space-between;
-    padding: 10px 20px;
-    font-size: 18px;
+    padding: 6px 20px;
+    font-size: 16px;
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -425,15 +425,15 @@ watch(() => benchUnits.value, (newBench) => {
 
 .bench-unit-inner {
     position: relative;
-    width: 50px;
-    height: 50px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
     font-weight: bold;
     color: black;
-    font-size: 12px;
+    font-size: 11px;
 }
 .bench-unit-img {
     width: 100%;
@@ -443,21 +443,23 @@ watch(() => benchUnits.value, (newBench) => {
 }
 
 .main-area {
-    position: relative; /* Added for positioning children like PlayerList */
+    position: relative;
     flex: 1;
+    min-height: 0; /* Critical for flex shrinking */
     display: flex;
     justify-content: center;
     align-items: center;
     background: #1a1a1a;
+    overflow: visible;
 }
 
 .bottom-ui {
-    height: 250px;
+    flex-shrink: 0;
     background: #0f172a;
     border-top: 2px solid #334155;
     display: flex;
-    padding: 10px 20px;
-    gap: 15px;
+    padding: 8px 12px;
+    gap: 10px;
     position: relative;
     z-index: 60;
     overflow: visible;
@@ -548,21 +550,21 @@ watch(() => benchUnits.value, (newBench) => {
     justify-content: center;
     align-items: center;
     background: rgba(0,0,0,0.2);
-    border-radius: 10px;
-    padding: 10px;
+    border-radius: 8px;
+    padding: 6px;
 }
 
 .bench-slots {
     display: flex;
-    gap: 10px;
+    gap: 6px;
 }
 
 .bench-slot {
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
     background: #1e293b;
     border: 2px dashed #475569;
-    border-radius: 8px;
+    border-radius: 6px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -580,7 +582,7 @@ watch(() => benchUnits.value, (newBench) => {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
 }
 
 /* Sell Zone */
@@ -589,11 +591,11 @@ watch(() => benchUnits.value, (newBench) => {
     align-items: center;
     justify-content: center;
     width: 100%;
-    min-width: 550px;
-    height: 50px;
+    min-width: 450px;
+    height: 40px;
     background: linear-gradient(135deg, #1e293b, #0f172a);
     border: 2px dashed #475569;
-    border-radius: 10px;
+    border-radius: 8px;
     opacity: 0.4;
     transform: scale(0.98);
     transition: all 0.3s ease;
@@ -662,8 +664,9 @@ watch(() => benchUnits.value, (newBench) => {
 }
 
 .shop-card {
-    flex: 1;
-    min-width: 0; /* Allow shrinking below content size */
+    flex: 1 1 0;
+    min-width: 80px;
+    max-width: 120px;
     background: #1e293b;
     border: 1px solid #475569;
     border-radius: 6px;
@@ -673,7 +676,7 @@ watch(() => benchUnits.value, (newBench) => {
     flex-direction: column;
     justify-content: space-between;
     transition: all 0.2s;
-    overflow: hidden; /* Hide overflow content */
+    overflow: hidden;
 }
 
 .shop-card.can-buy:hover {
@@ -714,17 +717,17 @@ watch(() => benchUnits.value, (newBench) => {
     height: 100%;
 }
 .shop-card-img {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     object-fit: contain;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
 }
 .shop-card-info {
     text-align: center;
 }
 
 .reroll-btn, .xp-btn {
-    padding: 10px;
+    padding: 8px;
     background: #3b82f6;
     border: none;
     border-radius: 6px;
