@@ -8,6 +8,8 @@ import lombok.Setter;
 import net.lwenstrom.tft.backend.core.DataLoader;
 import net.lwenstrom.tft.backend.core.model.GameState.PlayerState;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
+import net.lwenstrom.tft.backend.core.model.LootOrb;
+import net.lwenstrom.tft.backend.core.model.LootType;
 import net.lwenstrom.tft.backend.core.random.RandomProvider;
 
 @Getter
@@ -31,6 +33,7 @@ public class Player {
 
     private final List<GameUnit> bench = new ArrayList<>();
     private final List<GameUnit> boardUnits = new ArrayList<>();
+    private final List<LootOrb> lootOrbs = new ArrayList<>();
 
     private List<UnitDefinition> shop = new ArrayList<>();
     private boolean shopLocked = false;
@@ -214,6 +217,36 @@ public class Player {
         }
     }
 
+    public void addLootOrb(LootOrb orb) {
+        this.lootOrbs.add(orb);
+    }
+
+    public void collectOrb(String orbId) {
+        var orb =
+                lootOrbs.stream().filter(o -> o.id().equals(orbId)).findFirst().orElse(null);
+
+        if (orb != null) {
+            lootOrbs.remove(orb);
+            if (orb.type() == LootType.GOLD) {
+                gainGold(orb.amount());
+            } else if (orb.type() == LootType.UNIT) {
+                var def = dataLoader.getAllUnits().stream()
+                        .filter(u -> u.name().equals(orb.contentId()))
+                        .findFirst()
+                        .orElse(null);
+                if (def != null && bench.size() < MAX_BENCH_SIZE) {
+                    var unit = new StandardGameUnit(def);
+                    unit.setOwnerId(this.id);
+                    bench.add(unit);
+                    checkUpgrade(def.name(), 1);
+                } else if (def != null) {
+                    // Bench full, refund gold maybe? For now just sell it
+                    gainGold(def.cost());
+                }
+            }
+        }
+    }
+
     public void gainXp(int amount) {
         this.xp += amount;
         checkLevelUp();
@@ -348,6 +381,7 @@ public class Player {
                 new ArrayList<>(bench),
                 new ArrayList<>(boardUnits),
                 new ArrayList<>(), // TODO: Calculate active traits
-                new ArrayList<>(shop));
+                new ArrayList<>(shop),
+                new ArrayList<>(lootOrbs));
     }
 }

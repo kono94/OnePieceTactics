@@ -177,6 +177,9 @@ public class GameController {
                 case LOCK -> {
                     // TODO: Implement
                 }
+                case COLLECT_ORB -> {
+                    room.collectOrb(action.playerId(), action.orbId());
+                }
             }
             messagingTemplate.convertAndSend("/topic/room/" + room.getId(), room.getState());
         }

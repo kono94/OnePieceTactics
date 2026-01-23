@@ -31,7 +31,8 @@ public record GameState(
             List<GameUnit> bench,
             List<GameUnit> board,
             List<Trait> activeTraits,
-            List<UnitDefinition> shop) {}
+            List<UnitDefinition> shop,
+            List<LootOrb> lootOrbs) {}
 
     public record CombatEvent(
             long timestamp,

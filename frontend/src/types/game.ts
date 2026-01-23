@@ -11,7 +11,7 @@ export type GamePhase = 'LOBBY' | 'PLANNING' | 'COMBAT' | 'END'
 
 export type GameMode = 'onepiece' | 'pokemon'
 
-export type ActionType = 'BUY' | 'SELL' | 'MOVE' | 'REROLL' | 'EXP' | 'LOCK'
+export type ActionType = 'BUY' | 'SELL' | 'MOVE' | 'REROLL' | 'EXP' | 'LOCK' | 'COLLECT_ORB'
 
 export type CombatSide = 'TOP' | 'BOTTOM'
 
@@ -92,6 +92,17 @@ export interface ActiveTrait {
     activeLevel: number // Which breakpoint is active
 }
 
+export type LootType = 'GOLD' | 'UNIT'
+
+export interface LootOrb {
+    id: string
+    x: number
+    y: number
+    type: LootType
+    contentId: string
+    amount: number
+}
+
 // ============================================================================
 // Player State
 // ============================================================================
@@ -110,6 +121,7 @@ export interface PlayerState {
     board: GameUnit[]
     activeTraits: ActiveTrait[]
     shop: UnitDefinition[]
+    lootOrbs: LootOrb[]
 }
 
 // ============================================================================
@@ -167,6 +179,7 @@ export interface GameAction {
     targetX?: number // For MOVE (0-6)
     targetY?: number // For MOVE (-1 for bench, 0-7 for board)
     shopIndex?: number // For BUY (0-4)
+    orbId?: string // For COLLECT_ORB
 }
 
 // ============================================================================

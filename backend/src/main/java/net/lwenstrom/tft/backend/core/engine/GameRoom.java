@@ -18,6 +18,8 @@ import net.lwenstrom.tft.backend.core.model.GamePhase;
 import net.lwenstrom.tft.backend.core.model.GameState;
 import net.lwenstrom.tft.backend.core.model.GameState.PlayerState;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
+import net.lwenstrom.tft.backend.core.model.LootOrb;
+import net.lwenstrom.tft.backend.core.model.LootType;
 import net.lwenstrom.tft.backend.core.random.RandomProvider;
 import net.lwenstrom.tft.backend.core.time.Clock;
 
@@ -174,6 +176,13 @@ public class GameRoom {
         }
     }
 
+    public void collectOrb(String playerId, String orbId) {
+        Player p = players.get(playerId);
+        if (p != null) {
+            p.collectOrb(orbId);
+        }
+    }
+
     public void tick() {
         if (phase == GamePhase.LOBBY) {
             return;
@@ -227,8 +236,7 @@ public class GameRoom {
 
         if (phase == GamePhase.PLANNING) {
             // Check if game should end (only one player with health > 0)
-            var alivePlayers =
-                    players.values().stream().filter(p -> p.getHealth() > 0).count();
+            var alivePlayers = players.values().stream().filter(p -> p.getHealth() > 0).count();
             if (alivePlayers <= 1) {
                 log.info("Game ending: only {} player(s) remaining", alivePlayers);
                 this.phase = GamePhase.END;
@@ -253,6 +261,10 @@ public class GameRoom {
                 p.refreshShop();
                 if (p.getName().startsWith("Bot-")) {
                     refreshBotRoster(p);
+                }
+                // Spawn Loot Orbs on even rounds
+                if (round % 2 == 0) {
+                    spawnLootOrbsForPlayer(p);
                 }
             });
         }
@@ -320,6 +332,30 @@ public class GameRoom {
                 new ArrayList<>(lastTickEvents),
                 new HashMap<>(currentRoundDamageLog),
                 gameModeRegistry.getActiveMode());
+    }
+
+    private void spawnLootOrbsForPlayer(Player player) {
+        int orbCount = 1 + randomProvider.nextInt(3); // 1-3 orbs
+        for (int i = 0; i < orbCount; i++) {
+            String orbId = UUID.randomUUID().toString();
+            // Random position in the top half of the grid (visual rows 0-3)
+            int x = randomProvider.nextInt(7);
+            int y = randomProvider.nextInt(4);
+
+            LootType type = randomProvider.nextInt(10) < 7 ? LootType.GOLD : LootType.UNIT; // 70% Gold, 30% Unit
+            String contentId = "";
+            int amount = 0;
+
+            if (type == LootType.GOLD) {
+                amount = 3 + randomProvider.nextInt(6); // 3-8 Gold
+            } else {
+                var units = dataLoader.getAllUnits();
+                contentId = units.get(randomProvider.nextInt(units.size())).name();
+            }
+
+            LootOrb orb = new LootOrb(orbId, x, y, type, contentId, amount);
+            player.addLootOrb(orb);
+        }
     }
 
     private long calculatePhaseDuration(GamePhase phase, int round) {

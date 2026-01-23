@@ -11,7 +11,7 @@ const props = defineProps<{
     isDraggingProp?: boolean
 }>()
 
-const emit = defineEmits(['move', 'drag-start', 'drag-end'])
+const emit = defineEmits(['move', 'drag-start', 'drag-end', 'collect-orb'])
 
 // Grid Constants
 const GRID_ROWS = 8
@@ -80,6 +80,21 @@ const renderedUnits = computed(() => {
         }
     })
     return allUnits
+})
+
+const renderedOrbs = computed(() => {
+    if (!props.state || !props.state.players || !props.myPlayerId) return []
+    const myPlayer = props.state.players[props.myPlayerId]
+    if (!myPlayer || !myPlayer.lootOrbs) return []
+
+    return myPlayer.lootOrbs.map(orb => {
+        // Place orbs in the top half (visual rows 0-3)
+        return {
+            ...orb,
+            visualX: orb.x,
+            visualY: orb.y
+        }
+    })
 })
 
 const CELL_SIZE = 55
@@ -554,6 +569,10 @@ watch(() => props.state, (newState) => {
 function isStarringUp(unitId: string): boolean {
     return starUpUnits.value.has(unitId)
 }
+
+const onOrbClick = (orbId: string) => {
+    emit('collect-orb', orbId)
+}
 </script>
 
 <template>
@@ -598,6 +617,24 @@ function isStarringUp(unitId: string): boolean {
             <!-- Star-up celebration effect -->
             <div v-if="isStarringUp(unit.id)" class="star-up-burst">
                 <span v-for="i in 8" :key="i" class="star-particle" :style="{ '--particle-index': i }"></span>
+            </div>
+        </div>
+
+        <!-- Render Loot Orbs -->
+        <div v-for="orb in renderedOrbs" :key="orb.id"
+             class="loot-orb"
+             :class="orb.type.toLowerCase()"
+             :style="{ 
+                left: (orb.visualX * CELL_SIZE + 10) + 'px', 
+                top: (orb.visualY * CELL_SIZE + 10) + 'px' 
+             }"
+             @click="onOrbClick(orb.id)">
+            <div class="orb-inner">
+                <div class="orb-glow"></div>
+                <div class="orb-content">
+                    <span v-if="orb.type === 'GOLD'">🪙</span>
+                    <span v-else>🎁</span>
+                </div>
             </div>
         </div>
 
@@ -952,6 +989,76 @@ function isStarringUp(unitId: string): boolean {
 @keyframes spdBuffPulse {
     from { box-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
     to { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); }
+}
+@keyframes float-up-particle {
+    0% { transform: translate(0, 0) scale(0); opacity: 0; }
+    20% { opacity: 1; scale: 1.2; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0.5); opacity: 0; }
+}
+
+/* Loot Orbs */
+.loot-orb {
+    position: absolute;
+    width: 35px;
+    height: 35px;
+    cursor: pointer;
+    z-index: 60;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.loot-orb:hover {
+    transform: scale(1.2);
+}
+
+.orb-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), rgba(255,255,255,0));
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.loot-orb.gold .orb-inner {
+    background-color: #fbbf24; /* Gold color */
+    border: 2px solid #d97706;
+}
+
+.loot-orb.unit .orb-inner {
+    background-color: #a855f7; /* Purple color */
+    border: 2px solid #7e22ce;
+}
+
+.orb-glow {
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    border-radius: 50%;
+    background: inherit;
+    filter: blur(8px);
+    opacity: 0.6;
+    animation: orb-pulse 2s infinite ease-in-out;
+}
+
+.orb-content {
+    font-size: 18px;
+    z-index: 1;
+}
+
+@keyframes orb-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.4; }
+    50% { transform: scale(1.2); opacity: 0.8; }
+}
+
+/* Collection animation */
+.loot-orb:active {
+    transform: scale(0.8);
+    opacity: 0.5;
 }
 </style>
 

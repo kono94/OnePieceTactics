@@ -6,5 +6,6 @@ public enum ActionType {
     MOVE,
     REROLL,
     EXP,
-    LOCK
+    LOCK,
+    COLLECT_ORB
 }

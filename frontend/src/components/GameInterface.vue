@@ -98,6 +98,11 @@ const handleBoardMove = (movePayload: any) => {
     emit('action', { type: 'MOVE', unitId: movePayload.unitId, targetX: movePayload.x, targetY: movePayload.y, playerId: myPlayer.value.playerId })
 }
 
+const handleCollectOrb = (orbId: string) => {
+    console.log("Emitting COLLECT_ORB action", orbId)
+    emit('action', { type: 'COLLECT_ORB', orbId, playerId: myPlayer.value.playerId })
+}
+
 // Tooltip state for bench and shop
 const hoveredBenchUnitId = ref<string|null>(null)
 const hoveredShopIndex = ref<number|null>(null)
@@ -235,7 +240,8 @@ watch(() => benchUnits.value, (newBench) => {
                 :is-dragging-prop="isDraggingUnit"
                 @move="handleBoardMove" 
                 @drag-start="onGridDragStart"
-                @drag-end="onGridDragEnd" />
+                @drag-end="onGridDragEnd"
+                @collect-orb="handleCollectOrb" />
             <PlayerList v-if="state" :players="allPlayers" :my-player-id="myPlayer?.playerId" />
         </div>
 
