@@ -84,5 +84,33 @@
                 "style": "gold"
             }
         ]
+    },
+    {
+        "id": "doctor",
+        "name": "Doctor",
+        "type": "class",
+        "description": "Doctors increase effectiveness of all healing.",
+        "iconColor": "#ec4899",
+        "effects": [
+            {
+                "minUnits": 1,
+                "description": "+20% Heal",
+                "style": "gold"
+            }
+        ]
+    },
+    {
+        "id": "sniper",
+        "name": "Sniper",
+        "type": "class",
+        "description": "Snipers gain Attack Damage based on distance from target.",
+        "iconColor": "#10b981",
+        "effects": [
+            {
+                "minUnits": 2,
+                "description": "+10% DMG / Cell",
+                "style": "bronze"
+            }
+        ]
     }
 ]

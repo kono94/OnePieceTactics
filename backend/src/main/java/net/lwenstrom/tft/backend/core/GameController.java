@@ -1,6 +1,7 @@
 package net.lwenstrom.tft.backend.core;
 
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.lwenstrom.tft.backend.core.engine.GameEngine;
@@ -56,8 +57,24 @@ public class GameController {
     }
 
     private void configureCombatResultListener(GameRoom room) {
-        room.setCombatResultListener((roomId, winnerId, loserId) -> {
-            var payload = java.util.Map.of("winnerId", winnerId, "loserId", loserId);
+        room.setCombatResultListener((roomId, winnerId, loserId, participantIds, damageLog) -> {
+            var damageMap = damageLog.entrySet().stream()
+                    .collect(java.util.stream.Collectors.toMap(
+                            java.util.Map.Entry::getKey,
+                            e -> Map.of(
+                                    "name",
+                                    e.getValue().unitName(),
+                                    "damage",
+                                    e.getValue().damage())));
+            var payload = Map.of(
+                    "winnerId",
+                    winnerId != null ? winnerId : "",
+                    "loserId",
+                    loserId != null ? loserId : "",
+                    "participantIds",
+                    participantIds,
+                    "damageLog",
+                    damageMap);
             var event = java.util.Map.of("type", "COMBAT_RESULT", "payload", payload);
             messagingTemplate.convertAndSend("/topic/room/" + roomId + "/event", (Object) event);
         });
@@ -130,7 +147,10 @@ public class GameController {
         GameRoom room = gameEngine.getRoom(id);
         if (room != null) {
             Player p = room.getPlayer(action.playerId());
-            if (p == null) return;
+            if (p == null) {
+                log.warn("Player not found in room.");
+                return;
+            }
 
             switch (action.type()) {
                 case BUY -> {

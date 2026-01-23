@@ -18,6 +18,9 @@ export const ATTACK_ANIMATIONS: Record<string, AttackAnimationConfig> = {
     'luffy_v1': { type: 'punch', color: '#f59e0b' },
     'zoro_v1': { type: 'slash', color: '#22c55e' },
     'nami_v1': { type: 'projectile', color: '#38bdf8' },
+    'usopp_v1': { type: 'projectile', color: '#f59e0b' },
+    'chopper_v1': { type: 'punch', color: '#a78bfa' },
+    'sanji_v1': { type: 'slash', color: '#ef4444' },
     // Pokemon
     'charmander': { type: 'punch', color: '#f97316' },
     'squirtle': { type: 'projectile', color: '#3b82f6' },
@@ -32,6 +35,9 @@ export const ABILITY_ANIMATIONS: Record<string, AbilityAnimationConfig> = {
     'luffy_v1': { color: '#ef4444' },
     'zoro_v1': { color: '#22c55e' },
     'nami_v1': { color: '#38bdf8' },
+    'usopp_v1': { color: '#f59e0b' },
+    'chopper_v1': { color: '#a78bfa' },
+    'sanji_v1': { color: '#ef4444' },
     // Pokemon
     'charmander': { color: '#f97316' },
     'squirtle': { color: '#3b82f6' },

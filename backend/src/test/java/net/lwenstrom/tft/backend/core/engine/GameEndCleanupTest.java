@@ -27,7 +27,7 @@ class GameEndCleanupTest {
         room.startMatch();
 
         // Now eliminate all players except P1 by setting their health to 0
-        room.getPlayers().stream().filter(p -> !p.getId().equals(p1.getId())).forEach(p -> p.setHealth(0));
+        room.getPlayers().stream().filter(p -> !p.getName().equals("P1")).forEach(p -> p.setHealth(0));
 
         // Transition through phases to trigger game-end check
         // Move time forward to end combat phase
@@ -66,7 +66,7 @@ class GameEndCleanupTest {
         assertNotNull(engine.getRoom("test-room"), "Room should exist before game ends");
 
         // Eliminate all except P1
-        room.getPlayers().stream().filter(p -> !p.getId().equals(p1.getId())).forEach(p -> p.setHealth(0));
+        room.getPlayers().stream().filter(p -> !p.getName().equals("P1")).forEach(p -> p.setHealth(0));
 
         // Transition through phases
         testClock.advance(30000);

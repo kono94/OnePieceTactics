@@ -96,7 +96,7 @@ const getUnitStyle = (unit: any) => {
     const shouldDisablePointer = (isDragging.value || props.isDraggingProp) 
                                  && unit.id !== draggingUnitId.value;
 
-    return {
+    const styles: any = {
         left: (unit.visualX * CELL_SIZE + 5) + 'px',
         top: (unit.visualY * CELL_SIZE + 5) + 'px',
         width: '45px',
@@ -106,8 +106,29 @@ const getUnitStyle = (unit: any) => {
         borderStyle: 'solid',
         boxShadow: unit.isMine ? '0 0 10px rgba(16, 185, 129, 0.6)' : 'none',
         zIndex: hoveredUnitId.value === unit.id ? 100 : 10,
-        pointerEvents: shouldDisablePointer ? 'none' : 'auto'
+        pointerEvents: shouldDisablePointer ? 'none' : 'auto',
+        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
     }
+
+    // Apply status effect visuals
+    if (unit.stunTicksRemaining > 0) {
+        styles.filter = 'grayscale(1) brightness(0.8)';
+    } else {
+        const extraGlows: string[] = [];
+        if (unit.atkBuff > 1.01) {
+            extraGlows.push('0 0 15px rgba(249, 115, 22, 0.8)');
+        }
+        if (unit.spdBuff > 1.01) {
+            extraGlows.push('0 0 15px rgba(59, 130, 246, 0.8)');
+        }
+        
+        if (extraGlows.length > 0) {
+            const teamGlow = unit.isMine ? '0 0 10px rgba(16, 185, 129, 0.6)' : '';
+            styles.boxShadow = [...extraGlows, teamGlow].filter(g => g).join(', ');
+        }
+    }
+
+    return styles;
 }
 
 const myPlayerName = computed(() => {
@@ -273,6 +294,7 @@ interface FloatingText {
     text: string
 }
 const castingAnimations = ref<FloatingText[]>([])
+const floatingHeals = ref<FloatingText[]>([])
 
 // Find nearest enemy for a unit (to animate attacks toward)
 function findNearestEnemy(unit: any, allUnits: any[]): any | null {
@@ -280,10 +302,10 @@ function findNearestEnemy(unit: any, allUnits: any[]): any | null {
     if (enemies.length === 0) return null
     
     let nearest = enemies[0]
-    let minDist = Math.abs(nearest.visualX - unit.visualX) + Math.abs(nearest.visualY - unit.visualY)
+    let minDist = Math.max(Math.abs(nearest.visualX - unit.visualX), Math.abs(nearest.visualY - unit.visualY))
     
     for (const enemy of enemies) {
-        const dist = Math.abs(enemy.visualX - unit.visualX) + Math.abs(enemy.visualY - unit.visualY)
+        const dist = Math.max(Math.abs(enemy.visualX - unit.visualX), Math.abs(enemy.visualY - unit.visualY))
         if (dist < minDist) {
             minDist = dist
             nearest = enemy
@@ -296,6 +318,107 @@ function findNearestEnemy(unit: any, allUnits: any[]): any | null {
 // Store previous units for death detection
 const prevUnitsMap = ref<Map<string, any>>(new Map())
 const prevPhase = ref<string | null>(null)
+const lastProcessedEventTime = ref(0)
+
+const unitsById = computed(() => {
+    const map = new Map()
+    if (renderedUnits.value) {
+        renderedUnits.value.forEach((u: any) => map.set(u.id, u))
+    }
+    return map
+})
+
+watch(() => props.state?.recentEvents, (newEvents) => {
+    if (!newEvents || newEvents.length === 0) return
+    
+    // Deduplication based on timestamp
+    let maxTime = lastProcessedEventTime.value
+    
+    newEvents.forEach((event: any) => {
+        if (event.timestamp <= lastProcessedEventTime.value) return
+        if (event.timestamp > maxTime) maxTime = event.timestamp
+        
+        const source = unitsById.value.get(event.sourceId)
+        if (!source) return
+
+        if (event.type === 'DAMAGE') {
+            const target = unitsById.value.get(event.targetId)
+            // Value can be positive (damage) or negative (heal)
+            if (event.value > 0 && target && activeAnimations.value.length < 15) {
+                const config = getAttackConfig(source.definitionId)
+                activeAnimations.value.push({
+                    id: nextAnimId++,
+                    type: 'attack',
+                    attackType: config.type,
+                    startX: source.visualX,
+                    startY: source.visualY,
+                    endX: target.visualX,
+                    endY: target.visualY,
+                    color: config.color,
+                    definitionId: source.definitionId
+                })
+            } else if (event.value < 0) {
+                const target = unitsById.value.get(event.targetId) || source
+                const healAmount = Math.abs(event.value)
+                const healId = nextAnimId++
+                floatingHeals.value.push({
+                    id: healId,
+                    x: target.visualX * CELL_SIZE + 25,
+                    y: target.visualY * CELL_SIZE + 10,
+                    text: `+${healAmount}`
+                })
+                setTimeout(() => {
+                    floatingHeals.value = floatingHeals.value.filter(h => h.id !== healId)
+                }, 1000)
+            }
+        } else if (event.type === 'SKILL') {
+            const config = getAbilityConfig(source.definitionId)
+            let targetX = source.visualX
+            let targetY = source.visualY
+            
+            if (event.targetId) {
+                const target = unitsById.value.get(event.targetId)
+                if (target) {
+                    targetX = target.visualX
+                    targetY = target.visualY
+                }
+            } else {
+                const nearest = findNearestEnemy(source, renderedUnits.value)
+                if (nearest) {
+                    targetX = nearest.visualX
+                    targetY = nearest.visualY
+                }
+            }
+
+            if (activeAnimations.value.length < 15) {
+                activeAnimations.value.push({
+                    id: nextAnimId++,
+                    type: 'ability',
+                    pattern: source.ability?.pattern || 'SINGLE',
+                    startX: source.visualX,
+                    startY: source.visualY,
+                    endX: targetX,
+                    endY: targetY,
+                    color: config.color,
+                    definitionId: source.definitionId
+                })
+            }
+            
+            // Floating text for skill
+            castingAnimations.value.push({
+                id: nextAnimId++,
+                x: source.visualX * CELL_SIZE + 30,
+                y: source.visualY * CELL_SIZE,
+                text: source.activeAbility || 'Ability!'
+            })
+            setTimeout(() => {
+                castingAnimations.value.shift()
+            }, 1000)
+        }
+    })
+    
+    lastProcessedEventTime.value = maxTime
+}, { deep: true })
 
 watch(() => renderedUnits.value, (newUnits, oldUnits) => {
     const currentPhase = props.state?.phase
@@ -335,74 +458,11 @@ watch(() => renderedUnits.value, (newUnits, oldUnits) => {
     newUnits.forEach((unit: any) => {
         const prevHealth = prevHealthMap.value[unit.id]
         
-        // If health decreased, spawn impact animation on this unit
-        if (prevHealth !== undefined && unit.currentHealth < prevHealth) {
-            // Find potential attacker - nearest enemy
-            const attacker = findNearestEnemy(unit, newUnits)
-            if (attacker && activeAnimations.value.length < 6) {
-                const config = getAttackConfig(attacker.definitionId)
-                activeAnimations.value.push({
-                    id: nextAnimId++,
-                    type: 'attack',
-                    attackType: config.type,
-                    startX: attacker.visualX,
-                    startY: attacker.visualY,
-                    endX: unit.visualX,
-                    endY: unit.visualY,
-                    color: config.color,
-                    definitionId: attacker.definitionId
-                })
-            }
-        }
-        
         // Update health tracking
         prevHealthMap.value[unit.id] = unit.currentHealth
         
         // Store current unit data for next frame's death detection
         prevUnitsMap.value.set(unit.id, { ...unit })
-        
-        // Handle ability animations (enhanced version)
-        if (unit.activeAbility) {
-            if (lastCastMap.value[unit.id] !== unit.activeAbility) {
-                lastCastMap.value[unit.id] = unit.activeAbility
-                
-                // Spawn ability visual effect
-                const target = findNearestEnemy(unit, newUnits)
-                const config = getAbilityConfig(unit.definitionId)
-                
-                if (activeAnimations.value.length < 8) {
-                    activeAnimations.value.push({
-                        id: nextAnimId++,
-                        type: 'ability',
-                        pattern: unit.ability?.pattern || 'SINGLE',
-                        startX: unit.visualX,
-                        startY: unit.visualY,
-                        endX: target?.visualX ?? unit.visualX,
-                        endY: target?.visualY ?? unit.visualY,
-                        color: config.color,
-                        definitionId: unit.definitionId
-                    })
-                }
-                
-                // Also spawn floating text
-                const x = unit.visualX * CELL_SIZE + 30
-                const y = unit.visualY * CELL_SIZE
-                castingAnimations.value.push({
-                    id: nextAnimId++,
-                    x,
-                    y,
-                    text: unit.activeAbility
-                })
-                
-                setTimeout(() => {
-                    castingAnimations.value.shift()
-                }, 1000)
-            }
-        } else {
-            if (lastCastMap.value[unit.id]) {
-                delete lastCastMap.value[unit.id]
-            }
-        }
     })
 })
 
@@ -529,6 +589,11 @@ function isStarringUp(unitId: string): boolean {
             <div class="star-indicator" :class="'stars-' + (unit.starLevel || 1)">
                 <span v-for="n in (unit.starLevel || 1)" :key="n" class="star-dot"></span>
             </div>
+
+            <!-- Stun Badge -->
+            <div v-if="unit.stunTicksRemaining > 0" class="stun-badge">
+                STUNNED
+            </div>
             
             <!-- Star-up celebration effect -->
             <div v-if="isStarringUp(unit.id)" class="star-up-burst">
@@ -570,6 +635,13 @@ function isStarringUp(unitId: string): boolean {
                   class="floating-text"
                   :style="{ left: anim.x + 'px', top: anim.y + 'px' }">
                   {{ anim.text }}
+             </div>
+
+             <!-- Heal Floating Text -->
+             <div v-for="heal in floatingHeals" :key="heal.id"
+                  class="floating-text heal"
+                  :style="{ left: heal.x + 'px', top: heal.y + 'px' }">
+                  {{ heal.text }}
              </div>
         </div>
     </div>
@@ -841,5 +913,46 @@ function isStarringUp(unitId: string): boolean {
         transform: rotate(var(--angle)) translateY(-50px) scale(0.5);
     }
 }
+
+.stun-badge {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: #94a3b8;
+    font-size: 8px;
+    font-weight: bold;
+    padding: 2px 4px;
+    border-radius: 4px;
+    border: 1px solid #475569;
+    z-index: 100;
+    pointer-events: none;
+    letter-spacing: 0.5px;
+}
+
+.floating-text.heal {
+    color: #22c55e; /* Green */
+    font-size: 16px;
+}
+
+.unit.atk-buffed {
+    animation: atkBuffPulse 2s infinite alternate;
+}
+
+.unit.spd-buffed {
+    animation: spdBuffPulse 2s infinite alternate;
+}
+
+@keyframes atkBuffPulse {
+    from { box-shadow: 0 0 10px rgba(249, 115, 22, 0.4); }
+    to { box-shadow: 0 0 20px rgba(249, 115, 22, 0.8); }
+}
+
+@keyframes spdBuffPulse {
+    from { box-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
+    to { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); }
+}
 </style>
+
 

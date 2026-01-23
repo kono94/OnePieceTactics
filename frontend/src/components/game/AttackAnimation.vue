@@ -37,9 +37,9 @@ const travelStyle = computed(() => {
   const angle = Math.atan2(dy, dx) * (180 / Math.PI)
   
   return {
-    '--travel-x': `${dx * 60}px`,
-    '--travel-y': `${dy * 60}px`,
-    '--travel-distance': `${distance * 60}px`,
+    '--travel-x': `${dx * 55}px`,
+    '--travel-y': `${dy * 55}px`,
+    '--travel-distance': `${distance * 55}px`,
     '--angle': `${angle}deg`,
     '--color': props.color
   }
@@ -57,7 +57,7 @@ onMounted(() => {
     class="attack-animation" 
     :class="animationClass"
     :style="[
-      { left: startX * 60 + 30 + 'px', top: startY * 60 + 30 + 'px' },
+      { left: startX * 55 + 27 + 'px', top: startY * 55 + 27 + 'px' },
       travelStyle
     ]"
   >

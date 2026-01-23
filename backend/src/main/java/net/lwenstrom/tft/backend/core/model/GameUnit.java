@@ -61,15 +61,29 @@ public interface GameUnit {
 
     void setNextMoveTime(long time);
 
-    void setMaxHealth(int maxHealth);
+    default void setMaxHealth(int maxHealth) {}
 
-    void setCurrentHealth(int currentHealth);
+    default void setCurrentHealth(int currentHealth) {}
 
-    void setAttackSpeed(float attackSpeed);
+    default void setMaxMana(int maxMana) {}
 
-    void savePlanningPosition();
+    default void setAttackDamage(int attackDamage) {}
 
-    void restorePlanningPosition();
+    default void setAbilityPower(int abilityPower) {}
+
+    default void setArmor(int armor) {}
+
+    default void setMagicResist(int magicResist) {}
+
+    default void setAttackSpeed(float attackSpeed) {}
+
+    default void setStarLevel(int starLevel) {}
+
+    default void setMana(int mana) {}
+
+    default void savePlanningPosition() {}
+
+    default void restorePlanningPosition() {}
 
     AbilityDefinition getAbility();
 
@@ -77,5 +91,24 @@ public interface GameUnit {
 
     void setActiveAbility(String abilityName);
 
-    void setMana(int mana);
+    // Stun status (unit skips turns while > 0)
+    default int getStunTicksRemaining() {
+        return 0;
+    }
+
+    default void setStunTicksRemaining(int ticks) {}
+
+    // Attack buff multiplier (1.0 = no buff)
+    default float getAtkBuff() {
+        return 1.0f;
+    }
+
+    default void setAtkBuff(float buff) {}
+
+    // Speed buff multiplier (1.0 = no buff)
+    default float getSpdBuff() {
+        return 1.0f;
+    }
+
+    default void setSpdBuff(float buff) {}
 }

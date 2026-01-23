@@ -76,13 +76,13 @@ class CombatSystemUnitTest {
     }
 
     @Test
-    void testGetDistance_CalculatesEuclidean() {
+    void testGetDistance_CalculatesChebyshev() {
         var u1 = MockUnit.create("u1", "P1").withPosition(0, 0);
         var u2 = MockUnit.create("u2", "P2").withPosition(3, 4);
 
         var distance = CombatUtils.getDistance(u1, u2);
 
-        assertEquals(5.0, distance, 0.001, "Distance should be 5 (3-4-5 triangle)");
+        assertEquals(4.0, distance, 0.001, "Distance should be 4 (max of 3 and 4)");
     }
 
     @Test

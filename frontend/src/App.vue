@@ -6,9 +6,10 @@ import Lobby from './components/Lobby.vue'
 import WaitingRoom from './components/WaitingRoom.vue'
 import GameInterface from './components/GameInterface.vue'
 import OutcomeOverlay from './components/game/OutcomeOverlay.vue'
+import DamageReport from './components/game/DamageReport.vue'
 
 import { setTraitData } from './data/traitData'
-import type { GameState, GameAction, CombatResultPayload, GameEvent } from './types'
+import type { GameState, GameAction, CombatResultPayload, GameEvent, DamageEntry } from './types'
 
 const isConnected = ref(false)
 const gameState = ref<GameState | null>(null)
@@ -76,6 +77,7 @@ onUnmounted(() => {
 })
 
 const encounterResult = ref<'WON' | 'LOST' | 'DRAW' | null>(null)
+const damageReport = ref<Record<string, DamageEntry> | null>(null)
 
 const subscribeToRoom = (roomId: string) => {
     if (!client.value || !isConnected.value) return
@@ -129,7 +131,6 @@ const subscribeToRoom = (roomId: string) => {
 
 const handleCombatResult = (payload: CombatResultPayload) => {
     console.log("Handling Combat Result:", payload)
-    // Determine if I won or lost
     if (!gameState.value) return
     
     // Find my ID
@@ -137,21 +138,27 @@ const handleCombatResult = (payload: CombatResultPayload) => {
     if (!myPlayerEntry) return
     
     const myId = myPlayerEntry.playerId
+    
+    // Was I in this combat?
+    const wasParticipant = payload.participantIds.includes(myId)
+    if (!wasParticipant) return
 
+    // Determine result type
     if (payload.winnerId === myId) {
         encounterResult.value = 'WON'
     } else if (payload.loserId === myId) {
         encounterResult.value = 'LOST'
     } else {
-        // Maybe a draw or unrelated combat (if >2 players)
-        // If unrelated, ignore.
-        return 
+        encounterResult.value = 'DRAW'
     }
 
-    // Clear after 2 seconds
+    // Store damage report (deprecated, using live state now)
+    // damageReport.value = payload.damageLog
+
+    // Clear after 8 seconds (Outcome overlay only)
     setTimeout(() => {
         encounterResult.value = null
-    }, 2000)
+    }, 8000)
 }
 
 const handleCreate = (roomId: string) => {
@@ -243,20 +250,28 @@ const handleLeaveLobby = () => {
                
         <div v-else class="game-container">
              <!-- If in LOBBY phase, show WaitingRoom -->
-             <WaitingRoom v-if="gameState && gameState.phase === 'LOBBY'"
-                          :game-state="gameState"
-                          :current-player-name="PLAYER_NAME"
-                          @start="handleStartGame"
-                          @leave="handleLeaveLobby" />
-                          
-             <!-- Otherwise show GameInterface -->
-             <template v-else>
-                 <GameInterface :state="gameState" 
-                                :current-player-name="PLAYER_NAME"
-                                :is-connected="isConnected"
-                                @action="handleGameAction" />
-                 <OutcomeOverlay :type="encounterResult" />
+             <template v-if="gameState">
+                 <WaitingRoom v-if="gameState.phase === 'LOBBY'"
+                              :game-state="gameState"
+                              :current-player-name="PLAYER_NAME"
+                              @start="handleStartGame"
+                              @leave="handleLeaveLobby" />
+                              
+                 <!-- Otherwise show GameInterface -->
+                 <template v-else>
+                     <GameInterface :state="gameState" 
+                                    :current-player-name="PLAYER_NAME"
+                                    :is-connected="isConnected"
+                                    @action="handleGameAction" />
+                     <OutcomeOverlay v-if="encounterResult" :type="encounterResult" />
+                     <DamageReport v-if="gameState.damageLog" 
+                                   :damage-log="gameState.damageLog" 
+                                   :my-player-id="Object.values(gameState.players).find(p => p.name === PLAYER_NAME)?.playerId" />
+                 </template>
              </template>
+             <div v-else class="loading-screen">
+                 Initializing Game Room...
+             </div>
         </div>
     </template>
   </div>

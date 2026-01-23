@@ -279,4 +279,39 @@ public class MockUnit implements GameUnit {
     public void setMana(int mana) {
         this.mana = mana;
     }
+
+    // Stun/buff fields for combat effects
+    private int stunTicksRemaining = 0;
+    private float atkBuff = 1.0f;
+    private float spdBuff = 1.0f;
+
+    @Override
+    public int getStunTicksRemaining() {
+        return stunTicksRemaining;
+    }
+
+    @Override
+    public void setStunTicksRemaining(int ticks) {
+        this.stunTicksRemaining = ticks;
+    }
+
+    @Override
+    public float getAtkBuff() {
+        return atkBuff;
+    }
+
+    @Override
+    public void setAtkBuff(float buff) {
+        this.atkBuff = buff;
+    }
+
+    @Override
+    public float getSpdBuff() {
+        return spdBuff;
+    }
+
+    @Override
+    public void setSpdBuff(float buff) {
+        this.spdBuff = buff;
+    }
 }

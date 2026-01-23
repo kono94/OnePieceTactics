@@ -57,6 +57,10 @@ export interface GameUnit {
     ownerId: string
     ability: AbilityDefinition | null
     activeAbility: string | null
+    // Combat status effects
+    stunTicksRemaining: number
+    atkBuff: number  // 1.0 = no buff
+    spdBuff: number  // 1.0 = no buff
 }
 
 export interface UnitDefinition {
@@ -119,10 +123,18 @@ export interface CombatEvent {
     value: number
 }
 
-export interface CombatResultPayload {
-    winnerId: string
-    loserId: string
+export interface DamageEntry {
+    unitName: string
+    definitionId: string
+    ownerId: string
     damage: number
+}
+
+export interface CombatResultPayload {
+    winnerId: string | null
+    loserId: string | null
+    participantIds: string[]
+    damageLog: Record<string, DamageEntry>
 }
 
 // ============================================================================
@@ -139,6 +151,7 @@ export interface GameState {
     players: Record<string, PlayerState>
     matchups: Record<string, string> // playerId -> opponentId
     recentEvents: CombatEvent[]
+    damageLog: Record<string, DamageEntry>
     gameMode: GameMode
 }
 

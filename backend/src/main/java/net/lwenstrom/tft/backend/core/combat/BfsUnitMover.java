@@ -55,8 +55,7 @@ public class BfsUnitMover implements UnitMover {
         while (!queue.isEmpty()) {
             var current = queue.poll();
 
-            double dist =
-                    Math.sqrt(Math.pow(current.x() - target.getX(), 2) + Math.pow(current.y() - target.getY(), 2));
+            int dist = Math.max(Math.abs(current.x() - target.getX()), Math.abs(current.y() - target.getY()));
             if (dist <= start.getRange()) {
                 if (current.equals(startPt) || !occupied[current.y()][current.x()]) {
                     foundDest = current;

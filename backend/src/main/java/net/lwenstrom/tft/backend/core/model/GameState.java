@@ -2,6 +2,7 @@ package net.lwenstrom.tft.backend.core.model;
 
 import java.util.List;
 import java.util.Map;
+import net.lwenstrom.tft.backend.core.engine.CombatSystem;
 import net.lwenstrom.tft.backend.core.engine.UnitDefinition;
 
 public record GameState(
@@ -14,6 +15,7 @@ public record GameState(
         Map<String, PlayerState> players,
         Map<String, String> matchups,
         List<CombatEvent> recentEvents,
+        Map<String, CombatSystem.DamageEntry> damageLog,
         GameMode gameMode) {
 
     public record PlayerState(

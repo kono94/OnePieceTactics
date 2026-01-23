@@ -197,6 +197,41 @@ public class CombatPathingTest {
 
         @Override
         public void setAttackSpeed(float attackSpeed) {}
+
+        // Stun/buff methods
+        private int stunTicksRemaining = 0;
+        private float atkBuff = 1.0f;
+        private float spdBuff = 1.0f;
+
+        @Override
+        public int getStunTicksRemaining() {
+            return stunTicksRemaining;
+        }
+
+        @Override
+        public void setStunTicksRemaining(int ticks) {
+            this.stunTicksRemaining = ticks;
+        }
+
+        @Override
+        public float getAtkBuff() {
+            return atkBuff;
+        }
+
+        @Override
+        public void setAtkBuff(float buff) {
+            this.atkBuff = buff;
+        }
+
+        @Override
+        public float getSpdBuff() {
+            return spdBuff;
+        }
+
+        @Override
+        public void setSpdBuff(float buff) {
+            this.spdBuff = buff;
+        }
     }
 
     @Test
@@ -232,7 +267,9 @@ public class CombatPathingTest {
         unitMover.moveTowards(mover, target, allUnits);
 
         assertTrue(
-                (mover.getX() == 0 && mover.getY() == 2) || (mover.getX() == 1 && mover.getY() == 3),
-                "Should reach an adjacent tile to target");
+                (mover.getX() == 0 && mover.getY() == 2)
+                        || (mover.getX() == 1 && mover.getY() == 3)
+                        || (mover.getX() == 1 && mover.getY() == 2),
+                "Should reach an adjacent tile to target (including diagonals in Chebyshev)");
     }
 }

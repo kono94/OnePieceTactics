@@ -4,9 +4,6 @@ import java.util.HashSet;
 
 public class StandardGameUnit extends AbstractGameUnit {
 
-    private String ownerId;
-    private long nextAttackTime;
-
     public StandardGameUnit(UnitDefinition def) {
         super(def.id(), def.name(), def.cost(), def.ability(), def.range(), new HashSet<>(def.traits()));
         setMaxHealth(def.maxHealth());
@@ -25,21 +22,5 @@ public class StandardGameUnit extends AbstractGameUnit {
 
     public void useMana(int amount) {
         setMana(Math.max(0, getMana() - amount));
-    }
-
-    public String getOwnerId() {
-        return ownerId;
-    }
-
-    public void setOwnerId(String ownerId) {
-        this.ownerId = ownerId;
-    }
-
-    public long getNextAttackTime() {
-        return nextAttackTime;
-    }
-
-    public void setNextAttackTime(long time) {
-        this.nextAttackTime = time;
     }
 }

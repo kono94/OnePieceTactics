@@ -17,7 +17,7 @@
     ],
     "ability": {
       "name": "Gum Gum Pistol",
-      "type": "DMG",
+      "type": "DAMAGE",
       "pattern": "SINGLE",
       "value": 200,
       "range": 2
@@ -40,8 +40,8 @@
       "Swordsman"
     ],
     "ability": {
-      "name": "360 Pound",
-      "type": "DMG",
+      "name": "360 Pound Cannon",
+      "type": "DAMAGE",
       "pattern": "SURROUND",
       "value": 100,
       "range": 1
@@ -64,11 +64,83 @@
       "Navigator"
     ],
     "ability": {
-      "name": "Thunderbolt",
-      "type": "DMG",
+      "name": "Thunderbolt Tempo",
+      "type": "STUN",
       "pattern": "LINE",
-      "value": 150,
+      "value": 2,
       "range": 4
+    }
+  },
+  {
+    "id": "chopper_v1",
+    "name": "Tony Tony Chopper",
+    "cost": 2,
+    "maxHealth": 550,
+    "maxMana": 70,
+    "attackDamage": 30,
+    "abilityPower": 80,
+    "armor": 15,
+    "magicResist": 30,
+    "attackSpeed": 0.55,
+    "range": 2,
+    "traits": [
+      "Straw Hat",
+      "Doctor"
+    ],
+    "ability": {
+      "name": "Emergency Treatment",
+      "type": "HEAL",
+      "pattern": "SINGLE",
+      "value": 150,
+      "range": 3
+    }
+  },
+  {
+    "id": "usopp_v1",
+    "name": "Usopp",
+    "cost": 1,
+    "maxHealth": 400,
+    "maxMana": 90,
+    "attackDamage": 40,
+    "abilityPower": 50,
+    "armor": 10,
+    "magicResist": 20,
+    "attackSpeed": 0.5,
+    "range": 5,
+    "traits": [
+      "Straw Hat",
+      "Sniper"
+    ],
+    "ability": {
+      "name": "I Got This!",
+      "type": "BUFF_ATK",
+      "pattern": "SURROUND",
+      "value": 25,
+      "range": 2
+    }
+  },
+  {
+    "id": "sanji_v1",
+    "name": "Sanji",
+    "cost": 2,
+    "maxHealth": 650,
+    "maxMana": 55,
+    "attackDamage": 55,
+    "abilityPower": 0,
+    "armor": 25,
+    "magicResist": 20,
+    "attackSpeed": 0.75,
+    "range": 1,
+    "traits": [
+      "Straw Hat",
+      "Fighter"
+    ],
+    "ability": {
+      "name": "Diable Jambe",
+      "type": "BUFF_SPD",
+      "pattern": "SURROUND",
+      "value": 30,
+      "range": 2
     }
   }
 ]

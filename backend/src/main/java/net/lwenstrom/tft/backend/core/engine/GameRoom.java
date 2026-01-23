@@ -43,12 +43,19 @@ public class GameRoom {
     private final RandomProvider randomProvider;
     private final TraitManager traitManager;
     private final CombatSystem combatSystem;
+    private final List<GameState.CombatEvent> lastTickEvents = new ArrayList<>();
+    private final Map<String, CombatSystem.DamageEntry> currentRoundDamageLog = new ConcurrentHashMap<>();
 
     private CombatResultListener combatResultListener;
 
     @FunctionalInterface
     public interface CombatResultListener {
-        void onCombatResult(String roomId, String winnerId, String loserId);
+        void onCombatResult(
+                String roomId,
+                String winnerId,
+                String loserId,
+                List<String> participantIds,
+                Map<String, CombatSystem.DamageEntry> damageLog);
     }
 
     public void setCombatResultListener(CombatResultListener listener) {
@@ -88,6 +95,7 @@ public class GameRoom {
                 new HashMap<>(),
                 new HashMap<>(),
                 new ArrayList<>(),
+                new HashMap<>(),
                 gameModeRegistry.getActiveMode());
 
         // In LOBBY, no timer runs until startMatch is called
@@ -176,16 +184,22 @@ public class GameRoom {
             nextPhase();
         }
 
+        lastTickEvents.clear();
         if (phase == GamePhase.COMBAT) {
             var it = activeCombats.iterator();
             while (it.hasNext()) {
                 var pair = it.next();
                 var result = combatSystem.simulateTick(pair);
+                if (result.events() != null) {
+                    lastTickEvents.addAll(result.events());
+                }
                 if (result.ended()) {
                     handleCombatEnd(false, result, pair);
                     it.remove();
                 }
             }
+            // Update live damage log
+            currentRoundDamageLog.putAll(combatSystem.getDamageLog());
         }
 
         updateGameState(phaseEndTime - now);
@@ -250,6 +264,9 @@ public class GameRoom {
             // Set all players to combat mode
             players.values().forEach(p -> p.setInCombat(true));
 
+            // Clear damage log at the start of combat
+            currentRoundDamageLog.clear();
+
             activeCombats.clear();
             currentMatchups.clear();
             var shuffled = new ArrayList<Player>(players.values());
@@ -261,6 +278,9 @@ public class GameRoom {
                 currentMatchups.put(p1.getId(), p2.getId());
                 currentMatchups.put(p2.getId(), p1.getId());
             }
+
+            // Reset combat system log before starting combat for all pairs
+            combatSystem.startCombat(List.of()); // This clears the internal log
             activeCombats.forEach(combatSystem::startCombat);
         }
 
@@ -297,7 +317,8 @@ public class GameRoom {
                 calculatePhaseDuration(phase, round),
                 playerStates,
                 new HashMap<>(currentMatchups),
-                new ArrayList<>(),
+                new ArrayList<>(lastTickEvents),
+                new HashMap<>(currentRoundDamageLog),
                 gameModeRegistry.getActiveMode());
     }
 
@@ -349,12 +370,27 @@ public class GameRoom {
             if (loser != null) {
                 loser.takeDamage(damage);
                 log.info("Combat ended: {} wins! {} takes {}", winner.getName(), loser.getName(), damage);
+            }
+        }
 
-                // Notify listener about combat result
-                if (combatResultListener != null) {
-                    combatResultListener.onCombatResult(id, winner.getId(), loser.getId());
+        // Notify listener about combat result (even if draw)
+        if (combatResultListener != null) {
+            String winnerId = null;
+            String loserId = null;
+
+            if (winner != null && !draw) {
+                winnerId = winner.getId();
+                for (var p : participants) {
+                    if (!p.getId().equals(winnerId)) {
+                        loserId = p.getId();
+                        break;
+                    }
                 }
             }
+
+            var participantIds = participants.stream().map(Player::getId).toList();
+            var damageLog = result != null ? result.damageLog() : Map.<String, CombatSystem.DamageEntry>of();
+            combatResultListener.onCombatResult(id, winnerId, loserId, participantIds, damageLog);
         }
     }
 }

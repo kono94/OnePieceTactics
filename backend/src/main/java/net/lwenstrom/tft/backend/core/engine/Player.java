@@ -27,8 +27,6 @@ public class Player {
     private static final int MAX_BENCH_SIZE = 9;
 
     private final RandomProvider randomProvider;
-
-    @Getter
     private final Grid grid = new Grid();
 
     private final List<GameUnit> bench = new ArrayList<>();
