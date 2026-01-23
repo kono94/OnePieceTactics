@@ -3,28 +3,46 @@ import { computed } from 'vue'
 
 const props = defineProps<{
     unit: any,
-    placement?: 'top' | 'bottom'
+    placement?: 'top' | 'bottom',
+    shift?: 'left' | 'more-left' | 'center'
 }>()
 
 const stats = computed(() => {
     if (!props.unit) return {}
+    // If currentHealth is missing (shop unit), use maxHealth
+    const curHp = props.unit.currentHealth !== undefined ? props.unit.currentHealth : props.unit.maxHealth;
+    // Units usually start with 0 mana unless specified
+    const curMana = props.unit.mana !== undefined ? props.unit.mana : 0;
+    
     return {
-        hp: `${props.unit.currentHealth || 0}/${props.unit.maxHealth || 100}`,
+        hp: `${curHp || 0}/${props.unit.maxHealth || 100}`,
         atk: props.unit.attackDamage || 0,
         spd: (props.unit.attackSpeed || 0).toFixed(2),
         range: props.unit.range || 0,
-        mana: `${props.unit.mana || 0}/${props.unit.maxMana || 100}`
+        mana: `${curMana || 0}/${props.unit.maxMana || 100}`
     }
 })
 
 const starLevel = computed(() => props.unit.starLevel || 1)
 const ability = computed(() => props.unit.ability)
+
+const rarityColor = computed(() => {
+    const cost = props.unit.cost || 1
+    switch (cost) {
+        case 1: return '#94a3b8' // Common
+        case 2: return '#22c55e' // Uncommon
+        case 3: return '#3b82f6' // Rare
+        case 4: return '#a855f7' // Epic
+        case 5: return '#eab308' // Legendary
+        default: return '#ffd700'
+    }
+})
 </script>
 
 <template>
-  <div class="unit-tooltip" :class="placement || 'top'">
+  <div class="unit-tooltip" :class="[placement || 'top', shift ? `shift-${shift}` : '']">
       <div class="header">
-          <span class="name">{{ unit.name }}</span>
+          <span class="name" :style="{ color: rarityColor }">{{ unit.name }}</span>
           <span class="stars">
               <span v-for="n in starLevel" :key="n">⭐</span>
           </span>
@@ -71,24 +89,37 @@ const ability = computed(() => props.unit.ability)
 .unit-tooltip {
     position: absolute;
     left: 50%;
-    transform: translateX(-20%);
-    background-color: rgba(15, 23, 42, 0.95);
-    border: 1px solid #475569;
-    padding: 10px;
-    border-radius: 8px;
+    transform: translateX(-30%);
+    background-color: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px;
+    border-radius: 12px;
     color: white;
-    width: 200px;
-    z-index: 1000;
+    width: 220px;
+    z-index: 10000;
     pointer-events: none;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+.unit-tooltip.shift-center {
+    transform: translateX(-50%);
+}
+
+.unit-tooltip.shift-left {
+    transform: translateX(-75%);
+}
+
+.unit-tooltip.shift-more-left {
+    transform: translateX(-95%);
 }
 
 .unit-tooltip.top {
-    bottom: 125%;
+    bottom: 110%;
 }
 
 .unit-tooltip.bottom {
-    top: 125%;
+    top: 110%;
 }
 
 .header {

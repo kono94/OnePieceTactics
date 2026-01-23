@@ -350,6 +350,8 @@ watch(() => benchUnits.value, (newBench) => {
                              <transition name="fade">
                                <UnitTooltip v-if="hoveredShopIndex === idx" 
                                            :unit="card" 
+                                           placement="top"
+                                           :shift="idx === 4 ? 'more-left' : idx === 3 ? 'left' : undefined"
                                            class="shop-tooltip" />
                              </transition>
                          </template>
@@ -754,7 +756,7 @@ watch(() => benchUnits.value, (newBench) => {
     flex-direction: column;
     padding: 4px; /* Reduced padding */
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: hidden;
+    /* overflow: hidden; -- Allows tooltips to be visible */
 }
 
 .shop-card.rarity-1 { border-color: #64748b; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); }
@@ -765,8 +767,8 @@ watch(() => benchUnits.value, (newBench) => {
 
 .shop-card.can-buy:hover {
     transform: translateY(-4px); /* Enhanced jump */
-    z-index: 10;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
+    z-index: 100; /* Ensure tooltip is above everything */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6), 0 0 15px rgba(96, 165, 250, 0.3);
     border-color: #60a5fa;
 }
 
@@ -811,6 +813,8 @@ watch(() => benchUnits.value, (newBench) => {
 }
 
 .shop-card .name {
+    width: 100%;
+    text-align: center;
     font-weight: 800;
     font-size: 13px;
     white-space: nowrap;
@@ -829,11 +833,7 @@ watch(() => benchUnits.value, (newBench) => {
 
 .shop-tooltip, .bench-tooltip {
     position: absolute;
-    bottom: calc(100% + 15px);
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 9999;
-    width: 220px;
+    z-index: 10000;
     pointer-events: none;
 }
 
