@@ -220,7 +220,10 @@ watch(() => benchUnits.value, (newBench) => {
         <div class="top-bar" :class="{ 'combat': state.phase === 'COMBAT' }">
             <div class="phase-info">
                 <span class="phase-name">{{ state.phase }}</span>
-                <span class="round-name" style="font-size: 12px; opacity: 0.7;">{{ state.gameMode }}</span>
+                <div class="game-meta">
+                    <span class="game-mode">{{ state.gameMode }}</span>
+                    <span class="room-id">Room: {{ state.roomId }}</span>
+                </div>
                 <span class="round-name">Round {{ state.round }}</span>
             </div>
             <div class="timer-bar-container">
@@ -256,20 +259,22 @@ watch(() => benchUnits.value, (newBench) => {
                         <span class="xp-text">{{ myPlayer.xp }} / {{ myPlayer.nextLevelXp || 10 }} XP</span>
                     </div>
                 </div>
-                <div class="gold-info">
-                    <span class="gold-amount">{{ myPlayer.gold }}</span>
-                    <span class="gold-label">Gold</span>
-                </div>
-                <div class="unit-count" :class="{ 'max-units': myPlayerBoardUnits.length >= myPlayer.level }">
-                     Units: {{ myPlayerBoardUnits.length }} / {{ myPlayer.level }}
+                <div class="stats-row">
+                    <div class="gold-info">
+                        <span class="gold-amount">{{ myPlayer.gold }}</span>
+                        <span class="gold-label">Gold</span>
+                    </div>
+                    <div class="unit-count" :class="{ 'max-units': myPlayerBoardUnits.length >= myPlayer.level }">
+                        {{ myPlayerBoardUnits.length }}/{{ myPlayer.level }}
+                    </div>
                 </div>
                 <button class="xp-btn" @click="buyXp" :disabled="myPlayer.gold < 4">
-                    Buy XP (4g)
+                    XP (4g)
                 </button>
             </div>
 
-            <!-- Bench + Sell Zone -->
-            <div class="bench-sell-wrapper">
+            <!-- Bench Area -->
+            <div class="bench-area-wrapper">
                 <div class="bench-area">
                     <div class="bench-slots">
                         <!-- 9 slots or however many -->
@@ -287,76 +292,79 @@ watch(() => benchUnits.value, (newBench) => {
                                 @dragend="onBenchDragEnd"
                                 @mouseenter="hoveredBenchUnitId = benchUnits[i-1].id"
                                 @mouseleave="hoveredBenchUnitId = null">
-                              
-                              <div class="bench-unit-inner">
-                                 <img :src="`/assets/units/${benchUnits[i-1].definitionId}.png`" 
-                                      class="bench-unit-img" />
-                                 <div class="star-indicator" :class="'stars-' + (benchUnits[i-1].starLevel || 1)">
-                                     <span v-for="n in (benchUnits[i-1].starLevel || 1)" :key="n" class="star-dot"></span>
-                                 </div>
-                                 
-                                 <!-- Star-up celebration effect -->
-                                 <div v-if="isStarringUp(benchUnits[i-1].id)" class="star-up-burst">
-                                     <span v-for="j in 8" :key="j" class="star-particle" :style="{ '--particle-index': j }"></span>
-                                 </div>
-                              </div>
+                                                            <div class="bench-unit-inner">
+                                  <img :src="`/assets/units/${benchUnits[i-1].definitionId}.png`" 
+                                       class="bench-unit-img" />
+                               </div>
+                               
+                               <div class="star-indicator" :class="'stars-' + (benchUnits[i-1].starLevel || 1)">
+                                   <span v-for="n in (benchUnits[i-1].starLevel || 1)" :key="n" class="star-dot"></span>
+                               </div>
+                               
+                               <!-- Star-up celebration effect -->
+                               <div v-if="isStarringUp(benchUnits[i-1].id)" class="star-up-burst">
+                                   <span v-for="j in 8" :key="j" class="star-particle" :style="{ '--particle-index': j }"></span>
+                               </div>
                               
                               <!-- Tooltip for Bench -->
                               <transition name="fade">
-                                 <UnitTooltip v-if="hoveredBenchUnitId === benchUnits[i-1].id" :unit="benchUnits[i-1]" />
+                                 <UnitTooltip v-if="hoveredBenchUnitId === benchUnits[i-1].id" 
+                                              :unit="benchUnits[i-1]" 
+                                              class="bench-tooltip" />
                               </transition>
                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Sell Zone -->
-                <div class="sell-zone" 
-                     :class="{ 
-                        'visible': isDraggingUnit, 
-                        'active': isSellZoneHovered 
-                     }"
-                     @dragover="onSellDragOver"
-                     @dragleave="onSellDragLeave"
+                <!-- Permanent Sell Zone (Below Bench) -->
+                <div class="sell-zone bench-sell-zone" 
+                     :class="{ 'active': draggedUnit }"
+                     @dragover.prevent 
                      @drop="onSellDrop">
                     <div class="sell-content">
-                        <div class="sell-icon">💰</div>
-                        <div class="sell-text">SELL</div>
-                        <div v-if="draggedUnit" class="sell-refund">
-                            +{{ calculateSellRefund(draggedUnit) }} gold
-                        </div>
+                        <span class="sell-icon">💰</span>
+                        <span class="sell-text">{{ draggedUnit ? 'SELL UNIT FOR' : 'DRAG HERE TO SELL' }}</span>
+                        <div v-if="draggedUnit" class="sell-refund">+{{ calculateSellRefund(draggedUnit) }} gold</div>
                     </div>
                 </div>
             </div>
 
             <!-- Shop -->
             <div class="shop-area">
-                 <div class="shop-cards">
-                     <div v-for="(card, idx) in shopCards" :key="idx" class="shop-card" 
-                          :class="{ 'empty': !card, 'can-buy': card && myPlayer.gold >= card.cost }"
-                          style="position: relative;"
-                          @click="card && buyUnit(Number(idx))"
-                          @mouseenter="card ? hoveredShopIndex = Number(idx) : null"
-                          @mouseleave="hoveredShopIndex = null">
-                          <template v-if="card">
-                              <div class="shop-card-inner">
-                                  <img :src="`/assets/units/${card.id}.png`" 
-                                       class="shop-card-img" />
-                                  <div class="shop-card-info">
-                                      <div class="cost">{{ card.cost }}</div>
-                                      <div class="name">{{ card.name }}</div>
-                                      <div class="traits">{{ card.traits?.join(', ') }}</div>
-                                  </div>
-                              </div>
-                              <transition name="fade">
-                                <UnitTooltip v-if="hoveredShopIndex === idx" :unit="card" />
-                              </transition>
-                          </template>
-                     </div>
-                 </div>
-                 <button class="reroll-btn" @click="refreshShop" :disabled="myPlayer.gold < 2">
-                     Refresh (2g)
-                 </button>
+                <!-- Shop Cards (Top) -->
+                <div class="shop-cards">
+                    <div v-for="(card, idx) in shopCards" :key="idx" class="shop-card" 
+                         :class="{ 'empty': !card, 'can-buy': card && myPlayer.gold >= card.cost, [`rarity-${card?.cost || 1}`]: card }"
+                         @click="card && buyUnit(Number(idx))"
+                         @mouseenter="card ? hoveredShopIndex = Number(idx) : null"
+                         @mouseleave="hoveredShopIndex = null">
+                         <template v-if="card">
+                             <div class="shop-card-portrait">
+                                 <img :src="`/assets/units/${card.id}.png`" class="shop-card-img" />
+                             </div>
+                             <div class="shop-card-content">
+                                 <div class="name">{{ card.name }}</div>
+                                 <div class="cost">{{ card.cost }}g</div>
+                             </div>
+                             <transition name="fade">
+                               <UnitTooltip v-if="hoveredShopIndex === idx" 
+                                           :unit="card" 
+                                           class="shop-tooltip" />
+                             </transition>
+                         </template>
+                    </div>
+                </div>
+                
+                <!-- Refresh Button (Middle) -->
+                <div class="shop-actions">
+                    <button class="reroll-btn horizontal" @click="refreshShop" :disabled="myPlayer.gold < 2">
+                        <span class="refresh-icon">⚓</span>
+                        <span class="btn-text">Refresh Shop</span>
+                        <span class="cost">2g</span>
+                    </button>
+                </div>
+
             </div>
         </div>
         <div v-else class="waiting-message">
@@ -404,6 +412,29 @@ watch(() => benchUnits.value, (newBench) => {
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 1px;
+    align-items: center;
+}
+
+.game-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.game-mode {
+    font-size: 10px;
+    opacity: 0.6;
+    text-transform: uppercase;
+}
+
+.room-id {
+    font-size: 12px;
+    color: #94a3b8;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
 }
 
 .timer-bar-container {
@@ -432,8 +463,8 @@ watch(() => benchUnits.value, (newBench) => {
 
 .bench-unit-inner {
     position: relative;
-    width: 42px;
-    height: 42px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     display: flex;
     justify-content: center;
@@ -441,11 +472,16 @@ watch(() => benchUnits.value, (newBench) => {
     font-weight: bold;
     color: black;
     font-size: 11px;
+    background-color: #1e293b;
+    border: 2px solid #10b981; /* Green border for player units */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+    overflow: hidden;
 }
 .bench-unit-img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
+    border-radius: 50%;
     pointer-events: none;
 }
 
@@ -462,11 +498,13 @@ watch(() => benchUnits.value, (newBench) => {
 
 .bottom-ui {
     flex-shrink: 0;
+    height: 160px; /* Slightly more buffer than 150px, still slim */
     background: #0f172a;
     border-top: 2px solid #334155;
-    display: flex;
+    display: grid;
+    grid-template-columns: 160px 1.5fr 0.8fr;
     padding: 8px 12px;
-    gap: 10px;
+    gap: 12px;
     position: relative;
     z-index: 60;
     overflow: visible;
@@ -474,81 +512,108 @@ watch(() => benchUnits.value, (newBench) => {
 
 /* Stats Panel */
 .stats-panel {
-    width: 200px;
-    min-width: 200px;
+    width: 160px; /* Reduced from 180px */
+    min-width: 160px;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    justify-content: space-between;
     background: rgba(30, 41, 59, 0.5);
-    padding: 10px;
-    border-radius: 8px;
+    padding: 10px; /* Tightened */
+    border-radius: 12px;
+    border: 1px solid #334155;
 }
 
 .level-info {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 .level-badge {
-    background: #3b82f6;
-    padding: 5px 10px;
-    border-radius: 50%;
-    font-weight: bold;
+    background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+    padding: 4px 12px;
+    border-radius: 14px;
+    font-weight: 900;
+    font-size: 14px;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    white-space: nowrap; /* Fix: prevent wrapping */
+    flex-shrink: 0;
 }
 
 .xp-bar {
-    flex: 1;
-    height: 10px;
-    min-width: 80px;
-    background: #334155;
-    border-radius: 5px;
+    height: 24px;
+    width: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid #334155;
+    border-radius: 12px;
     position: relative;
-    overflow: visible;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+    display: block; /* Ensure visibility */
 }
 
 .xp-fill {
     height: 100%;
-    background: #3b82f6;
-    border-radius: 5px;
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    border-radius: 10px;
+    transition: width 0.3s ease;
 }
 .xp-text {
-    font-size: 10px;
     position: absolute;
-    top: 14px;
-    left: 0;
-    white-space: nowrap;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 10px;
+    font-weight: 800;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    pointer-events: none;
+}
+
+.stats-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
 }
 
 .gold-info {
     display: flex;
-    align-items: center;
-    gap: 5px;
-    margin-top: auto;
-    background: rgba(0,0,0,0.3);
-    padding: 5px;
-    border-radius: 4px;
+    align-items: baseline;
+    gap: 8px;
 }
 .gold-amount {
-    color: #eab308;
-    font-size: 24px;
-    font-weight: bold;
+    color: #fbbf24;
+    font-size: 28px; /* Reduced from 32px */
+    font-weight: 900;
+    line-height: 1;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+.gold-label {
+    font-size: 11px;
+    opacity: 0.8;
 }
 
 
 
 .unit-count {
-    background: rgba(0,0,0,0.3);
-    padding: 5px;
-    border-radius: 4px;
+    background: rgba(15, 23, 42, 0.6);
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid #334155;
     text-align: center;
     font-size: 14px;
-    font-weight: bold;
+    font-weight: 900;
+    color: #94a3b8;
 }
 .unit-count.max-units {
-    color: #ef4444; /* Red warning */
-    border: 1px solid #ef4444;
+    color: #ef4444;
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
 }
 
 /* Bench */
@@ -556,9 +621,12 @@ watch(() => benchUnits.value, (newBench) => {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: rgba(0,0,0,0.2);
-    border-radius: 8px;
-    padding: 6px;
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+    flex: 1; /* Stretch to fill available vertical space */
 }
 
 .bench-slots {
@@ -567,11 +635,11 @@ watch(() => benchUnits.value, (newBench) => {
 }
 
 .bench-slot {
-    width: 48px;
-    height: 48px;
+    width: 60px; /* Increased from 52px */
+    height: 60px; /* Increased from 52px */
     background: #1e293b;
-    border: 2px dashed #475569;
-    border-radius: 6px;
+    border: 1px solid #334155;
+    border-radius: 8px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -584,45 +652,39 @@ watch(() => benchUnits.value, (newBench) => {
     box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
 }
 
-/* Bench + Sell Zone Wrapper */
-.bench-sell-wrapper {
+/* Bench Area Wrapper */
+.bench-area-wrapper {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 4px;
+    align-items: stretch; /* Enforce uniform width */
+    gap: 6px; /* Reduced from 8px to accommodate larger sell zone */
+    min-width: 0;
+    height: 100%;
 }
 
 /* Sell Zone */
 .sell-zone {
+    height: 52px; /* Increased from 40px */
+    width: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid #334155;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    min-width: 450px;
-    height: 40px;
-    background: linear-gradient(135deg, #1e293b, #0f172a);
-    border: 2px dashed #475569;
-    border-radius: 8px;
-    opacity: 0.4;
-    transform: scale(0.98);
-    transition: all 0.3s ease;
-    pointer-events: none;
-}
-
-.sell-zone.visible {
-    opacity: 1;
-    transform: scale(1);
-    pointer-events: auto;
-    border-color: #ef4444;
-    background: linear-gradient(135deg, rgba(127, 29, 29, 0.5), rgba(15, 23, 42, 0.9));
-    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.8;
+    padding: 12px; /* Sync with bench area padding */
 }
 
 .sell-zone.active {
+    opacity: 1;
     border-color: #fbbf24;
-    background: linear-gradient(135deg, rgba(234, 179, 8, 0.4), rgba(15, 23, 42, 0.9));
-    box-shadow: 0 0 30px rgba(251, 191, 36, 0.5);
-    transform: scale(1.02);
+    background: linear-gradient(90deg, rgba(234, 179, 8, 0.1) 0%, rgba(234, 179, 8, 0.3) 50%, rgba(234, 179, 8, 0.1) 100%);
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
+    border-style: solid;
+    transform: scale(1.01);
 }
 
 .sell-content {
@@ -636,115 +698,218 @@ watch(() => benchUnits.value, (newBench) => {
 }
 
 .sell-text {
-    font-weight: bold;
-    font-size: 16px;
-    letter-spacing: 3px;
-    color: #f87171;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 2px;
+    color: #94a3b8;
+    text-transform: uppercase;
 }
 
 .sell-zone.active .sell-text {
-    color: #fbbf24;
+    color: #f87171;
+    text-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
 }
 
 .sell-refund {
     font-size: 14px;
     color: #fbbf24;
-    font-weight: bold;
-    padding: 4px 8px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 4px;
+    font-weight: 800;
+    margin-left: 8px;
+}
+
+.slide-up-enter-active, .slide-up-leave-active {
+    transition: all 0.3s ease;
+}
+.slide-up-enter-from, .slide-up-leave-to {
+    opacity: 0;
+    transform: translateY(10px);
 }
 
 /* Shop */
 .shop-area {
     flex: 1;
-    min-width: 350px;
+    min-width: 380px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px; /* Reduced gap */
+    height: 100%;
 }
 
 .shop-cards {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     flex: 1;
 }
 
 .shop-card {
+    position: relative;
     flex: 1 1 0;
-    min-width: 80px;
-    max-width: 120px;
+    min-width: 70px; /* Reduced from 80px */
+    height: 100%;
     background: #1e293b;
-    border: 1px solid #475569;
-    border-radius: 6px;
+    border: 2px solid #334155;
+    border-radius: 8px; /* Slightly tighter radius */
     cursor: pointer;
-    padding: 5px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    transition: all 0.2s;
+    padding: 4px; /* Reduced padding */
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
 }
 
+.shop-card.rarity-1 { border-color: #64748b; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); }
+.shop-card.rarity-2 { border-color: #22c55e; background: linear-gradient(135deg, #064e3b 0%, #1e293b 100%); }
+.shop-card.rarity-3 { border-color: #1a0dab; background: linear-gradient(135deg, #1e3a8a 0%, #1e293b 100%); }
+.shop-card.rarity-4 { border-color: #a855f7; background: linear-gradient(135deg, #581c87 0%, #1e293b 100%); }
+.shop-card.rarity-5 { border-color: #eab308; background: linear-gradient(135deg, #78350f 0%, #1e293b 100%); }
+
 .shop-card.can-buy:hover {
-    transform: translateY(-5px);
-    border-color: #eab308;
-    background: #334155;
-    box-shadow: 0 0 10px rgba(234, 179, 8, 0.3);
+    transform: translateY(-4px); /* Enhanced jump */
+    z-index: 10;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
+    border-color: #60a5fa;
 }
+
+.shop-card.rarity-1.can-buy:hover { border-color: #94a3b8; box-shadow: 0 0 10px rgba(148, 163, 184, 0.3); }
+.shop-card.rarity-2.can-buy:hover { border-color: #4ade80; box-shadow: 0 0 10px rgba(74, 222, 128, 0.3); }
+.shop-card.rarity-3.can-buy:hover { border-color: #60a5fa; box-shadow: 0 0 10px rgba(96, 165, 250, 0.3); }
+.shop-card.rarity-4.can-buy:hover { border-color: #c084fc; box-shadow: 0 0 10px rgba(192, 132, 252, 0.3); }
+.shop-card.rarity-5.can-buy:hover { border-color: #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.3); }
+
 
 .shop-card.empty {
-    opacity: 0.3;
+    opacity: 0.2;
     cursor: default;
-    background: #0f172a;
-    border: none;
+    background: transparent;
+    border: 1px solid #1e293b;
 }
 
-.shop-card .cost {
-    color: #eab308;
-    font-weight: bold;
+.shop-card-portrait {
+    width: 100%;
+    height: 52px; /* Reduced from 60px */
+    margin-bottom: 3px; /* Reduced margin */
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: 6px;
+    background: #000;
+}
+
+.shop-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.shop-card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-width: 0;
+    width: 100%;
 }
 
 .shop-card .name {
-    font-weight: bold;
-    text-align: center;
-    font-size: 14px;
+    font-weight: 800;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    margin-bottom: 2px;
 }
 
-.shop-card .traits {
-    font-size: 10px;
-    color: #94a3b8;
-    text-align: center;
+.shop-card .cost {
+    font-size: 11px;
+    color: #fbbf24;
+    font-weight: 600;
 }
 
-.shop-card-inner {
+.shop-tooltip, .bench-tooltip {
+    position: absolute;
+    bottom: calc(100% + 15px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    width: 220px;
+    pointer-events: none;
+}
+
+.shop-actions {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    height: 100%;
-}
-.shop-card-img {
-    width: 50px;
-    height: 50px;
-    object-fit: contain;
-    margin-bottom: 4px;
-}
-.shop-card-info {
-    text-align: center;
+    justify-content: center;
+    padding-top: 4px; /* Ensure space for button shadow/hover */
 }
 
-.reroll-btn, .xp-btn {
-    padding: 8px;
-    background: #3b82f6;
-    border: none;
+.reroll-btn.horizontal {
+    flex-direction: row;
+    height: 34px; /* Reduced from 42px */
+    width: 100%;
+    gap: 8px;
+    padding: 0 15px;
+    background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
+    border: 2px solid #3b82f6;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s ease;
+}
+
+.reroll-btn.horizontal:hover:not(:disabled) {
+    background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+    border-color: #60a5fa;
+    transform: translateY(-1px);
+}
+
+.reroll-btn.horizontal .refresh-icon { 
+    font-size: 18px; 
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+}
+.reroll-btn.horizontal .btn-text { 
+    font-size: 13px; 
+    font-weight: 800; 
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.reroll-btn.horizontal .cost { 
+    font-size: 14px; 
+    color: #fbbf24; 
+    font-weight: 900;
+    text-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+}
+
+.xp-btn {
+    height: 34px; /* Reduced from 42px */
+    width: 100%;
+    font-size: 13px;
+    background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+    border: 2px solid #60a5fa;
     border-radius: 6px;
     color: white;
-    font-weight: bold;
+    font-weight: 800;
     cursor: pointer;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
 }
+
+.xp-btn:hover:not(:disabled) {
+    background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 100%);
+    transform: translateY(-1px);
+}
+
 .reroll-btn:disabled, .xp-btn:disabled {
     opacity: 0.5;
-    background: #475569;
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: none;
+    transform: none;
+    cursor: not-allowed;
 }
 .reroll-btn {
     background: #ef4444; 
@@ -769,20 +934,22 @@ watch(() => benchUnits.value, (newBench) => {
 /* Star Level Indicator */
 .star-indicator {
     position: absolute;
-    bottom: -2px;
+    bottom: -4px; /* Move to the absolute bottom rim */
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     gap: 2px;
-    z-index: 5;
+    z-index: 100; /* Ensure it's above the unit border */
 }
 
 .star-dot {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background: linear-gradient(135deg, #fbbf24, #f59e0b);
     box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(0, 0, 0, 1.0); /* Solid black outline */
+    box-sizing: border-box; /* Ensure border doesn't shrink the dot */
 }
 
 /* Enhanced glow for 2-star units */

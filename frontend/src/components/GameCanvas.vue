@@ -99,7 +99,7 @@ const renderedOrbs = computed(() => {
     })
 })
 
-const CELL_SIZE = 55
+const CELL_SIZE = 60
 
 // Drag state
 const isDragging = ref(false)
@@ -116,8 +116,8 @@ const getUnitStyle = (unit: any) => {
     const styles: any = {
         left: (unit.visualX * CELL_SIZE + 5) + 'px',
         top: (unit.visualY * CELL_SIZE + 5) + 'px',
-        width: '45px',
-        height: '45px',
+        width: '50px',
+        height: '50px',
         borderColor: unit.isMine ? '#10b981' : '#ef4444', 
         borderWidth: '2px',
         borderStyle: 'solid',
@@ -173,8 +173,8 @@ const getTooltipAnchorStyle = (unit: any) => {
     return {
         left: (unit.visualX * CELL_SIZE + 5) + 'px',
         top: (unit.visualY * CELL_SIZE + 5) + 'px',
-        width: '45px',
-        height: '45px',
+        width: '50px',
+        height: '50px',
         position: 'absolute' as const,
         zIndex: 1000,
         pointerEvents: 'none' as const
@@ -699,8 +699,8 @@ const onOrbClick = (orbId: string) => {
 
 .grid {
     position: relative;
-    width: 385px; /* GRID_COLS * CELL_SIZE (7*55) */
-    height: 440px; /* GRID_ROWS * CELL_SIZE (8*55) */
+    width: 420px; /* GRID_COLS * CELL_SIZE (7*60) */
+    height: 480px; /* GRID_ROWS * CELL_SIZE (8*60) */
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     grid-template-rows: repeat(8, 1fr);
@@ -800,12 +800,18 @@ const onOrbClick = (orbId: string) => {
 
 .name-tag {
     position: absolute;
-    left: -80px;
+    left: -110px;
+    width: 120px;
+    z-index: 60;
     padding: 5px 10px;
     background: rgba(0,0,0,0.7);
     color: white;
     border-radius: 4px;
     font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
 }
 .name-tag.enemy {
     top: 20px;
@@ -839,20 +845,22 @@ const onOrbClick = (orbId: string) => {
 /* Star Level Indicator */
 .star-indicator {
     position: absolute;
-    bottom: -2px;
+    bottom: -4px; /* Move to the bottom rim */
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     gap: 2px;
-    z-index: 5;
+    z-index: 100; /* Above all unit layers */
 }
 
 .star-dot {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background: linear-gradient(135deg, #fbbf24, #f59e0b);
     box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(0, 0, 0, 1.0); /* Solid black outline */
+    box-sizing: border-box;
 }
 
 /* Enhanced glow for 2-star units */
