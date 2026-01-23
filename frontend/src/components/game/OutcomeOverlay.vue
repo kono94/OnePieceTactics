@@ -5,8 +5,8 @@ defineProps<{
 </script>
 
 <template>
-  <div v-if="type" class="overlay">
-    <div class="result-text" :class="type.toLowerCase()">
+  <div class="overlay">
+    <div class="result-text" :class="type?.toLowerCase()">
       <span v-if="type === 'WON'">ROUND WON</span>
       <span v-else-if="type === 'LOST'">ROUND LOST</span>
       <span v-else>DRAW</span>
@@ -22,7 +22,6 @@ defineProps<{
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 9999;
-  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .result-text {
@@ -52,14 +51,4 @@ defineProps<{
   border-color: #fbbf24;
 }
 
-@keyframes popIn {
-  from {
-    transform: translate(-50%, -50%) scale(0.5);
-    opacity: 0;
-  }
-  to {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
-  }
-}
 </style>

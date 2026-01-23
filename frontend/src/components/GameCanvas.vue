@@ -3,7 +3,7 @@ import { computed, ref, watch, onUnmounted } from 'vue'
 import UnitTooltip from './UnitTooltip.vue'
 import AttackAnimation from './game/AttackAnimation.vue'
 import { getAttackConfig, getAbilityConfig } from '../data/animationConfig'
-import type { GameState, GameUnit } from '../types'
+import type { GameState, GameUnit, GamePhase } from '../types'
 
 const props = defineProps<{
     state: GameState | null,
@@ -19,25 +19,26 @@ const GRID_COLS = 7
 const PLAYER_ROWS = 4 // Height of one player's board (half of arena)
 
 const renderedUnits = computed(() => {
-    if (!props.state || !props.state.players) return []
+    const state = props.state
+    if (!state || !state.players) return []
     let allUnits: any[] = []
     
-    const isCombat = props.state.phase === 'COMBAT'
+    const isCombat = state.phase === 'COMBAT'
     const myId = props.myPlayerId
     
     // Check explicit combatSide from backend
     let shouldFlip = false
     if (isCombat && myId) {
-        const myPlayer = props.state.players[myId]
+        const myPlayer = state.players[myId]
         if (myPlayer && myPlayer.combatSide === 'TOP') {
             shouldFlip = true
         }
     }
     
-    Object.values(props.state.players).forEach((player: any) => {
+    Object.values(state.players).forEach((player: any) => {
         if (player.playerId !== myId) {
              if (isCombat) {
-                 const oppId = (props.state.matchups && myId) ? props.state.matchups[myId] : null
+                 const oppId = (state.matchups && myId) ? state.matchups[myId] : null
                  if (player.playerId !== oppId) {
                      return; 
                  }
@@ -83,8 +84,9 @@ const renderedUnits = computed(() => {
 })
 
 const renderedOrbs = computed(() => {
-    if (!props.state || !props.state.players || !props.myPlayerId) return []
-    const myPlayer = props.state.players[props.myPlayerId]
+    const state = props.state
+    if (!state || !state.players || !props.myPlayerId) return []
+    const myPlayer = state.players[props.myPlayerId]
     if (!myPlayer || !myPlayer.lootOrbs) return []
 
     return myPlayer.lootOrbs.map(orb => {
@@ -147,16 +149,18 @@ const getUnitStyle = (unit: any) => {
 }
 
 const myPlayerName = computed(() => {
-     if (!props.state || !props.state.players || !props.myPlayerId) return 'Me'
-     const p = props.state.players[props.myPlayerId]
+     const state = props.state
+     if (!state || !state.players || !props.myPlayerId) return 'Me'
+     const p = state.players[props.myPlayerId]
      return p ? p.name : 'Me'
 })
 
 const opponentName = computed(() => {
-     if (!props.state || !props.state.matchups || !props.myPlayerId) return null
-     const oppId = props.state.matchups[props.myPlayerId]
+     const state = props.state
+     if (!state || !state.matchups || !props.myPlayerId) return null
+     const oppId = state.matchups[props.myPlayerId]
      if (!oppId) return null
-     const p = props.state.players[oppId]
+     const p = state.players[oppId]
      return p ? p.name : 'Opponent'
 })
 
@@ -332,7 +336,7 @@ function findNearestEnemy(unit: any, allUnits: any[]): any | null {
 // Watch for health changes to spawn attack animations
 // Store previous units for death detection
 const prevUnitsMap = ref<Map<string, any>>(new Map())
-const prevPhase = ref<string | null>(null)
+const prevPhase = ref<GamePhase | undefined | null>(null)
 const lastProcessedEventTime = ref(0)
 
 const unitsById = computed(() => {

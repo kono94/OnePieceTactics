@@ -77,6 +77,7 @@ onUnmounted(() => {
 })
 
 const encounterResult = ref<'WON' | 'LOST' | 'DRAW' | null>(null)
+let outcomeTimer: number | null = null
 const damageReport = ref<Record<string, DamageEntry> | null>(null)
 
 const subscribeToRoom = (roomId: string) => {
@@ -155,10 +156,12 @@ const handleCombatResult = (payload: CombatResultPayload) => {
     // Store damage report (deprecated, using live state now)
     // damageReport.value = payload.damageLog
 
-    // Clear after 8 seconds (Outcome overlay only)
-    setTimeout(() => {
+    // Clear after 3 seconds (Outcome overlay only)
+    if (outcomeTimer) clearTimeout(outcomeTimer)
+    outcomeTimer = window.setTimeout(() => {
         encounterResult.value = null
-    }, 8000)
+        outcomeTimer = null
+    }, 3000)
 }
 
 const handleCreate = (roomId: string) => {
@@ -263,7 +266,9 @@ const handleLeaveLobby = () => {
                                     :current-player-name="PLAYER_NAME"
                                     :is-connected="isConnected"
                                     @action="handleGameAction" />
-                     <OutcomeOverlay v-if="encounterResult" :type="encounterResult" />
+                     <Transition name="outcome">
+                        <OutcomeOverlay v-if="encounterResult" :type="encounterResult" />
+                     </Transition>
                      <DamageReport v-if="gameState.damageLog" 
                                    :damage-log="gameState.damageLog" 
                                    :my-player-id="Object.values(gameState.players).find(p => p.name === PLAYER_NAME)?.playerId" />
@@ -302,5 +307,29 @@ body {
     justify-content: center;
     align-items: center;
     font-size: 2em;
+}
+
+.outcome-enter-active {
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.outcome-leave-active {
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.outcome-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -60%) scale(0.8);
+}
+
+@keyframes popIn {
+  from {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
 }
 </style>
