@@ -166,6 +166,8 @@ const opponentName = computed(() => {
 
 const hoveredUnit = computed(() => {
     if (!hoveredUnitId.value) return null
+    // Disable hover tooltip if dragging (local or from parent)
+    if (isDragging.value || props.isDraggingProp) return null
     return renderedUnits.value.find((u: any) => u.id === hoveredUnitId.value)
 })
 
@@ -197,6 +199,8 @@ const onDragStart = (evt: DragEvent, unit: any) => {
     }
     isDragging.value = true
     draggingUnitId.value = unit.id
+    // Clear hover state on drag start
+    hoveredUnitId.value = null
     emit('drag-start', unit)
     if (evt.dataTransfer) {
         evt.dataTransfer.setData('unitId', unit.id)
@@ -257,7 +261,9 @@ const onDragLeave = (evt: DragEvent) => {
 
 // Hover handlers for Tooltip
 const onUnitMouseEnter = (unitId: string) => {
-    hoveredUnitId.value = unitId
+    if (!isDragging.value && !props.isDraggingProp) {
+        hoveredUnitId.value = unitId
+    }
 }
 const onUnitMouseLeave = () => {
     hoveredUnitId.value = null

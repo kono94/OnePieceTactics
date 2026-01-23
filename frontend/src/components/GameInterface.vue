@@ -60,6 +60,10 @@ function buyXp() {
 const onBenchDragStart = (evt: DragEvent, unit: any) => {
     isDraggingUnit.value = true
     draggedUnit.value = unit
+    // Clear hover states when drag starts
+    hoveredBenchUnitId.value = null
+    hoveredShopIndex.value = null
+    
     if (evt.dataTransfer) {
         evt.dataTransfer.setData('unitId', unit.id)
         evt.dataTransfer.effectAllowed = 'move'
@@ -156,6 +160,9 @@ const onGridDragStart = (unit: any) => {
     isDraggingUnit.value = true
     isDraggingFromGrid.value = true
     draggedUnit.value = unit
+    // Clear hover states
+    hoveredBenchUnitId.value = null
+    hoveredShopIndex.value = null
 }
 
 const onGridDragEnd = () => {
@@ -290,7 +297,7 @@ watch(() => benchUnits.value, (newBench) => {
                                 draggable="true"
                                 @dragstart="(e) => onBenchDragStart(e, benchUnits[i-1])"
                                 @dragend="onBenchDragEnd"
-                                @mouseenter="hoveredBenchUnitId = benchUnits[i-1].id"
+                                @mouseenter="!isDraggingUnit ? hoveredBenchUnitId = benchUnits[i-1].id : null"
                                 @mouseleave="hoveredBenchUnitId = null">
                                                             <div class="bench-unit-inner">
                                   <img :src="`/assets/units/${benchUnits[i-1].definitionId}.png`" 
@@ -337,7 +344,7 @@ watch(() => benchUnits.value, (newBench) => {
                     <div v-for="(card, idx) in shopCards" :key="idx" class="shop-card" 
                          :class="{ 'empty': !card, 'can-buy': card && myPlayer.gold >= card.cost, [`rarity-${card?.cost || 1}`]: card }"
                          @click="card && buyUnit(Number(idx))"
-                         @mouseenter="card ? hoveredShopIndex = Number(idx) : null"
+                         @mouseenter="card && !isDraggingUnit ? hoveredShopIndex = Number(idx) : null"
                          @mouseleave="hoveredShopIndex = null">
                          <template v-if="card">
                              <div class="shop-card-portrait">
