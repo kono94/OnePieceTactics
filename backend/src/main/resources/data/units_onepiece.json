@@ -17,6 +17,7 @@
     ],
     "ability": {
       "name": "Gum Gum Pistol",
+      "description": "Deals massive damage to a single target.",
       "type": "DAMAGE",
       "pattern": "SINGLE",
       "value": 200,
@@ -41,6 +42,7 @@
     ],
     "ability": {
       "name": "360 Pound Cannon",
+      "description": "Powerful circular slash dealing damage to all adjacent enemies.",
       "type": "DAMAGE",
       "pattern": "SURROUND",
       "value": 100,
@@ -65,6 +67,7 @@
     ],
     "ability": {
       "name": "Thunderbolt Tempo",
+      "description": "Strikes enemies in a line, stunning them for 2 seconds.",
       "type": "STUN",
       "pattern": "LINE",
       "value": 2,
@@ -89,6 +92,7 @@
     ],
     "ability": {
       "name": "Emergency Treatment",
+      "description": "Heals a nearby ally for 150 health.",
       "type": "HEAL",
       "pattern": "SINGLE",
       "value": 150,
@@ -113,6 +117,7 @@
     ],
     "ability": {
       "name": "I Got This!",
+      "description": "Inspires adjacent allies, increasing their attack damage by 25.",
       "type": "BUFF_ATK",
       "pattern": "SURROUND",
       "value": 25,
@@ -137,6 +142,7 @@
     ],
     "ability": {
       "name": "Diable Jambe",
+      "description": "Ignites his legs, increasing nearby allies' attack speed by 30%.",
       "type": "BUFF_SPD",
       "pattern": "SURROUND",
       "value": 30,

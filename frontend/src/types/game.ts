@@ -21,6 +21,7 @@ export type CombatSide = 'TOP' | 'BOTTOM'
 
 export interface AbilityDefinition {
     name: string
+    description: string
     type: string // 'DAMAGE' | 'STUN' | 'HEAL' | 'BUFF_ATK' | 'BUFF_SPD' (future)
     pattern: string // 'SINGLE' | 'LINE' | 'SURROUND'
     value: number

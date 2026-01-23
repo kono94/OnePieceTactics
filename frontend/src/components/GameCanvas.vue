@@ -622,7 +622,7 @@ function isStarringUp(unitId: string): boolean {
              class="tooltip-anchor"
              :style="getTooltipAnchorStyle(hoveredUnit)">
              <transition name="fade">
-                 <UnitTooltip :unit="hoveredUnit" />
+                 <UnitTooltip :unit="hoveredUnit" :placement="hoveredUnit.visualY < 4 ? 'bottom' : 'top'" />
              </transition>
         </div>
         <!-- Player Names Overlay -->

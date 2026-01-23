@@ -2,7 +2,8 @@
 import { computed } from 'vue'
 
 const props = defineProps<{
-    unit: any
+    unit: any,
+    placement?: 'top' | 'bottom'
 }>()
 
 const stats = computed(() => {
@@ -17,10 +18,11 @@ const stats = computed(() => {
 })
 
 const starLevel = computed(() => props.unit.starLevel || 1)
+const ability = computed(() => props.unit.ability)
 </script>
 
 <template>
-  <div class="unit-tooltip">
+  <div class="unit-tooltip" :class="placement || 'top'">
       <div class="header">
           <span class="name">{{ unit.name }}</span>
           <span class="stars">
@@ -49,6 +51,16 @@ const starLevel = computed(() => props.unit.starLevel || 1)
               <span class="value">{{ stats.range }}</span>
           </div>
       </div>
+      
+      <div class="ability-section" v-if="ability">
+          <div class="ability-header">
+              <span class="ability-name">{{ ability.name }}</span>
+          </div>
+          <div class="ability-description">
+              {{ ability.description }}
+          </div>
+      </div>
+
       <div class="traits" v-if="unit.traits && unit.traits.length">
           <span v-for="trait in unit.traits" :key="trait" class="trait-tag">{{ trait }}</span>
       </div>
@@ -58,18 +70,25 @@ const starLevel = computed(() => props.unit.starLevel || 1)
 <style scoped>
 .unit-tooltip {
     position: absolute;
-    bottom: 120%; /* Position above the unit */
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-20%);
     background-color: rgba(15, 23, 42, 0.95);
     border: 1px solid #475569;
-    padding: 8px;
-    border-radius: 6px;
+    padding: 10px;
+    border-radius: 8px;
     color: white;
-    width: 160px;
+    width: 200px;
     z-index: 1000;
     pointer-events: none;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.unit-tooltip.top {
+    bottom: 125%;
+}
+
+.unit-tooltip.bottom {
+    top: 125%;
 }
 
 .header {
@@ -77,13 +96,13 @@ const starLevel = computed(() => props.unit.starLevel || 1)
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid #334155;
-    padding-bottom: 4px;
-    margin-bottom: 4px;
+    padding-bottom: 6px;
+    margin-bottom: 6px;
 }
 
 .name {
     font-weight: bold;
-    font-size: 0.9em;
+    font-size: 0.95em;
     color: #ffd700;
 }
 
@@ -94,8 +113,8 @@ const starLevel = computed(() => props.unit.starLevel || 1)
 .stats-grid {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    font-size: 0.8em;
+    gap: 3px;
+    font-size: 0.85em;
 }
 
 .stat-row {
@@ -111,17 +130,42 @@ const starLevel = computed(() => props.unit.starLevel || 1)
     font-weight: 500;
 }
 
+.ability-section {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #334155;
+}
+
+.ability-header {
+    margin-bottom: 4px;
+}
+
+.ability-name {
+    font-weight: bold;
+    font-size: 0.85em;
+    color: #60a5fa;
+    text-transform: uppercase;
+}
+
+.ability-description {
+    font-size: 0.8em;
+    color: #cbd5e1;
+    line-height: 1.4;
+    font-style: italic;
+}
+
 .traits {
-    margin-top: 6px;
+    margin-top: 8px;
     display: flex;
     flex-wrap: wrap;
-    gap: 2px;
+    gap: 4px;
 }
 
 .trait-tag {
     background-color: #334155;
-    padding: 2px 4px;
+    padding: 2px 6px;
     border-radius: 4px;
-    font-size: 0.7em;
+    font-size: 0.75em;
+    color: #e2e8f0;
 }
 </style>
