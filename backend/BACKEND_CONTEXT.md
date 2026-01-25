@@ -1,6 +1,6 @@
 # Backend Context - Architectural Blueprint
 
-> **Last Updated**: 2026-01-20
+> **Last Updated**: 2026-01-25
 > **Purpose**: Comprehensive technical reference for AI developers and engineers to understand the game server's architecture, game loop, and communication patterns.
 
 ---
@@ -57,8 +57,8 @@ src/main/java/net/lwenstrom/tft/backend/
 │   │   ├── UnitMover.java          # Interface: moves unit towards target
 │   │   ├── BfsUnitMover.java       # Implementation: BFS pathfinding movement
 │   │   ├── AbilityCaster.java      # Interface: casts unit ability
-│   │   ├── DefaultAbilityCaster.java  # Implementation: handles ability damage
-│   │   └── CombatUtils.java        # Static helpers (getDistance, isEnemy)
+│   │   ├── DefaultAbilityCaster.java  # Implementation: handles all ability types (DMG, STUN, HEAL, BUFF)
+│   │   └── CombatUtils.java        # Static helpers (getDistance, isEnemy, isAlly)
 │   ├── engine/                     # Core game loop & entities
 │   │   ├── GameEngine.java         # Spring Service: manages GameRoom instances
 │   │   ├── GameRoom.java           # Per-room state: players, phase, matchups, combat lifecycle
@@ -77,7 +77,7 @@ src/main/java/net/lwenstrom/tft/backend/
 │   │   ├── GameUnit.java           # Interface: unit contract
 │   │   ├── GameMode.java           # Enum: ONEPIECE, POKEMON
 │   │   ├── GamePhase.java          # Enum: LOBBY, PLANNING, COMBAT
-│   │   └── Trait.java, TraitEffect.java, AbilityDefinition.java, GameItem.java
+│   │   └── Trait.java, TraitEffect.java, AbilityDefinition.java, AbilityType.java, GameItem.java, LootOrb.java, LootType.java
 │   ├── random/                     # Randomness abstraction for testability
 │   │   ├── RandomProvider.java     # Interface: shuffle, nextInt, nextDouble
 │   │   └── DefaultRandomProvider.java  # Production implementation (java.util.Random)
@@ -124,7 +124,7 @@ GameController.tick()
 | Phase | Duration | Trigger to Next Phase |
 |-------|----------|----------------------|
 | `LOBBY` | Infinite | Host sends `/app/start` message |
-| `PLANNING` | 10s + (round-1) × 2s | Timer expiry |
+| `PLANNING` | 15s + (round-1) × 2s | Timer expiry |
 | `COMBAT` | Same formula | Timer expiry OR all combats resolved |
 
 **PLANNING Phase**:
@@ -144,20 +144,24 @@ GameController.tick()
    - Units find targets, attack (if in range), or move closer.
    - Mana is gained on attack; abilities cast at full mana.
 4. Combat ends when only one player has surviving units → loser takes `2 + survivingUnits` damage.
-5. `CombatResultListener` emits `COMBAT_RESULT` event to `/topic/room/{id}/event` with winner/loser IDs.
+5. `CombatResultListener` emits `COMBAT_RESULT` event to `/topic/room/{id}/event` with winner/loser IDs and damage log.
 
 ### 4.3 Combat Simulation (`CombatSystem.simulateTick`)
 
 ```java
 for each unit (not dead):
+    if stunned (stunTicksRemaining > 0): decrement stun counter, skip turn
     if cooldown active: skip
     if mana full: cast ability, reset mana, set attack cooldown
     else:
         find target (NearestEnemyTargetSelector)
-        if in range: attack, deal damage, gain mana
+        if in range:
+            attack with atkBuff multiplier
+            deal damage, gain mana
+            apply spdBuff to attack cooldown
         else: move towards target (BfsUnitMover using pathfinding)
 
-check if only one player has living units → return CombatResult(ended=true, winnerId)
+check if only one player has living units → return CombatResult(ended=true, winnerId, damageLog)
 ```
 
 **Key Interfaces (Strategy Pattern)**:
@@ -238,12 +242,13 @@ public record GameState(
 
 ```json
 {
-  "type": "BUY" | "SELL" | "MOVE" | "REROLL" | "EXP" | "LOCK",
+  "type": "BUY" | "SELL" | "MOVE" | "REROLL" | "EXP" | "LOCK" | "COLLECT_ORB",
   "playerId": "uuid-string",
   "unitId": "uuid-string",       // For MOVE, SELL
   "targetX": 0-6,                // For MOVE
   "targetY": -1 to 7,            // For MOVE (-1 = bench)
-  "shopIndex": 0-4               // For BUY
+  "shopIndex": 0-4,              // For BUY
+  "orbId": "uuid-string"         // For COLLECT_ORB
 }
 ```
 
@@ -336,6 +341,9 @@ Themes are hot-swappable via the `game.mode` property (default: `onepiece`).
 | **WebSocket/REST Controller** | `src/main/java/.../core/GameController.java` |
 | **Data Loader** | `src/main/java/.../core/DataLoader.java` |
 | **Game State DTO** | `src/main/java/.../core/model/GameState.java` |
+| **Ability Type Enum** | `src/main/java/.../core/model/AbilityType.java` |
+| **Ability Caster** | `src/main/java/.../core/combat/DefaultAbilityCaster.java` |
+| **Loot Orb/Type** | `src/main/java/.../core/model/LootOrb.java`, `LootType.java` |
 | **Unit Data (One Piece)** | `src/main/resources/data/units_onepiece.json` |
 | **Trait Data (One Piece)** | `src/main/resources/data/traits_onepiece.json` |
 
@@ -404,6 +412,137 @@ GameRoom (Per-Room Instance)
 | Apply traits | `TraitManager` | `applyTraits(units)` |
 | Refresh shop | `Player` | `refreshShop()` |
 | Deal damage to player | `Player` | `takeDamage(amount)` |
+| Sell unit | `Player` | `sellUnit(unitId, allowBoardSell)` |
+| Collect loot orb | `Player` | `collectOrb(orbId)` |
+| Process deferred upgrades | `Player` | `processPendingUpgrades()` |
+
+---
+
+## 13. Ability System
+
+### 13.1 Ability Types (`AbilityType` Enum)
+
+| Type | Effect | Value Meaning |
+|------|--------|---------------|
+| `DAMAGE` | Deal damage to enemies | Damage amount × star level |
+| `STUN` | Target skips N combat ticks | Stun duration in ticks |
+| `HEAL` | Restore HP to self or allies | Heal amount |
+| `BUFF_ATK` | Increase ATK for all allied units | % increase (e.g., 20 = +20%) |
+| `BUFF_SPD` | Decrease attack cooldown for allies | % increase to attack speed |
+
+### 13.2 `AbilityDefinition` Record
+
+```java
+public record AbilityDefinition(
+    String name,
+    String description,  // NEW: Human-readable description for UI
+    AbilityType type,    // NEW: Enum instead of implicit "DMG"
+    String pattern,      // SINGLE, LINE, SURROUND
+    int value,
+    int range
+) {
+    // Factory for backward-compatible JSON parsing
+    public static AbilityDefinition fromJson(String name, String description, String type, ...);
+}
+```
+
+### 13.3 Ability Targeting Patterns (`DefaultAbilityCaster`)
+
+| Pattern | DAMAGE/STUN Behavior | HEAL Behavior |
+|---------|---------------------|---------------|
+| `SINGLE` | Target nearest enemy | Heal lowest-health ally |
+| `LINE` | All enemies in a line to range | N/A |
+| `SURROUND` | All enemies within range radius | All allies within range |
+
+### 13.4 Unit Status Effects
+
+Units have temporary combat buffs that reset after each combat:
+
+| Field | Type | Default | Purpose |
+|-------|------|---------|---------|
+| `stunTicksRemaining` | int | 0 | Skips turn while > 0, decrements each tick |
+| `atkBuff` | float | 1.0f | Multiplier for attack damage |
+| `spdBuff` | float | 1.0f | Multiplier for attack speed (affects cooldown) |
+
+---
+
+## 14. Damage Tracking System
+
+### 14.1 How It Works
+
+`CombatSystem` tracks all damage dealt during combat via `damageLog`:
+
+```java
+public record DamageEntry(String unitName, String definitionId, String ownerId, int damage) {}
+
+// Accumulated per unit ID:
+private Map<String, DamageEntry> damageLog;
+```
+
+- Damage accumulates from both **auto-attacks** and **abilities**.
+- Negative damage values represent **healing** (for display purposes).
+- Log is cleared at `startCombat()` and included in `CombatResult`.
+
+### 14.2 Data Flow
+
+1. `CombatSystem.simulateTick()` calls `accumulateDamage()` on each hit.
+2. On combat end, `CombatResult.damageLog()` is passed to `GameRoom.handleCombatEnd()`.
+3. `CombatResultListener.onCombatResult()` emits damageLog to frontend via WebSocket.
+4. Live damage is also synced in `GameState.damageLog` every tick during combat.
+
+---
+
+## 15. Loot Orb System
+
+### 15.1 Records
+
+```java
+public enum LootType { GOLD, UNIT }
+public record LootOrb(String id, int x, int y, LootType type, String contentId, int amount) {}
+```
+
+### 15.2 Spawning Logic (`GameRoom.spawnLootOrbsForPlayer`)
+
+- Orbs spawn on **even rounds** (round 2, 4, 6, ...) at the start of PLANNING phase.
+- Each player receives **1-3 orbs** randomly placed on their grid (top half, rows 0-3).
+- **70% chance**: Gold orb (3-8 gold).
+- **30% chance**: Unit orb (random unit from pool).
+
+### 15.3 Collection (`Player.collectOrb`)
+
+- Triggered via `COLLECT_ORB` action from frontend.
+- **Gold orbs**: Add gold to player.
+- **Unit orbs**: Add unit to bench (if space), otherwise refund as gold.
+
+---
+
+## 16. Combat Phase Restrictions
+
+### 16.1 Sell Restrictions
+
+```java
+// GameController.handleAction()
+case SELL -> {
+    // Allow selling bench units anytime, but board units only during PLANNING
+    p.sellUnit(action.unitId(), room.getState().phase() == GamePhase.PLANNING);
+}
+```
+
+| Unit Location | PLANNING Phase | COMBAT Phase |
+|---------------|----------------|--------------|
+| Bench | ✅ Can sell | ✅ Can sell |
+| Board | ✅ Can sell | ❌ Cannot sell |
+
+### 16.2 Deferred Star-Up
+
+When a unit would upgrade during COMBAT phase, the upgrade is queued:
+
+```java
+public void processPendingUpgrades()  // Called at start of PLANNING phase
+```
+
+- Units don't visually upgrade mid-combat (avoids confusion).
+- Pending upgrades are processed when PLANNING phase begins.
 
 ---
 

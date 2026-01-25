@@ -56,7 +56,12 @@ frontend/
     │   ├── EndScreen.vue     # Game-over leaderboard and "Play Again"
     │   └── game/
     │       ├── AttackAnimation.vue  # Renders attack & ability visual effects
+    │       ├── DamageReport.vue     # Collapsible damage tracking panel (post-combat stats)
     │       └── OutcomeOverlay.vue   # "ROUND WON/LOST" splash after combat
+    │
+    ├── types/
+    │   ├── index.ts              # Central export for all game types
+    │   └── game.ts               # TypeScript DTOs mirroring backend Java models
     │
     └── data/
         ├── animationConfig.ts  # Per-unit attack/ability animation config (type, color)
@@ -132,7 +137,31 @@ Within the `game` view, conditional rendering switches between:
   - Accent: `#3b82f6` (blue), `#ef4444` (red), `#eab308` (gold)
 - No CSS framework (Tailwind classes appear in `EndScreen.vue` as class names but are implemented as custom CSS, not Tailwind).
 
-### 6. Trait Data: Dynamic Loading from Backend
+### 6. TypeScript Types: Strongly Typed DTOs
+
+All game state and action types are defined in `src/types/game.ts`:
+
+**Core Interfaces**:
+- `GameState`: Root state object received from backend
+- `PlayerState`: Individual player data (gold, health, board, bench, shop)
+- `GameUnit`: Unit instance with stats, position, and combat effects
+- `UnitDefinition`: Template for unit creation (shop display)
+- `AbilityDefinition`: Ability metadata (name, description, type, pattern, value)
+- `ActiveTrait`: Synergy state with breakpoint tracking
+- `CombatEvent`: Real-time combat events (DAMAGE, SKILL, DEATH, MOVE)
+- `DamageEntry`: Post-combat damage tracking per unit
+- `LootOrb`: Collectible rewards on the grid
+
+**Action Types**:
+- `GameAction`: Union type for all player actions sent to backend
+- `ActionType`: Enum of action types (BUY, SELL, MOVE, REROLL, EXP, COLLECT_ORB)
+
+**Type Safety**:
+- Components use `defineProps<T>()` for compile-time type checking
+- DTOs mirror backend Java models for consistency
+- Enums prevent invalid state values
+
+### 7. Trait Data: Dynamic Loading from Backend
 
 Trait definitions (synergy breakpoints, descriptions) are **not hardcoded**. On mount, `App.vue` fetches `/api/traits` and populates a global object:
 
@@ -144,18 +173,24 @@ export const setTraitData = (traits: TraitDefinition[]) => { ... };
 
 This enables **theme-swapping** (One Piece → Pokemon) without frontend code changes.
 
-### 7. Drag-and-Drop: Native HTML5 API
+### 8. Drag-and-Drop: Native HTML5 API
 
 Unit placement uses the HTML5 Drag and Drop API:
 - `draggable="true"` on units and bench slots
 - `@dragstart`, `@dragover.prevent`, `@drop` handlers
 - Visual feedback via `isDragging` and `dragOverCellIndex` reactive refs
+- Pointer events disabled on non-dragged units during drag to enable grid cell drops
 
 **Coordinate Mapping**:
 - During PLANNING, player units (backend Y: 0–3) are visually rendered at Y: 4–7 (bottom half).
 - On drop, visual Y is translated back: `backendY = dropY - 4`
 
-### 8. Game Grid Rendering
+**Sell Mechanic**:
+- Dedicated sell zone below the bench
+- Units can be sold from bench during combat phase
+- Board units cannot be sold during combat (enforced by backend)
+
+### 9. Game Grid Rendering
 
 The grid is a CSS Grid with constants defined in `GameCanvas.vue`:
 
@@ -168,14 +203,15 @@ const CELL_SIZE = 60   // px
 
 Units are positioned absolutely within the grid container using inline styles.
 
-### 9. Animation System: Per-Unit Attack & Ability Effects
+### 10. Animation System: Per-Unit Attack & Ability Effects
 
-Combat visuals are powered by a configurable animation system:
+Combat visuals are powered by a comprehensive animation system:
 
 | File                        | Role                                                                  |
 |-----------------------------|-----------------------------------------------------------------------|
 | `data/animationConfig.ts`   | Defines per-unit attack types (`punch`, `slash`, `projectile`) and colors |
 | `game/AttackAnimation.vue`  | Renders visual effects based on attack/ability type and pattern        |
+| `GameCanvas.vue`            | Manages animation lifecycle, death effects, star-up celebrations       |
 
 **Attack Types**:
 - **punch**: Expanding impact ring (e.g., Luffy)
@@ -187,7 +223,58 @@ Combat visuals are powered by a configurable animation system:
 - **LINE**: Beam from caster to target
 - **SURROUND**: AoE ring centered on target
 
-Animations auto-cleanup via `setTimeout` and emit `complete` event for removal from parent.
+**Status Effect Visuals**:
+- **Stun**: Grayscale filter with "STUNNED" badge overlay
+- **Attack Buff**: Orange glow (`atkBuff > 1.01`)
+- **Speed Buff**: Blue glow (`spdBuff > 1.01`)
+- Multiple buffs stack additively with team border colors
+
+**Unit Lifecycle Animations**:
+- **Death Animation**: 600ms fade-out effect when units die during combat
+- **Star-Up Celebration**: 1200ms particle burst when units level up (2★ or 3★)
+- Animations tracked via reactive Sets and Maps to prevent duplicates
+
+**Event-Driven System**:
+- Watches `gameState.recentEvents` for DAMAGE, SKILL, DEATH events
+- Deduplicates events using timestamps
+- Animations auto-cleanup via `setTimeout` and emit `complete` event
+
+### 11. Damage Report System
+
+Post-combat damage tracking is displayed in a collapsible side panel:
+
+**Features**:
+- Automatically populated with `damageLog` from backend after each combat round
+- Displays only the current player's units that participated in combat
+- Shows unit icon, name, and total damage dealt
+- Sorted by damage (highest to lowest)
+- Visual damage bars scaled relative to highest damage dealer
+- Collapsed by default to minimize screen clutter
+- Fixed position on right side of screen with slide-in/out animation
+
+**Implementation** (`DamageReport.vue`):
+- Filters damage entries by `ownerId === myPlayerId`
+- Reactive sorting and max damage calculation
+- Unit icons loaded from `/assets/units/{definitionId}.png`
+- Custom scrollbar styling for overflow content
+
+### 12. Loot Orbs System
+
+Loot orbs spawn on the grid after combat and provide rewards when collected:
+
+**Types**:
+- **GOLD**: Provides gold currency
+- **UNIT**: Provides a random unit
+
+**Visual Design**:
+- Rendered as clickable orbs on the grid (top half, visual rows 0-3)
+- Animated glow effect with emoji icons (🪙 for gold, 🎁 for items)
+- Position calculated using `CELL_SIZE` grid constants
+
+**Interaction**:
+- Click to collect via `COLLECT_ORB` action
+- Orbs stored in `PlayerState.lootOrbs` array
+- Removed from state after collection
 
 ---
 
@@ -200,7 +287,10 @@ Animations auto-cleanup via `setTimeout` and emit `complete` event for removal f
 | Global Styles                | `src/style.css`                               |
 | Main Game UI                 | `src/components/GameInterface.vue`            |
 | Grid/Board Renderer          | `src/components/GameCanvas.vue`               |
+| Damage Tracking Panel        | `src/components/game/DamageReport.vue`        |
+| TypeScript Types             | `src/types/game.ts` (exported via `types/index.ts`) |
 | Trait Definitions            | `src/data/traitData.ts`                       |
+| Animation Config             | `src/data/animationConfig.ts`                 |
 | Vite Config                  | `vite.config.ts`                              |
 | Unit Assets                  | `public/assets/units/{definitionId}.png`      |
 
@@ -262,12 +352,13 @@ Animations auto-cleanup via `setTimeout` and emit `complete` event for removal f
 | `Lobby.vue`            | Create/join room forms, emits `create` and `join` events                       |
 | `WaitingRoom.vue`      | Displays connected players, host can start game                                |
 | `GameInterface.vue`    | Main game screen layout: stats panel, bench, shop, child components            |
-| `GameCanvas.vue`       | Renders 8x7 grid, units, drag-and-drop, unit tooltips, ability animations      |
+| `GameCanvas.vue`       | Renders 8x7 grid, units, drag-and-drop, tooltips, animations, loot orbs        |
 | `TraitSidebar.vue`     | Shows active traits/synergies with breakpoint progress and tooltips            |
 | `PlayerList.vue`       | Displays all players' HP, level, sorted by health/elimination order            |
-| `UnitTooltip.vue`      | Displays unit stats (HP, ATK, SPD, Range, Mana, Traits) on hover               |
+| `UnitTooltip.vue`      | Displays unit stats (HP, ATK, SPD, Range, Mana, Traits, Ability) with dynamic positioning |
 | `PhaseAnnouncement.vue`| Animated banners for phase transitions (PLANNING PHASE / BATTLE START)        |
 | `AttackAnimation.vue`  | Renders per-unit attack effects (punch, slash, projectile) and ability bursts  |
+| `DamageReport.vue`     | Collapsible side panel showing damage dealt by each unit after combat          |
 | `OutcomeOverlay.vue`   | Large "ROUND WON/LOST" splash after combat ends                                |
 | `EndScreen.vue`        | Final leaderboard with "Play Again" reload button                              |
 
@@ -275,12 +366,14 @@ Animations auto-cleanup via `setTimeout` and emit `complete` event for removal f
 
 ## Action Types (Emitted to Backend)
 
-| Action Type | Payload                                      | Description                     |
-|-------------|----------------------------------------------|---------------------------------|
-| `BUY`       | `{ shopIndex, playerId }`                    | Purchase unit from shop slot    |
-| `REROLL`    | `{ playerId }`                               | Refresh shop (costs 2 gold)     |
-| `EXP`       | `{ playerId }`                               | Buy XP (costs 4 gold)           |
-| `MOVE`      | `{ unitId, targetX, targetY, playerId }`     | Move unit (board ↔ bench)       |
+| Action Type   | Payload                                      | Description                     |
+|---------------|----------------------------------------------|---------------------------------|
+| `BUY`         | `{ shopIndex, playerId }`                    | Purchase unit from shop slot    |
+| `SELL`        | `{ unitId, playerId }`                       | Sell unit for gold              |
+| `REROLL`      | `{ playerId }`                               | Refresh shop (costs 2 gold)     |
+| `EXP`         | `{ playerId }`                               | Buy XP (costs 4 gold)           |
+| `MOVE`        | `{ unitId, targetX, targetY, playerId }`     | Move unit (board ↔ bench)       |
+| `COLLECT_ORB` | `{ orbId, playerId }`                        | Collect loot orb (gold/unit)    |
 
 ---
 
@@ -292,6 +385,10 @@ Animations auto-cleanup via `setTimeout` and emit `complete` event for removal f
 4. **Responsive to Server State**: Frontend never computes game logic; it re-renders when `gameState` changes.
 5. **Image Assets by ID**: Unit images follow the pattern `/assets/units/{definitionId}.png`.
 6. **Transient Animations**: Phase announcements, ability casts, and outcome overlays auto-dismiss via `setTimeout`.
+7. **Event Deduplication**: Combat events are deduplicated using timestamps to prevent animation spam.
+8. **Dynamic Positioning**: Tooltips intelligently position above/below units based on grid location.
+9. **Status Effect Stacking**: Visual effects (buffs, team borders) combine additively rather than overwriting.
+10. **Lifecycle Cleanup**: All timers and animations are properly cleaned up on component unmount.
 
 ---
 
@@ -316,5 +413,6 @@ npm run build
 
 - **Pinia Store**: Currently unused. Could be leveraged for player settings, theme preferences, or cached data.
 - **Vue Router**: If more views are added (e.g., profile, leaderboards), routing would be beneficial.
-- **TypeScript Strictness**: Some components use `any` for game state—consider defining strong DTO interfaces.
+- **TypeScript Strictness**: Strong DTO interfaces have been added in `src/types/game.ts`. Some components still use `any` for nested properties—consider full strict typing.
 - **Testing**: No tests present. Vitest + Vue Test Utils would be the natural choice.
+- **Performance Optimization**: Consider virtualizing large lists (e.g., damage report with many units) for better performance.
