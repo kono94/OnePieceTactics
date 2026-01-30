@@ -18,12 +18,12 @@
       "type": "DAMAGE",
       "pattern": "SINGLE",
       "values": [200, 450, 1000],
-      "range": 2,
+      "range": [2, 2, 2],
       "modifiers": [
         {
           "type": "EXECUTE",
-          "hpThreshold": 0.3,
-          "bonusDamageMultiplier": 0.5
+          "hpThreshold": [0.3, 0.3, 0.3],
+          "bonusDamageMultiplier": [0.5, 0.5, 0.5]
         }
       ]
     }
@@ -47,7 +47,7 @@
       "type": "DAMAGE",
       "pattern": "SURROUND",
       "values": [100, 180, 324],
-      "range": 1
+      "range": [1, 1, 1]
     }
   },
   {
@@ -69,7 +69,7 @@
       "type": "STUN",
       "pattern": "LINE",
       "values": [2, 3, 4],
-      "range": 4
+      "range": [4, 4, 4]
     }
   },
   {
@@ -91,7 +91,7 @@
       "type": "HEAL",
       "pattern": "SINGLE",
       "values": [150, 300, 600],
-      "range": 3
+      "range": [3, 3, 3]
     }
   },
   {
@@ -113,7 +113,7 @@
       "type": "BUFF_ATK",
       "pattern": "SURROUND",
       "values": [25, 45, 80],
-      "range": 2
+      "range": [2, 2, 2]
     }
   },
   {
@@ -135,7 +135,7 @@
       "type": "BUFF_SPD",
       "pattern": "SURROUND",
       "values": [30, 50, 80],
-      "range": 2
+      "range": [2, 2, 2]
     }
   }
 ]

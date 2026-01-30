@@ -36,7 +36,8 @@ class CombatIntegrationTest {
         // Run combat ticks using TestClock instead of System.currentTimeMillis
         for (int i = 0; i < 60; i++) {
             combatSystem.simulateTick(List.of(p1, p2));
-            if (weakUnit.getCurrentHealth() <= 0) break;
+            if (weakUnit.getCurrentHealth() <= 0)
+                break;
             testClock.advance(50);
         }
 
@@ -91,8 +92,7 @@ class CombatIntegrationTest {
                 .withHealth(100, 100)
                 .withAttackDamage(10);
         var deadUnit = MockUnit.create("dead", p2.getId()).withPosition(3, 4).withHealth(0, 100);
-        var targetUnit =
-                MockUnit.create("target", p2.getId()).withPosition(4, 4).withHealth(50, 100);
+        var targetUnit = MockUnit.create("target", p2.getId()).withPosition(4, 4).withHealth(50, 100);
 
         addUnitToPlayer(p1, aliveUnit);
         addUnitToPlayer(p2, deadUnit);
@@ -114,7 +114,7 @@ class CombatIntegrationTest {
                 "Test Description",
                 net.lwenstrom.tft.backend.core.model.AbilityType.DAMAGE,
                 "SINGLE",
-                1,
+                List.of(1),
                 java.util.List.of(50, 100, 200),
                 null);
         var combatSystem = createTestCombatSystem();
@@ -145,7 +145,7 @@ class CombatIntegrationTest {
                 "AOE Description",
                 net.lwenstrom.tft.backend.core.model.AbilityType.DAMAGE,
                 "SURROUND",
-                1,
+                List.of(1),
                 java.util.List.of(25, 50, 100),
                 null);
         var combatSystem = createTestCombatSystem();

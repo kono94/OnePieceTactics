@@ -18,12 +18,12 @@
       "type": "DAMAGE",
       "pattern": "SINGLE",
       "values": [150, 350, 800],
-      "range": 2,
+      "range": [2, 2, 2],
       "modifiers": [
         {
           "type": "EXECUTE",
-          "hpThreshold": 0.25,
-          "bonusDamageMultiplier": 0.4
+          "hpThreshold": [0.25, 0.25, 0.25],
+          "bonusDamageMultiplier": [0.4, 0.4, 0.4]
         }
       ]
     }
@@ -47,7 +47,7 @@
       "type": "DAMAGE",
       "pattern": "LINE",
       "values": [120, 240, 480],
-      "range": 3
+      "range": [3, 3, 3]
     }
   },
   {
@@ -69,7 +69,7 @@
       "type": "DAMAGE",
       "pattern": "SURROUND",
       "values": [100, 200, 400],
-      "range": 1
+      "range": [1, 1, 1]
     }
   },
   {
@@ -91,11 +91,11 @@
       "type": "DAMAGE",
       "pattern": "SINGLE",
       "values": [180, 450, 1125],
-      "range": 3,
+      "range": [3, 3, 3],
       "modifiers": [
         {
           "type": "LIFESTEAL",
-          "lifestealPercent": 0.5
+          "lifestealPercent": [0.5, 0.5, 0.5]
         }
       ]
     }

@@ -14,14 +14,16 @@ public class DefaultAbilityCaster implements AbilityCaster {
 
     @Override
     public void castAbility(GameUnit source, List<GameUnit> allUnits, TargetSelector targetSelector) {
-        castAbility(source, allUnits, targetSelector, (id, name, tId, dmg) -> {});
+        castAbility(source, allUnits, targetSelector, (id, name, tId, dmg) -> {
+        });
     }
 
     @Override
     public void castAbility(
             GameUnit source, List<GameUnit> allUnits, TargetSelector targetSelector, DamageCallback callback) {
         AbilityDefinition ability = source.getAbility();
-        if (ability == null) return;
+        if (ability == null)
+            return;
 
         source.setActiveAbility(ability.name());
 
@@ -45,7 +47,8 @@ public class DefaultAbilityCaster implements AbilityCaster {
             int damage,
             DamageCallback callback) {
         var target = targetSelector.findTarget(source, allUnits);
-        if (target == null) return;
+        if (target == null)
+            return;
 
         // Check conditional modifiers before applying damage
         if (!checkConditionalModifiers(source, target, ability)) {
@@ -56,10 +59,10 @@ public class DefaultAbilityCaster implements AbilityCaster {
         int scaledDamage = applyScalingModifiers(source, target, ability, damage);
 
         // Apply execute modifier bonus damage
-        int finalDamage = applyExecuteModifier(target, ability, scaledDamage);
+        int finalDamage = applyExecuteModifier(source, target, ability, scaledDamage);
 
         // Track total damage dealt for lifesteal
-        var totalDamageDealt = new int[] {0};
+        var totalDamageDealt = new int[] { 0 };
 
         applyToTargets(source, allUnits, target, ability, u -> {
             u.takeDamage(finalDamage);
@@ -78,7 +81,8 @@ public class DefaultAbilityCaster implements AbilityCaster {
             AbilityDefinition ability,
             int stunTicks) {
         var target = targetSelector.findTarget(source, allUnits);
-        if (target == null) return;
+        if (target == null)
+            return;
 
         applyToTargets(source, allUnits, target, ability, u -> {
             u.setStunTicksRemaining(u.getStunTicksRemaining() + stunTicks);
@@ -91,6 +95,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
             AbilityDefinition ability,
             int healAmount,
             DamageCallback callback) {
+        int starLevel = source.getStarLevel();
         // HEAL targets allies (including self)
         switch (ability.pattern()) {
             case "SINGLE" -> {
@@ -104,7 +109,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
             }
             case "SURROUND" -> {
                 // Heal all allies in range
-                int r = ability.range();
+                int r = ability.getRangeForLevel(starLevel);
                 allUnits.stream()
                         .filter(u -> u.getCurrentHealth() > 0)
                         .filter(u -> CombatUtils.isAlly(source, u))
@@ -148,12 +153,15 @@ public class DefaultAbilityCaster implements AbilityCaster {
             GameUnit target,
             AbilityDefinition ability,
             java.util.function.Consumer<GameUnit> effect) {
+        int starLevel = source.getStarLevel();
+        int range = ability.getRangeForLevel(starLevel);
+
         switch (ability.pattern()) {
             case "SINGLE" -> effect.accept(target);
             case "LINE" -> {
                 int dx = Integer.compare(target.getX(), source.getX());
                 int dy = Integer.compare(target.getY(), source.getY());
-                for (int i = 1; i <= ability.range(); i++) {
+                for (int i = 1; i <= range; i++) {
                     int tx = source.getX() + dx * i;
                     int ty = source.getY() + dy * i;
                     final int fX = tx;
@@ -166,10 +174,11 @@ public class DefaultAbilityCaster implements AbilityCaster {
                 }
             }
             case "SURROUND" -> {
-                int r = ability.range();
+                int r = range;
                 for (int dx = -r; dx <= r; dx++) {
                     for (int dy = -r; dy <= r; dy++) {
-                        if (dx == 0 && dy == 0) continue;
+                        if (dx == 0 && dy == 0)
+                            continue;
                         int tx = source.getX() + dx;
                         int ty = source.getY() + dy;
                         final int fX = tx;
@@ -204,7 +213,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
     private boolean checkConditionalModifiers(GameUnit source, GameUnit target, AbilityDefinition ability) {
         for (var modifier : ability.modifiers()) {
             if (modifier instanceof ConditionalModifier conditionalModifier) {
-                if (!conditionalModifier.isMet(source, target)) {
+                if (!conditionalModifier.isMet(source, target, source.getStarLevel())) {
                     return false;
                 }
             }
@@ -218,7 +227,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
 
         for (var modifier : ability.modifiers()) {
             if (modifier instanceof ScalingModifier scalingModifier) {
-                var multiplier = scalingModifier.calculateMultiplier(source, target);
+                var multiplier = scalingModifier.calculateMultiplier(source, target, source.getStarLevel());
                 scaledValue *= multiplier;
             }
         }
@@ -227,12 +236,12 @@ public class DefaultAbilityCaster implements AbilityCaster {
     }
 
     // Apply execute modifier bonus damage if target is below HP threshold.
-    private int applyExecuteModifier(GameUnit target, AbilityDefinition ability, int baseDamage) {
+    private int applyExecuteModifier(GameUnit source, GameUnit target, AbilityDefinition ability, int baseDamage) {
         var totalDamage = baseDamage;
 
         for (var modifier : ability.modifiers()) {
             if (modifier instanceof ExecuteModifier executeModifier) {
-                var bonusDamage = executeModifier.calculateBonusDamage(target, baseDamage);
+                var bonusDamage = executeModifier.calculateBonusDamage(target, baseDamage, source.getStarLevel());
                 totalDamage += bonusDamage;
             }
         }
@@ -245,7 +254,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
             GameUnit source, AbilityDefinition ability, int damageDealt, DamageCallback callback) {
         for (var modifier : ability.modifiers()) {
             if (modifier instanceof LifestealModifier lifestealModifier) {
-                var healAmount = lifestealModifier.calculateHealing(damageDealt);
+                var healAmount = lifestealModifier.calculateHealing(damageDealt, source.getStarLevel());
                 if (healAmount > 0) {
                     healUnit(source, healAmount);
                     // Report healing as negative damage
