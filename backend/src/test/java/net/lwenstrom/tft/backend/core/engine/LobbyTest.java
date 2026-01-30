@@ -35,9 +35,20 @@ public class LobbyTest {
         when(gameModeRegistry.getActiveMode()).thenReturn(GameMode.ONEPIECE);
         when(gameModeRegistry.getActiveProvider()).thenReturn(gameModeProvider);
 
-        // Mock getAllUnits to avoid NPE in refreshShop during player add
-        UnitDefinition dummyUnit =
-                new UnitDefinition("unit-1", "Luffy", 1, 100, 0, 10, 0, 0, 0, 1.0f, 1, List.of("Pirate"), null);
+        UnitDefinition dummyUnit = new UnitDefinition(
+                "unit-1",
+                "Luffy",
+                1,
+                List.of(100, 100, 100),
+                List.of(0, 0, 0),
+                List.of(10, 10, 10),
+                List.of(0, 0, 0),
+                List.of(0, 0, 0),
+                List.of(0, 0, 0),
+                List.of(1.0f, 1.0f, 1.0f),
+                List.of(1, 1, 1),
+                List.of("Pirate"),
+                null);
         when(dataLoader.getAllUnits()).thenReturn(List.of(dummyUnit));
 
         gameRoom =

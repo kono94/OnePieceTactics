@@ -1,131 +1,103 @@
 [
-    {
-        "id": "charmander",
-        "name": "Charmander",
-        "cost": 1,
-        "maxHealth": 500,
-        "maxMana": 40,
-        "attackDamage": 50,
-        "abilityPower": 0,
-        "armor": 15,
-        "magicResist": 15,
-        "attackSpeed": 0.65,
-        "range": 1,
-        "traits": [
-            "Fire",
-            "Starter"
-        ],
-        "ability": {
-            "name": "Ember",
-            "description": "Shoots a small flame dealing $value damage. Burns low HP targets.",
-            "type": "DAMAGE",
-            "pattern": "SINGLE",
-            "values": [
-                150,
-                350,
-                800
-            ],
-            "range": 2,
-            "modifiers": [
-                {
-                    "type": "EXECUTE",
-                    "hpThreshold": 0.25,
-                    "bonusDamageMultiplier": 0.4
-                }
-            ]
+  {
+    "id": "charmander",
+    "name": "Charmander",
+    "cost": 1,
+    "maxHealth": [500, 900, 1620],
+    "maxMana": [40, 40, 40],
+    "attackDamage": [50, 90, 162],
+    "abilityPower": [0, 0, 0],
+    "armor": [15, 15, 15],
+    "magicResist": [15, 15, 15],
+    "attackSpeed": [0.65, 0.65, 0.65],
+    "range": [1, 1, 1],
+    "traits": ["Fire", "Starter"],
+    "ability": {
+      "name": "Ember",
+      "description": "Shoots a small flame dealing $value damage. Burns low HP targets.",
+      "type": "DAMAGE",
+      "pattern": "SINGLE",
+      "values": [150, 350, 800],
+      "range": 2,
+      "modifiers": [
+        {
+          "type": "EXECUTE",
+          "hpThreshold": 0.25,
+          "bonusDamageMultiplier": 0.4
         }
-    },
-    {
-        "id": "squirtle",
-        "name": "Squirtle",
-        "cost": 1,
-        "maxHealth": 550,
-        "maxMana": 50,
-        "attackDamage": 45,
-        "abilityPower": 0,
-        "armor": 25,
-        "magicResist": 25,
-        "attackSpeed": 0.6,
-        "range": 1,
-        "traits": [
-            "Water",
-            "Starter"
-        ],
-        "ability": {
-            "name": "Water Gun",
-            "description": "Fires a high-pressure jet of water dealing $value damage.",
-            "type": "DAMAGE",
-            "pattern": "LINE",
-            "values": [
-                120,
-                240,
-                480
-            ],
-            "range": 3
-        }
-    },
-    {
-        "id": "bulbasaur",
-        "name": "Bulbasaur",
-        "cost": 1,
-        "maxHealth": 650,
-        "maxMana": 60,
-        "attackDamage": 40,
-        "abilityPower": 0,
-        "armor": 20,
-        "magicResist": 30,
-        "attackSpeed": 0.55,
-        "range": 1,
-        "traits": [
-            "Grass",
-            "Starter"
-        ],
-        "ability": {
-            "name": "Vine Whip",
-            "description": "Whips surrounding enemies with vines dealing $value damage.",
-            "type": "DAMAGE",
-            "pattern": "SURROUND",
-            "values": [
-                100,
-                200,
-                400
-            ],
-            "range": 1
-        }
-    },
-    {
-        "id": "pikachu",
-        "name": "Pikachu",
-        "cost": 2,
-        "maxHealth": 450,
-        "maxMana": 50,
-        "attackDamage": 55,
-        "abilityPower": 0,
-        "armor": 20,
-        "magicResist": 20,
-        "attackSpeed": 0.7,
-        "range": 2,
-        "traits": [
-            "Electric",
-            "Fast"
-        ],
-        "ability": {
-            "name": "Thunderbolt",
-            "description": "Shoots lightning dealing $value damage, healing Pikachu for 50% of damage dealt.",
-            "type": "DAMAGE",
-            "pattern": "SINGLE",
-            "values": [
-                180,
-                450,
-                1125
-            ],
-            "range": 3,
-            "modifiers": [
-                {
-                    "type": "LIFESTEAL",
-                    "lifestealPercent": 0.5
-                }
-            ]
-        }
+      ]
     }
+  },
+  {
+    "id": "squirtle",
+    "name": "Squirtle",
+    "cost": 1,
+    "maxHealth": [550, 990, 1782],
+    "maxMana": [50, 50, 50],
+    "attackDamage": [45, 81, 145],
+    "abilityPower": [0, 0, 0],
+    "armor": [25, 25, 25],
+    "magicResist": [25, 25, 25],
+    "attackSpeed": [0.6, 0.6, 0.6],
+    "range": [1, 1, 1],
+    "traits": ["Water", "Starter"],
+    "ability": {
+      "name": "Water Gun",
+      "description": "Fires a high-pressure jet of water dealing $value damage.",
+      "type": "DAMAGE",
+      "pattern": "LINE",
+      "values": [120, 240, 480],
+      "range": 3
+    }
+  },
+  {
+    "id": "bulbasaur",
+    "name": "Bulbasaur",
+    "cost": 1,
+    "maxHealth": [650, 1170, 2106],
+    "maxMana": [60, 60, 60],
+    "attackDamage": [40, 72, 129],
+    "abilityPower": [0, 0, 0],
+    "armor": [20, 20, 20],
+    "magicResist": [30, 30, 30],
+    "attackSpeed": [0.55, 0.55, 0.55],
+    "range": [1, 1, 1],
+    "traits": ["Grass", "Starter"],
+    "ability": {
+      "name": "Vine Whip",
+      "description": "Whips surrounding enemies with vines dealing $value damage.",
+      "type": "DAMAGE",
+      "pattern": "SURROUND",
+      "values": [100, 200, 400],
+      "range": 1
+    }
+  },
+  {
+    "id": "pikachu",
+    "name": "Pikachu",
+    "cost": 2,
+    "maxHealth": [450, 810, 1458],
+    "maxMana": [50, 50, 50],
+    "attackDamage": [55, 99, 178],
+    "abilityPower": [0, 0, 0],
+    "armor": [20, 20, 20],
+    "magicResist": [20, 20, 20],
+    "attackSpeed": [0.7, 0.7, 0.7],
+    "range": [2, 2, 2],
+    "traits": ["Electric", "Fast"],
+    "ability": {
+      "name": "Thunderbolt",
+      "description": "Shoots lightning dealing $value damage, healing Pikachu for 50% of damage dealt.",
+      "type": "DAMAGE",
+      "pattern": "SINGLE",
+      "values": [180, 450, 1125],
+      "range": 3,
+      "modifiers": [
+        {
+          "type": "LIFESTEAL",
+          "lifestealPercent": 0.5
+        }
+      ]
+    }
+  }
 ]

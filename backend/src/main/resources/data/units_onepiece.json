@@ -3,28 +3,21 @@
     "id": "luffy_v1",
     "name": "Monkey D. Luffy",
     "cost": 1,
-    "maxHealth": 600,
-    "maxMana": 50,
-    "attackDamage": 50,
-    "abilityPower": 0,
-    "armor": 20,
-    "magicResist": 20,
-    "attackSpeed": 0.65,
-    "range": 1,
-    "traits": [
-      "Straw Hat",
-      "Fighter"
-    ],
+    "maxHealth": [600, 1080, 1944],
+    "maxMana": [50, 50, 50],
+    "attackDamage": [50, 90, 162],
+    "abilityPower": [0, 0, 0],
+    "armor": [20, 20, 20],
+    "magicResist": [20, 20, 20],
+    "attackSpeed": [0.65, 0.65, 0.65],
+    "range": [2, 2, 2],
+    "traits": ["Straw Hat", "Fighter"],
     "ability": {
       "name": "Gum Gum Pistol",
       "description": "Deals $value damage to a single target. Executes low HP enemies.",
       "type": "DAMAGE",
       "pattern": "SINGLE",
-      "values": [
-        200,
-        450,
-        1000
-      ],
+      "values": [200, 450, 1000],
       "range": 2,
       "modifiers": [
         {
@@ -39,28 +32,21 @@
     "id": "zoro_v1",
     "name": "Roronoa Zoro",
     "cost": 2,
-    "maxHealth": 700,
-    "maxMana": 60,
-    "attackDamage": 60,
-    "abilityPower": 0,
-    "armor": 30,
-    "magicResist": 20,
-    "attackSpeed": 0.7,
-    "range": 1,
-    "traits": [
-      "Straw Hat",
-      "Swordsman"
-    ],
+    "maxHealth": [700, 1260, 2268],
+    "maxMana": [60, 60, 60],
+    "attackDamage": [60, 108, 194],
+    "abilityPower": [0, 0, 0],
+    "armor": [30, 30, 30],
+    "magicResist": [20, 20, 20],
+    "attackSpeed": [0.7, 0.7, 0.7],
+    "range": [1, 1, 1],
+    "traits": ["Straw Hat", "Swordsman"],
     "ability": {
       "name": "360 Pound Cannon",
       "description": "Powerful circular slash dealing $value damage to all adjacent enemies.",
       "type": "DAMAGE",
       "pattern": "SURROUND",
-      "values": [
-        100,
-        180,
-        324
-      ],
+      "values": [100, 180, 324],
       "range": 1
     }
   },
@@ -68,28 +54,21 @@
     "id": "nami_v1",
     "name": "Nami",
     "cost": 1,
-    "maxHealth": 450,
-    "maxMana": 80,
-    "attackDamage": 35,
-    "abilityPower": 60,
-    "armor": 15,
-    "magicResist": 25,
-    "attackSpeed": 0.6,
-    "range": 4,
-    "traits": [
-      "Straw Hat",
-      "Navigator"
-    ],
+    "maxHealth": [450, 810, 1458],
+    "maxMana": [80, 80, 80],
+    "attackDamage": [35, 63, 113],
+    "abilityPower": [60, 60, 60],
+    "armor": [15, 15, 15],
+    "magicResist": [25, 25, 25],
+    "attackSpeed": [0.6, 0.6, 0.6],
+    "range": [4, 4, 4],
+    "traits": ["Straw Hat", "Navigator"],
     "ability": {
       "name": "Thunderbolt Tempo",
       "description": "Strikes all enemies in a line dealing damage and stunning them for $value seconds.",
       "type": "STUN",
       "pattern": "LINE",
-      "values": [
-        2,
-        3,
-        4
-      ],
+      "values": [2, 3, 4],
       "range": 4
     }
   },
@@ -97,28 +76,21 @@
     "id": "chopper_v1",
     "name": "Tony Tony Chopper",
     "cost": 2,
-    "maxHealth": 550,
-    "maxMana": 70,
-    "attackDamage": 30,
-    "abilityPower": 80,
-    "armor": 15,
-    "magicResist": 30,
-    "attackSpeed": 0.55,
-    "range": 2,
-    "traits": [
-      "Straw Hat",
-      "Doctor"
-    ],
+    "maxHealth": [550, 990, 1782],
+    "maxMana": [70, 70, 70],
+    "attackDamage": [30, 54, 97],
+    "abilityPower": [80, 80, 80],
+    "armor": [15, 15, 15],
+    "magicResist": [30, 30, 30],
+    "attackSpeed": [0.55, 0.55, 0.55],
+    "range": [2, 2, 2],
+    "traits": ["Straw Hat", "Doctor"],
     "ability": {
       "name": "Emergency Treatment",
       "description": "Heals a nearby ally for $value health.",
       "type": "HEAL",
       "pattern": "SINGLE",
-      "values": [
-        150,
-        300,
-        600
-      ],
+      "values": [150, 300, 600],
       "range": 3
     }
   },
@@ -126,28 +98,21 @@
     "id": "usopp_v1",
     "name": "Usopp",
     "cost": 1,
-    "maxHealth": 400,
-    "maxMana": 90,
-    "attackDamage": 40,
-    "abilityPower": 50,
-    "armor": 10,
-    "magicResist": 20,
-    "attackSpeed": 0.5,
-    "range": 5,
-    "traits": [
-      "Straw Hat",
-      "Sniper"
-    ],
+    "maxHealth": [400, 720, 1296],
+    "maxMana": [90, 90, 90],
+    "attackDamage": [40, 72, 129],
+    "abilityPower": [50, 50, 50],
+    "armor": [10, 10, 10],
+    "magicResist": [20, 20, 20],
+    "attackSpeed": [0.5, 0.5, 0.5],
+    "range": [5, 5, 5],
+    "traits": ["Straw Hat", "Sniper"],
     "ability": {
       "name": "I Got This!",
       "description": "Inspires adjacent allies, increasing their attack damage by $value.",
       "type": "BUFF_ATK",
       "pattern": "SURROUND",
-      "values": [
-        25,
-        45,
-        80
-      ],
+      "values": [25, 45, 80],
       "range": 2
     }
   },
@@ -155,28 +120,21 @@
     "id": "sanji_v1",
     "name": "Sanji",
     "cost": 2,
-    "maxHealth": 650,
-    "maxMana": 55,
-    "attackDamage": 55,
-    "abilityPower": 0,
-    "armor": 25,
-    "magicResist": 20,
-    "attackSpeed": 0.75,
-    "range": 1,
-    "traits": [
-      "Straw Hat",
-      "Fighter"
-    ],
+    "maxHealth": [650, 1170, 2106],
+    "maxMana": [55, 55, 55],
+    "attackDamage": [55, 99, 178],
+    "abilityPower": [0, 0, 0],
+    "armor": [25, 25, 25],
+    "magicResist": [20, 20, 20],
+    "attackSpeed": [0.75, 0.75, 0.75],
+    "range": [1, 1, 1],
+    "traits": ["Straw Hat", "Fighter"],
     "ability": {
       "name": "Diable Jambe",
       "description": "Ignites his legs, increasing nearby allies' attack speed by $value%.",
       "type": "BUFF_SPD",
       "pattern": "SURROUND",
-      "values": [
-        30,
-        50,
-        80
-      ],
+      "values": [30, 50, 80],
       "range": 2
     }
   }

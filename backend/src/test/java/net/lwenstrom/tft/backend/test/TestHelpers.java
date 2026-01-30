@@ -74,16 +74,39 @@ public final class TestHelpers {
     }
 
     public static UnitDefinition createDefaultUnitDef() {
-        return new UnitDefinition("test-unit-1", "TestUnit", 1, 100, 100, 10, 0, 0, 0, 1.0f, 1, List.of("Trait"), null);
+        return new UnitDefinition(
+                "test-unit-1",
+                "TestUnit",
+                1,
+                l(100),
+                l(100),
+                l(10),
+                l(0),
+                l(0),
+                l(0),
+                lf(1.0f),
+                l(1),
+                List.of("Trait"),
+                null);
     }
 
     public static UnitDefinition createUnitDef(String id, String name, int cost, int health, int attackDamage) {
-        return new UnitDefinition(id, name, cost, health, 100, attackDamage, 0, 0, 0, 1.0f, 1, List.of(), null);
+        return new UnitDefinition(
+                id, name, cost, l(health), l(100), l(attackDamage), l(0), l(0), l(0), lf(1.0f), l(1), List.of(), null);
     }
 
     public static UnitDefinition createUnitDefWithAbility(
             String id, String name, int cost, int health, int maxMana, AbilityDefinition ability) {
-        return new UnitDefinition(id, name, cost, health, maxMana, 10, 0, 0, 0, 1.0f, 1, List.of(), ability);
+        return new UnitDefinition(
+                id, name, cost, l(health), l(maxMana), l(10), l(0), l(0), l(0), lf(1.0f), l(1), List.of(), ability);
+    }
+
+    private static List<Integer> l(int val) {
+        return List.of(val, val, val);
+    }
+
+    private static List<Float> lf(float val) {
+        return List.of(val, val, val);
     }
 
     public static SeededRandomProvider createSeededRandomProvider() {

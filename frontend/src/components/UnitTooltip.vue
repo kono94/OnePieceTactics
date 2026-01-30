@@ -7,19 +7,25 @@ const props = defineProps<{
     shift?: 'left' | 'more-left' | 'center'
 }>()
 
+const getBaseValue = (val: any) => {
+    if (Array.isArray(val)) return val[0]
+    return val
+}
+
 const stats = computed(() => {
     if (!props.unit) return {}
+    const maxHp = getBaseValue(props.unit.maxHealth)
     // If currentHealth is missing (shop unit), use maxHealth
-    const curHp = props.unit.currentHealth !== undefined ? props.unit.currentHealth : props.unit.maxHealth;
+    const curHp = props.unit.currentHealth !== undefined ? props.unit.currentHealth : maxHp;
     // Units usually start with 0 mana unless specified
     const curMana = props.unit.mana !== undefined ? props.unit.mana : 0;
     
     return {
-        hp: `${curHp || 0}/${props.unit.maxHealth || 100}`,
-        atk: props.unit.attackDamage || 0,
-        spd: (props.unit.attackSpeed || 0).toFixed(2),
-        range: props.unit.range || 0,
-        mana: `${curMana || 0}/${props.unit.maxMana || 100}`
+        hp: `${curHp || 0}/${maxHp || 100}`,
+        atk: getBaseValue(props.unit.attackDamage) || 0,
+        spd: parseFloat(getBaseValue(props.unit.attackSpeed) || 0).toFixed(2),
+        range: getBaseValue(props.unit.range) || 0,
+        mana: `${curMana || 0}/${getBaseValue(props.unit.maxMana) || 100}`
     }
 })
 

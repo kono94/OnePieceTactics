@@ -48,7 +48,19 @@ public class SimulationTest {
             @Override
             public List<UnitDefinition> getAllUnits() {
                 return List.of(new UnitDefinition(
-                        "0", "TestUnit", 1, 100, 50, 50, 0, 10, 10, 1.0f, 1, List.of("Trait"), null));
+                        "0",
+                        "TestUnit",
+                        1,
+                        List.of(100, 100, 100),
+                        List.of(50, 50, 50),
+                        List.of(50, 50, 50),
+                        List.of(0, 0, 0),
+                        List.of(10, 10, 10),
+                        List.of(10, 10, 10),
+                        List.of(1.0f, 1.0f, 1.0f),
+                        List.of(1, 1, 1),
+                        List.of("Trait"),
+                        null));
             }
 
             @Override
@@ -132,7 +144,19 @@ public class SimulationTest {
             @Override
             public List<UnitDefinition> getAllUnits() {
                 return List.of(new UnitDefinition(
-                        "0", "TestUnit", 1, 100, 50, 50, 0, 10, 10, 1.0f, 1, List.of("Trait"), null));
+                        "0",
+                        "TestUnit",
+                        1,
+                        List.of(100, 100, 100),
+                        List.of(50, 50, 50),
+                        List.of(50, 50, 50),
+                        List.of(0, 0, 0),
+                        List.of(10, 10, 10),
+                        List.of(10, 10, 10),
+                        List.of(1.0f, 1.0f, 1.0f),
+                        List.of(1, 1, 1),
+                        List.of("Trait"),
+                        null));
             }
 
             @Override

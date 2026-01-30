@@ -50,7 +50,20 @@ class GridRefactorTest {
     }
 
     private UnitDefinition createDummyDef() {
-        return new UnitDefinition("1", "Dummy", 1, 100, 100, 10, 0, 0, 0, 1.0f, 1, Collections.emptyList(), null);
+        return new UnitDefinition(
+                "1",
+                "Dummy",
+                1,
+                List.of(100, 100, 100),
+                List.of(100, 100, 100),
+                List.of(10, 10, 10),
+                List.of(0, 0, 0),
+                List.of(0, 0, 0),
+                List.of(0, 0, 0),
+                List.of(1.0f, 1.0f, 1.0f),
+                List.of(1, 1, 1),
+                Collections.emptyList(),
+                null);
     }
 
     @Test

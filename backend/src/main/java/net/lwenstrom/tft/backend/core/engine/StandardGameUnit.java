@@ -5,15 +5,20 @@ import java.util.HashSet;
 public class StandardGameUnit extends AbstractGameUnit {
 
     public StandardGameUnit(UnitDefinition def) {
-        super(def.id(), def.name(), def.cost(), def.ability(), def.range(), new HashSet<>(def.traits()));
-        setMaxHealth(def.maxHealth());
-        setMaxMana(def.maxMana());
-        setAttackDamage(def.attackDamage());
-        setAbilityPower(def.abilityPower());
-        setArmor(def.armor());
-        setMagicResist(def.magicResist());
-        setAttackSpeed(def.attackSpeed());
-        setCurrentHealth(def.maxHealth());
+        this(def, 1);
+    }
+
+    public StandardGameUnit(UnitDefinition def, int starLevel) {
+        super(def.id(), def.name(), def.cost(), def.ability(), def.getRange(starLevel), new HashSet<>(def.traits()));
+        setStarLevel(starLevel);
+        setMaxHealth(def.getMaxHealth(starLevel));
+        setMaxMana(def.getMaxMana(starLevel));
+        setAttackDamage(def.getAttackDamage(starLevel));
+        setAbilityPower(def.getAbilityPower(starLevel));
+        setArmor(def.getArmor(starLevel));
+        setMagicResist(def.getMagicResist(starLevel));
+        setAttackSpeed(def.getAttackSpeed(starLevel));
+        setCurrentHealth(def.getMaxHealth(starLevel));
     }
 
     public boolean isDead() {

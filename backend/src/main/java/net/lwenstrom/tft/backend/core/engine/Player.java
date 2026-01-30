@@ -123,25 +123,8 @@ public class Player {
                     .orElse(null);
 
             if (def != null) {
-                double scale = 1.8;
-                UnitDefinition upgradedDef = new UnitDefinition(
-                        def.id(),
-                        def.name(),
-                        def.cost(),
-                        (int) (def.maxHealth() * scale),
-                        def.maxMana(),
-                        (int) (def.attackDamage() * scale),
-                        def.abilityPower(),
-                        def.armor(),
-                        def.magicResist(),
-                        def.attackSpeed(),
-                        def.range(),
-                        def.traits(),
-                        def.ability());
-
-                var upgraded = new StandardGameUnit(upgradedDef);
+                var upgraded = new StandardGameUnit(def, starLevel + 1);
                 upgraded.setOwnerId(this.id);
-                upgraded.setStarLevel(starLevel + 1);
 
                 // Place back logic
                 if (boardUnits.contains(targetPosUnit) || (y >= 0 && grid.isEmpty(x, y))) {

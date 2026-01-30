@@ -40,8 +40,20 @@ public class LootOrbTest {
 
     @Test
     void testCollectUnitOrb() {
-        UnitDefinition unitDef =
-                new UnitDefinition("unit-1", "Luffy", 1, 100, 100, 10, 10, 10, 10, 1.0f, 1, List.of(), null);
+        UnitDefinition unitDef = new UnitDefinition(
+                "unit-1",
+                "Luffy",
+                1,
+                List.of(100, 100, 100),
+                List.of(100, 100, 100),
+                List.of(10, 10, 10),
+                List.of(10, 10, 10),
+                List.of(10, 10, 10),
+                List.of(10, 10, 10),
+                List.of(1.0f, 1.0f, 1.0f),
+                List.of(1, 1, 1),
+                List.of(),
+                null);
         when(dataLoader.getAllUnits()).thenReturn(List.of(unitDef));
 
         LootOrb unitOrb = new LootOrb("orb-2", 0, 0, LootType.UNIT, "Luffy", 1);
@@ -56,8 +68,20 @@ public class LootOrbTest {
 
     @Test
     void testCollectUnitOrbBenchFull() {
-        UnitDefinition unitDef =
-                new UnitDefinition("unit-1", "Luffy", 1, 100, 100, 10, 10, 10, 10, 1.0f, 1, List.of(), null);
+        UnitDefinition unitDef = new UnitDefinition(
+                "unit-1",
+                "Luffy",
+                1,
+                List.of(100, 100, 100),
+                List.of(100, 100, 100),
+                List.of(10, 10, 10),
+                List.of(10, 10, 10),
+                List.of(10, 10, 10),
+                List.of(10, 10, 10),
+                List.of(1.0f, 1.0f, 1.0f),
+                List.of(1, 1, 1),
+                List.of(),
+                null);
         when(dataLoader.getAllUnits()).thenReturn(List.of(unitDef));
 
         // Fill bench (assuming max size 9)

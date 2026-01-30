@@ -46,7 +46,20 @@ public class PhaseDurationTest {
         DataLoader dataLoader = new DataLoader(registry) {
             @Override
             public List<UnitDefinition> getAllUnits() {
-                return List.of(new UnitDefinition("u1", "Unit", 1, 100, 10, 10, 1, 1, 1, 1f, 1, List.of(), null));
+                return List.of(new UnitDefinition(
+                        "u1",
+                        "Unit",
+                        1,
+                        List.of(100, 100, 100),
+                        List.of(10, 10, 10),
+                        List.of(10, 10, 10),
+                        List.of(1, 1, 1),
+                        List.of(1, 1, 1),
+                        List.of(1, 1, 1),
+                        List.of(1f, 1f, 1f),
+                        List.of(1, 1, 1),
+                        List.of(),
+                        null));
             }
 
             @Override
