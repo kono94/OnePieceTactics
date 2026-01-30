@@ -2,7 +2,11 @@ package net.lwenstrom.tft.backend.core.combat;
 
 import java.util.List;
 import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
+import net.lwenstrom.tft.backend.core.model.ConditionalModifier;
+import net.lwenstrom.tft.backend.core.model.ExecuteModifier;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
+import net.lwenstrom.tft.backend.core.model.LifestealModifier;
+import net.lwenstrom.tft.backend.core.model.ScalingModifier;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -22,7 +26,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
         source.setActiveAbility(ability.name());
 
         var abilityType = ability.type();
-        int value = ability.value() * source.getStarLevel();
+        int value = ability.getValueForLevel(source.getStarLevel());
 
         switch (abilityType) {
             case DAMAGE -> castDamageAbility(source, allUnits, targetSelector, ability, value, callback);
@@ -43,10 +47,28 @@ public class DefaultAbilityCaster implements AbilityCaster {
         var target = targetSelector.findTarget(source, allUnits);
         if (target == null) return;
 
+        // Check conditional modifiers before applying damage
+        if (!checkConditionalModifiers(source, target, ability)) {
+            return;
+        }
+
+        // Apply scaling modifiers
+        int scaledDamage = applyScalingModifiers(source, target, ability, damage);
+
+        // Apply execute modifier bonus damage
+        int finalDamage = applyExecuteModifier(target, ability, scaledDamage);
+
+        // Track total damage dealt for lifesteal
+        var totalDamageDealt = new int[] {0};
+
         applyToTargets(source, allUnits, target, ability, u -> {
-            u.takeDamage(damage);
-            callback.onDamage(source.getId(), source.getName(), u.getId(), damage);
+            u.takeDamage(finalDamage);
+            totalDamageDealt[0] += finalDamage;
+            callback.onDamage(source.getId(), source.getName(), u.getId(), finalDamage);
         });
+
+        // Apply lifesteal modifier
+        applyLifestealModifier(source, ability, totalDamageDealt[0], callback);
     }
 
     private void castStunAbility(
@@ -176,5 +198,60 @@ public class DefaultAbilityCaster implements AbilityCaster {
     private void healUnit(GameUnit unit, int amount) {
         int newHealth = Math.min(unit.getMaxHealth(), unit.getCurrentHealth() + amount);
         unit.setCurrentHealth(newHealth);
+    }
+
+    // Check all conditional modifiers. Returns false if any condition is not met.
+    private boolean checkConditionalModifiers(GameUnit source, GameUnit target, AbilityDefinition ability) {
+        for (var modifier : ability.modifiers()) {
+            if (modifier instanceof ConditionalModifier conditionalModifier) {
+                if (!conditionalModifier.isMet(source, target)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    // Apply scaling modifiers to the base damage/heal value.
+    private int applyScalingModifiers(GameUnit source, GameUnit target, AbilityDefinition ability, int baseValue) {
+        var scaledValue = (float) baseValue;
+
+        for (var modifier : ability.modifiers()) {
+            if (modifier instanceof ScalingModifier scalingModifier) {
+                var multiplier = scalingModifier.calculateMultiplier(source, target);
+                scaledValue *= multiplier;
+            }
+        }
+
+        return (int) scaledValue;
+    }
+
+    // Apply execute modifier bonus damage if target is below HP threshold.
+    private int applyExecuteModifier(GameUnit target, AbilityDefinition ability, int baseDamage) {
+        var totalDamage = baseDamage;
+
+        for (var modifier : ability.modifiers()) {
+            if (modifier instanceof ExecuteModifier executeModifier) {
+                var bonusDamage = executeModifier.calculateBonusDamage(target, baseDamage);
+                totalDamage += bonusDamage;
+            }
+        }
+
+        return totalDamage;
+    }
+
+    // Apply lifesteal modifier healing to the caster.
+    private void applyLifestealModifier(
+            GameUnit source, AbilityDefinition ability, int damageDealt, DamageCallback callback) {
+        for (var modifier : ability.modifiers()) {
+            if (modifier instanceof LifestealModifier lifestealModifier) {
+                var healAmount = lifestealModifier.calculateHealing(damageDealt);
+                if (healAmount > 0) {
+                    healUnit(source, healAmount);
+                    // Report healing as negative damage
+                    callback.onDamage(source.getId(), source.getName(), source.getId(), -healAmount);
+                }
+            }
+        }
     }
 }

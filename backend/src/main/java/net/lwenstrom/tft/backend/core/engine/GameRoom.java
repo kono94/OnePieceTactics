@@ -236,7 +236,8 @@ public class GameRoom {
 
         if (phase == GamePhase.PLANNING) {
             // Check if game should end (only one player with health > 0)
-            var alivePlayers = players.values().stream().filter(p -> p.getHealth() > 0).count();
+            var alivePlayers =
+                    players.values().stream().filter(p -> p.getHealth() > 0).count();
             if (alivePlayers <= 1) {
                 log.info("Game ending: only {} player(s) remaining", alivePlayers);
                 this.phase = GamePhase.END;

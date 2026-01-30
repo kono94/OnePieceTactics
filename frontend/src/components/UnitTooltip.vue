@@ -74,8 +74,7 @@ const rarityColor = computed(() => {
           <div class="ability-header">
               <span class="ability-name">{{ ability.name }}</span>
           </div>
-          <div class="ability-description">
-              {{ ability.description }}
+          <div class="ability-description" v-html="unit.formattedAbilityDescription || ability.description">
           </div>
       </div>
 
@@ -86,6 +85,17 @@ const rarityColor = computed(() => {
 </template>
 
 <style scoped>
+.unit-tooltip :deep(.active) {
+    color: #ffd700;
+    font-weight: bold;
+    font-style: normal;
+}
+
+.unit-tooltip :deep(.inactive) {
+    color: #94a3b8;
+    font-weight: normal;
+    font-style: normal;
+}
 .unit-tooltip {
     position: absolute;
     left: 50%;

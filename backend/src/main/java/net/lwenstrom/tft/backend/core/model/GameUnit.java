@@ -1,5 +1,6 @@
 package net.lwenstrom.tft.backend.core.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Set;
 
@@ -86,6 +87,14 @@ public interface GameUnit {
     default void restorePlanningPosition() {}
 
     AbilityDefinition getAbility();
+
+    // Get formatted ability description with scaled stats based on star level
+    @JsonProperty("formattedAbilityDescription")
+    default String formattedAbilityDescription() {
+        var ability = getAbility();
+        if (ability == null) return "";
+        return ability.getFormattedDescription(getStarLevel());
+    }
 
     String getActiveAbility();
 

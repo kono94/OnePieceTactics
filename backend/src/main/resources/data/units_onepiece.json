@@ -17,11 +17,22 @@
     ],
     "ability": {
       "name": "Gum Gum Pistol",
-      "description": "Deals massive damage to a single target.",
+      "description": "Deals $value damage to a single target. Executes low HP enemies.",
       "type": "DAMAGE",
       "pattern": "SINGLE",
-      "value": 200,
-      "range": 2
+      "values": [
+        200,
+        450,
+        1000
+      ],
+      "range": 2,
+      "modifiers": [
+        {
+          "type": "EXECUTE",
+          "hpThreshold": 0.3,
+          "bonusDamageMultiplier": 0.5
+        }
+      ]
     }
   },
   {
@@ -42,10 +53,14 @@
     ],
     "ability": {
       "name": "360 Pound Cannon",
-      "description": "Powerful circular slash dealing damage to all adjacent enemies.",
+      "description": "Powerful circular slash dealing $value damage to all adjacent enemies.",
       "type": "DAMAGE",
       "pattern": "SURROUND",
-      "value": 100,
+      "values": [
+        100,
+        180,
+        324
+      ],
       "range": 1
     }
   },
@@ -67,10 +82,14 @@
     ],
     "ability": {
       "name": "Thunderbolt Tempo",
-      "description": "Strikes enemies in a line, stunning them for 2 seconds.",
+      "description": "Strikes all enemies in a line dealing damage and stunning them for $value seconds.",
       "type": "STUN",
       "pattern": "LINE",
-      "value": 2,
+      "values": [
+        2,
+        3,
+        4
+      ],
       "range": 4
     }
   },
@@ -92,10 +111,14 @@
     ],
     "ability": {
       "name": "Emergency Treatment",
-      "description": "Heals a nearby ally for 150 health.",
+      "description": "Heals a nearby ally for $value health.",
       "type": "HEAL",
       "pattern": "SINGLE",
-      "value": 150,
+      "values": [
+        150,
+        300,
+        600
+      ],
       "range": 3
     }
   },
@@ -117,10 +140,14 @@
     ],
     "ability": {
       "name": "I Got This!",
-      "description": "Inspires adjacent allies, increasing their attack damage by 25.",
+      "description": "Inspires adjacent allies, increasing their attack damage by $value.",
       "type": "BUFF_ATK",
       "pattern": "SURROUND",
-      "value": 25,
+      "values": [
+        25,
+        45,
+        80
+      ],
       "range": 2
     }
   },
@@ -142,10 +169,14 @@
     ],
     "ability": {
       "name": "Diable Jambe",
-      "description": "Ignites his legs, increasing nearby allies' attack speed by 30%.",
+      "description": "Ignites his legs, increasing nearby allies' attack speed by $value%.",
       "type": "BUFF_SPD",
       "pattern": "SURROUND",
-      "value": 30,
+      "values": [
+        30,
+        50,
+        80
+      ],
       "range": 2
     }
   }

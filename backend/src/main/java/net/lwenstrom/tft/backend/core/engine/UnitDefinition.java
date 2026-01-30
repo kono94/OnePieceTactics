@@ -1,5 +1,6 @@
 package net.lwenstrom.tft.backend.core.engine;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
 
@@ -16,4 +17,10 @@ public record UnitDefinition(
         float attackSpeed,
         int range,
         List<String> traits,
-        AbilityDefinition ability) {}
+        AbilityDefinition ability) {
+
+    @JsonProperty("formattedAbilityDescription")
+    public String formattedAbilityDescription() {
+        return ability != null ? ability.getFormattedDescription(1) : "";
+    }
+}

@@ -109,7 +109,14 @@ class CombatIntegrationTest {
 
     @Test
     void testCombat_AbilityDamage_Single() {
-        var ability = AbilityDefinition.fromJson("TestAbility", "Test Description", "DMG", "SINGLE", 50, 1);
+        var ability = new AbilityDefinition(
+                "TestAbility",
+                "Test Description",
+                net.lwenstrom.tft.backend.core.model.AbilityType.DAMAGE,
+                "SINGLE",
+                1,
+                java.util.List.of(50, 100, 200),
+                null);
         var combatSystem = createTestCombatSystem();
         var p1 = new Player("P1", null, createSeededRandomProvider());
         var p2 = new Player("P2", null, createSeededRandomProvider());
@@ -133,7 +140,14 @@ class CombatIntegrationTest {
 
     @Test
     void testCombat_AbilityDamage_Surround8() {
-        var ability = AbilityDefinition.fromJson("AOE", "AOE Description", "DMG", "SURROUND", 25, 1);
+        var ability = new AbilityDefinition(
+                "AOE",
+                "AOE Description",
+                net.lwenstrom.tft.backend.core.model.AbilityType.DAMAGE,
+                "SURROUND",
+                1,
+                java.util.List.of(25, 50, 100),
+                null);
         var combatSystem = createTestCombatSystem();
         var p1 = new Player("P1", null, createSeededRandomProvider());
         var p2 = new Player("P2", null, createSeededRandomProvider());

@@ -17,11 +17,22 @@
         ],
         "ability": {
             "name": "Ember",
-            "description": "Shoots a small flame at a single enemy.",
-            "type": "DMG",
+            "description": "Shoots a small flame dealing $value damage. Burns low HP targets.",
+            "type": "DAMAGE",
             "pattern": "SINGLE",
-            "value": 150,
-            "range": 2
+            "values": [
+                150,
+                350,
+                800
+            ],
+            "range": 2,
+            "modifiers": [
+                {
+                    "type": "EXECUTE",
+                    "hpThreshold": 0.25,
+                    "bonusDamageMultiplier": 0.4
+                }
+            ]
         }
     },
     {
@@ -42,10 +53,14 @@
         ],
         "ability": {
             "name": "Water Gun",
-            "description": "Sprays a jet of water in a line.",
-            "type": "DMG",
+            "description": "Fires a high-pressure jet of water dealing $value damage.",
+            "type": "DAMAGE",
             "pattern": "LINE",
-            "value": 120,
+            "values": [
+                120,
+                240,
+                480
+            ],
             "range": 3
         }
     },
@@ -67,11 +82,50 @@
         ],
         "ability": {
             "name": "Vine Whip",
-            "description": "Whips surrounding enemies with vines.",
-            "type": "DMG",
+            "description": "Whips surrounding enemies with vines dealing $value damage.",
+            "type": "DAMAGE",
             "pattern": "SURROUND",
-            "value": 100,
+            "values": [
+                100,
+                200,
+                400
+            ],
             "range": 1
+        }
+    },
+    {
+        "id": "pikachu",
+        "name": "Pikachu",
+        "cost": 2,
+        "maxHealth": 450,
+        "maxMana": 50,
+        "attackDamage": 55,
+        "abilityPower": 0,
+        "armor": 20,
+        "magicResist": 20,
+        "attackSpeed": 0.7,
+        "range": 2,
+        "traits": [
+            "Electric",
+            "Fast"
+        ],
+        "ability": {
+            "name": "Thunderbolt",
+            "description": "Shoots lightning dealing $value damage, healing Pikachu for 50% of damage dealt.",
+            "type": "DAMAGE",
+            "pattern": "SINGLE",
+            "values": [
+                180,
+                450,
+                1125
+            ],
+            "range": 3,
+            "modifiers": [
+                {
+                    "type": "LIFESTEAL",
+                    "lifestealPercent": 0.5
+                }
+            ]
         }
     }
 ]
