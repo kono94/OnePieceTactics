@@ -276,6 +276,31 @@ Loot orbs spawn on the grid after combat and provide rewards when collected:
 - Orbs stored in `PlayerState.lootOrbs` array
 - Removed from state after collection
 
+### 13. Star-Level Scaling System
+
+Unit stats and abilities use **explicit 3-value arrays** for star-level scaling:
+
+**Data Format**:
+- Stats like `attackDamage`, `maxHealth`, `attackSpeed`, `range` are arrays: `[star1, star2, star3]`
+- Ability modifiers (`value`, `lifestealPercent`, `hpThreshold`, etc.) follow the same pattern
+- Backend provides `formattedAbilityDescription` with HTML markup for tooltip display
+
+**Frontend Handling**:
+```typescript
+// Extract base value (star 1) for display
+const getBaseValue = (val: any) => {
+    if (Array.isArray(val)) return val[0]
+    return val
+}
+```
+
+**Tooltip Highlighting** (`UnitTooltip.vue`):
+- Ability descriptions render via `v-html` to support HTML formatting
+- Backend marks values with CSS classes:
+  - `.active` (gold, bold): Current star level's value
+  - `.inactive` (gray): Other star levels' values
+- Deep scoped styles (`:deep(.active)`) apply highlighting within v-html content
+
 ---
 
 ## Important File Paths
@@ -355,7 +380,7 @@ Loot orbs spawn on the grid after combat and provide rewards when collected:
 | `GameCanvas.vue`       | Renders 8x7 grid, units, drag-and-drop, tooltips, animations, loot orbs        |
 | `TraitSidebar.vue`     | Shows active traits/synergies with breakpoint progress and tooltips            |
 | `PlayerList.vue`       | Displays all players' HP, level, sorted by health/elimination order            |
-| `UnitTooltip.vue`      | Displays unit stats (HP, ATK, SPD, Range, Mana, Traits, Ability) with dynamic positioning |
+| `UnitTooltip.vue`      | Displays unit stats (HP, ATK, SPD, Range, Mana, Traits, Ability) with dynamic positioning, HTML-formatted ability descriptions with star-level highlighting |
 | `PhaseAnnouncement.vue`| Animated banners for phase transitions (PLANNING PHASE / BATTLE START)        |
 | `AttackAnimation.vue`  | Renders per-unit attack effects (punch, slash, projectile) and ability bursts  |
 | `DamageReport.vue`     | Collapsible side panel showing damage dealt by each unit after combat          |

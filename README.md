@@ -26,7 +26,10 @@ For detailed architectural information, refer to the context documents:
 - **Theme-agnostic core engine** — swap between One Piece and Pokemon themes
 - **Auto-battler mechanics**: Shop, XP, Gold (with interest), Trait Synergies, Unit Combinations
 - **Grid-based combat** with pathfinding (BFS), ability casting, and visual attack animations
-- **Star-level progression** — combine 3 identical units to upgrade (1★ → 2★ → 3★)
+- **Star-level progression** — combine 3 identical units to upgrade (1★ → 2★ → 3★) with explicit 3-value stat scaling
+- **Advanced ability system** — Damage, Stun, Heal, Buff with modifiers (Lifesteal, Execute, Scaling, Conditional)
+- **Loot orbs** — Gold and unit rewards spawn after combat
+- **Damage tracking** — Post-combat report showing damage dealt per unit
 - **In-memory game state** — no database required
 
 ---
@@ -144,9 +147,9 @@ To add a new theme, implement `GameModeProvider` and add corresponding JSON data
 | `/app/create` | Client → Server | Create a new game room |
 | `/app/join` | Client → Server | Join an existing room |
 | `/app/start` | Client → Server | Host starts the match |
-| `/app/room/{id}/action` | Client → Server | Player action (BUY, MOVE, REROLL, EXP) |
+| `/app/room/{id}/action` | Client → Server | Player action (BUY, MOVE, REROLL, EXP, SELL, LOCK, COLLECT_ORB) |
 | `/topic/room/{id}` | Server → Client | Game state broadcast (100ms) |
-| `/topic/room/{id}/event` | Server → Client | Combat result events |
+| `/topic/room/{id}/event` | Server → Client | Combat result events (winner, loser, damageLog) |
 
 ### REST Endpoints
 | Endpoint | Method | Description |
@@ -181,4 +184,4 @@ This project is for educational purposes.
 
 ---
 
-*Last updated: 2026-01-21*
+*Last updated: 2026-01-31*

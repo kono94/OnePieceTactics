@@ -1,6 +1,6 @@
 # Backend Context - Architectural Blueprint
 
-> **Last Updated**: 2026-01-25
+> **Last Updated**: 2026-01-31
 > **Purpose**: Comprehensive technical reference for AI developers and engineers to understand the game server's architecture, game loop, and communication patterns.
 
 ---
@@ -68,16 +68,22 @@ src/main/java/net/lwenstrom/tft/backend/
 │   │   ├── TraitManager.java       # Applies cumulative trait bonuses to units
 │   │   ├── AbstractGameUnit.java   # Base unit with stats, position, mana, items
 │   │   ├── StandardGameUnit.java   # Concrete GameUnit implementation
-│   │   └── UnitDefinition.java     # Record: immutable unit template from JSON
+│   │   └── UnitDefinition.java     # Record: immutable unit template with List-based stats
 │   ├── model/                      # Data Transfer Objects (Records)
 │   │   ├── GameState.java          # Full room snapshot sent to frontend
 │   │   ├── PlayerState.java        # Nested record inside GameState
 │   │   ├── GameAction.java         # Incoming player action (BUY, MOVE, REROLL, etc.)
 │   │   ├── ActionType.java         # Enum: BUY, SELL, MOVE, REROLL, EXP, LOCK
-│   │   ├── GameUnit.java           # Interface: unit contract
+│   │   ├── GameUnit.java           # Interface: unit contract + formattedAbilityDescription()
 │   │   ├── GameMode.java           # Enum: ONEPIECE, POKEMON
 │   │   ├── GamePhase.java          # Enum: LOBBY, PLANNING, COMBAT
-│   │   └── Trait.java, TraitEffect.java, AbilityDefinition.java, AbilityType.java, GameItem.java, LootOrb.java, LootType.java
+│   │   ├── AbilityDefinition.java  # Record: ability with List<Integer> values/range
+│   │   ├── AbilityModifier.java    # Sealed interface: SCALING, CONDITIONAL, LIFESTEAL, EXECUTE
+│   │   ├── ScalingModifier.java    # Additional damage scaling (missing HP, mana, etc.)
+│   │   ├── ConditionalModifier.java # Condition-based ability effects
+│   │   ├── LifestealModifier.java  # Converts damage to healing
+│   │   ├── ExecuteModifier.java    # Bonus damage to low-HP targets
+│   │   └── Trait.java, TraitEffect.java, AbilityType.java, GameItem.java, LootOrb.java, LootType.java
 │   ├── random/                     # Randomness abstraction for testability
 │   │   ├── RandomProvider.java     # Interface: shuffle, nextInt, nextDouble
 │   │   └── DefaultRandomProvider.java  # Production implementation (java.util.Random)
@@ -424,25 +430,29 @@ GameRoom (Per-Room Instance)
 
 | Type | Effect | Value Meaning |
 |------|--------|---------------|
-| `DAMAGE` | Deal damage to enemies | Damage amount × star level |
+| `DAMAGE` | Deal damage to enemies | Base damage (scaled by star level) |
 | `STUN` | Target skips N combat ticks | Stun duration in ticks |
 | `HEAL` | Restore HP to self or allies | Heal amount |
 | `BUFF_ATK` | Increase ATK for all allied units | % increase (e.g., 20 = +20%) |
 | `BUFF_SPD` | Decrease attack cooldown for allies | % increase to attack speed |
 
-### 13.2 `AbilityDefinition` Record
+### 13.2 `AbilityDefinition` Record (Star-Level Scaling)
+
+Ability values and ranges are now **explicit lists** with exactly 3 values for star levels 1/2/3:
 
 ```java
 public record AbilityDefinition(
     String name,
-    String description,  // NEW: Human-readable description for UI
-    AbilityType type,    // NEW: Enum instead of implicit "DMG"
-    String pattern,      // SINGLE, LINE, SURROUND
-    int value,
-    int range
+    String description,           // e.g., "Deals $value damage"
+    AbilityType type,
+    String pattern,               // SINGLE, LINE, SURROUND
+    List<Integer> range,          // [r1, r2, r3] per star level
+    List<Integer> values,         // [v1, v2, v3] per star level
+    List<AbilityModifier> modifiers
 ) {
-    // Factory for backward-compatible JSON parsing
-    public static AbilityDefinition fromJson(String name, String description, String type, ...);
+    public int getValueForLevel(int starLevel);    // Returns values[starLevel-1]
+    public int getRangeForLevel(int starLevel);    // Returns range[starLevel-1]
+    public String getFormattedDescription(int starLevel); // $value → "v1/v2/v3" with HTML highlighting
 }
 ```
 
@@ -463,6 +473,77 @@ Units have temporary combat buffs that reset after each combat:
 | `stunTicksRemaining` | int | 0 | Skips turn while > 0, decrements each tick |
 | `atkBuff` | float | 1.0f | Multiplier for attack damage |
 | `spdBuff` | float | 1.0f | Multiplier for attack speed (affects cooldown) |
+
+### 13.5 Ability Modifier System
+
+Modifiers enhance or alter ability behavior. They are **backend-only** and defined as a sealed interface hierarchy.
+
+#### Sealed Interface (`AbilityModifier`)
+
+```java
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+public sealed interface AbilityModifier
+    permits ScalingModifier, ConditionalModifier, LifestealModifier, ExecuteModifier {}
+```
+
+#### Modifier Types
+
+| Type | Record | Purpose |
+|------|--------|---------|
+| `SCALING` | `ScalingModifier` | Dynamic damage scaling based on caster/target HP/mana |
+| `CONDITIONAL` | `ConditionalModifier` | Condition-gated effects (HP thresholds, stun state) |
+| `LIFESTEAL` | `LifestealModifier` | Heals caster based on damage dealt |
+| `EXECUTE` | `ExecuteModifier` | Bonus damage to low-HP targets |
+
+#### Scaling Types (`ScalingModifier.ScalingType`)
+
+| Type | Effect |
+|------|--------|
+| `CASTER_MISSING_HP` | More damage when caster is low HP |
+| `CASTER_MANA_PERCENT` | Scale with current mana |
+| `TARGET_MAX_HP_PERCENT` | % of target max HP as bonus damage |
+| `TARGET_MISSING_HP` | More damage when target is low HP |
+
+#### Condition Types (`ConditionalModifier.ConditionType`)
+
+| Type | Trigger |
+|------|---------|
+| `TARGET_HP_BELOW` | Target HP% below threshold |
+| `TARGET_HP_ABOVE` | Target HP% above threshold |
+| `TARGET_STUNNED` | Target is currently stunned |
+| `CASTER_HP_BELOW` | Caster HP% below threshold |
+| `CASTER_FULL_MANA` | Caster has full mana |
+
+#### Example JSON
+
+```json
+{
+  "modifiers": [
+    { "type": "EXECUTE", "hpThreshold": [0.3, 0.35, 0.4], "bonusDamageMultiplier": [1.5, 1.75, 2.0] },
+    { "type": "LIFESTEAL", "lifestealPercent": [0.2, 0.25, 0.3] }
+  ]
+}
+```
+
+### 13.6 Unit Stats Scaling (Explicit 3-Value Lists)
+
+All unit stats are defined as **explicit lists** with exactly 3 values for star levels 1/2/3. No implicit multipliers.
+
+#### `UnitDefinition` Record
+
+```java
+public record UnitDefinition(
+    String id, String name, int cost,
+    List<Integer> maxHealth,      // [hp1, hp2, hp3]
+    List<Integer> maxMana,
+    List<Integer> attackDamage,
+    List<Float> attackSpeed,      // [as1, as2, as3]
+    AbilityDefinition ability
+) {
+    public int getMaxHealth(int level);      // Returns maxHealth[level-1]
+    public int getAttackDamage(int level);   // Returns attackDamage[level-1]
+}
+```
 
 ---
 
