@@ -56,7 +56,7 @@ Host hetznerluffy
   IdentityFile ~/.ssh/id_onepiece_admin
   ```
 3. Your code will be located at `/opt/onepiece`.
-4. On Github, create a tag (e.g. 0.0.1) to trigger the deployment. The `github-deployer` user will execute the `/usr/local/bin/deploy-trigger` single command ssh login which will in return trigger the `./deploy.sh` script.
+4. On Github, create a tag (e.g. 0.1.0) to trigger the deployment. The `github-deployer` user will execute the `/usr/local/bin/deploy-trigger` single command ssh login which will in return trigger the `./deploy.sh` script.
 
 
 ### Updating logic:
@@ -69,7 +69,7 @@ Add this to `.github/workflows/deploy.yml`:
 name: Deploy
 on:
   push:
-    tags: [ 'v*' ]
+    tags: [ '*' ]
 jobs:
   deploy:
     runs-on: ubuntu-latest
