@@ -1,0 +1,126 @@
+#cloud-config
+
+# 1. System Updates
+package_update: true
+package_upgrade: true
+
+# 2. Package Installation
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg
+  - lsb-release
+  - git
+  - ufw
+  - fail2ban
+
+# 3. User Management
+users:
+  - name: deployer
+    groups: sudo, docker
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+      - "<YOUR_ADMIN_SSH_KEY_HERE>"
+
+
+
+  - name: github-deployer
+    groups: docker
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - "<YOUR_GITHUB_ACTION_SSH_KEY_HERE>"
+
+# 4. Swap File (2GB)
+swap:
+  filename: /swap.img
+  size: 2G
+  maxsize: 2G
+
+# 5. File Creation
+write_files:
+  # Advanced SSH Hardening (Based on Hetzner Tutorial)
+  - path: /etc/ssh/sshd_config.d/ssh-hardening.conf
+    content: |
+      PermitRootLogin no
+      PasswordAuthentication no
+      Port 2222
+      KbdInteractiveAuthentication no
+      ChallengeResponseAuthentication no
+      MaxAuthTries 2
+      AllowTcpForwarding no
+      X11Forwarding no
+      AllowAgentForwarding no
+      AuthorizedKeysFile .ssh/authorized_keys
+      AllowUsers deployer github-deployer
+
+
+
+  # Minimal Deploy Wrapper (Trigger Only)
+  - path: /usr/local/bin/deploy-trigger
+    permissions: '0755'
+    owner: root:root
+    content: |
+      #!/bin/bash
+      set -e
+      PROJECT_DIR="/opt/onepiece"
+      REPO_URL="https://github.com/kono94/OnePieceTactics.git"
+
+      echo "[$(date)] Triggering GitOps Update..."
+      
+      if [ ! -d "$PROJECT_DIR" ]; then
+        sudo mkdir -p "$PROJECT_DIR"
+        sudo chown deployer:deployer "$PROJECT_DIR"
+        sudo -u deployer git clone "$REPO_URL" "$PROJECT_DIR"
+      fi
+
+      cd "$PROJECT_DIR"
+      sudo -u deployer git fetch --all --tags
+
+      # Get the latest tag or fallback to main
+      LATEST_TAG=$(sudo -u deployer git describe --tags --abbrev=0 origin/main 2>/dev/null || echo "main")
+      
+      echo "Deploying version: $LATEST_TAG"
+      sudo -u deployer git checkout "$LATEST_TAG"
+
+      if [ -f "$PROJECT_DIR/deployment/deploy.sh" ]; then
+        echo "[$(date)] Executing in-repo deployment script..."
+        sudo -u deployer bash "$PROJECT_DIR/deployment/deploy.sh"
+      else
+        echo "ERROR: $PROJECT_DIR/deployment/deploy.sh not found!"
+        exit 1
+      fi
+
+
+
+
+  # SSH Restriction for github-deployer (Combined with hardening)
+  - path: /etc/ssh/sshd_config.d/github-deploy-restriction.conf
+    content: |
+      Match User github-deployer
+          ForceCommand /usr/local/bin/deploy-trigger
+
+# 6. Post-install commands
+runcmd:
+  # Install Docker
+  - install -m 0755 -d /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+  - apt-get update
+  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+  # Fail2ban Config (Hetzner Tutorial Based)
+  - printf "[sshd]\nenabled = true\nport = ssh, 2222\nbanaction = iptables-multiport" > /etc/fail2ban/jail.local
+  - systemctl enable fail2ban
+
+  # Security: Firewall
+  - ufw allow 2222
+  - ufw allow 80
+  - ufw allow 443
+  - ufw --force enable
+
+  # Final Reboot (Ensures all patches and SSH configs are live)
+  - reboot
+
+final_message: "System is hardening and rebooting. See you on port 2222!"
