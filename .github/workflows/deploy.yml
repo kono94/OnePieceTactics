@@ -1,0 +1,15 @@
+name: Deploy
+on:
+  push:
+    tags: [ 'v*' ]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          port: 2222
+          username: github-deployer
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: "trigger-deploy" # This script value is actually ignored by the server due to ForceCommand, but required by the action
