@@ -27,8 +27,8 @@ onMounted(async () => {
     // Fetch Global Config and Traits
     try {
         const [configRes, traitsRes] = await Promise.all([
-            fetch('http://localhost:8080/api/config'),
-            fetch('http://localhost:8080/api/traits')
+            fetch('/api/config'),
+            fetch('/api/traits')
         ]);
 
         if (configRes.ok) {
@@ -57,8 +57,11 @@ onMounted(async () => {
         console.error("Failed to fetch initial data", e);
     }
 
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    const wsUrl = `${protocol}//${window.location.host}/ws`
+
     client.value = new Client({
-        brokerURL: 'ws://localhost:8080/tft-websocket',
+        brokerURL: wsUrl,
         onConnect: () => {
             isConnected.value = true
             console.log("Connected to WebSocket")
@@ -97,9 +100,11 @@ const subscribeToRoom = (roomId: string) => {
     roomSubscription.value = client.value.subscribe(`/topic/room/${roomId}`, (message) => {
         try {
             gameState.value = JSON.parse(message.body)
+            if (!gameState.value) return;
             
             // Check Game Mode and Update Title
             const mode = gameState.value.gameMode;
+
             // console.log("Received Game Mode:", mode);
             
             const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
