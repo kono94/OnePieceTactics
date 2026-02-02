@@ -24,8 +24,9 @@ public record ScalingModifier(ScalingType scalingType, List<Float> factor) imple
     // Calculate the scaling multiplier based on unit states (1.0 = no change, 1.5 =
     // 50% increase)
     public float calculateMultiplier(GameUnit caster, GameUnit target, int starLevel) {
-        if (factor == null || factor.isEmpty())
+        if (factor == null || factor.isEmpty()) {
             return 1.0f;
+        }
         int index = Math.min(starLevel - 1, factor.size() - 1);
         var currentFactor = factor.get(index);
 
@@ -39,15 +40,13 @@ public record ScalingModifier(ScalingType scalingType, List<Float> factor) imple
                 yield 1.0f + (manaPercent * currentFactor);
             }
             case TARGET_MAX_HP_PERCENT -> {
-                if (target == null)
-                    yield 1.0f;
+                if (target == null) yield 1.0f;
                 var bonusDamage = (int) (target.getMaxHealth() * currentFactor);
                 // Return as additional flat damage, not multiplier
                 yield 1.0f + ((float) bonusDamage / 100.0f); // Normalize to reasonable scale
             }
             case TARGET_MISSING_HP -> {
-                if (target == null)
-                    yield 1.0f;
+                if (target == null) yield 1.0f;
                 var missingHpPercent = 1.0f - ((float) target.getCurrentHealth() / target.getMaxHealth());
                 yield 1.0f + (missingHpPercent * currentFactor);
             }

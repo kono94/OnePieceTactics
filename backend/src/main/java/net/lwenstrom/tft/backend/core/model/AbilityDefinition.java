@@ -12,26 +12,31 @@ public record AbilityDefinition(
         List<Integer> values, // Exactly 3 values [lvl1, lvl2, lvl3]
         List<AbilityModifier> modifiers) {
     public AbilityDefinition {
-        if (modifiers == null)
+        if (modifiers == null) {
             modifiers = Collections.emptyList();
-        if (values == null)
+        }
+        if (values == null) {
             values = Collections.emptyList();
-        if (range == null)
+        }
+        if (range == null) {
             range = Collections.emptyList();
+        }
     }
 
     // Get value for a specific star level (1-indexed)
     public int getValueForLevel(int starLevel) {
-        if (values.isEmpty())
+        if (values.isEmpty()) {
             return 0;
+        }
         int index = Math.min(starLevel - 1, values.size() - 1);
         return values.get(index);
     }
 
     // Get range for a specific star level (1-indexed)
     public int getRangeForLevel(int starLevel) {
-        if (range.isEmpty())
+        if (range.isEmpty()) {
             return 0;
+        }
         int index = Math.min(starLevel - 1, range.size() - 1);
         return range.get(index);
     }
@@ -43,8 +48,9 @@ public record AbilityDefinition(
     // Generate formatted description using template placeholders
     // Supported placeholders: $value, $range, $pattern, $type
     public String getFormattedDescription(int starLevel) {
-        if (description == null)
+        if (description == null) {
             return "";
+        }
 
         var formatted = description;
 
@@ -68,8 +74,7 @@ public record AbilityDefinition(
     private String formatList(List<Integer> list, int starLevel) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < list.size(); i++) {
-            if (i > 0)
-                builder.append("/");
+            if (i > 0) builder.append("/");
 
             int level = i + 1;
             if (level == starLevel) {

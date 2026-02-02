@@ -1,0 +1,2 @@
+# Certificates will be generated here by Certbot on the VPS.
+# This directory should be kept out of Git.

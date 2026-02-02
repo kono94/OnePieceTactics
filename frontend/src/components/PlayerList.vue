@@ -23,7 +23,7 @@
         <div class="info-col">
            <div class="name-row">
               <span class="player-name" :title="player.name">
-                {{ player.name }}
+                {{ player.name }} {{ player.isGhost ? '(Ghost)' : '' }}
               </span>
               <span class="health-text" :class="getHealthColor(player.health)">
                 {{ player.health }}

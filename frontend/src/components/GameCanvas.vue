@@ -161,7 +161,8 @@ const opponentName = computed(() => {
      const oppId = state.matchups[props.myPlayerId]
      if (!oppId) return null
      const p = state.players[oppId]
-     return p ? p.name : 'Opponent'
+     if (!p) return 'Opponent'
+     return p.isGhost ? `${p.name} (Ghost)` : p.name
 })
 
 const hoveredUnit = computed(() => {

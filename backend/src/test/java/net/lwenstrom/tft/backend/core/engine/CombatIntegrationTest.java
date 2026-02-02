@@ -36,8 +36,9 @@ class CombatIntegrationTest {
         // Run combat ticks using TestClock instead of System.currentTimeMillis
         for (int i = 0; i < 60; i++) {
             combatSystem.simulateTick(List.of(p1, p2));
-            if (weakUnit.getCurrentHealth() <= 0)
+            if (weakUnit.getCurrentHealth() <= 0) {
                 break;
+            }
             testClock.advance(50);
         }
 
@@ -92,7 +93,8 @@ class CombatIntegrationTest {
                 .withHealth(100, 100)
                 .withAttackDamage(10);
         var deadUnit = MockUnit.create("dead", p2.getId()).withPosition(3, 4).withHealth(0, 100);
-        var targetUnit = MockUnit.create("target", p2.getId()).withPosition(4, 4).withHealth(50, 100);
+        var targetUnit =
+                MockUnit.create("target", p2.getId()).withPosition(4, 4).withHealth(50, 100);
 
         addUnitToPlayer(p1, aliveUnit);
         addUnitToPlayer(p2, deadUnit);

@@ -122,6 +122,7 @@ export interface PlayerState {
     activeTraits: ActiveTrait[]
     shop: UnitDefinition[]
     lootOrbs: LootOrb[]
+    isGhost: boolean
 }
 
 // ============================================================================

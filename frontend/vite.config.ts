@@ -8,7 +8,8 @@ export default defineConfig({
         proxy: {
             '/ws': {
                 target: 'http://localhost:8080',
-                ws: true
+                ws: true,
+                rewrite: (path) => path.replace(/^\/ws/, '/tft-websocket')
             }
         }
     }

@@ -7,8 +7,9 @@ public record LifestealModifier(List<Float> lifestealPercent) implements Ability
 
     // Calculate healing amount based on damage dealt.
     public int calculateHealing(int damageDealt, int starLevel) {
-        if (lifestealPercent == null || lifestealPercent.isEmpty())
+        if (lifestealPercent == null || lifestealPercent.isEmpty()) {
             return 0;
+        }
         int index = Math.min(starLevel - 1, lifestealPercent.size() - 1);
         return (int) (damageDealt * lifestealPercent.get(index));
     }

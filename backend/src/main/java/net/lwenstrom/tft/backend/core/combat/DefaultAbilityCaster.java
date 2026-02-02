@@ -14,16 +14,16 @@ public class DefaultAbilityCaster implements AbilityCaster {
 
     @Override
     public void castAbility(GameUnit source, List<GameUnit> allUnits, TargetSelector targetSelector) {
-        castAbility(source, allUnits, targetSelector, (id, name, tId, dmg) -> {
-        });
+        castAbility(source, allUnits, targetSelector, (id, name, tId, dmg) -> {});
     }
 
     @Override
     public void castAbility(
             GameUnit source, List<GameUnit> allUnits, TargetSelector targetSelector, DamageCallback callback) {
         AbilityDefinition ability = source.getAbility();
-        if (ability == null)
+        if (ability == null) {
             return;
+        }
 
         source.setActiveAbility(ability.name());
 
@@ -47,8 +47,9 @@ public class DefaultAbilityCaster implements AbilityCaster {
             int damage,
             DamageCallback callback) {
         var target = targetSelector.findTarget(source, allUnits);
-        if (target == null)
+        if (target == null) {
             return;
+        }
 
         // Check conditional modifiers before applying damage
         if (!checkConditionalModifiers(source, target, ability)) {
@@ -62,7 +63,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
         int finalDamage = applyExecuteModifier(source, target, ability, scaledDamage);
 
         // Track total damage dealt for lifesteal
-        var totalDamageDealt = new int[] { 0 };
+        var totalDamageDealt = new int[] {0};
 
         applyToTargets(source, allUnits, target, ability, u -> {
             u.takeDamage(finalDamage);
@@ -81,8 +82,9 @@ public class DefaultAbilityCaster implements AbilityCaster {
             AbilityDefinition ability,
             int stunTicks) {
         var target = targetSelector.findTarget(source, allUnits);
-        if (target == null)
+        if (target == null) {
             return;
+        }
 
         applyToTargets(source, allUnits, target, ability, u -> {
             u.setStunTicksRemaining(u.getStunTicksRemaining() + stunTicks);
@@ -177,8 +179,9 @@ public class DefaultAbilityCaster implements AbilityCaster {
                 int r = range;
                 for (int dx = -r; dx <= r; dx++) {
                     for (int dy = -r; dy <= r; dy++) {
-                        if (dx == 0 && dy == 0)
+                        if (dx == 0 && dy == 0) {
                             continue;
+                        }
                         int tx = source.getX() + dx;
                         int ty = source.getY() + dy;
                         final int fX = tx;

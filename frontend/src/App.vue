@@ -57,8 +57,9 @@ onMounted(async () => {
         console.error("Failed to fetch initial data", e);
     }
 
+    const envWsUrl = import.meta.env.VITE_WS_URL
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const wsUrl = `${protocol}//${window.location.host}/ws`
+    const wsUrl = envWsUrl || `${protocol}//${window.location.host}/ws`
 
     client.value = new Client({
         brokerURL: wsUrl,

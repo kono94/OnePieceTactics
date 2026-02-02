@@ -32,7 +32,8 @@ public record GameState(
             List<GameUnit> board,
             List<Trait> activeTraits,
             List<UnitDefinition> shop,
-            List<LootOrb> lootOrbs) {}
+            List<LootOrb> lootOrbs,
+            boolean isGhost) {}
 
     public record CombatEvent(
             long timestamp,
