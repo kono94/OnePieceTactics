@@ -32,6 +32,7 @@ users:
     ssh_authorized_keys:
       - "<YOUR_GITHUB_ACTION_SSH_KEY_HERE>"
 
+
 # 4. Swap File (2GB)
 swap:
   filename: /swap.img
@@ -57,6 +58,12 @@ write_files:
 
 
 
+  # SSH Restriction for github-deployer
+  - path: /etc/ssh/sshd_config.d/github-deploy-restriction.conf
+    content: |
+      Match User github-deployer
+          ForceCommand /usr/local/bin/deploy-trigger
+
   # Minimal Deploy Wrapper (Trigger Only)
   - path: /usr/local/bin/deploy-trigger
     permissions: '0755'
@@ -70,36 +77,25 @@ write_files:
       echo "[$(date)] Triggering GitOps Update..."
       
       if [ ! -d "$PROJECT_DIR" ]; then
-        sudo mkdir -p "$PROJECT_DIR"
-        sudo chown deployer:deployer "$PROJECT_DIR"
-        sudo -u deployer git clone "$REPO_URL" "$PROJECT_DIR"
+        git clone "$REPO_URL" "$PROJECT_DIR"
       fi
 
       cd "$PROJECT_DIR"
-      sudo -u deployer git fetch --all --tags
+      git fetch --all --tags
 
       # Get the latest tag or fallback to main
-      LATEST_TAG=$(sudo -u deployer git describe --tags --abbrev=0 origin/main 2>/dev/null || echo "main")
+      LATEST_TAG=$(git describe --tags --abbrev=0 origin/main 2>/dev/null || echo "main")
       
       echo "Deploying version: $LATEST_TAG"
-      sudo -u deployer git checkout "$LATEST_TAG"
+      git checkout "$LATEST_TAG"
 
       if [ -f "$PROJECT_DIR/deployment/deploy.sh" ]; then
         echo "[$(date)] Executing in-repo deployment script..."
-        sudo -u deployer bash "$PROJECT_DIR/deployment/deploy.sh"
+        bash "$PROJECT_DIR/deployment/deploy.sh"
       else
         echo "ERROR: $PROJECT_DIR/deployment/deploy.sh not found!"
         exit 1
       fi
-
-
-
-
-  # SSH Restriction for github-deployer (Combined with hardening)
-  - path: /etc/ssh/sshd_config.d/github-deploy-restriction.conf
-    content: |
-      Match User github-deployer
-          ForceCommand /usr/local/bin/deploy-trigger
 
 # 6. Post-install commands
 runcmd:
@@ -120,7 +116,11 @@ runcmd:
   - ufw allow 443
   - ufw --force enable
 
-  # Final Reboot (Ensures all patches and SSH configs are live)
+  # Setup Project Directory permissions for github-deployer
+  - mkdir -p /opt/onepiece
+  - chown github-deployer:github-deployer /opt/onepiece
+
+  # Final Reboot
   - reboot
 
 final_message: "System is hardening and rebooting. See you on port 2222!"

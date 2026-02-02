@@ -1,2 +1,31 @@
 .DS_Store
 .vscode/
+
+
+#!/bin/bash
+set -e
+PROJECT_DIR="/opt/onepiece"
+REPO_URL="https://github.com/kono94/OnePieceTactics.git"
+
+echo "[$(date)] Triggering GitOps Update..."
+      
+if [ ! -d "$PROJECT_DIR" ]; then
+    git clone "$REPO_URL" "$PROJECT_DIR"
+fi
+
+cd "$PROJECT_DIR"
+git fetch --all --tags
+
+# Get the latest tag or fallback to main
+LATEST_TAG=$(git describe --tags --abbrev=0 origin/main 2>/dev/null || echo "main")
+      
+echo "Deploying version: $LATEST_TAG"
+git checkout "$LATEST_TAG"
+
+if [ -f "$PROJECT_DIR/deployment/deploy.sh" ]; then
+    echo "[$(date)] Executing in-repo deployment script..."
+    bash "$PROJECT_DIR/deployment/deploy.sh"
+else
+    echo "ERROR: $PROJECT_DIR/deployment/deploy.sh not found!"
+    exit 1
+fi
