@@ -8,6 +8,6 @@ echo "[$(date)] Restarting OnePieceTactics with Docker Compose..."
 
 # Go to the deployment directory if needed, or run from root
 # Since cloud-init runs this from /opt/onepiece, we can use relative paths
-docker compose up -d --build
+docker compose -f docker-compose.yml -f docker-compose.prod-override.yml up -d --build
 
 echo "[$(date)] Deployment successful."

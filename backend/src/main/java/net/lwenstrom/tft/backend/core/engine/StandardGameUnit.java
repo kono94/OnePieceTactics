@@ -28,4 +28,13 @@ public class StandardGameUnit extends AbstractGameUnit {
     public void useMana(int amount) {
         setMana(Math.max(0, getMana() - amount));
     }
+
+    private StandardGameUnit(StandardGameUnit other) {
+        super(other);
+    }
+
+    @Override
+    public StandardGameUnit cloneUnit() {
+        return new StandardGameUnit(this);
+    }
 }

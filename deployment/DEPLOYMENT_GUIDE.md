@@ -66,19 +66,32 @@ To change how the app restarts (e.g., adding environment variables), simply edit
 Add this to `.github/workflows/deploy.yml`:
 
 ```yaml
-name: Deploy
-on:
-  push:
-    tags: [ '*' ]
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          port: 2222
-          username: github-deployer
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: "ignored"
+... (rest of your deploy.yml)
 ```
+
+## 5. HTTPS & SSL Setup (Powered by Let's Encrypt)
+
+### A. DNS Configuration
+1.  On your domain provider's website, add an **A Record**.
+2.  **Host**: `tft` (or your chosen subdomain).
+3.  **Points to**: `YOUR_SERVER_IP`.
+
+### B. Activate SSL Certificate
+Once the DNS record is active, run this command on your server to generate the certificate:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod-override.yml run --rm certbot certonly --webroot --webroot-path /var/www/certbot/ -d tft.yourdomain.com
+```
+
+### C. Run Production
+Start your stack using both files:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod-override.yml up -d
+```
+
+> [!IMPORTANT]
+> Before running the command above, make sure you have replaced `YOUR_DOMAIN_HERE` in [deployment/nginx.prod.conf](./deployment/nginx.prod.conf) with your actual domain.
+
+> [!TIP]
+> **Automatic Renewal**: The `certbot` container is configured to automatically check and renew certificates every 12 hours.

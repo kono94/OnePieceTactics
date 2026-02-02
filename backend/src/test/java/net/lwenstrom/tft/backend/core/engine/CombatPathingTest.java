@@ -232,6 +232,18 @@ public class CombatPathingTest {
         public void setSpdBuff(float buff) {
             this.spdBuff = buff;
         }
+
+        @Override
+        public GameUnit cloneUnit() {
+            MockUnit clone = new MockUnit(this.id, this.x, this.y, this.ownerId);
+            clone.hp = this.hp;
+            clone.nextMoveTime = this.nextMoveTime;
+            clone.range = this.range;
+            clone.stunTicksRemaining = this.stunTicksRemaining;
+            clone.atkBuff = this.atkBuff;
+            clone.spdBuff = this.spdBuff;
+            return clone;
+        }
     }
 
     @Test

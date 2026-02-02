@@ -91,7 +91,7 @@ public class PhaseDurationTest {
         room.tick();
 
         assertEquals(GamePhase.COMBAT, room.getState().phase());
-        assertEquals(15000, room.getState().totalPhaseDuration(), "Round 1 Combat should be 15s");
+        assertEquals(25000, room.getState().totalPhaseDuration(), "Round 1 Combat should be 25s");
 
         // Fast forward to Round 2 Planning
         fastForward();
@@ -99,13 +99,13 @@ public class PhaseDurationTest {
 
         assertEquals(2, room.getState().round());
         assertEquals(GamePhase.PLANNING, room.getState().phase());
-        assertEquals(17000, room.getState().totalPhaseDuration(), "Round 2 Planning should be 17s");
+        assertEquals(15250, room.getState().totalPhaseDuration(), "Round 2 Planning should be 15.25s");
 
         // Fast forward to Round 2 Combat
         fastForward();
         room.tick();
 
-        assertEquals(17000, room.getState().totalPhaseDuration(), "Round 2 Combat should be 17s");
+        assertEquals(25000, room.getState().totalPhaseDuration(), "Round 2 Combat should be 25s");
     }
 
     @Test
@@ -139,12 +139,12 @@ public class PhaseDurationTest {
         // Verify the phase duration formula is correct for whatever round we reached
         if (room.getState().phase() != GamePhase.END) {
             int round = (int) room.getState().round();
-            // 15s + (round - 1) * 2s
-            long expectedDuration = 15000 + (round - 1) * 2000L;
+            GamePhase phase = room.getState().phase();
+            long expectedDuration = (phase == GamePhase.COMBAT) ? 25000 : 15000 + (round - 1) * 250L;
             assertEquals(
                     expectedDuration,
                     room.getState().totalPhaseDuration(),
-                    "Round " + round + " should have correct duration");
+                    "Round " + round + " (" + phase + ") should have correct duration");
         }
     }
 

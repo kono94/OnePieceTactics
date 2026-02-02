@@ -39,6 +39,7 @@ public class Player {
     private boolean shopLocked = false;
     private boolean boardLocked = false;
     private boolean inCombat = false;
+    private boolean ghost = false;
     private final List<PendingUpgrade> pendingUpgrades = new ArrayList<>();
 
     private record PendingUpgrade(String unitName, int starLevel) {}
@@ -350,6 +351,20 @@ public class Player {
         }
     }
 
+    public Player createGhost() {
+        Player ghostPlayer = new Player(this.name, this.dataLoader, this.randomProvider);
+        ghostPlayer.setGhost(true);
+        ghostPlayer.setHealth(this.health);
+        ghostPlayer.setLevel(this.level);
+
+        for (GameUnit unit : this.boardUnits) {
+            GameUnit cloned = unit.cloneUnit();
+            ghostPlayer.boardUnits.add(cloned);
+            ghostPlayer.grid.placeUnit(cloned, cloned.getX(), cloned.getY());
+        }
+        return ghostPlayer;
+    }
+
     public PlayerState toState() {
         return new PlayerState(
                 id,
@@ -365,6 +380,7 @@ public class Player {
                 new ArrayList<>(boardUnits),
                 new ArrayList<>(), // TODO: Calculate active traits
                 new ArrayList<>(shop),
-                new ArrayList<>(lootOrbs));
+                new ArrayList<>(lootOrbs),
+                ghost);
     }
 }

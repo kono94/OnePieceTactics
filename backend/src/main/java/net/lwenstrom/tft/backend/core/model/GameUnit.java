@@ -120,4 +120,6 @@ public interface GameUnit {
     }
 
     default void setSpdBuff(float buff) {}
+
+    GameUnit cloneUnit();
 }

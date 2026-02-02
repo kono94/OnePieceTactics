@@ -322,4 +322,28 @@ public abstract class AbstractGameUnit implements GameUnit {
     public void setActiveAbility(String abilityName) {
         this.activeAbility = abilityName;
     }
+
+    protected AbstractGameUnit(AbstractGameUnit other) {
+        this.definitionId = other.definitionId;
+        this.name = other.name;
+        this.cost = other.cost;
+        this.ability = other.ability;
+        this.range = other.range;
+        this.traits = new java.util.HashSet<>(other.traits);
+        this.starLevel = other.starLevel;
+        this.maxHealth = other.maxHealth;
+        this.currentHealth = other.currentHealth;
+        this.maxMana = other.maxMana;
+        this.mana = other.mana;
+        this.attackDamage = other.attackDamage;
+        this.abilityPower = other.abilityPower;
+        this.armor = other.armor;
+        this.magicResist = other.magicResist;
+        this.attackSpeed = other.attackSpeed;
+        this.x = other.x;
+        this.y = other.y;
+        this.planningX = other.planningX;
+        this.planningY = other.planningY;
+        this.ownerId = other.ownerId;
+    }
 }

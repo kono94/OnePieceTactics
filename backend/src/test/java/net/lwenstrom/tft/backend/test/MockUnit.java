@@ -314,4 +314,36 @@ public class MockUnit implements GameUnit {
     public void setSpdBuff(float buff) {
         this.spdBuff = buff;
     }
+
+    @Override
+    public GameUnit cloneUnit() {
+        MockUnit clone = new MockUnit(this.id, this.ownerId);
+        clone.definitionId = this.definitionId;
+        clone.name = this.name;
+        clone.cost = this.cost;
+        clone.maxHealth = this.maxHealth;
+        clone.currentHealth = this.currentHealth;
+        clone.mana = this.mana;
+        clone.maxMana = this.maxMana;
+        clone.attackDamage = this.attackDamage;
+        clone.abilityPower = this.abilityPower;
+        clone.armor = this.armor;
+        clone.magicResist = this.magicResist;
+        clone.attackSpeed = this.attackSpeed;
+        clone.range = this.range;
+        clone.traits = this.traits;
+        clone.starLevel = this.starLevel;
+        clone.x = this.x;
+        clone.y = this.y;
+        clone.savedX = this.savedX;
+        clone.savedY = this.savedY;
+        clone.nextAttackTime = this.nextAttackTime;
+        clone.nextMoveTime = this.nextMoveTime;
+        clone.ability = this.ability;
+        clone.activeAbility = this.activeAbility;
+        clone.stunTicksRemaining = this.stunTicksRemaining;
+        clone.atkBuff = this.atkBuff;
+        clone.spdBuff = this.spdBuff;
+        return clone;
+    }
 }
