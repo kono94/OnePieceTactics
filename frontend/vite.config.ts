@@ -10,6 +10,10 @@ export default defineConfig({
                 target: 'http://localhost:8080',
                 ws: true,
                 rewrite: (path) => path.replace(/^\/ws/, '/tft-websocket')
+            },
+            '/api': {
+                target: 'http://localhost:8080',
+                changeOrigin: true
             }
         }
     }

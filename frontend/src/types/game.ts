@@ -24,8 +24,8 @@ export interface AbilityDefinition {
     description: string
     type: string // 'DAMAGE' | 'STUN' | 'HEAL' | 'BUFF_ATK' | 'BUFF_SPD' (future)
     pattern: string // 'SINGLE' | 'LINE' | 'SURROUND'
-    value: number
-    range: number
+    range: number[]
+    values: number[]
 }
 
 export interface GameItem {
