@@ -14,6 +14,7 @@ import net.lwenstrom.tft.backend.core.engine.TraitManager;
 import net.lwenstrom.tft.backend.core.engine.UnitDefinition;
 import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
 import net.lwenstrom.tft.backend.core.model.GameMode;
+import net.lwenstrom.tft.backend.core.model.TraitMetadata;
 import net.lwenstrom.tft.backend.core.random.RandomProvider;
 import net.lwenstrom.tft.backend.core.time.Clock;
 
@@ -69,6 +70,11 @@ public final class TestHelpers {
             @Override
             public GameMode getGameMode() {
                 return GameMode.ONEPIECE;
+            }
+
+            @Override
+            public List<TraitMetadata> getTraitMetadata() {
+                return List.of();
             }
         };
     }

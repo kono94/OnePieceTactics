@@ -5,6 +5,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
+import net.lwenstrom.tft.backend.core.GameConstants;
 import net.lwenstrom.tft.backend.core.combat.AbilityCaster;
 import net.lwenstrom.tft.backend.core.combat.CombatUtils;
 import net.lwenstrom.tft.backend.core.combat.TargetSelector;
@@ -13,6 +15,7 @@ import net.lwenstrom.tft.backend.core.model.GameState;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 import net.lwenstrom.tft.backend.core.time.Clock;
 
+@Slf4j
 public class CombatSystem {
 
     private final TraitManager traitManager;
@@ -51,9 +54,13 @@ public class CombatSystem {
         return new HashMap<>(damageLog);
     }
 
-    public void startCombat(java.util.Collection<Player> players) {
+    public void clearDamageLog() {
         damageLog.clear();
         recentEvents.clear();
+    }
+
+    public void startCombat(java.util.Collection<Player> players) {
+        clearDamageLog();
 
         var sortedPlayers = new ArrayList<Player>(players);
         sortedPlayers.sort(Comparator.comparing(Player::getId));
@@ -76,7 +83,7 @@ public class CombatSystem {
                 int newX = unit.getX();
                 int newY = (Grid.PLAYER_ROWS - 1) - unit.getY();
                 unit.setPosition(newX, newY);
-                System.out.println("CombatPos: " + unit.getName() + " (TOP) -> " + newX + "," + newY);
+                log.debug("CombatPos: {} (TOP) -> {},{}", unit.getName(), newX, newY);
             }
 
             var p2 = sortedPlayers.get(1);
@@ -84,7 +91,7 @@ public class CombatSystem {
             for (var u : p2.getBoardUnits()) {
                 int newY = Grid.PLAYER_ROWS + u.getY();
                 u.setPosition(u.getX(), newY);
-                System.out.println("CombatPos: " + u.getName() + " (BOT) -> " + u.getX() + "," + newY);
+                log.debug("CombatPos: {} (BOT) -> {},{}", u.getName(), u.getX(), newY);
             }
         } else {
             var p1 = sortedPlayers.get(0);
@@ -97,7 +104,7 @@ public class CombatSystem {
     }
 
     public void endCombat(java.util.Collection<Player> players) {
-        System.out.println("Restoring units for " + players.size() + " players.");
+        log.debug("Restoring units for {} players.", players.size());
         for (var player : players) {
             player.setCombatSide(null);
             for (var unit : player.getBoardUnits()) {
@@ -137,7 +144,7 @@ public class CombatSystem {
                     recentEvents.add(new GameState.CombatEvent(currentTime, "SKILL", uId, tId, dmg));
                 });
                 unit.setMana(0);
-                unit.setNextAttackTime(currentTime + 1000);
+                unit.setNextAttackTime(currentTime + GameConstants.ABILITY_COOLDOWN_MS);
                 continue;
             }
 
@@ -148,13 +155,13 @@ public class CombatSystem {
                     // Apply ATK buff multiplier to damage
                     int baseDamage = unit.getAttackDamage();
                     int effectiveDamage = (int) (baseDamage * unit.getAtkBuff());
-                    System.out.println(unit.getName() + " attacks " + target.getName() + " for " + effectiveDamage);
+                    log.debug("{} attacks {} for {}", unit.getName(), target.getName(), effectiveDamage);
                     target.takeDamage(effectiveDamage);
                     accumulateDamage(
                             unit.getId(), unit.getName(), unit.getDefinitionId(), unit.getOwnerId(), effectiveDamage);
                     recentEvents.add(new GameState.CombatEvent(
                             currentTime, "DAMAGE", unit.getId(), target.getId(), effectiveDamage));
-                    unit.gainMana(10);
+                    unit.gainMana(GameConstants.MANA_PER_HIT);
                     // Apply SPD buff to attack cooldown
                     float as = Math.max(0.1f, unit.getAttackSpeed());
                     float effectiveAs = as * unit.getSpdBuff();

@@ -1,12 +1,13 @@
 package net.lwenstrom.tft.backend.core.engine;
 
 import java.util.Optional;
+import net.lwenstrom.tft.backend.core.GameConstants;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 
 public class Grid {
-    public static final int COLS = 7;
-    public static final int PLAYER_ROWS = 4;
-    public static final int COMBAT_ROWS = PLAYER_ROWS * 2; // 8
+    public static final int COLS = GameConstants.GRID_COLS;
+    public static final int PLAYER_ROWS = GameConstants.PLAYER_ROWS;
+    public static final int COMBAT_ROWS = GameConstants.COMBAT_ROWS;
 
     private final GameUnit[][] board;
 

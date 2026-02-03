@@ -2,14 +2,17 @@ package net.lwenstrom.tft.backend.core;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.lwenstrom.tft.backend.core.engine.CombatSystem;
 import net.lwenstrom.tft.backend.core.engine.GameEngine;
 import net.lwenstrom.tft.backend.core.engine.GameRoom;
 import net.lwenstrom.tft.backend.core.engine.Player;
 import net.lwenstrom.tft.backend.core.model.GameAction;
 import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GamePhase;
+import net.lwenstrom.tft.backend.core.model.TraitMetadata;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -30,7 +33,7 @@ public class GameController {
     private final DataLoader dataLoader;
     private final GameModeRegistry gameModeRegistry;
 
-    @Scheduled(fixedRate = 100)
+    @Scheduled(fixedRate = GameConstants.TICK_RATE_MS)
     public void tick() {
         gameEngine.tick();
         gameEngine.getActiveRooms().forEach(room -> {
@@ -39,7 +42,7 @@ public class GameController {
     }
 
     @GetMapping("/api/traits")
-    public List<Object> getTraits() {
+    public List<TraitMetadata> getTraits() {
         return dataLoader.getTraitMetadata();
     }
 
@@ -50,141 +53,164 @@ public class GameController {
 
     @MessageMapping("/create")
     public void createRoom(@Payload RoomRequest request) {
-        GameRoom room = gameEngine.createRoom(request.roomId());
+        var room = gameEngine.createRoom(request.roomId());
         configureCombatResultListener(room);
-
         joinRoom(new RoomRequest(room.getId(), request.playerName()));
     }
 
     private void configureCombatResultListener(GameRoom room) {
-        room.setCombatResultListener((roomId, winnerId, loserId, participantIds, damageLog) -> {
-            var damageMap = damageLog.entrySet().stream()
-                    .collect(java.util.stream.Collectors.toMap(
-                            java.util.Map.Entry::getKey,
-                            e -> Map.of(
-                                    "name",
-                                    e.getValue().unitName(),
-                                    "damage",
-                                    e.getValue().damage())));
-            var payload = Map.of(
-                    "winnerId",
-                    winnerId != null ? winnerId : "",
-                    "loserId",
-                    loserId != null ? loserId : "",
-                    "participantIds",
-                    participantIds,
-                    "damageLog",
-                    damageMap);
-            var event = java.util.Map.of("type", "COMBAT_RESULT", "payload", payload);
-            messagingTemplate.convertAndSend("/topic/room/" + roomId + "/event", (Object) event);
-        });
+        room.setCombatResultListener(this::handleCombatResult);
+    }
+
+    private void handleCombatResult(
+            String roomId,
+            String winnerId,
+            String loserId,
+            List<String> participantIds,
+            Map<String, CombatSystem.DamageEntry> damageLog) {
+        var damageMap = buildDamageMap(damageLog);
+        var payload = buildCombatResultPayload(winnerId, loserId, participantIds, damageMap);
+        var event = Map.of("type", "COMBAT_RESULT", "payload", payload);
+        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/event", (Object) event);
+    }
+
+    private Map<String, Map<String, Object>> buildDamageMap(Map<String, CombatSystem.DamageEntry> damageLog) {
+        return damageLog.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> Map.of(
+                                "name",
+                                e.getValue().unitName(),
+                                "damage",
+                                e.getValue().damage())));
+    }
+
+    private Map<String, Object> buildCombatResultPayload(
+            String winnerId, String loserId, List<String> participantIds, Map<String, Map<String, Object>> damageMap) {
+        return Map.of(
+                "winnerId",
+                winnerId != null ? winnerId : "",
+                "loserId",
+                loserId != null ? loserId : "",
+                "participantIds",
+                participantIds,
+                "damageLog",
+                damageMap);
     }
 
     @MessageMapping("/join")
     public void joinRoom(@Payload RoomRequest request) {
-        GameRoom room = gameEngine.getRoom(request.roomId());
+        var room = gameEngine.getRoom(request.roomId());
         if (room != null) {
             room.addPlayer(request.playerName());
-            messagingTemplate.convertAndSend("/topic/room/" + room.getId(), room.getState());
+            broadcastRoomState(room);
         }
     }
 
     @MessageMapping("/leave")
     public void leaveRoom(@Payload RoomRequest request) {
-        GameRoom room = gameEngine.getRoom(request.roomId());
+        var room = gameEngine.getRoom(request.roomId());
         if (room != null) {
-            room.removePlayer(request.playerName()); // Assuming playerName is used as ID or we have ID mapping
-            // Ideally request should send playerId if possible, or we assume name is unique
-            // per room for now.
-            // Using player name as ID for simplicity in this MVP as seen in addPlayer
-            messagingTemplate.convertAndSend("/topic/room/" + room.getId(), room.getState());
+            room.removePlayer(request.playerName());
+            broadcastRoomState(room);
         }
     }
 
     @MessageMapping("/start")
     public void startRoom(@Payload RoomRequest request) {
         log.info("Received start request for room: {} from player: {}", request.roomId(), request.playerName());
-        GameRoom room = gameEngine.getRoom(request.roomId());
-        if (room != null) {
-            // Find player by name to get their ID
-            Player player = room.getPlayers().stream()
-                    .filter(p -> p.getName().equals(request.playerName()))
-                    .findFirst()
-                    .orElse(null);
-
-            if (player != null) {
-                log.info(
-                        "Found player: {} ID: {} Host ID: {}",
-                        player.getName(),
-                        player.getId(),
-                        room.getState().hostId());
-                if (room.getState().hostId().equals(player.getId())) {
-                    log.info("Host verified. Starting match.");
-                    room.startMatch();
-                    messagingTemplate.convertAndSend("/topic/room/" + room.getId(), room.getState());
-                } else {
-                    log.info("Player is not host.");
-                }
-            } else {
-                log.info("Player not found in room.");
-            }
-        } else {
+        var room = gameEngine.getRoom(request.roomId());
+        if (room == null) {
             log.info("Room not found.");
+            return;
         }
+
+        var player = findPlayerByName(room, request.playerName());
+        if (player == null) {
+            log.info("Player not found in room.");
+            return;
+        }
+
+        log.info(
+                "Found player: {} ID: {} Host ID: {}",
+                player.getName(),
+                player.getId(),
+                room.getState().hostId());
+
+        if (room.getState().hostId().equals(player.getId())) {
+            log.info("Host verified. Starting match.");
+            room.startMatch();
+            broadcastRoomState(room);
+        } else {
+            log.info("Player is not host.");
+        }
+    }
+
+    private Player findPlayerByName(GameRoom room, String playerName) {
+        return room.getPlayers().stream()
+                .filter(p -> p.getName().equals(playerName))
+                .findFirst()
+                .orElse(null);
     }
 
     @MessageMapping("/room/{id}/add-bot")
     public void addBot(@DestinationVariable String id) {
-        GameRoom room = gameEngine.getRoom(id);
+        var room = gameEngine.getRoom(id);
         if (room != null) {
             room.addBot();
-            messagingTemplate.convertAndSend("/topic/room/" + room.getId(), room.getState());
+            broadcastRoomState(room);
         }
     }
 
     @MessageMapping("/room/{id}/action")
     public void handleAction(@DestinationVariable String id, @Payload GameAction action) {
-        GameRoom room = gameEngine.getRoom(id);
-        if (room != null) {
-            Player p = room.getPlayer(action.playerId());
-            if (p == null) {
-                log.warn("Player not found in room.");
-                return;
-            }
+        var room = gameEngine.getRoom(id);
+        if (room == null) return;
 
-            switch (action.type()) {
-                case BUY -> {
-                    p.buyUnit(action.shopIndex());
-                }
-                case REROLL -> {
-                    p.refreshShop();
-                }
-                case EXP -> {
-                    if (p.getGold() >= 4) {
-                        p.gainGold(-4);
-                        p.gainXp(4);
-                    }
-                }
-                case MOVE -> {
-                    if (room.getState().phase() == GamePhase.PLANNING || room.getState().phase() == GamePhase.COMBAT) {
-                        room.moveUnit(action.playerId(), action.unitId(), action.targetX(), action.targetY());
-                    }
-                }
-                case SELL -> {
-                    // Allow selling bench units anytime, but board units only during PLANNING
-                    p.sellUnit(action.unitId(), room.getState().phase() == GamePhase.PLANNING);
-                }
-                case LOCK -> {
-                    // TODO: Implement
-                }
-                case COLLECT_ORB -> {
-                    room.collectOrb(action.playerId(), action.orbId());
-                }
-            }
-            messagingTemplate.convertAndSend("/topic/room/" + room.getId(), room.getState());
+        var player = room.getPlayer(action.playerId());
+        if (player == null) {
+            log.warn("Player not found in room.");
+            return;
+        }
+
+        processAction(room, player, action);
+        broadcastRoomState(room);
+    }
+
+    private void processAction(GameRoom room, Player player, GameAction action) {
+        switch (action.type()) {
+            case BUY -> player.buyUnit(action.shopIndex());
+            case REROLL -> player.refreshShop();
+            case EXP -> handleExpPurchase(player);
+            case MOVE -> handleMove(room, action);
+            case SELL -> handleSell(room, player, action);
+            case LOCK -> player.setShopLocked(!player.isShopLocked());
+            case COLLECT_ORB -> room.collectOrb(action.playerId(), action.orbId());
         }
     }
 
-    public record RoomRequest(String roomId, String playerName) {
+    private void handleExpPurchase(Player player) {
+        if (player.getGold() >= GameConstants.XP_BUY_COST) {
+            player.gainGold(-GameConstants.XP_BUY_COST);
+            player.gainXp(GameConstants.XP_BUY_AMOUNT);
+        }
     }
+
+    private void handleMove(GameRoom room, GameAction action) {
+        var phase = room.getState().phase();
+        if (phase == GamePhase.PLANNING || phase == GamePhase.COMBAT) {
+            room.moveUnit(action.playerId(), action.unitId(), action.targetX(), action.targetY());
+        }
+    }
+
+    private void handleSell(GameRoom room, Player player, GameAction action) {
+        // Allow selling bench units anytime, but board units only during PLANNING
+        player.sellUnit(action.unitId(), room.getState().phase() == GamePhase.PLANNING);
+    }
+
+    private void broadcastRoomState(GameRoom room) {
+        messagingTemplate.convertAndSend("/topic/room/" + room.getId(), room.getState());
+    }
+
+    public record RoomRequest(String roomId, String playerName) {}
 }

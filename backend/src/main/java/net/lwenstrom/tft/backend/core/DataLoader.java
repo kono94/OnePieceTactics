@@ -8,23 +8,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.lwenstrom.tft.backend.core.engine.UnitDefinition;
 import net.lwenstrom.tft.backend.core.model.GameMode;
+import net.lwenstrom.tft.backend.core.model.TraitMetadata;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DataLoader {
 
     private final GameModeRegistry gameModeRegistry;
     private final JsonMapper jsonMapper = JsonMapper.builder().build();
 
     private Map<String, UnitDefinition> unitRegistry;
-    private List<Object> traitMetadata;
+    private List<TraitMetadata> traitMetadata;
 
     @PostConstruct
     public void loadData() {
-        GameModeProvider provider = gameModeRegistry.getActiveProvider();
+        var provider = gameModeRegistry.getActiveProvider();
         loadUnits(provider.getUnitsPath());
         loadTraits(provider.getTraitsPath());
     }
@@ -35,9 +38,9 @@ public class DataLoader {
             if (is != null) {
                 List<UnitDefinition> units = jsonMapper.readValue(is, new TypeReference<>() {});
                 unitRegistry = units.stream().collect(Collectors.toMap(UnitDefinition::id, u -> u));
-                System.out.println("Loaded " + unitRegistry.size() + " units from " + path);
+                log.info("Loaded {} units from {}", unitRegistry.size(), path);
             } else {
-                System.err.println("Could not find units at " + path);
+                log.error("Could not find units at {}", path);
                 unitRegistry = Map.of();
             }
         } catch (IOException e) {
@@ -50,9 +53,9 @@ public class DataLoader {
             var is = getClass().getResourceAsStream(path);
             if (is != null) {
                 traitMetadata = jsonMapper.readValue(is, new TypeReference<>() {});
-                System.out.println("Loaded trait metadata from " + path);
+                log.info("Loaded {} traits from {}", traitMetadata.size(), path);
             } else {
-                System.err.println("Could not find traits at " + path);
+                log.error("Could not find traits at {}", path);
                 traitMetadata = List.of();
             }
         } catch (IOException e) {
@@ -72,7 +75,7 @@ public class DataLoader {
         return gameModeRegistry.getActiveMode();
     }
 
-    public List<Object> getTraitMetadata() {
+    public List<TraitMetadata> getTraitMetadata() {
         return traitMetadata;
     }
 }

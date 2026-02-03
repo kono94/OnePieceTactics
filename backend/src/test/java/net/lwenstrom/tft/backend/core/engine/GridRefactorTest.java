@@ -11,6 +11,7 @@ import net.lwenstrom.tft.backend.core.GameModeProvider;
 import net.lwenstrom.tft.backend.core.GameModeRegistry;
 import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
+import net.lwenstrom.tft.backend.core.model.TraitMetadata;
 import org.junit.jupiter.api.Test;
 
 class GridRefactorTest {
@@ -23,6 +24,11 @@ class GridRefactorTest {
         @Override
         public java.util.List<UnitDefinition> getAllUnits() {
             return Collections.emptyList();
+        }
+
+        @Override
+        public List<TraitMetadata> getTraitMetadata() {
+            return List.of();
         }
     }
 
@@ -68,94 +74,82 @@ class GridRefactorTest {
 
     @Test
     void testGridConstraints() {
-        Grid grid = new Grid();
-        assertEquals(Grid.PLAYER_ROWS, Grid.PLAYER_ROWS); // Tautology but verifies internal consistency check
+        var grid = new Grid();
+        assertEquals(Grid.PLAYER_ROWS, Grid.PLAYER_ROWS);
         assertEquals(4, Grid.PLAYER_ROWS);
         assertEquals(7, Grid.COLS);
 
         GameUnit u = new StandardGameUnit(createDummyDef());
 
         // Valid placement
-        grid.placeUnit(u, 3, 3); // 3 is max index for 4 rows? No, 0-3.
+        grid.placeUnit(u, 3, 3);
         assertEquals(3, u.getX());
         assertEquals(3, u.getY());
 
-        // Invalid placement (Global coordinate 7,0 would be invalid on local grid 0-6,
-        // 0-3)
+        // Invalid placement
         assertThrows(IllegalArgumentException.class, () -> grid.placeUnit(u, Grid.COLS, 0));
         assertThrows(IllegalArgumentException.class, () -> grid.placeUnit(u, 0, Grid.PLAYER_ROWS));
     }
 
     @Test
     void testCombatMerging() {
-        GameModeRegistry registry = createMockRegistry();
-        Player p1 = new Player("P1", new MockDataLoader(registry), createSeededRandomProvider());
-        Player p2 = new Player("P2", new MockDataLoader(registry), createSeededRandomProvider());
+        var registry = createMockRegistry();
+        var p1 = new Player("P1", new MockDataLoader(registry), createSeededRandomProvider());
+        var p2 = new Player("P2", new MockDataLoader(registry), createSeededRandomProvider());
 
-        GameUnit u1 = new StandardGameUnit(createDummyDef());
+        var u1 = new StandardGameUnit(createDummyDef());
         u1.setOwnerId(p1.getId());
 
-        try {
-            java.lang.reflect.Field benchField = Player.class.getDeclaredField("bench");
-            benchField.setAccessible(true);
-            @SuppressWarnings("unchecked")
-            List<GameUnit> bench1 = (List<GameUnit>) benchField.get(p1);
-            bench1.add(u1);
+        var u2 = new StandardGameUnit(createDummyDef());
+        u2.setOwnerId(p2.getId());
 
-            GameUnit u2 = new StandardGameUnit(createDummyDef());
-            u2.setOwnerId(p2.getId());
-            @SuppressWarnings("unchecked")
-            List<GameUnit> bench2 = (List<GameUnit>) benchField.get(p2);
-            bench2.add(u2);
+        // Use the new Bench API instead of reflection
+        p1.getBenchSlots().set(0, u1);
+        p2.getBenchSlots().set(0, u2);
 
-            // Move P1 unit to (3, 3) - Back Center (Local Row 3 is Backline/Edge)
-            p1.moveUnit(u1.getId(), 3, 3);
-            assertEquals(3, u1.getX());
-            assertEquals(3, u1.getY());
+        p1.setLevel(3);
+        p2.setLevel(3);
 
-            // Move P2 unit to (3, 3) - Back Center
-            p2.moveUnit(u2.getId(), 3, 3);
-            assertEquals(3, u2.getX());
-            assertEquals(3, u2.getY());
+        // Move P1 unit to (3, 3) - Back Center
+        p1.moveUnit(u1.getId(), 3, 3);
+        assertEquals(3, u1.getX());
+        assertEquals(3, u1.getY());
 
-            // Start Combat
-            var cs = createTestCombatSystem();
+        // Move P2 unit to (3, 3) - Back Center
+        p2.moveUnit(u2.getId(), 3, 3);
+        assertEquals(3, u2.getX());
+        assertEquals(3, u2.getY());
 
-            // Ensure sorting P1 < P2 for test predictability (P1=Top, P2=Bottom)
-            if (p1.getId().compareTo(p2.getId()) > 0) {
-                Player tmp = p1;
-                p1 = p2;
-                p2 = tmp;
-                GameUnit tmpU = u1;
-                u1 = u2;
-                u2 = tmpU;
-            }
+        // Start Combat
+        var cs = createTestCombatSystem();
 
-            cs.startCombat(Arrays.asList(p1, p2));
-
-            // P1 (Top) at (3,3) Backline -> Should mirror to Arena Top Edge (0)
-            // X: 6 - 3 = 3
-            // Y: 3 - 3 = 0
-            assertEquals(3, u1.getX(), "P1 X should be 3");
-            assertEquals(0, u1.getY(), "P1 Y should be 0 (Top Edge)");
-
-            // P2 (Bottom) at (3,3) Backline -> Should offset to Arena Bottom Edge (7)
-            // X: 3
-            // Y: 4 + 3 = 7
-            assertEquals(3, u2.getX(), "P2 X should be 3");
-            assertEquals(7, u2.getY(), "P2 Y should be 7 (Bottom Edge)");
-
-            // End Combat
-            cs.endCombat(Arrays.asList(p1, p2));
-
-            // Restore
-            assertEquals(3, u1.getX());
-            assertEquals(3, u1.getY());
-            assertEquals(3, u2.getX());
-            assertEquals(3, u2.getY());
-
-        } catch (Exception e) {
-            fail(e);
+        // Ensure sorting P1 < P2 for test predictability (P1=Top, P2=Bottom)
+        if (p1.getId().compareTo(p2.getId()) > 0) {
+            var tmp = p1;
+            p1 = p2;
+            p2 = tmp;
+            var tmpU = u1;
+            u1 = u2;
+            u2 = tmpU;
         }
+
+        cs.startCombat(Arrays.asList(p1, p2));
+
+        // P1 (Top) at (3,3) Backline -> Should mirror to Arena Top Edge (0)
+        assertEquals(3, u1.getX(), "P1 X should be 3");
+        assertEquals(0, u1.getY(), "P1 Y should be 0 (Top Edge)");
+
+        // P2 (Bottom) at (3,3) Backline -> Should offset to Arena Bottom Edge (7)
+        assertEquals(3, u2.getX(), "P2 X should be 3");
+        assertEquals(7, u2.getY(), "P2 Y should be 7 (Bottom Edge)");
+
+        // End Combat
+        cs.endCombat(Arrays.asList(p1, p2));
+
+        // Restore
+        assertEquals(3, u1.getX());
+        assertEquals(3, u1.getY());
+        assertEquals(3, u2.getX());
+        assertEquals(3, u2.getY());
     }
 }

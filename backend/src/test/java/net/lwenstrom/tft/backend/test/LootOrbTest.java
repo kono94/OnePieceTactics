@@ -4,8 +4,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.List;
+import java.util.Objects;
 import net.lwenstrom.tft.backend.core.DataLoader;
 import net.lwenstrom.tft.backend.core.engine.Player;
+import net.lwenstrom.tft.backend.core.engine.StandardGameUnit;
 import net.lwenstrom.tft.backend.core.engine.UnitDefinition;
 import net.lwenstrom.tft.backend.core.model.LootOrb;
 import net.lwenstrom.tft.backend.core.model.LootType;
@@ -28,8 +30,8 @@ public class LootOrbTest {
 
     @Test
     void testCollectGoldOrb() {
-        int initialGold = player.getGold();
-        LootOrb goldOrb = new LootOrb("orb-1", 0, 0, LootType.GOLD, "", 5);
+        var initialGold = player.getGold();
+        var goldOrb = new LootOrb("orb-1", 0, 0, LootType.GOLD, "", 5);
         player.addLootOrb(goldOrb);
 
         player.collectOrb("orb-1");
@@ -40,7 +42,7 @@ public class LootOrbTest {
 
     @Test
     void testCollectUnitOrb() {
-        UnitDefinition unitDef = new UnitDefinition(
+        var unitDef = new UnitDefinition(
                 "unit-1",
                 "Luffy",
                 1,
@@ -56,19 +58,22 @@ public class LootOrbTest {
                 null);
         when(dataLoader.getAllUnits()).thenReturn(List.of(unitDef));
 
-        LootOrb unitOrb = new LootOrb("orb-2", 0, 0, LootType.UNIT, "Luffy", 1);
+        var unitOrb = new LootOrb("orb-2", 0, 0, LootType.UNIT, "Luffy", 1);
         player.addLootOrb(unitOrb);
 
         player.collectOrb("orb-2");
 
-        assertEquals(1, player.getBench().size());
-        assertEquals("Luffy", player.getBench().get(0).getName());
+        var benchCount = player.getBench().stream().filter(Objects::nonNull).count();
+        assertEquals(1, benchCount);
+        var firstUnit = player.getBench().stream().filter(Objects::nonNull).findFirst();
+        assertTrue(firstUnit.isPresent());
+        assertEquals("Luffy", firstUnit.get().getName());
         assertTrue(player.toState().lootOrbs().isEmpty());
     }
 
     @Test
     void testCollectUnitOrbBenchFull() {
-        UnitDefinition unitDef = new UnitDefinition(
+        var unitDef = new UnitDefinition(
                 "unit-1",
                 "Luffy",
                 1,
@@ -84,19 +89,19 @@ public class LootOrbTest {
                 null);
         when(dataLoader.getAllUnits()).thenReturn(List.of(unitDef));
 
-        // Fill bench (assuming max size 9)
+        // Fill bench using the new Bench API (9 slots)
         for (int i = 0; i < 9; i++) {
-            // Manually add units to fill bench
-            player.getBench().add(mock(net.lwenstrom.tft.backend.core.model.GameUnit.class));
+            player.getBenchSlots().set(i, new StandardGameUnit(unitDef));
         }
 
-        int initialGold = player.getGold();
-        LootOrb unitOrb = new LootOrb("orb-3", 0, 0, LootType.UNIT, "Luffy", 1);
+        var initialGold = player.getGold();
+        var unitOrb = new LootOrb("orb-3", 0, 0, LootType.UNIT, "Luffy", 1);
         player.addLootOrb(unitOrb);
 
         player.collectOrb("orb-3");
 
-        assertEquals(9, player.getBench().size());
+        var benchCount = player.getBench().stream().filter(Objects::nonNull).count();
+        assertEquals(9, benchCount);
         // Should refund gold if bench full
         assertEquals(initialGold + 1, player.getGold());
         assertTrue(player.toState().lootOrbs().isEmpty());

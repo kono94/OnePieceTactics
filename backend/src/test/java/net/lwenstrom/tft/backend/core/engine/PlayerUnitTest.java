@@ -14,7 +14,10 @@ class PlayerUnitTest {
     }
 
     private GameUnit getFirstBenchUnit(Player p) {
-        return p.getBench().stream().filter(java.util.Objects::nonNull).findFirst().orElse(null);
+        return p.getBench().stream()
+                .filter(java.util.Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
 
     @Test
@@ -166,12 +169,14 @@ class PlayerUnitTest {
         var player1 = createTestPlayer("P1", dataLoader, createSeededRandomProvider(123L));
         player1.setGold(100);
         player1.refreshShop();
-        var shop1 = player1.getShop().stream().map(u -> u != null ? u.name() : null).toList();
+        var shop1 =
+                player1.getShop().stream().map(u -> u != null ? u.name() : null).toList();
 
         var player2 = createTestPlayer("P2", dataLoader, createSeededRandomProvider(123L));
         player2.setGold(100);
         player2.refreshShop();
-        var shop2 = player2.getShop().stream().map(u -> u != null ? u.name() : null).toList();
+        var shop2 =
+                player2.getShop().stream().map(u -> u != null ? u.name() : null).toList();
 
         assertEquals(shop1, shop2, "Same seed should produce same shop");
     }
