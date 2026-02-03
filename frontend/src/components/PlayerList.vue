@@ -44,19 +44,22 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
 
-const props = defineProps({
-  players: {
-    type: Array, // Array of PlayerState
-    required: true
-  },
-  myPlayerId: {
-    type: String,
-    required: true
-  }
-});
+interface Player {
+  playerId: string;
+  name: string;
+  level: number;
+  health: number;
+  place?: number;
+  isGhost?: boolean;
+}
+
+const props = defineProps<{
+  players: Player[];
+  myPlayerId: string;
+}>();
 
 const sortedPlayers = computed(() => {
   return [...props.players].sort((a, b) => {
@@ -84,20 +87,20 @@ const sortedPlayers = computed(() => {
   });
 });
 
-function getPlaceClass(place) {
+function getPlaceClass(place: number | undefined) {
   if (place === 1) return 'text-amber-400 scale-110';
   if (place === 2) return 'text-slate-300';
   if (place === 3) return 'text-amber-700';
   return 'text-slate-500';
 }
 
-function getHealthColor(health) {
+function getHealthColor(health: number) {
     if (health > 50) return 'text-green-400';
     if (health > 20) return 'text-yellow-400';
     return 'text-red-500';
 }
 
-function getHealthBarClass(health) {
+function getHealthBarClass(health: number) {
     if (health > 50) return 'bg-green-500';
     if (health > 20) return 'bg-yellow-500';
     return 'bg-red-600';

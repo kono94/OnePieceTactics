@@ -50,19 +50,20 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
 
-const props = defineProps({
-  players: {
-    type: Array,
-    required: true
-  },
-  myPlayerId: {
-    type: String,
-    required: true
-  }
-});
+interface Player {
+  playerId: string;
+  name: string;
+  level: number;
+  place?: number;
+}
+
+const props = defineProps<{
+  players: Player[];
+  myPlayerId: string;
+}>();
 
 const sortedPlayers = computed(() => {
     // Sort by Place (ASC)
@@ -78,7 +79,7 @@ const myPlayer = computed(() => props.players.find(p => p.playerId === props.myP
 const myPlace = computed(() => myPlayer.value ? myPlayer.value.place : '?');
 const isWinner = computed(() => myPlace.value === 1);
 
-function getPlaceClass(place) {
+function getPlaceClass(place: number | string | undefined) {
   if (place === 1) return 'text-amber-400';
   if (place === 2) return 'text-slate-300';
   if (place === 3) return 'text-amber-700';
