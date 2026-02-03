@@ -14,7 +14,7 @@ trigger: always_on
 ## 2. Java Coding Standards
 
 ### Modern Syntax
-- Use `var` keyword explicitly for local variables.
+- Use `var` keyword whenever it is suitable (when using var a = new A(), or var m = List.of("d")) but not when getting something from methods that is not totally clear.
 - Prefer **Java Stream API** over imperative loops for collections processing.
 - Use **Records** (`record`) for DTOs and immutable data structures.
 - Run `mvn spotless:apply` after completing a task in /backend folder to format the code

@@ -1,6 +1,6 @@
 # Backend Context - Architectural Blueprint
 
-> **Last Updated**: 2026-01-31
+> **Last Updated**: 2026-02-03
 > **Purpose**: Comprehensive technical reference for AI developers and engineers to understand the game server's architecture, game loop, and communication patterns.
 
 ---
@@ -614,7 +614,20 @@ case SELL -> {
 | Bench | ✅ Can sell | ✅ Can sell |
 | Board | ✅ Can sell | ❌ Cannot sell |
 
-### 16.2 Deferred Star-Up
+### 16.2 Move Restrictions
+
+During COMBAT phase, unit movement is restricted:
+
+| Action | PLANNING Phase | COMBAT Phase |
+|--------|----------------|--------------|
+| Bench ↔ Bench (swap/reorder) | ✅ Allowed | ✅ Allowed |
+| Bench → Board | ✅ Allowed | ❌ Blocked |
+| Board → Bench | ✅ Allowed | ❌ Blocked |
+| Board ↔ Board (swap) | ✅ Allowed | ❌ Blocked |
+
+The `Player.moveUnit()` method checks `inCombat` flag and returns early for board operations.
+
+### 16.3 Deferred Star-Up
 
 When a unit would upgrade during COMBAT phase, the upgrade is queued:
 
@@ -624,6 +637,100 @@ public void processPendingUpgrades()  // Called at start of PLANNING phase
 
 - Units don't visually upgrade mid-combat (avoids confusion).
 - Pending upgrades are processed when PLANNING phase begins.
+
+---
+
+## 17. Player Elimination & Game Ending
+
+### 17.1 Elimination Logic
+
+When a player's health reaches 0:
+
+1. `handleCombatEnd()` calls `loser.takeDamage(damage)`.
+2. If `loser.getHealth() <= 0`, their `place` is set to `aliveCount + 1`.
+3. Eliminated players are **excluded from matchmaking** in subsequent combat phases.
+
+### 17.2 Game End Condition
+
+Checked at two points:
+
+1. **After each combat ends** (`handleCombatEnd`):
+   - If `alivePlayers.size() <= 1`, phase transitions to `GamePhase.END`.
+   - The last surviving player gets `place = 1`.
+
+2. **At start of PLANNING phase** (`startPhase`):
+   - Same check as a fallback.
+
+### 17.3 Final Placement Ranking
+
+| Place | Meaning |
+|-------|--------|
+| `null` | Still playing |
+| `1` | Winner (last standing) |
+| `2-8` | Elimination order (lower = later elimination) |
+
+---
+
+## 18. Ghost/Clone Matchmaking System
+
+### 18.1 Purpose
+
+When there's an **odd number of alive players**, a "ghost" (clone) is created so every player has an opponent.
+
+### 18.2 How It Works
+
+1. At combat phase start, alive players are shuffled and paired.
+2. If one player remains unpaired (odd count):
+   - A random **donor** is selected from paired players.
+   - `donor.createGhost()` creates a clone of that player.
+   - The unpaired player fights the ghost.
+
+### 18.3 Ghost Properties
+
+```java
+public Player createGhost() {
+    Player ghostPlayer = new Player(this.name, this.dataLoader, this.randomProvider);
+    ghostPlayer.setGhost(true);
+    ghostPlayer.setHealth(this.health);
+    ghostPlayer.setLevel(this.level);
+
+    for (GameUnit unit : this.boardUnits) {
+        GameUnit cloned = unit.cloneUnit();  // Deep copy via GameUnit.cloneUnit()
+        ghostPlayer.boardUnits.add(cloned);
+        ghostPlayer.grid.placeUnit(cloned, cloned.getX(), cloned.getY());
+    }
+    return ghostPlayer;
+}
+```
+
+**Key behaviors:**
+- `ghost` flag is `true`.
+- Ghosts are included in `GameState.players` for UI rendering.
+- **Ghosts don't take damage**: If a ghost loses, the original donor is not penalized.
+- Ghosts are **not added to `players` map** (only exist in `activeCombats`).
+
+---
+
+## 19. Bench System
+
+### 19.1 Fixed-Size Slot Architecture
+
+The bench is a **fixed-size list** with 9 slots (indices 0-8). Nulls represent empty slots:
+
+```java
+private final List<GameUnit> bench = new ArrayList<>(Arrays.asList(new GameUnit[MAX_BENCH_SIZE]));
+```
+
+This design enables **slot-based swapping** where units maintain specific positions.
+
+### 19.2 Bench Operations
+
+| Operation | Method | Frontend Payload |
+|-----------|--------|------------------|
+| Buy → Bench | `buyUnit(shopIndex)` | Finds first empty slot |
+| Bench → Board | `moveUnit(unitId, x, y)` | `targetY >= 0` |
+| Board → Bench | `moveUnit(unitId, x, -1)` | `targetX = slot, targetY = -1` |
+| Bench ↔ Bench | `moveUnit(unitId, slot, -1)` | `targetX = target slot, targetY = -1` |
 
 ---
 

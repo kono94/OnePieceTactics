@@ -28,10 +28,14 @@ The application supports **theme-swapping** between game modes (e.g., "One Piece
 frontend/
 ├── index.html                # HTML entry point
 ├── package.json              # Dependencies and scripts
-├── vite.config.ts            # Vite config with /ws proxy to backend:8080
-├── env.d.ts                  # TypeScript env declarations
-├── eslint.config.ts          # ESLint configuration
+├── vite.config.ts            # Vite config with /ws and /api proxy to backend:8080
+├── tsconfig.json             # TypeScript configuration (strict mode, bundler resolution)
+├── env.d.ts                  # TypeScript env declarations (ImportMeta, .vue modules)
+├── eslint.config.ts          # ESLint configuration (vue-ts + prettier)
 ├── .prettierrc.json          # Prettier formatting rules
+├── .env.development          # Dev environment (empty VITE_WS_URL → use Vite proxy)
+├── .env.production           # Prod environment (empty → dynamic detection)
+├── Dockerfile                # Multi-stage build: Node → Nginx
 │
 ├── public/
 │   ├── favicon.svg           # Default favicon (One Piece)
@@ -110,10 +114,17 @@ Despite Pinia being installed, the application **does not use a Pinia store**. I
 
 | Aspect           | Implementation                                                    |
 |------------------|-------------------------------------------------------------------|
-| Connection       | `new Client({ brokerURL: 'ws://localhost:8080/tft-websocket' })` |
+| Connection       | Dynamic URL: `${protocol}//${host}/ws` with env override          |
 | Subscriptions    | `/topic/room/{roomId}` (state), `/topic/room/{roomId}/event` (events) |
 | Actions          | Publish to `/app/room/{roomId}/action` with `{ type, playerId, ... }` |
 | Lifecycle Events | `/app/create`, `/app/join`, `/app/start`, `/app/leave`           |
+
+**Dynamic WebSocket URL Resolution** (in `App.vue`):
+```typescript
+const envWsUrl = import.meta.env.VITE_WS_URL
+const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+const wsUrl = envWsUrl || `${protocol}//${window.location.host}/ws`
+```
 
 The `Client` lifecycle is managed in `App.vue`'s `onMounted` and `onUnmounted` hooks.
 
@@ -143,10 +154,10 @@ All game state and action types are defined in `src/types/game.ts`:
 
 **Core Interfaces**:
 - `GameState`: Root state object received from backend
-- `PlayerState`: Individual player data (gold, health, board, bench, shop)
+- `PlayerState`: Individual player data (gold, health, board, bench, shop, **isGhost** flag)
 - `GameUnit`: Unit instance with stats, position, and combat effects
 - `UnitDefinition`: Template for unit creation (shop display)
-- `AbilityDefinition`: Ability metadata (name, description, type, pattern, value)
+- `AbilityDefinition`: Ability metadata (name, description, type, pattern, **range[]**, **values[]**)
 - `ActiveTrait`: Synergy state with breakpoint tracking
 - `CombatEvent`: Real-time combat events (DAMAGE, SKILL, DEATH, MOVE)
 - `DamageEntry`: Post-combat damage tracking per unit
@@ -154,10 +165,11 @@ All game state and action types are defined in `src/types/game.ts`:
 
 **Action Types**:
 - `GameAction`: Union type for all player actions sent to backend
-- `ActionType`: Enum of action types (BUY, SELL, MOVE, REROLL, EXP, COLLECT_ORB)
+- `ActionType`: Enum of action types (BUY, SELL, MOVE, REROLL, EXP, LOCK, COLLECT_ORB)
 
 **Type Safety**:
 - Components use `defineProps<T>()` for compile-time type checking
+- All components now use `lang="ts"` in script setup blocks
 - DTOs mirror backend Java models for consistency
 - Enums prevent invalid state values
 
@@ -177,8 +189,8 @@ This enables **theme-swapping** (One Piece → Pokemon) without frontend code ch
 
 Unit placement uses the HTML5 Drag and Drop API:
 - `draggable="true"` on units and bench slots
-- `@dragstart`, `@dragover.prevent`, `@drop` handlers
-- Visual feedback via `isDragging` and `dragOverCellIndex` reactive refs
+- `@dragstart`, `@dragover.prevent`, `@drop`, `@dragleave` handlers
+- Visual feedback via `isDragging`, `dragOverCellIndex`, and `dragOverBenchIndex` reactive refs
 - Pointer events disabled on non-dragged units during drag to enable grid cell drops
 
 **Coordinate Mapping**:
@@ -189,6 +201,11 @@ Unit placement uses the HTML5 Drag and Drop API:
 - Dedicated sell zone below the bench
 - Units can be sold from bench during combat phase
 - Board units cannot be sold during combat (enforced by backend)
+
+**Bench Swapping (Combat-Phase Support)**:
+- Units on the bench can be reordered/swapped during combat (since bench is not participating)
+- Grid drops are disabled during combat (`highlight-drop` checks `state.phase !== 'COMBAT'`)
+- Visual `active-drop` highlighting on bench slots during drag
 
 ### 9. Game Grid Rendering
 
@@ -379,7 +396,7 @@ const getBaseValue = (val: any) => {
 | `GameInterface.vue`    | Main game screen layout: stats panel, bench, shop, child components            |
 | `GameCanvas.vue`       | Renders 8x7 grid, units, drag-and-drop, tooltips, animations, loot orbs        |
 | `TraitSidebar.vue`     | Shows active traits/synergies with breakpoint progress and tooltips            |
-| `PlayerList.vue`       | Displays all players' HP, level, sorted by health/elimination order            |
+| `PlayerList.vue`       | Displays all players' HP, level, ghost indicator, sorted by health/elimination order |
 | `UnitTooltip.vue`      | Displays unit stats (HP, ATK, SPD, Range, Mana, Traits, Ability) with dynamic positioning, HTML-formatted ability descriptions with star-level highlighting |
 | `PhaseAnnouncement.vue`| Animated banners for phase transitions (PLANNING PHASE / BATTLE START)        |
 | `AttackAnimation.vue`  | Renders per-unit attack effects (punch, slash, projectile) and ability bursts  |
@@ -398,6 +415,7 @@ const getBaseValue = (val: any) => {
 | `REROLL`      | `{ playerId }`                               | Refresh shop (costs 2 gold)     |
 | `EXP`         | `{ playerId }`                               | Buy XP (costs 4 gold)           |
 | `MOVE`        | `{ unitId, targetX, targetY, playerId }`     | Move unit (board ↔ bench)       |
+| `LOCK`        | `{ playerId }`                               | Lock/unlock shop refresh        |
 | `COLLECT_ORB` | `{ orbId, playerId }`                        | Collect loot orb (gold/unit)    |
 
 ---
@@ -430,7 +448,47 @@ npm run dev
 npm run build
 ```
 
-**Dev Server**: Runs on `http://localhost:5173` by default, proxies `/ws` to `http://localhost:8080`.
+**Dev Server**: Runs on `http://localhost:5173` by default, proxies `/ws` and `/api` to `http://localhost:8080`.
+
+**Vite Proxy Configuration** (from `vite.config.ts`):
+```typescript
+proxy: {
+    '/ws': {
+        target: 'http://localhost:8080',
+        ws: true,
+        rewrite: (path) => path.replace(/^\/ws/, '/tft-websocket')
+    },
+    '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
+    }
+}
+```
+
+---
+
+## Containerization
+
+**Multi-Stage Dockerfile** (`frontend/Dockerfile`):
+```dockerfile
+# Build stage
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Production stage
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+**Environment Files**:
+- `.env.development`: Empty `VITE_WS_URL` uses Vite proxy (`localhost:5173/ws` → `localhost:8080/tft-websocket`)
+- `.env.production`: Empty `VITE_WS_URL` uses dynamic detection based on `window.location`
 
 ---
 
@@ -441,3 +499,69 @@ npm run build
 - **TypeScript Strictness**: Strong DTO interfaces have been added in `src/types/game.ts`. Some components still use `any` for nested properties—consider full strict typing.
 - **Testing**: No tests present. Vitest + Vue Test Utils would be the natural choice.
 - **Performance Optimization**: Consider virtualizing large lists (e.g., damage report with many units) for better performance.
+
+---
+
+## Improvement Suggestions
+
+The following improvements could enhance the codebase quality:
+
+### 1. Missing Lint Script
+**Issue**: `package.json` lacks a `lint` script, yet ESLint is configured via `eslint.config.ts`.
+
+**Fix**: Add lint scripts to `package.json`:
+```json
+"scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "type-check": "vue-tsc --noEmit"
+}
+```
+
+**Missing Dependencies**: The ESLint config imports `@vue/eslint-config-typescript`, `eslint-plugin-vue`, and `@vue/eslint-config-prettier` which may need to be installed:
+```bash
+npm install -D @vue/eslint-config-typescript @vue/eslint-config-prettier eslint-plugin-vue eslint
+```
+
+### 2. Remaining `any` Types
+**Issue**: While TypeScript is now in strict mode, some component internals still use `any`:
+- `GameCanvas.vue`: `allUnits: any[]`, `unit: any` in render loops
+- `GameInterface.vue`: `unit: any`, `draggedUnit: ref<any>`
+
+**Fix**: Create explicit types for rendered unit state and use them throughout:
+```typescript
+interface RenderedUnit extends GameUnit {
+    visualX: number
+    visualY: number
+    isMine: boolean
+    image: string
+}
+```
+
+### 3. EndScreen Uses Tailwind-Style Classes Without Tailwind
+**Issue**: `EndScreen.vue` uses class names like `text-amber-400`, `bg-slate-900` which look like Tailwind classes but are implemented as custom CSS.
+
+**Fix**: Either:
+- **Option A**: Install Tailwind CSS properly if this pattern will expand.
+- **Option B**: Rename classes to custom BEM-style names for consistency with the rest of the codebase (which uses vanilla scoped CSS).
+
+### 4. vue-tsc Version Mismatch
+**Issue**: `vue-tsc@^1.8.0` while `typescript@^5.2.0` and Vue 3.4—consider updating `vue-tsc` to v2.x for better compatibility.
+
+**Fix**:
+```bash
+npm install -D vue-tsc@latest
+```
+
+### 5. Consider Type-Checking in Build Pipeline
+**Current**: `npm run build` only runs `vite build` (fast, no type checks).
+
+**Recommendation**: Add type-checking to the build process:
+```json
+"scripts": {
+    "build": "vue-tsc --noEmit && vite build"
+}
+```
