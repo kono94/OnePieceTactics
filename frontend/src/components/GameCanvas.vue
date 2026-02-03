@@ -511,8 +511,6 @@ function removeAnimation(id: number) {
 function triggerDeathAnimation(unit: any) {
     if (dyingUnits.value.has(unit.id)) return // Already dying
     
-    console.log('🔴 Death animation triggered for:', unit.name, unit.id)
-    
     dyingUnits.value.add(unit.id)
     dyingUnitData.value.set(unit.id, { ...unit, isDying: true })
     
@@ -536,8 +534,6 @@ const displayedUnits = computed((): DisplayedUnit[] => {
 // Trigger star-up celebration for a unit
 function triggerStarUpCelebration(unitId: string) {
     if (starUpUnits.value.has(unitId)) return // Already celebrating
-    
-    console.log('⭐ Star-up celebration triggered for unit:', unitId)
     
     starUpUnits.value.add(unitId)
     
@@ -564,21 +560,14 @@ watch(() => props.state, (newState) => {
         const prevStarLevel = prevStarLevelMap.value[unit.id]
         const currentStarLevel = unit.starLevel || 1
         
-        // Debug log to see all star level checks
-        if (currentStarLevel >= 2 || prevStarLevel !== undefined) {
-            console.log(`⭐ Star check: ${unit.name} (${unit.id.slice(0,8)}) - prev: ${prevStarLevel}, current: ${currentStarLevel}`)
-        }
-        
         // Trigger celebration if:
         // 1. Existing unit's star level increased, OR
         // 2. New unit appeared with star level >= 2 (just combined)
         if (prevStarLevel !== undefined && currentStarLevel > prevStarLevel) {
             // Existing unit leveled up
-            console.log(`✨ TRIGGER (existing unit upgraded): ${unit.name}`)
             triggerStarUpCelebration(unit.id)
         } else if (prevStarLevel === undefined && currentStarLevel >= 2) {
             // New high-star unit appeared (result of combining)
-            console.log(`✨ TRIGGER (new combined unit): ${unit.name} star=${currentStarLevel}`)
             triggerStarUpCelebration(unit.id)
         }
         

@@ -220,7 +220,6 @@ onUnmounted(() => {
 
 function triggerStarUpCelebration(unitId: string) {
     if (starUpUnits.value.has(unitId)) return
-    console.log('⭐ Bench star-up celebration for:', unitId)
     starUpUnits.value.add(unitId)
     
     const timer = window.setTimeout(() => {
