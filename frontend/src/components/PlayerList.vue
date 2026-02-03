@@ -46,19 +46,11 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-
-interface Player {
-  playerId: string;
-  name: string;
-  level: number;
-  health: number;
-  place?: number;
-  isGhost?: boolean;
-}
+import type { PlayerState } from '../types';
 
 const props = defineProps<{
-  players: Player[];
-  myPlayerId: string;
+  players: PlayerState[];
+  myPlayerId: string | undefined;
 }>();
 
 const sortedPlayers = computed(() => {
@@ -86,14 +78,6 @@ const sortedPlayers = computed(() => {
     return 0;
   });
 });
-
-function getPlaceClass(place: number | undefined) {
-  if (place === 1) return 'text-amber-400 scale-110';
-  if (place === 2) return 'text-slate-300';
-  if (place === 3) return 'text-amber-700';
-  return 'text-slate-500';
-}
-
 function getHealthColor(health: number) {
     if (health > 50) return 'text-green-400';
     if (health > 20) return 'text-yellow-400';

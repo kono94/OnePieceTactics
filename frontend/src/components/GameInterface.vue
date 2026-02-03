@@ -6,21 +6,22 @@ import PhaseAnnouncement from './PhaseAnnouncement.vue'
 import TraitSidebar from './TraitSidebar.vue'
 import PlayerList from './PlayerList.vue'
 import EndScreen from './EndScreen.vue'
+import type { GameState, GameUnit, UnitDefinition, PlayerState } from '../types'
 
 const props = defineProps<{
-  state: any,
+  state: GameState | null,
   currentPlayerName: string
 }>()
 
 const emit = defineEmits(['action'])
 
-const myPlayer = computed(() => {
+const myPlayer = computed((): PlayerState | null => {
     if (!props.state?.players) return null
     // Find player by name
-    return Object.values(props.state.players).find((p: any) => p.name === props.currentPlayerName) as any
+    return Object.values(props.state.players).find((p: PlayerState) => p.name === props.currentPlayerName) ?? null
 })
 
-const allPlayers = computed(() => {
+const allPlayers = computed((): PlayerState[] => {
     if (!props.state?.players) return []
     return Object.values(props.state.players)
 })
@@ -29,17 +30,30 @@ const isDead = computed(() => {
     return myPlayer.value && myPlayer.value.health <= 0
 })
 
-const shopCards = computed(() => {
+const shopCards = computed((): UnitDefinition[] => {
     return myPlayer.value?.shop || []
 })
 
-const benchUnits = computed(() => {
+const benchUnits = computed((): (GameUnit | null)[] => {
     return myPlayer.value?.bench || []
 })
 
-const myPlayerBoardUnits = computed(() => {
+const myPlayerBoardUnits = computed((): GameUnit[] => {
     if (!myPlayer.value) return []
     return myPlayer.value.boardUnits || myPlayer.value.board || []
+})
+
+interface BenchSlot {
+    index: number
+    unit: GameUnit | null
+}
+
+const benchSlots = computed((): BenchSlot[] => {
+    const bench = benchUnits.value
+    return Array.from({ length: 9 }, (_, i) => ({
+        index: i,
+        unit: bench[i] ?? null
+    }))
 })
 
 function buyUnit(index: number) {
@@ -57,7 +71,7 @@ function buyXp() {
     emit('action', { type: 'EXP', playerId: myPlayer.value.playerId })
 }
 
-const onBenchDragStart = (evt: DragEvent, unit: any) => {
+const onBenchDragStart = (evt: DragEvent, unit: GameUnit) => {
     isDraggingUnit.value = true
     draggedUnit.value = unit
     // Clear hover states when drag starts
@@ -94,7 +108,7 @@ const onBenchDrop = (evt: DragEvent, index: number) => {
              // Note: Backend needs to handle this logically. 
              // Ideally we distinguish bench move from board move. 
              // If targetY is -1, it's bench.
-             emit('action', { type: 'MOVE', unitId, targetX: index, targetY: -1, playerId: myPlayer.value.playerId })
+             emit('action', { type: 'MOVE', unitId, targetX: index, targetY: -1, playerId: myPlayer.value?.playerId })
         }
     }
 }
@@ -111,14 +125,20 @@ const onBenchDragLeave = () => {
     dragOverBenchIndex.value = -1
 }
 
-const handleBoardMove = (movePayload: any) => {
+interface MovePayload {
+    unitId: string
+    x: number
+    y: number
+}
+
+const handleBoardMove = (movePayload: MovePayload) => {
     console.log("Emitting MOVE action", movePayload)
-    emit('action', { type: 'MOVE', unitId: movePayload.unitId, targetX: movePayload.x, targetY: movePayload.y, playerId: myPlayer.value.playerId })
+    emit('action', { type: 'MOVE', unitId: movePayload.unitId, targetX: movePayload.x, targetY: movePayload.y, playerId: myPlayer.value?.playerId })
 }
 
 const handleCollectOrb = (orbId: string) => {
     console.log("Emitting COLLECT_ORB action", orbId)
-    emit('action', { type: 'COLLECT_ORB', orbId, playerId: myPlayer.value.playerId })
+    emit('action', { type: 'COLLECT_ORB', orbId, playerId: myPlayer.value?.playerId })
 }
 
 // Tooltip state for bench and shop
@@ -127,13 +147,13 @@ const hoveredShopIndex = ref<number|null>(null)
 
 // ========== DRAG AND SELL STATE ==========
 const isDraggingUnit = ref(false)
-const draggedUnit = ref<any>(null)
+const draggedUnit = ref<GameUnit | null>(null)
 const isSellZoneHovered = ref(false)
 const isDraggingFromGrid = ref(false)
 const dragOverBenchIndex = ref(-1)
 
 // Calculate sell value: cost × 3^(starLevel - 1)
-function calculateSellRefund(unit: any): number {
+function calculateSellRefund(unit: GameUnit | null): number {
     if (!unit) return 0
     const cost = unit.cost || 1
     const starLevel = unit.starLevel || 1
@@ -171,7 +191,7 @@ const onSellDrop = (evt: DragEvent) => {
 }
 
 // Grid drag handlers
-const onGridDragStart = (unit: any) => {
+const onGridDragStart = (unit: GameUnit) => {
     isDraggingUnit.value = true
     isDraggingFromGrid.value = true
     draggedUnit.value = unit
@@ -215,7 +235,7 @@ function isStarringUp(unitId: string): boolean {
 
 // Watch for star level changes in bench units
 watch(() => benchUnits.value, (newBench) => {
-    newBench.forEach((unit: any) => {
+    newBench.forEach((unit: GameUnit | null) => {
         if (!unit) return
         const prevStarLevel = prevStarLevelMap.value[unit.id]
         const currentStarLevel = unit.starLevel || 1
@@ -301,42 +321,42 @@ watch(() => benchUnits.value, (newBench) => {
                 <div class="bench-area">
                     <div class="bench-slots">
                         <!-- 9 slots or however many -->
-                        <div v-for="i in 9" :key="'slot-'+(i-1)" 
+                        <div v-for="slot in benchSlots" :key="'slot-'+slot.index" 
                              class="bench-slot"
                              :class="{ 
                                 'highlight-drop': isDraggingUnit,
-                                'active-drop': dragOverBenchIndex === (i-1)
+                                'active-drop': dragOverBenchIndex === slot.index
                              }"
-                             @dragover="(e) => onBenchDragOver(e, i-1)"
+                             @dragover="(e) => onBenchDragOver(e, slot.index)"
                              @dragleave="onBenchDragLeave"
-                             @drop="(e) => onBenchDrop(e, i-1)">
+                             @drop="(e) => onBenchDrop(e, slot.index)">
                             
-                           <div v-if="benchUnits[i-1]" 
+                           <div v-if="slot.unit" 
                                 class="bench-unit" 
-                                :class="{ 'star-up': isStarringUp(benchUnits[i-1].id) }"
+                                :class="{ 'star-up': isStarringUp(slot.unit.id) }"
                                 draggable="true"
-                                @dragstart="(e) => onBenchDragStart(e, benchUnits[i-1])"
+                                @dragstart="(e) => onBenchDragStart(e, slot.unit!)"
                                 @dragend="onBenchDragEnd"
-                                @mouseenter="!isDraggingUnit ? hoveredBenchUnitId = benchUnits[i-1].id : null"
+                                @mouseenter="!isDraggingUnit ? hoveredBenchUnitId = slot.unit!.id : null"
                                 @mouseleave="hoveredBenchUnitId = null">
                                                             <div class="bench-unit-inner">
-                                  <img :src="`/assets/units/${benchUnits[i-1].definitionId}.png`" 
+                                  <img :src="`/assets/units/${slot.unit.definitionId}.png`" 
                                        class="bench-unit-img" />
                                </div>
                                
-                               <div class="star-indicator" :class="'stars-' + (benchUnits[i-1].starLevel || 1)">
-                                   <span v-for="n in (benchUnits[i-1].starLevel || 1)" :key="n" class="star-dot"></span>
+                               <div class="star-indicator" :class="'stars-' + (slot.unit.starLevel || 1)">
+                                   <span v-for="n in (slot.unit.starLevel || 1)" :key="n" class="star-dot"></span>
                                </div>
                                
                                <!-- Star-up celebration effect -->
-                               <div v-if="isStarringUp(benchUnits[i-1].id)" class="star-up-burst">
+                               <div v-if="isStarringUp(slot.unit.id)" class="star-up-burst">
                                    <span v-for="j in 8" :key="j" class="star-particle" :style="{ '--particle-index': j }"></span>
                                </div>
                               
                               <!-- Tooltip for Bench -->
                               <transition name="fade">
-                                 <UnitTooltip v-if="hoveredBenchUnitId === benchUnits[i-1].id" 
-                                              :unit="benchUnits[i-1]" 
+                                 <UnitTooltip v-if="hoveredBenchUnitId === slot.unit.id" 
+                                              :unit="slot.unit" 
                                               class="bench-tooltip" />
                               </transition>
                            </div>

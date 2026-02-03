@@ -1,20 +1,20 @@
 <template>
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-sm animate-fade-in">
-    <div class="bg-slate-900 border border-slate-700 p-8 rounded-2xl shadow-2xl max-w-2xl w-full text-center flex flex-col gap-6 relative overflow-hidden">
+  <div class="end-screen">
+    <div class="end-screen__card">
         
-        <!-- Background accents -->
-        <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-transparent via-amber-500 to-transparent opacity-50"></div>
+        <!-- Background accent -->
+        <div class="end-screen__accent"></div>
         
-        <h1 class="text-6xl font-black uppercase tracking-tighter" :class="isWinner ? 'text-transparent bg-clip-text bg-gradient-to-b from-amber-300 to-amber-600 drop-shadow-lg' : 'text-slate-400'">
+        <h1 class="end-screen__title" :class="isWinner ? 'end-screen__title--winner' : 'end-screen__title--loser'">
             {{ isWinner ? 'Victory' : 'Game Over' }}
         </h1>
         
-         <div class="text-xl text-slate-300 font-medium">
+         <div class="end-screen__result">
             You finished <span :class="getPlaceClass(myPlace)">#{{ myPlace || '-' }}</span>
          </div>
 
-        <div class="flex flex-col gap-2 bg-slate-800/50 rounded-lg p-4 max-h-[50vh] overflow-y-auto custom-scrollbar text-left">
-             <div class="flex justify-between text-xs font-bold text-slate-500 uppercase px-4 pb-2 border-b border-slate-700/50">
+        <div class="end-screen__rankings">
+             <div class="end-screen__rankings-header">
                 <span>Player</span>
                 <span>Rank</span>
              </div>
@@ -22,18 +22,18 @@
              <div 
                 v-for="player in sortedPlayers" 
                 :key="player.playerId"
-                class="flex items-center justify-between p-3 rounded bg-slate-800 hover:bg-slate-700 transition"
-                :class="{'ring-1 ring-amber-500/30 bg-slate-700/50': player.playerId === myPlayerId}"
+                class="end-screen__player"
+                :class="{'end-screen__player--me': player.playerId === myPlayerId}"
              >
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded bg-slate-600 flex items-center justify-center font-bold text-slate-200">
+                <div class="end-screen__player-info">
+                    <div class="end-screen__player-level">
                         {{ player.level }}
                     </div>
-                    <span class="font-bold text-slate-200">{{ player.name }}</span>
-                    <span v-if="player.playerId === myPlayerId" class="text-xs bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded">YOU</span>
+                    <span class="end-screen__player-name">{{ player.name }}</span>
+                    <span v-if="player.playerId === myPlayerId" class="end-screen__you-badge">YOU</span>
                 </div>
                 
-                <div class="font-black text-xl" :class="getPlaceClass(player.place)">
+                <div class="end-screen__player-place" :class="getPlaceClass(player.place)">
                     #{{ player.place || '-' }}
                 </div>
              </div>
@@ -41,7 +41,7 @@
         
         <button 
             @click="reloadGame"
-            class="mt-4 px-8 py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded shadow-lg hover:shadow-amber-500/20 transition-all transform hover:-translate-y-0.5"
+            class="end-screen__play-again"
         >
             Play Again
         </button>
@@ -52,22 +52,14 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-
-interface Player {
-  playerId: string;
-  name: string;
-  level: number;
-  place?: number;
-}
+import type { PlayerState } from '../types';
 
 const props = defineProps<{
-  players: Player[];
-  myPlayerId: string;
+  players: PlayerState[];
+  myPlayerId: string | undefined;
 }>();
 
 const sortedPlayers = computed(() => {
-    // Sort by Place (ASC)
-    // If place is null (shouldn't happen in END phase unless active), treat as last
     return [...props.players].sort((a, b) => {
         const pA = a.place || 99;
         const pB = b.place || 99;
@@ -79,11 +71,11 @@ const myPlayer = computed(() => props.players.find(p => p.playerId === props.myP
 const myPlace = computed(() => myPlayer.value ? myPlayer.value.place : '?');
 const isWinner = computed(() => myPlace.value === 1);
 
-function getPlaceClass(place: number | string | undefined) {
-  if (place === 1) return 'text-amber-400';
-  if (place === 2) return 'text-slate-300';
-  if (place === 3) return 'text-amber-700';
-  return 'text-slate-500';
+function getPlaceClass(place: number | string | null | undefined) {
+  if (place === 1) return 'place--gold';
+  if (place === 2) return 'place--silver';
+  if (place === 3) return 'place--bronze';
+  return 'place--default';
 }
 
 function reloadGame() {
@@ -92,9 +84,183 @@ function reloadGame() {
 </script>
 
 <style scoped>
-.animate-fade-in {
+.end-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(4px);
     animation: fadeIn 0.5s ease-out;
 }
+
+.end-screen__card {
+    background: #0f172a;
+    border: 1px solid #334155;
+    padding: 32px;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    max-width: 640px;
+    width: 100%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+.end-screen__accent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(to right, transparent, #f59e0b, transparent);
+    opacity: 0.5;
+}
+
+.end-screen__title {
+    font-size: 48px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.025em;
+}
+
+.end-screen__title--winner {
+    background: linear-gradient(to bottom, #fcd34d, #d97706);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+}
+
+.end-screen__title--loser {
+    color: #94a3b8;
+}
+
+.end-screen__result {
+    font-size: 20px;
+    color: #cbd5e1;
+    font-weight: 500;
+}
+
+.end-screen__rankings {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(30, 41, 59, 0.5);
+    border-radius: 8px;
+    padding: 16px;
+    max-height: 50vh;
+    overflow-y: auto;
+    text-align: left;
+}
+
+.end-screen__rankings-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    padding: 0 16px 8px;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+}
+
+.end-screen__player {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    border-radius: 6px;
+    background: #1e293b;
+    transition: background 0.2s;
+}
+
+.end-screen__player:hover {
+    background: #334155;
+}
+
+.end-screen__player--me {
+    box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.3);
+    background: rgba(51, 65, 85, 0.5);
+}
+
+.end-screen__player-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.end-screen__player-level {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    background: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #e2e8f0;
+}
+
+.end-screen__player-name {
+    font-weight: 700;
+    color: #e2e8f0;
+}
+
+.end-screen__you-badge {
+    font-size: 11px;
+    background: rgba(245, 158, 11, 0.2);
+    color: #fcd34d;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.end-screen__player-place {
+    font-weight: 900;
+    font-size: 20px;
+}
+
+.end-screen__play-again {
+    margin-top: 16px;
+    padding: 12px 32px;
+    background: #d97706;
+    color: white;
+    font-weight: 700;
+    border-radius: 6px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.end-screen__play-again:hover {
+    background: #f59e0b;
+    box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Place ranking colors */
+.place--gold {
+    color: #fbbf24;
+}
+
+.place--silver {
+    color: #cbd5e1;
+}
+
+.place--bronze {
+    color: #b45309;
+}
+
+.place--default {
+    color: #64748b;
+}
+
 @keyframes fadeIn {
     from { opacity: 0; transform: scale(0.95); }
     to { opacity: 1; transform: scale(1); }

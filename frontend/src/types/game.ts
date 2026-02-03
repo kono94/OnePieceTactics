@@ -123,6 +123,7 @@ export interface PlayerState {
     shop: UnitDefinition[]
     lootOrbs: LootOrb[]
     isGhost: boolean
+    boardUnits?: GameUnit[] // Alternative name for board in some contexts
 }
 
 // ============================================================================
@@ -195,3 +196,24 @@ export interface GameEvent<T = unknown> {
 export interface CombatResultEvent extends GameEvent<CombatResultPayload> {
     type: 'COMBAT_RESULT'
 }
+
+// ============================================================================
+// Rendered State (computed for display in GameCanvas/GameInterface)
+// ============================================================================
+
+export interface RenderedUnit extends GameUnit {
+    visualX: number
+    visualY: number
+    isMine: boolean
+    image: string
+}
+
+export interface RenderedOrb extends LootOrb {
+    visualX: number
+    visualY: number
+}
+
+export interface DisplayedUnit extends RenderedUnit {
+    isDying?: boolean
+}
+

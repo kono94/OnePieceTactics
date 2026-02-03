@@ -3,7 +3,7 @@ import { computed, ref, watch, onUnmounted } from 'vue'
 import UnitTooltip from './UnitTooltip.vue'
 import AttackAnimation from './game/AttackAnimation.vue'
 import { getAttackConfig, getAbilityConfig } from '../data/animationConfig'
-import type { GameState, GameUnit, GamePhase } from '../types'
+import type { GameState, GameUnit, GamePhase, RenderedUnit, RenderedOrb, PlayerState, DisplayedUnit } from '../types'
 
 const props = defineProps<{
     state: GameState | null,
@@ -18,10 +18,10 @@ const GRID_ROWS = 8
 const GRID_COLS = 7
 const PLAYER_ROWS = 4 // Height of one player's board (half of arena)
 
-const renderedUnits = computed(() => {
+const renderedUnits = computed((): RenderedUnit[] => {
     const state = props.state
     if (!state || !state.players) return []
-    let allUnits: any[] = []
+    let allUnits: RenderedUnit[] = []
     
     const isCombat = state.phase === 'COMBAT'
     const myId = props.myPlayerId
@@ -35,7 +35,7 @@ const renderedUnits = computed(() => {
         }
     }
     
-    Object.values(state.players).forEach((player: any) => {
+    Object.values(state.players).forEach((player: PlayerState) => {
         if (player.playerId !== myId) {
              if (isCombat) {
                  const oppId = (state.matchups && myId) ? state.matchups[myId] : null
@@ -50,8 +50,8 @@ const renderedUnits = computed(() => {
         const board = player.boardUnits || player.board
         if (board) {
             allUnits = allUnits.concat(board
-                .filter((u:any) => u.x >= 0 && u.y >= 0 && u.currentHealth > 0)
-                .map((u: any) => {
+                .filter((u: GameUnit) => u.x >= 0 && u.y >= 0 && u.currentHealth > 0)
+                .map((u: GameUnit): RenderedUnit => {
                     let visualX = u.x;
                     let visualY = u.y;
                     
@@ -83,13 +83,13 @@ const renderedUnits = computed(() => {
     return allUnits
 })
 
-const renderedOrbs = computed(() => {
+const renderedOrbs = computed((): RenderedOrb[] => {
     const state = props.state
     if (!state || !state.players || !props.myPlayerId) return []
     const myPlayer = state.players[props.myPlayerId]
     if (!myPlayer || !myPlayer.lootOrbs) return []
 
-    return myPlayer.lootOrbs.map(orb => {
+    return myPlayer.lootOrbs.map((orb): RenderedOrb => {
         // Place orbs in the top half (visual rows 0-3)
         return {
             ...orb,
@@ -107,13 +107,13 @@ const draggingUnitId = ref<string|null>(null)
 const dragOverCellIndex = ref(-1)
 const hoveredUnitId = ref<string|null>(null)
 
-const getUnitStyle = (unit: any) => {
+const getUnitStyle = (unit: RenderedUnit) => {
     // Disable pointer events on units when dragging, EXCEPT the unit being dragged.
     // This allows drops to fall through to the grid cell for swapping.
     const shouldDisablePointer = (isDragging.value || props.isDraggingProp) 
                                  && unit.id !== draggingUnitId.value;
 
-    const styles: any = {
+    const styles: Record<string, string | number> = {
         left: (unit.visualX * CELL_SIZE + 5) + 'px',
         top: (unit.visualY * CELL_SIZE + 5) + 'px',
         width: '50px',
@@ -165,14 +165,14 @@ const opponentName = computed(() => {
      return p.isGhost ? `${p.name} (Ghost)` : p.name
 })
 
-const hoveredUnit = computed(() => {
+const hoveredUnit = computed((): RenderedUnit | null | undefined => {
     if (!hoveredUnitId.value) return null
     // Disable hover tooltip if dragging (local or from parent)
     if (isDragging.value || props.isDraggingProp) return null
-    return renderedUnits.value.find((u: any) => u.id === hoveredUnitId.value)
+    return renderedUnits.value.find((u: RenderedUnit) => u.id === hoveredUnitId.value)
 })
 
-const getTooltipAnchorStyle = (unit: any) => {
+const getTooltipAnchorStyle = (unit: RenderedUnit) => {
     return {
         left: (unit.visualX * CELL_SIZE + 5) + 'px',
         top: (unit.visualY * CELL_SIZE + 5) + 'px',
@@ -193,7 +193,7 @@ const getColor = (id: string) => {
     return '#' + "00000".substring(0, 6 - c.length) + c;
 }
 
-const onDragStart = (evt: DragEvent, unit: any) => {
+const onDragStart = (evt: DragEvent, unit: RenderedUnit) => {
     if (unit.ownerId !== props.myPlayerId || props.state?.phase === 'COMBAT') {
         evt.preventDefault()
         return
@@ -307,7 +307,7 @@ const lastCastMap = ref<Record<string, string>>({})
 // Track units that are dying (animating death)
 const dyingUnits = ref<Set<string>>(new Set())
 // Store the last known position/data for dead units during animation
-const dyingUnitData = ref<Map<string, any>>(new Map())
+const dyingUnitData = ref<Map<string, DisplayedUnit>>(new Map())
 const DEATH_ANIMATION_DURATION = 600 // ms
 
 // Cleanup timers on unmount
@@ -333,7 +333,7 @@ const castingAnimations = ref<FloatingText[]>([])
 const floatingHeals = ref<FloatingText[]>([])
 
 // Find nearest enemy for a unit (to animate attacks toward)
-function findNearestEnemy(unit: any, allUnits: any[]): any | null {
+function findNearestEnemy(unit: RenderedUnit, allUnits: RenderedUnit[]): RenderedUnit | null {
     const enemies = allUnits.filter(u => u.ownerId !== unit.ownerId && u.currentHealth > 0)
     if (enemies.length === 0) return null
     
@@ -352,14 +352,14 @@ function findNearestEnemy(unit: any, allUnits: any[]): any | null {
 
 // Watch for health changes to spawn attack animations
 // Store previous units for death detection
-const prevUnitsMap = ref<Map<string, any>>(new Map())
+const prevUnitsMap = ref<Map<string, RenderedUnit>>(new Map())
 const prevPhase = ref<GamePhase | undefined | null>(null)
 const lastProcessedEventTime = ref(0)
 
 const unitsById = computed(() => {
-    const map = new Map()
+    const map = new Map<string, RenderedUnit>()
     if (renderedUnits.value) {
-        renderedUnits.value.forEach((u: any) => map.set(u.id, u))
+        renderedUnits.value.forEach((u: RenderedUnit) => map.set(u.id, u))
     }
     return map
 })
@@ -527,7 +527,7 @@ function triggerDeathAnimation(unit: any) {
 }
 
 // Combined units: alive units + dying units (for animation)
-const displayedUnits = computed(() => {
+const displayedUnits = computed((): DisplayedUnit[] => {
     const alive = renderedUnits.value
     const dying = Array.from(dyingUnitData.value.values())
     return [...alive, ...dying]
