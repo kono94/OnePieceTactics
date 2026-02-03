@@ -166,7 +166,7 @@ public class GameController {
                     }
                 }
                 case MOVE -> {
-                    if (room.getState().phase() == GamePhase.PLANNING) {
+                    if (room.getState().phase() == GamePhase.PLANNING || room.getState().phase() == GamePhase.COMBAT) {
                         room.moveUnit(action.playerId(), action.unitId(), action.targetX(), action.targetY());
                     }
                 }
@@ -185,5 +185,6 @@ public class GameController {
         }
     }
 
-    public record RoomRequest(String roomId, String playerName) {}
+    public record RoomRequest(String roomId, String playerName) {
+    }
 }

@@ -4,10 +4,18 @@ import static net.lwenstrom.tft.backend.test.TestHelpers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
+import net.lwenstrom.tft.backend.core.model.GameUnit;
 import net.lwenstrom.tft.backend.test.TestHelpers;
 import org.junit.jupiter.api.Test;
 
 class PlayerUnitTest {
+    private long countBenchUnits(Player p) {
+        return p.getBench().stream().filter(java.util.Objects::nonNull).count();
+    }
+
+    private GameUnit getFirstBenchUnit(Player p) {
+        return p.getBench().stream().filter(java.util.Objects::nonNull).findFirst().orElse(null);
+    }
 
     @Test
     void testTakeDamage_ReducesHealth() {
@@ -85,11 +93,11 @@ class PlayerUnitTest {
         player.setGold(100);
         player.refreshShop();
 
-        assertEquals(0, player.getBench().size());
+        assertEquals(0, countBenchUnits(player));
 
         player.buyUnit(0);
 
-        assertEquals(1, player.getBench().size(), "Unit should be added to bench");
+        assertEquals(1, countBenchUnits(player), "Unit should be added to bench");
     }
 
     @Test
@@ -114,7 +122,7 @@ class PlayerUnitTest {
 
         player.buyUnit(0);
 
-        assertEquals(0, player.getBench().size(), "Should not buy with insufficient gold");
+        assertEquals(0, countBenchUnits(player), "Should not buy with insufficient gold");
     }
 
     @Test
@@ -158,14 +166,12 @@ class PlayerUnitTest {
         var player1 = createTestPlayer("P1", dataLoader, createSeededRandomProvider(123L));
         player1.setGold(100);
         player1.refreshShop();
-        var shop1 =
-                player1.getShop().stream().map(u -> u != null ? u.name() : null).toList();
+        var shop1 = player1.getShop().stream().map(u -> u != null ? u.name() : null).toList();
 
         var player2 = createTestPlayer("P2", dataLoader, createSeededRandomProvider(123L));
         player2.setGold(100);
         player2.refreshShop();
-        var shop2 =
-                player2.getShop().stream().map(u -> u != null ? u.name() : null).toList();
+        var shop2 = player2.getShop().stream().map(u -> u != null ? u.name() : null).toList();
 
         assertEquals(shop1, shop2, "Same seed should produce same shop");
     }
@@ -179,14 +185,50 @@ class PlayerUnitTest {
         player.refreshShop();
         player.buyUnit(0);
 
-        var unitId = player.getBench().get(0).getId();
+        var unitId = getFirstBenchUnit(player).getId();
 
         player.moveUnit(unitId, 3, 2);
 
-        assertEquals(0, player.getBench().size(), "Bench should be empty");
+        assertEquals(0, countBenchUnits(player), "Bench should be empty");
         assertEquals(1, player.getBoardUnits().size(), "Board should have 1 unit");
         assertEquals(3, player.getBoardUnits().get(0).getX());
         assertEquals(2, player.getBoardUnits().get(0).getY());
+    }
+
+    @Test
+    void testMoveUnit_BenchToBenchSwap() {
+        var dataLoader = TestHelpers.createMockDataLoader();
+        var player = createTestPlayer("TestPlayer", dataLoader);
+        player.setGold(100);
+        player.refreshShop();
+        player.buyUnit(0); // slot 0
+        player.buyUnit(1); // slot 1
+
+        var unit1Id = player.getBench().get(0).getId();
+        var unit2Id = player.getBench().get(1).getId();
+
+        // Swap slot 0 and 1
+        player.moveUnit(unit1Id, 1, -1);
+
+        assertEquals(unit1Id, player.getBench().get(1).getId());
+        assertEquals(unit2Id, player.getBench().get(0).getId());
+    }
+
+    @Test
+    void testMoveUnit_BoardToBenchSpecificSlot() {
+        var dataLoader = TestHelpers.createMockDataLoader();
+        var player = createTestPlayer("TestPlayer", dataLoader);
+        player.setLevel(3);
+        var def = TestHelpers.createDefaultUnitDef();
+        player.addUnitToBoard(def, 3, 2);
+
+        var unitId = player.getBoardUnits().get(0).getId();
+
+        player.moveUnit(unitId, 5, -1); // target bench slot 5
+
+        assertNull(player.getBench().get(0));
+        assertEquals(unitId, player.getBench().get(5).getId());
+        assertEquals(0, player.getBoardUnits().size());
     }
 
     @Test
@@ -199,9 +241,10 @@ class PlayerUnitTest {
 
         var unitId = player.getBoardUnits().get(0).getId();
 
-        player.moveUnit(unitId, 0, -1); // y < 0 means bench
+        player.moveUnit(unitId, 0, -1); // y < 0 means bench, slot 0
 
-        assertEquals(1, player.getBench().size(), "Unit should be on bench");
+        assertEquals(1, countBenchUnits(player), "Unit should be on bench");
+        assertEquals(unitId, player.getBench().get(0).getId());
         assertEquals(0, player.getBoardUnits().size(), "Board should be empty");
     }
 
@@ -228,13 +271,13 @@ class PlayerUnitTest {
         player.refreshShop();
         player.buyUnit(0);
 
-        var unit = player.getBench().get(0);
+        var unit = getFirstBenchUnit(player);
         var goldBefore = player.getGold();
 
         player.sellUnit(unit.getId(), true);
 
         assertEquals(goldBefore + 1, player.getGold(), "Should refund 1 gold for 1-star, 1-cost unit");
-        assertEquals(0, player.getBench().size(), "Unit should be removed from bench");
+        assertEquals(0, countBenchUnits(player), "Unit should be removed from bench");
     }
 
     @Test
@@ -253,7 +296,7 @@ class PlayerUnitTest {
         player.buyUnit(0);
 
         // Should now have 1 2-star unit
-        var unit = player.getBench().get(0);
+        var unit = getFirstBenchUnit(player);
         assertEquals(2, unit.getStarLevel(), "Should be 2-star after combining");
 
         var goldBefore = player.getGold();
@@ -276,8 +319,8 @@ class PlayerUnitTest {
         }
 
         // Should now have 1 3-star unit
-        assertEquals(1, player.getBench().size(), "Should have exactly 1 unit after combining to 3-star");
-        var unit = player.getBench().get(0);
+        assertEquals(1, countBenchUnits(player), "Should have exactly 1 unit after combining to 3-star");
+        var unit = getFirstBenchUnit(player);
         assertEquals(3, unit.getStarLevel(), "Should be 3-star after combining");
 
         var goldBefore = player.getGold();
@@ -338,5 +381,31 @@ class PlayerUnitTest {
         assertEquals(3, player.calculateSellValue(unit2Star1Cost), "2-star, 1-cost = 3 gold");
         assertEquals(9, player.calculateSellValue(unit3Star1Cost), "3-star, 1-cost = 9 gold");
         assertEquals(18, player.calculateSellValue(unit3Star2Cost), "3-star, 2-cost = 18 gold");
+    }
+
+    @Test
+    void testMoveUnit_BenchToBenchSwapInCombat() {
+        var dataLoader = TestHelpers.createMockDataLoader();
+        var player = createTestPlayer("TestPlayer", dataLoader);
+        player.setGold(100);
+        player.refreshShop();
+        player.buyUnit(0); // slot 0
+        player.buyUnit(1); // slot 1
+
+        var unit1Id = player.getBench().get(0).getId();
+        var unit2Id = player.getBench().get(1).getId();
+
+        player.setInCombat(true);
+
+        // Swap slot 0 and 1 - should work in combat
+        player.moveUnit(unit1Id, 1, -1);
+
+        assertEquals(unit1Id, player.getBench().get(1).getId());
+        assertEquals(unit2Id, player.getBench().get(0).getId());
+
+        // Try to move to board - should be blocked in combat
+        player.moveUnit(unit1Id, 0, 0);
+        assertNull(player.getGrid().getUnitAt(0, 0).orElse(null));
+        assertEquals(unit1Id, player.getBench().get(1).getId());
     }
 }

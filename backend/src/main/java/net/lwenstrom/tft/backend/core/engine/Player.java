@@ -31,7 +31,7 @@ public class Player {
     private final RandomProvider randomProvider;
     private final Grid grid = new Grid();
 
-    private final List<GameUnit> bench = new ArrayList<>();
+    private final List<GameUnit> bench = new ArrayList<>(java.util.Arrays.asList(new GameUnit[MAX_BENCH_SIZE]));
     private final List<GameUnit> boardUnits = new ArrayList<>();
     private final List<LootOrb> lootOrbs = new ArrayList<>();
 
@@ -42,7 +42,8 @@ public class Player {
     private boolean ghost = false;
     private final List<PendingUpgrade> pendingUpgrades = new ArrayList<>();
 
-    private record PendingUpgrade(String unitName, int starLevel) {}
+    private record PendingUpgrade(String unitName, int starLevel) {
+    }
 
     private final DataLoader dataLoader;
 
@@ -70,17 +71,30 @@ public class Player {
     }
 
     public void buyUnit(int shopIndex) {
-        if (shopIndex < 0 || shopIndex >= shop.size()) return;
+        if (shopIndex < 0 || shopIndex >= shop.size())
+            return;
         UnitDefinition def = shop.get(shopIndex);
 
-        if (def == null) return;
-        if (gold < def.cost()) return;
-        if (bench.size() >= MAX_BENCH_SIZE) return;
+        if (def == null)
+            return;
+        if (gold < def.cost())
+            return;
+
+        // Find first empty slot on bench
+        int emptySlot = -1;
+        for (int i = 0; i < MAX_BENCH_SIZE; i++) {
+            if (bench.get(i) == null) {
+                emptySlot = i;
+                break;
+            }
+        }
+        if (emptySlot == -1)
+            return;
 
         gold -= def.cost();
         StandardGameUnit newUnit = new StandardGameUnit(def);
         newUnit.setOwnerId(this.id);
-        bench.add(newUnit);
+        bench.set(emptySlot, newUnit);
         shop.set(shopIndex, null);
         if (inCombat) {
             // Defer upgrade check until combat ends
@@ -93,10 +107,10 @@ public class Player {
     private void checkUpgrade(String unitName, int starLevel) {
         var candidates = new ArrayList<GameUnit>();
         candidates.addAll(bench.stream()
-                .filter(u -> u.getName().equals(unitName) && u.getStarLevel() == starLevel)
+                .filter(u -> u != null && u.getName().equals(unitName) && u.getStarLevel() == starLevel)
                 .toList());
         candidates.addAll(boardUnits.stream()
-                .filter(u -> u.getName().equals(unitName) && u.getStarLevel() == starLevel)
+                .filter(u -> u != null && u.getName().equals(unitName) && u.getStarLevel() == starLevel)
                 .toList());
 
         if (candidates.size() >= 3) {
@@ -115,7 +129,13 @@ public class Player {
                     grid.removeUnit(u);
                 }
             }
-            bench.removeAll(unitsToRemove);
+            // Remove from bench by setting slot to null
+            for (var u : unitsToRemove) {
+                int benchIdx = bench.indexOf(u);
+                if (benchIdx != -1) {
+                    bench.set(benchIdx, null);
+                }
+            }
             boardUnits.removeAll(unitsToRemove);
 
             UnitDefinition def = dataLoader.getAllUnits().stream()
@@ -135,10 +155,10 @@ public class Player {
                         boardUnits.add(upgraded);
                     } else {
                         // Fallback to bench if grid somehow full/invalid
-                        bench.add(upgraded);
+                        addToBench(upgraded);
                     }
                 } else {
-                    bench.add(upgraded);
+                    addToBench(upgraded);
                 }
 
                 checkUpgrade(unitName, starLevel + 1);
@@ -152,13 +172,14 @@ public class Player {
 
     public void sellUnit(String unitId, boolean allowBoardSell) {
         // Try to find unit in bench first (always allowed)
-        var benchUnit =
-                bench.stream().filter(u -> u.getId().equals(unitId)).findFirst().orElse(null);
-        if (benchUnit != null) {
-            var refund = calculateSellValue(benchUnit);
-            bench.remove(benchUnit);
-            gold += refund;
-            return;
+        for (int i = 0; i < MAX_BENCH_SIZE; i++) {
+            var unit = bench.get(i);
+            if (unit != null && unit.getId().equals(unitId)) {
+                var refund = calculateSellValue(unit);
+                bench.set(i, null);
+                gold += refund;
+                return;
+            }
         }
 
         // Try to find unit on board (only if allowed, e.g., during PLANNING phase)
@@ -206,27 +227,48 @@ public class Player {
     }
 
     public void collectOrb(String orbId) {
-        var orb =
-                lootOrbs.stream().filter(o -> o.id().equals(orbId)).findFirst().orElse(null);
+        var orb = lootOrbs.stream().filter(o -> o.id().equals(orbId)).findFirst().orElse(null);
 
         if (orb != null) {
             lootOrbs.remove(orb);
             if (orb.type() == LootType.GOLD) {
                 gainGold(orb.amount());
             } else if (orb.type() == LootType.UNIT) {
-                var def = dataLoader.getAllUnits().stream()
+                var units = dataLoader.getAllUnits();
+                var def = units.stream()
                         .filter(u -> u.name().equals(orb.contentId()))
                         .findFirst()
                         .orElse(null);
-                if (def != null && bench.size() < MAX_BENCH_SIZE) {
+                if (def != null) {
                     var unit = new StandardGameUnit(def);
                     unit.setOwnerId(this.id);
-                    bench.add(unit);
-                    checkUpgrade(def.name(), 1);
-                } else if (def != null) {
-                    // Bench full, refund gold maybe? For now just sell it
-                    gainGold(def.cost());
+                    addToBenchOrRefund(unit, def.cost());
                 }
+            }
+        }
+    }
+
+    private void addToBenchOrRefund(GameUnit unit, int refundAmount) {
+        int emptySlot = -1;
+        for (int i = 0; i < MAX_BENCH_SIZE; i++) {
+            if (bench.get(i) == null) {
+                emptySlot = i;
+                break;
+            }
+        }
+        if (emptySlot != -1) {
+            bench.set(emptySlot, unit);
+            checkUpgrade(unit.getName(), 1);
+        } else {
+            gainGold(refundAmount);
+        }
+    }
+
+    private void addToBench(GameUnit unit) {
+        for (int i = 0; i < MAX_BENCH_SIZE; i++) {
+            if (bench.get(i) == null) {
+                bench.set(i, unit);
+                return;
             }
         }
     }
@@ -270,33 +312,57 @@ public class Player {
     }
 
     public void moveUnit(String unitId, int x, int y) {
-        if (boardLocked) return;
+        if (boardLocked)
+            return;
         // Validation: Player grid check
-        if (y >= 0 && !grid.isValid(x, y)) return;
+        if (y >= 0 && !grid.isValid(x, y))
+            return;
 
-        var benchUnit =
-                bench.stream().filter(u -> u.getId().equals(unitId)).findFirst().orElse(null);
+        // Try to find if moving from bench
+        int fromBenchIdx = -1;
+        GameUnit benchUnit = null;
+        for (int i = 0; i < MAX_BENCH_SIZE; i++) {
+            var u = bench.get(i);
+            if (u != null && u.getId().equals(unitId)) {
+                fromBenchIdx = i;
+                benchUnit = u;
+                break;
+            }
+        }
+
         if (benchUnit != null) {
             // Bench -> Board
             if (y >= 0) {
+                if (inCombat)
+                    return;
+
                 var targetUnit = grid.getUnitAt(x, y).orElse(null);
                 if (targetUnit != null) {
-                    // Swap: Board unit goes to bench, bench unit goes to board
+                    // Swap: Board unit goes to bench (at the index we moved from), bench unit goes
+                    // to board
                     grid.removeUnit(targetUnit);
                     boardUnits.remove(targetUnit);
                     targetUnit.setPosition(-1, -1);
-                    bench.add(targetUnit);
+                    bench.set(fromBenchIdx, targetUnit);
 
-                    bench.remove(benchUnit);
                     grid.placeUnit(benchUnit, x, y);
                     boardUnits.add(benchUnit);
                 } else {
                     // Empty cell - standard move
-                    if (boardUnits.size() >= level) return; // Cap
+                    if (boardUnits.size() >= level)
+                        return; // Cap
 
-                    bench.remove(benchUnit);
+                    bench.set(fromBenchIdx, null);
                     grid.placeUnit(benchUnit, x, y);
                     boardUnits.add(benchUnit);
+                }
+            } else if (y < 0) {
+                // Bench -> Bench (Reorder)
+                int toBenchIdx = x; // Frontend sends slot index in targetX
+                if (toBenchIdx >= 0 && toBenchIdx < MAX_BENCH_SIZE && toBenchIdx != fromBenchIdx) {
+                    var targetBenchUnit = bench.get(toBenchIdx);
+                    bench.set(toBenchIdx, benchUnit);
+                    bench.set(fromBenchIdx, targetBenchUnit);
                 }
             }
         } else {
@@ -305,13 +371,46 @@ public class Player {
                     .findFirst()
                     .orElse(null);
             if (boardUnit != null) {
+                if (inCombat)
+                    return;
+
                 // Board -> Bench
                 if (y < 0) {
-                    if (bench.size() >= MAX_BENCH_SIZE) return;
-                    grid.removeUnit(boardUnit); // Remove from grid
-                    boardUnits.remove(boardUnit);
-                    boardUnit.setPosition(-1, -1);
-                    bench.add(boardUnit);
+                    int targetBenchIdx = x;
+                    if (targetBenchIdx < 0 || targetBenchIdx >= MAX_BENCH_SIZE) {
+                        // Fallback: find first empty
+                        targetBenchIdx = -1;
+                        for (int i = 0; i < MAX_BENCH_SIZE; i++) {
+                            if (bench.get(i) == null) {
+                                targetBenchIdx = i;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (targetBenchIdx != -1) {
+                        var targetBenchUnit = bench.get(targetBenchIdx);
+                        if (targetBenchUnit != null) {
+                            // Swap: Bench unit goes to board (where board unit was)
+                            int oldX = boardUnit.getX();
+                            int oldY = boardUnit.getY();
+
+                            grid.removeUnit(boardUnit);
+                            boardUnits.remove(boardUnit);
+                            boardUnit.setPosition(-1, -1);
+
+                            bench.set(targetBenchIdx, boardUnit);
+
+                            grid.placeUnit(targetBenchUnit, oldX, oldY);
+                            boardUnits.add(targetBenchUnit);
+                        } else {
+                            // Place in empty bench slot
+                            grid.removeUnit(boardUnit);
+                            boardUnits.remove(boardUnit);
+                            boardUnit.setPosition(-1, -1);
+                            bench.set(targetBenchIdx, boardUnit);
+                        }
+                    }
                 } else if (grid.isValid(x, y)) {
                     // Board -> Board (Move or Swap)
                     int oldX = boardUnit.getX();
@@ -342,7 +441,8 @@ public class Player {
     }
 
     public void addUnitToBoard(UnitDefinition def, int x, int y) {
-        if (boardUnits.size() >= level) return;
+        if (boardUnits.size() >= level)
+            return;
         var unit = new StandardGameUnit(def);
         unit.setOwnerId(this.id);
         if (grid.isValid(x, y) && grid.isEmpty(x, y)) {

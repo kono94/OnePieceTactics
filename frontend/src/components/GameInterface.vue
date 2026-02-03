@@ -81,10 +81,12 @@ const onBenchDragEnd = () => {
     isDraggingUnit.value = false
     draggedUnit.value = null
     isSellZoneHovered.value = false
+    dragOverBenchIndex.value = -1
 }
 
 const onBenchDrop = (evt: DragEvent, index: number) => {
     evt.preventDefault()
+    dragOverBenchIndex.value = -1
     if (evt.dataTransfer) {
         const unitId = evt.dataTransfer.getData('unitId')
         if (unitId) {
@@ -95,6 +97,18 @@ const onBenchDrop = (evt: DragEvent, index: number) => {
              emit('action', { type: 'MOVE', unitId, targetX: index, targetY: -1, playerId: myPlayer.value.playerId })
         }
     }
+}
+
+const onBenchDragOver = (evt: DragEvent, index: number) => {
+    evt.preventDefault()
+    dragOverBenchIndex.value = index
+    if (evt.dataTransfer) {
+        evt.dataTransfer.dropEffect = 'move'
+    }
+}
+
+const onBenchDragLeave = () => {
+    dragOverBenchIndex.value = -1
 }
 
 const handleBoardMove = (movePayload: any) => {
@@ -116,6 +130,7 @@ const isDraggingUnit = ref(false)
 const draggedUnit = ref<any>(null)
 const isSellZoneHovered = ref(false)
 const isDraggingFromGrid = ref(false)
+const dragOverBenchIndex = ref(-1)
 
 // Calculate sell value: cost × 3^(starLevel - 1)
 function calculateSellRefund(unit: any): number {
@@ -201,6 +216,7 @@ function isStarringUp(unitId: string): boolean {
 // Watch for star level changes in bench units
 watch(() => benchUnits.value, (newBench) => {
     newBench.forEach((unit: any) => {
+        if (!unit) return
         const prevStarLevel = prevStarLevelMap.value[unit.id]
         const currentStarLevel = unit.starLevel || 1
         
@@ -287,8 +303,12 @@ watch(() => benchUnits.value, (newBench) => {
                         <!-- 9 slots or however many -->
                         <div v-for="i in 9" :key="'slot-'+(i-1)" 
                              class="bench-slot"
-                             :class="{ 'highlight-drop': isDraggingFromGrid }"
-                             @dragover.prevent
+                             :class="{ 
+                                'highlight-drop': isDraggingUnit,
+                                'active-drop': dragOverBenchIndex === (i-1)
+                             }"
+                             @dragover="(e) => onBenchDragOver(e, i-1)"
+                             @dragleave="onBenchDragLeave"
                              @drop="(e) => onBenchDrop(e, i-1)">
                             
                            <div v-if="benchUnits[i-1]" 
@@ -659,6 +679,12 @@ watch(() => benchUnits.value, (newBench) => {
     border-color: #60a5fa;
     background: rgba(59, 130, 246, 0.2);
     box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+}
+
+.bench-slot.active-drop {
+    background: rgba(59, 130, 246, 0.4);
+    box-shadow: inset 0 0 10px #3b82f6;
+    border-color: #3b82f6;
 }
 
 /* Bench Area Wrapper */

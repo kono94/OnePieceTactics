@@ -194,7 +194,7 @@ const getColor = (id: string) => {
 }
 
 const onDragStart = (evt: DragEvent, unit: any) => {
-    if (unit.ownerId !== props.myPlayerId) {
+    if (unit.ownerId !== props.myPlayerId || props.state?.phase === 'COMBAT') {
         evt.preventDefault()
         return
     }
@@ -233,6 +233,8 @@ const onDrop = (evt: DragEvent, x: number, y: number) => {
     isDragging.value = false
     dragOverCellIndex.value = -1
     
+    // Block grid drops during combat
+    if (props.state?.phase === 'COMBAT') return 
     if (evt.dataTransfer) {
         const unitId = evt.dataTransfer.getData('unitId')
         if (unitId) {
@@ -248,16 +250,24 @@ const onDrop = (evt: DragEvent, x: number, y: number) => {
 
 const onDragOver = (evt: DragEvent, cellIndex: number) => {
     evt.preventDefault() 
+    
+    // Block grid interaction during combat
+    if (props.state?.phase === 'COMBAT') {
+        dragOverCellIndex.value = -1
+        if (evt.dataTransfer) {
+            evt.dataTransfer.dropEffect = 'none'
+        }
+        return
+    }
+
     dragOverCellIndex.value = cellIndex
     if (evt.dataTransfer) {
         evt.dataTransfer.dropEffect = 'move'
     }
 }
 
-const onDragLeave = (evt: DragEvent) => {
-    // Optional: could clear dragOverCellIndex if leaving the *grid* entirely,
-    // but individual cell leave logic is tricky with child elements.
-    // relying on dragOver updating consistently.
+const onDragLeave = () => {
+    dragOverCellIndex.value = -1
 }
 
 // Hover handlers for Tooltip
@@ -550,6 +560,7 @@ watch(() => props.state, (newState) => {
     const allMyUnits = [...(myPlayer.board || []), ...(myPlayer.bench || [])]
     
     allMyUnits.forEach((unit: any) => {
+        if (!unit) return
         const prevStarLevel = prevStarLevelMap.value[unit.id]
         const currentStarLevel = unit.starLevel || 1
         
@@ -595,10 +606,11 @@ const onOrbClick = (orbId: string) => {
              :class="{ 
                 'player-half': Math.floor((i-1)/GRID_COLS) >= PLAYER_ROWS, 
                 'enemy-half': Math.floor((i-1)/GRID_COLS) < PLAYER_ROWS,
-                'highlight-drop': isDragging && Math.floor((i-1)/GRID_COLS) >= PLAYER_ROWS,
-                'active-drop': dragOverCellIndex === (i-1) && Math.floor((i-1)/GRID_COLS) >= PLAYER_ROWS
+                'highlight-drop': (isDragging || isDraggingProp) && Math.floor((i-1)/GRID_COLS) >= PLAYER_ROWS && props.state?.phase !== 'COMBAT',
+                'active-drop': dragOverCellIndex === (i-1) && Math.floor((i-1)/GRID_COLS) >= PLAYER_ROWS && props.state?.phase !== 'COMBAT'
              }"
              @dragover="(e) => onDragOver(e, i-1)"
+             @dragleave="onDragLeave"
              @drop="(e) => onDrop(e, (i-1)%GRID_COLS, Math.floor((i-1)/GRID_COLS))">
         </div>
         

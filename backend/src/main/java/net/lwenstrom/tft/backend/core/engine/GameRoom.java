@@ -171,7 +171,7 @@ public class GameRoom {
 
     public void moveUnit(String playerId, String unitId, int x, int y) {
         Player p = players.get(playerId);
-        if (p != null && phase == GamePhase.PLANNING) {
+        if (p != null && (phase == GamePhase.PLANNING || phase == GamePhase.COMBAT)) {
             p.moveUnit(unitId, x, y);
         }
     }
@@ -241,8 +241,7 @@ public class GameRoom {
 
         if (phase == GamePhase.PLANNING) {
             // Check if game should end (only one player with health > 0)
-            var alivePlayers =
-                    players.values().stream().filter(p -> p.getHealth() > 0).count();
+            var alivePlayers = players.values().stream().filter(p -> p.getHealth() > 0).count();
             if (alivePlayers <= 1) {
                 log.info("Game ending: only {} player(s) remaining", alivePlayers);
                 this.phase = GamePhase.END;
@@ -462,8 +461,7 @@ public class GameRoom {
         }
 
         // Check for game end
-        var alivePlayers =
-                players.values().stream().filter(p -> p.getHealth() > 0).toList();
+        var alivePlayers = players.values().stream().filter(p -> p.getHealth() > 0).toList();
         if (alivePlayers.size() <= 1) {
             if (alivePlayers.size() == 1) {
                 alivePlayers.get(0).setPlace(1);
