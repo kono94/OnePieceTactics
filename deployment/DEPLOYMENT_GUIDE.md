@@ -19,7 +19,7 @@ Simple GitOps deployment to Hetzner VPS.
 ```
 deployment/
 ├── cloud-init.yaml       # Paste into Hetzner when creating VPS
-├── init.sh               # Run once after first SSH
+├── initial-setup.sh               # Run once after first SSH
 ├── deploy.sh             # Called by GitOps on each deploy
 └── nginx/
     ├── dev.conf          # Local development (HTTP)
@@ -78,7 +78,7 @@ Repo → Settings → Secrets → Actions:
 ssh -p 2222 deployer@<SERVER_IP> -i ~/.ssh/id_tft_admin
 
 # Run setup wizard
-bash /opt/tft/deployment/init.sh
+bash /opt/tft/deployment/initial-setup.sh
 ```
 
 ---

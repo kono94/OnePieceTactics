@@ -3,6 +3,7 @@
 # TFT Deploy Script
 # =============================================================================
 # Called by GitOps trigger after git checkout
+# Requires: initial-setup.sh to have been run first (creates .env and nginx/prod.conf)
 # =============================================================================
 
 set -e
@@ -14,17 +15,18 @@ echo "[$(date)] Deploying TFT..."
 
 # Check if initialized
 if [ ! -f ".env" ]; then
-    echo "❌ Server not initialized! Run: bash deployment/init.sh"
+    echo "❌ Server not initialized! Run: sudo bash deployment/initial-setup.sh"
     exit 1
 fi
 
-# Load environment
+if [ ! -f "deployment/nginx/prod.conf" ]; then
+    echo "❌ nginx/prod.conf missing! Run: sudo bash deployment/initial-setup.sh"
+    exit 1
+fi
+
+# Load environment for logging
 export $(grep -v '^#' .env | xargs)
 echo "[$(date)] Domain: $DOMAIN"
-
-# Generate nginx prod config
-echo "[$(date)] Generating nginx config..."
-envsubst '${DOMAIN}' < deployment/nginx/prod.conf.template > deployment/nginx/prod.conf
 
 # Deploy with prod profile
 echo "[$(date)] Starting containers..."

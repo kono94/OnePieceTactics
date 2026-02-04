@@ -5,7 +5,7 @@
 # =============================================================================
 # 1. Paste this in Hetzner Cloud Console → Create Server → Cloud config
 # 2. Replace <YOUR_ADMIN_SSH_KEY> and <YOUR_GITHUB_ACTION_SSH_KEY>
-# 3. After boot, SSH in and run: bash /opt/tft/deployment/init.sh
+# 3. After boot, SSH in and run: bash /opt/tft/deployment/initial-setup.sh
 # =============================================================================
 
 package_update: true
@@ -118,5 +118,5 @@ final_message: |
   ========================================
   TFT Server Ready!
   SSH: ssh -p 2222 deployer@<IP> -i ~/.ssh/your_key
-  Then: bash /opt/tft/deployment/init.sh
+  Then: bash /opt/tft/deployment/initial-setup.sh
   ========================================

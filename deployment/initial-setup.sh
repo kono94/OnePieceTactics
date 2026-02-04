@@ -3,7 +3,7 @@
 # TFT Server First-Time Setup
 # =============================================================================
 # Run this ONCE after SSHing into your new VPS:
-#   bash /opt/tft/deployment/init.sh
+#   bash /opt/tft/deployment/initial-setup.sh
 # =============================================================================
 
 set -e
@@ -11,11 +11,11 @@ set -e
 # Check for root/sudo
 if [ "$EUID" -ne 0 ]; then
     echo "❌ This script must be run as root or with sudo"
-    echo "   Usage: sudo bash /opt/onepiece/deployment/init.sh"
+    echo "   Usage: sudo bash /opt/tft/deployment/initial-setup.sh"
     exit 1
 fi
 
-PROJECT_DIR="/opt/onepiece"
+PROJECT_DIR="/opt/tft"
 cd "$PROJECT_DIR"
 
 echo ""
