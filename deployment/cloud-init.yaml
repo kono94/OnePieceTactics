@@ -107,10 +107,6 @@ runcmd:
   - git clone https://github.com/kono94/OnePieceTactics.git /opt/tft
   - chown -R github-deployer:github-deployer /opt/tft
 
-  # Create certbot directories
-  - mkdir -p /opt/tft/deployment/certbot/conf /opt/tft/deployment/certbot/www
-  - chown -R github-deployer:github-deployer /opt/tft/deployment/certbot
-
   # Reboot to apply SSH changes
   - reboot
 
