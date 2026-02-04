@@ -1,10 +1,16 @@
 #cloud-config
 
-# 1. System Updates
+# =============================================================================
+# TFT Server Bootstrap (Hetzner VPS)
+# =============================================================================
+# 1. Paste this in Hetzner Cloud Console → Create Server → Cloud config
+# 2. Replace <YOUR_ADMIN_SSH_KEY> and <YOUR_GITHUB_ACTION_SSH_KEY>
+# 3. After boot, SSH in and run: bash /opt/tft/deployment/init.sh
+# =============================================================================
+
 package_update: true
 package_upgrade: true
 
-# 2. Package Installation
 packages:
   - apt-transport-https
   - ca-certificates
@@ -15,34 +21,30 @@ packages:
   - ufw
   - fail2ban
 
-# 3. User Management
 users:
+  # Admin user (you)
   - name: deployer
     groups: sudo, docker
     shell: /bin/bash
     sudo: ALL=(ALL) NOPASSWD:ALL
     ssh_authorized_keys:
-      - "<YOUR_ADMIN_SSH_KEY_HERE>"
+      - "<YOUR_ADMIN_SSH_KEY>"
 
-
-
+  # GitHub Actions deploy user (restricted)
   - name: github-deployer
     groups: docker
     shell: /bin/bash
     ssh_authorized_keys:
-      - "<YOUR_GITHUB_ACTION_SSH_KEY_HERE>"
+      - "<YOUR_GITHUB_ACTION_SSH_KEY>"
 
-
-# 4. Swap File (2GB)
 swap:
   filename: /swap.img
   size: 2G
   maxsize: 2G
 
-# 5. File Creation
 write_files:
-  # Advanced SSH Hardening (Based on Hetzner Tutorial)
-  - path: /etc/ssh/sshd_config.d/ssh-hardening.conf
+  # SSH Hardening
+  - path: /etc/ssh/sshd_config.d/hardening.conf
     content: |
       PermitRootLogin no
       PasswordAuthentication no
@@ -56,48 +58,33 @@ write_files:
       AuthorizedKeysFile .ssh/authorized_keys
       AllowUsers deployer github-deployer
 
-
-
-  # SSH Restriction for github-deployer
-  - path: /etc/ssh/sshd_config.d/github-deploy-restriction.conf
+  # Restrict github-deployer to deploy script only
+  - path: /etc/ssh/sshd_config.d/github-deploy.conf
     content: |
       Match User github-deployer
           ForceCommand /usr/local/bin/deploy-trigger
 
-  # Minimal Deploy Wrapper (Trigger Only)
+  # GitOps Deploy Trigger
   - path: /usr/local/bin/deploy-trigger
     permissions: '0755'
     owner: root:root
     content: |
       #!/bin/bash
       set -e
-      PROJECT_DIR="/opt/onepiece"
+      PROJECT_DIR="/opt/tft"
       REPO_URL="https://github.com/kono94/OnePieceTactics.git"
 
-      echo "[$(date)] Triggering GitOps Update..."
+      echo "[$(date)] GitOps Deploy Triggered"
       
-      if [ ! -d "$PROJECT_DIR" ]; then
-        git clone "$REPO_URL" "$PROJECT_DIR"
-      fi
-
       cd "$PROJECT_DIR"
       git fetch --all --tags
-
-      # Get the latest tag or fallback to main
-      LATEST_TAG=$(git describe --tags --abbrev=0 origin/main 2>/dev/null || echo "main")
       
-      echo "Deploying version: $LATEST_TAG"
+      LATEST_TAG=$(git describe --tags --abbrev=0 origin/main 2>/dev/null || echo "main")
+      echo "Deploying: $LATEST_TAG"
       git checkout "$LATEST_TAG"
 
-      if [ -f "$PROJECT_DIR/deployment/deploy.sh" ]; then
-        echo "[$(date)] Executing in-repo deployment script..."
-        bash "$PROJECT_DIR/deployment/deploy.sh"
-      else
-        echo "ERROR: $PROJECT_DIR/deployment/deploy.sh not found!"
-        exit 1
-      fi
+      bash "$PROJECT_DIR/deployment/deploy.sh"
 
-# 6. Post-install commands
 runcmd:
   # Install Docker
   - install -m 0755 -d /etc/apt/keyrings
@@ -106,21 +93,30 @@ runcmd:
   - apt-get update
   - apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-  # Fail2ban Config (Hetzner Tutorial Based)
+  # Fail2ban
   - printf "[sshd]\nenabled = true\nport = ssh, 2222\nbanaction = iptables-multiport" > /etc/fail2ban/jail.local
   - systemctl enable fail2ban
 
-  # Security: Firewall
+  # Firewall
   - ufw allow 2222
   - ufw allow 80
   - ufw allow 443
   - ufw --force enable
 
-  # Setup Project Directory permissions for github-deployer
-  - mkdir -p /opt/onepiece
-  - chown github-deployer:github-deployer /opt/onepiece
+  # Clone repository
+  - git clone https://github.com/kono94/OnePieceTactics.git /opt/tft
+  - chown -R github-deployer:github-deployer /opt/tft
 
-  # Final Reboot
+  # Create certbot directories
+  - mkdir -p /opt/tft/deployment/certbot/conf /opt/tft/deployment/certbot/www
+  - chown -R github-deployer:github-deployer /opt/tft/deployment/certbot
+
+  # Reboot to apply SSH changes
   - reboot
 
-final_message: "System is hardening and rebooting. See you on port 2222!"
+final_message: |
+  ========================================
+  TFT Server Ready!
+  SSH: ssh -p 2222 deployer@<IP> -i ~/.ssh/your_key
+  Then: bash /opt/tft/deployment/init.sh
+  ========================================

@@ -6,10 +6,10 @@ http {
     include       /etc/nginx/mime.types;
     default_type  application/octet-stream;
 
-    # HTTP - Redirect to HTTPS
+    # HTTP - Redirect to HTTPS + ACME challenge
     server {
         listen 80;
-        server_name tft.lwenstrom.net;
+        server_name ${DOMAIN};
 
         location /.well-known/acme-challenge/ {
             root /var/www/certbot;
@@ -23,10 +23,10 @@ http {
     # HTTPS
     server {
         listen 443 ssl;
-        server_name tft.lwenstrom.net;
+        server_name ${DOMAIN};
 
-        ssl_certificate /etc/letsencrypt/live/tft.lwenstrom.net/fullchain.pem;
-        ssl_certificate_key /etc/letsencrypt/live/tft.lwenstrom.net/privkey.pem;
+        ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
 
         # Frontend
         location / {
