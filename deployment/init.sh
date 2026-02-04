@@ -8,7 +8,14 @@
 
 set -e
 
-PROJECT_DIR="/opt/tft"
+# Check for root/sudo
+if [ "$EUID" -ne 0 ]; then
+    echo "❌ This script must be run as root or with sudo"
+    echo "   Usage: sudo bash /opt/onepiece/deployment/init.sh"
+    exit 1
+fi
+
+PROJECT_DIR="/opt/onepiece"
 cd "$PROJECT_DIR"
 
 echo ""
