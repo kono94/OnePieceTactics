@@ -22,7 +22,7 @@ defineEmits(['create', 'join'])
        <div class="card">
          <h3>Create New Room</h3>
          <p>Start a game with 7 AI bots</p>
-         <input v-model="createId" placeholder="Enter Room ID" />
+         <input v-model="createId" placeholder="Enter Room ID" @keyup.enter="createId && $emit('create', createId)" />
          <button @click="$emit('create', createId)" :disabled="!createId">Create Game</button>
        </div>
        
@@ -31,7 +31,7 @@ defineEmits(['create', 'join'])
        <div class="card">
          <h3>Join Existing Room</h3>
          <p>Play with others</p>
-         <input v-model="joinId" placeholder="Enter Room ID" />
+         <input v-model="joinId" placeholder="Enter Room ID" @keyup.enter="joinId && $emit('join', joinId)" />
          <button @click="$emit('join', joinId)" :disabled="!joinId" class="secondary">Join Game</button>
        </div>
     </div>
@@ -51,6 +51,7 @@ defineEmits(['create', 'join'])
     font-size: 3em;
     margin-bottom: 10px;
     background: linear-gradient(to right, #ffd700, #ff8c00);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
