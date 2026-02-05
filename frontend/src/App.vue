@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Client, type IMessage } from '@stomp/stompjs'
 import type { StompSubscription } from '@stomp/stompjs'
 import Lobby from './components/Lobby.vue'
@@ -83,6 +83,21 @@ onUnmounted(() => {
 const encounterResult = ref<'WON' | 'LOST' | 'DRAW' | null>(null)
 let outcomeTimer: number | null = null
 const damageReport = ref<Record<string, DamageEntry> | null>(null)
+
+const myPlayerId = computed(() => {
+    if (!gameState.value) return undefined;
+    return Object.values(gameState.value.players).find(p => p.name === PLAYER_NAME)?.playerId;
+});
+
+const opponentId = computed(() => {
+    if (!gameState.value || !myPlayerId.value) return undefined;
+    return gameState.value.matchups[myPlayerId.value];
+});
+
+const opponentName = computed(() => {
+    if (!gameState.value || !opponentId.value) return undefined;
+    return gameState.value.players[opponentId.value]?.name || 'Opponent';
+});
 
 const subscribeToRoom = (roomId: string) => {
     if (!client.value || !isConnected.value) return
@@ -277,7 +292,9 @@ const handleLeaveLobby = () => {
                      </Transition>
                      <DamageReport v-if="gameState.damageLog" 
                                    :damage-log="gameState.damageLog" 
-                                   :my-player-id="Object.values(gameState.players).find(p => p.name === PLAYER_NAME)?.playerId" />
+                                   :my-player-id="myPlayerId"
+                                   :opponent-id="opponentId"
+                                   :opponent-name="opponentName" />
                  </template>
              </template>
              <div v-else class="loading-screen">

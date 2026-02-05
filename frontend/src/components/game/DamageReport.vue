@@ -16,7 +16,18 @@
     <!-- Main Panel -->
     <div class="report-panel">
       <div class="header">
-        <h2 class="header-title">Combat Stats</h2>
+        <div class="tabs-container">
+          <button 
+            class="tab-btn" 
+            :class="{ active: selectedTab === 'me' }"
+            @click="selectedTab = 'me'"
+          >YOU</button>
+          <button 
+            class="tab-btn" 
+            :class="{ active: selectedTab === 'opponent' }"
+            @click="selectedTab = 'opponent'"
+          >OPPONENT</button>
+        </div>
       </div>
 
       <div class="content custom-scrollbar">
@@ -40,7 +51,7 @@
           </div>
         </div>
         <div v-else class="empty-state">
-            <p>Waiting for combat data...</p>
+            <p>No damage data available</p>
         </div>
       </div>
     </div>
@@ -48,21 +59,26 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import type { DamageEntry } from '../../types';
 
 const props = defineProps<{
   damageLog: Record<string, DamageEntry> | null,
-  myPlayerId?: string
+  myPlayerId?: string,
+  opponentId?: string,
+  opponentName?: string
 }>();
 
 const isCollapsed = ref(true);
+const selectedTab = ref<'me' | 'opponent'>('me');
+
+const currentOwnerId = computed(() => selectedTab.value === 'me' ? props.myPlayerId : props.opponentId);
 
 const sortedEntries = computed(() => {
-  if (!props.damageLog || !props.myPlayerId) return [];
+  if (!props.damageLog || !currentOwnerId.value) return [];
   
   return Object.entries(props.damageLog)
-    .filter(([_, data]) => data.ownerId === props.myPlayerId)
+    .filter(([_, data]) => data.ownerId === currentOwnerId.value)
     .map(([unitId, data]) => ({
       unitId,
       unitName: data.unitName,
@@ -138,18 +154,51 @@ const maxDamage = computed(() => {
 }
 
 .header {
-  padding: 10px 12px;
+  padding: 0;
   background: rgba(0,0,0,0.3);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.header-title {
-  font-size: 12px;
-  font-weight: 900;
+.tabs-container {
+  display: flex;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px 4px;
+  border: none;
+  background: transparent;
   color: rgba(255, 255, 255, 0.4);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+}
+
+.tab-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.tab-btn.active {
+  color: #fbbf24;
+  border-bottom-color: #fbbf24;
+  background: rgba(251, 191, 36, 0.05);
+}
+
+.header-title {
+  padding: 12px;
+  font-size: 11px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.6);
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   margin: 0;
+  text-align: center;
 }
 
 .content {
@@ -242,6 +291,8 @@ const maxDamage = computed(() => {
   text-transform: uppercase;
   font-weight: 700;
   letter-spacing: 1px;
+  text-align: center;
+  padding: 20px;
 }
 
 .custom-scrollbar::-webkit-scrollbar {

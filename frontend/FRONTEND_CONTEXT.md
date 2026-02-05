@@ -261,17 +261,18 @@ Combat visuals are powered by a comprehensive animation system:
 Post-combat damage tracking is displayed in a collapsible side panel:
 
 **Features**:
-- Automatically populated with `damageLog` from backend after each combat round
-- Displays only the current player's units that participated in combat
+- Automatically populated with `damageLog` from backend during and after combat rounds
+- **Tabbed Interface**: Displays stats for both "YOU" (the current player) and "OPPONENT".
+- **Opponent Filtering**: Automatically filters to show units for the specific opponent currently being faced in combat.
 - Shows unit icon, name, and total damage dealt
-- Sorted by damage (highest to lowest)
-- Visual damage bars scaled relative to highest damage dealer
+- Sorted by damage (highest to lowest) per tab
+- Visual damage bars scaled relative to highest damage dealer in the active tab
 - Collapsed by default to minimize screen clutter
 - Fixed position on right side of screen with slide-in/out animation
 
 **Implementation** (`DamageReport.vue`):
-- Filters damage entries by `ownerId === myPlayerId`
-- Reactive sorting and max damage calculation
+- Toggles between `myPlayerId` and `opponentId` filters based on `selectedTab`.
+- Always displays both tabs, even during planning phases with empty logs.
 - Unit icons loaded from `/assets/units/{definitionId}.png`
 - Custom scrollbar styling for overflow content
 
