@@ -13,7 +13,7 @@
                 "style": "bronze",
                 "values": {
                     "hp": 200,
-                    "as": 0.10
+                    "as": 0.1
                 }
             },
             {
@@ -31,7 +31,7 @@
                 "style": "gold",
                 "values": {
                     "hp": 700,
-                    "as": 0.50
+                    "as": 0.5
                 }
             },
             {
@@ -103,7 +103,7 @@
                 "description": "+40% Ability Damage",
                 "style": "silver",
                 "values": {
-                    "abilityDamage": 0.40
+                    "abilityDamage": 0.4
                 }
             },
             {
@@ -111,7 +111,7 @@
                 "description": "+60% Ability Damage",
                 "style": "gold",
                 "values": {
-                    "abilityDamage": 0.60
+                    "abilityDamage": 0.6
                 }
             }
         ]
@@ -130,7 +130,7 @@
                 "style": "bronze",
                 "values": {
                     "damageBonus": 0.15,
-                    "hpThreshold": 0.70
+                    "hpThreshold": 0.7
                 }
             },
             {
@@ -138,8 +138,8 @@
                 "description": "+30% DMG below 70% HP",
                 "style": "silver",
                 "values": {
-                    "damageBonus": 0.30,
-                    "hpThreshold": 0.70
+                    "damageBonus": 0.3,
+                    "hpThreshold": 0.7
                 }
             },
             {
@@ -147,8 +147,8 @@
                 "description": "+50% DMG below 50% HP",
                 "style": "gold",
                 "values": {
-                    "damageBonus": 0.50,
-                    "hpThreshold": 0.50
+                    "damageBonus": 0.5,
+                    "hpThreshold": 0.5
                 }
             }
         ]
@@ -166,7 +166,7 @@
                 "description": "Heal 10% of damage",
                 "style": "bronze",
                 "values": {
-                    "lifesteal": 0.10
+                    "lifesteal": 0.1
                 }
             },
             {
@@ -174,7 +174,7 @@
                 "description": "Heal 20% of damage",
                 "style": "silver",
                 "values": {
-                    "lifesteal": 0.20
+                    "lifesteal": 0.2
                 }
             },
             {
@@ -182,7 +182,7 @@
                 "description": "Heal 30%, revive once",
                 "style": "gold",
                 "values": {
-                    "lifesteal": 0.30,
+                    "lifesteal": 0.3,
                     "revive": true
                 }
             }
@@ -201,7 +201,7 @@
                 "description": "+10% Attack Speed",
                 "style": "bronze",
                 "values": {
-                    "as": 0.10
+                    "as": 0.1
                 }
             },
             {
@@ -243,7 +243,7 @@
                 "description": "+30% Attack Damage",
                 "style": "silver",
                 "values": {
-                    "atkBuff": 0.30
+                    "atkBuff": 0.3
                 }
             },
             {
@@ -251,7 +251,7 @@
                 "description": "+50% ATK, shield on ally death",
                 "style": "gold",
                 "values": {
-                    "atkBuff": 0.50,
+                    "atkBuff": 0.5,
                     "shieldOnDeath": true
                 }
             }
@@ -304,7 +304,7 @@
                 "description": "30% chance",
                 "style": "bronze",
                 "values": {
-                    "chance": 0.30
+                    "chance": 0.3
                 }
             },
             {
@@ -320,7 +320,7 @@
                 "description": "80% chance",
                 "style": "gold",
                 "values": {
-                    "chance": 0.80
+                    "chance": 0.8
                 }
             }
         ]
@@ -364,7 +364,7 @@
                 "description": "+20% Damage",
                 "style": "bronze",
                 "values": {
-                    "atkBuff": 0.20
+                    "atkBuff": 0.2
                 }
             },
             {
@@ -398,7 +398,7 @@
                 "description": "+30% Mana per attack",
                 "style": "silver",
                 "values": {
-                    "manaGain": 0.30
+                    "manaGain": 0.3
                 }
             },
             {
@@ -406,7 +406,7 @@
                 "description": "+50% Mana per attack",
                 "style": "gold",
                 "values": {
-                    "manaGain": 0.50
+                    "manaGain": 0.5
                 }
             }
         ]
@@ -450,8 +450,8 @@
                 "description": "+20% AS below 60% HP",
                 "style": "bronze",
                 "values": {
-                    "as": 0.20,
-                    "hpThreshold": 0.60
+                    "as": 0.2,
+                    "hpThreshold": 0.6
                 }
             },
             {
@@ -459,8 +459,8 @@
                 "description": "+40% AS below 40% HP",
                 "style": "gold",
                 "values": {
-                    "as": 0.40,
-                    "hpThreshold": 0.40
+                    "as": 0.4,
+                    "hpThreshold": 0.4
                 }
             }
         ]
@@ -478,7 +478,7 @@
                 "description": "+10% DMG per cell",
                 "style": "bronze",
                 "values": {
-                    "damagePerCell": 0.10
+                    "damagePerCell": 0.1
                 }
             },
             {
@@ -486,7 +486,7 @@
                 "description": "+20% DMG per cell",
                 "style": "gold",
                 "values": {
-                    "damagePerCell": 0.20
+                    "damagePerCell": 0.2
                 }
             }
         ]
@@ -523,7 +523,7 @@
                 "description": "+20% Heal",
                 "style": "gold",
                 "values": {
-                    "healAmp": 0.20
+                    "healAmp": 0.2
                 }
             }
         ]
@@ -541,7 +541,7 @@
                 "description": "+10% AS for 4s",
                 "style": "gold",
                 "values": {
-                    "as": 0.10,
+                    "as": 0.1,
                     "duration": 4
                 }
             }
