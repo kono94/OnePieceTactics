@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import net.lwenstrom.tft.backend.core.engine.GenericTraitApplier;
 import net.lwenstrom.tft.backend.core.engine.TraitManager;
-import net.lwenstrom.tft.backend.game.onepiece.traits.DataDrivenTraitApplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +41,7 @@ public class OnePieceTraitLoader {
                     }
                 }
 
-                var applier = new DataDrivenTraitApplier(traitId, effectType, effects);
+                var applier = new GenericTraitApplier(traitId, effectType, effects);
                 traitManager.registerEffect(traitId, applier);
                 log.debug("Registered trait: {} with effectType: {}", traitId, effectType);
             }

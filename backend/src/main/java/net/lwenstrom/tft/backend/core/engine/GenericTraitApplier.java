@@ -1,26 +1,38 @@
-package net.lwenstrom.tft.backend.game.onepiece.traits;
+package net.lwenstrom.tft.backend.core.engine;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
-import net.lwenstrom.tft.backend.core.engine.TraitManager;
+import java.util.Map;
+import net.lwenstrom.tft.backend.core.model.CustomEffectHandler;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 import net.lwenstrom.tft.backend.core.model.TraitEffect;
 
 /**
  * A data-driven trait applier that reads effect values from trait definition
  * JSON.
- * The traits_onepiece.json is the single source of truth for all trait values.
+ * Can be used by any theme (One Piece, Pokemon, etc.) for standard effect
+ * types.
  */
-public class DataDrivenTraitApplier implements TraitEffect {
+public class GenericTraitApplier implements TraitEffect {
 
     private final String traitId;
     private final String effectType;
     private final List<JsonNode> effects;
+    private final Map<String, CustomEffectHandler> customHandlers;
 
-    public DataDrivenTraitApplier(String traitId, String effectType, List<JsonNode> effects) {
+    public GenericTraitApplier(String traitId, String effectType, List<JsonNode> effects) {
+        this(traitId, effectType, effects, Map.of());
+    }
+
+    public GenericTraitApplier(
+            String traitId,
+            String effectType,
+            List<JsonNode> effects,
+            Map<String, CustomEffectHandler> customHandlers) {
         this.traitId = traitId;
         this.effectType = effectType;
         this.effects = effects;
+        this.customHandlers = customHandlers;
     }
 
     @Override
@@ -58,6 +70,18 @@ public class DataDrivenTraitApplier implements TraitEffect {
             case "GOLD_ON_WIN" -> applyGoldOnWin(units, values);
             case "HEAL_AMP" -> applyHealAmp(units, values);
             case "AS_ON_CAST" -> applyAsOnCast(units, values);
+            case "CUSTOM" -> applyCustom(count, units, activeEffect);
+        }
+    }
+
+    private void applyCustom(int count, List<GameUnit> units, JsonNode effect) {
+        if (!effect.has("customHandler")) {
+            return;
+        }
+        var handlerId = effect.get("customHandler").asText();
+        var handler = customHandlers.get(handlerId);
+        if (handler != null) {
+            handler.apply(count, units, effect.get("values"));
         }
     }
 

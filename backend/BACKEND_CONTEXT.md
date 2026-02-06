@@ -1,6 +1,6 @@
 # Backend Context - Architectural Blueprint
 
-> **Last Updated**: 2026-02-03
+> **Last Updated**: 2026-02-06
 > **Purpose**: Comprehensive technical reference for AI developers and engineers to understand the game server's architecture, game loop, and communication patterns.
 
 ---
@@ -66,6 +66,8 @@ src/main/java/net/lwenstrom/tft/backend/
 │   │   ├── Grid.java               # 7x4 (planning) / 7x8 (combat) grid management
 │   │   ├── CombatSystem.java       # Combat simulation per tick
 │   │   ├── TraitManager.java       # Applies cumulative trait bonuses to units
+│   │   ├── GenericTraitApplier.java # Data-driven trait applier (reads effects from JSON)
+│   │   ├── ShopOdds.java            # TFT-style level-based shop probability distribution
 │   │   ├── AbstractGameUnit.java   # Base unit with stats, position, mana, items
 │   │   ├── StandardGameUnit.java   # Concrete GameUnit implementation
 │   │   └── UnitDefinition.java     # Record: immutable unit template with List-based stats
@@ -93,15 +95,13 @@ src/main/java/net/lwenstrom/tft/backend/
 └── game/                           # Theme-Specific Implementations
     ├── onepiece/
     │   ├── OnePieceGameModeProvider.java  # Provides paths to One Piece data, registers traits
-    │   ├── OnePieceTraitLoader.java
-    │   └── traits/                 # One Piece trait effect implementations
-    │       ├── StrawHatTrait.java
-    │       └── FighterTrait.java
+    │   └── OnePieceTraitLoader.java       # Loads traits from JSON using GenericTraitApplier
     └── pokemon/
         ├── PokemonGameModeProvider.java
-        ├── PokemonTraitLoader.java
-        └── traits/                 # Pokemon trait effect implementations
+        └── PokemonTraitLoader.java
 ```
+
+> **Note**: Individual trait implementation classes (e.g., `StrawHatTrait.java`, `FighterTrait.java`) have been removed. All traits are now **data-driven** via `traits_onepiece.json` and `GenericTraitApplier`.
 
 ---
 
@@ -327,15 +327,45 @@ Themes are hot-swappable via the `game.mode` property (default: `onepiece`).
        public GameMode getMode() { return GameMode.MY_THEME; }
        public String getUnitsPath() { return "/data/units_mytheme.json"; }
        public String getTraitsPath() { return "/data/traits_mytheme.json"; }
-       public void registerTraitEffects(TraitManager tm) { /* register */ }
+       public void registerTraitEffects(TraitManager tm) {
+           MyThemeTraitLoader.load(tm); // Uses GenericTraitApplier
+       }
    }
    ```
 3. Add `MY_THEME` to `GameMode` enum.
 4. Create JSON data files in `src/main/resources/data/`.
+5. Create a `TraitLoader` that reads traits from JSON and uses `GenericTraitApplier`.
 
 ---
 
-## 9. Key File Locations Quick Reference
+## 9. Shop Probability System
+
+### 9.1 Level-Based Odds (`ShopOdds`)
+
+The shop uses a TFT-style probability distribution where higher-cost units become available as players level up:
+
+| Level | 1-Cost | 2-Cost | 3-Cost | 4-Cost | 5-Cost |
+|-------|--------|--------|--------|--------|--------|
+| 1 | 100% | 0% | 0% | 0% | 0% |
+| 2 | 70% | 30% | 0% | 0% | 0% |
+| 3 | 50% | 35% | 15% | 0% | 0% |
+| 4 | 35% | 35% | 25% | 5% | 0% |
+| 5 | 25% | 30% | 30% | 13% | 2% |
+| 6 | 18% | 27% | 30% | 20% | 5% |
+| 7 | 14% | 22% | 30% | 25% | 9% |
+| 8 | 12% | 18% | 27% | 28% | 15% |
+| 9 | 10% | 15% | 22% | 30% | 23% |
+
+### 9.2 How It Works
+
+1. `Player.refreshShop()` calls `ShopOdds.rollUnit()` for each shop slot.
+2. `rollCostTier()` uses the probability table to determine unit cost.
+3. A random unit of that cost is selected from the available pool.
+4. **Fallback logic**: If no units of the rolled tier exist, tries lower tiers.
+
+---
+
+## 10. Key File Locations Quick Reference
 
 | Purpose | Path |
 |---------|------|
@@ -350,12 +380,14 @@ Themes are hot-swappable via the `game.mode` property (default: `onepiece`).
 | **Ability Type Enum** | `src/main/java/.../core/model/AbilityType.java` |
 | **Ability Caster** | `src/main/java/.../core/combat/DefaultAbilityCaster.java` |
 | **Loot Orb/Type** | `src/main/java/.../core/model/LootOrb.java`, `LootType.java` |
+| **Shop Odds** | `src/main/java/.../core/engine/ShopOdds.java` |
+| **Generic Trait Applier** | `src/main/java/.../core/engine/GenericTraitApplier.java` |
 | **Unit Data (One Piece)** | `src/main/resources/data/units_onepiece.json` |
 | **Trait Data (One Piece)** | `src/main/resources/data/traits_onepiece.json` |
 
 ---
 
-## 10. Grid System
+## 11. Grid System
 
 | Constant | Value | Notes |
 |----------|-------|-------|
@@ -371,7 +403,7 @@ Themes are hot-swappable via the `game.mode` property (default: `onepiece`).
 
 ---
 
-## 11. Dependency Injection Graph
+## 12. Dependency Injection Graph
 
 ```
 BackendApplication
@@ -405,7 +437,7 @@ GameRoom (Per-Room Instance)
 
 ---
 
-## 12. Common Operations Cheat Sheet
+## 13. Common Operations Cheat Sheet
 
 | Task | Location | Method |
 |------|----------|--------|
@@ -424,7 +456,7 @@ GameRoom (Per-Room Instance)
 
 ---
 
-## 13. Ability System
+## 14. Ability System
 
 ### 13.1 Ability Types (`AbilityType` Enum)
 
@@ -547,7 +579,7 @@ public record UnitDefinition(
 
 ---
 
-## 14. Damage Tracking System
+## 15. Damage Tracking System
 
 ### 14.1 How It Works
 
@@ -573,7 +605,7 @@ private Map<String, DamageEntry> damageLog;
 
 ---
 
-## 15. Loot Orb System
+## 16. Loot Orb System
 
 ### 15.1 Records
 
@@ -597,7 +629,7 @@ public record LootOrb(String id, int x, int y, LootType type, String contentId, 
 
 ---
 
-## 16. Combat Phase Restrictions
+## 17. Combat Phase Restrictions
 
 ### 16.1 Sell Restrictions
 
@@ -640,7 +672,7 @@ public void processPendingUpgrades()  // Called at start of PLANNING phase
 
 ---
 
-## 17. Player Elimination & Game Ending
+## 18. Player Elimination & Game Ending
 
 ### 17.1 Elimination Logic
 
@@ -671,7 +703,7 @@ Checked at two points:
 
 ---
 
-## 18. Ghost/Clone Matchmaking System
+## 19. Ghost/Clone Matchmaking System
 
 ### 18.1 Purpose
 
@@ -711,7 +743,7 @@ public Player createGhost() {
 
 ---
 
-## 19. Bench System
+## 20. Bench System
 
 ### 19.1 Fixed-Size Slot Architecture
 
