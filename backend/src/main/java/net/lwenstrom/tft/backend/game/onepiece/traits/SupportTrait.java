@@ -5,20 +5,22 @@ import net.lwenstrom.tft.backend.core.engine.TraitManager;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 import net.lwenstrom.tft.backend.core.model.TraitEffect;
 
-public class FighterTrait implements TraitEffect {
+public class SupportTrait implements TraitEffect {
 
     @Override
     public void apply(int count, List<GameUnit> units) {
-        int bonusHp = 0;
-        if (count >= 6) bonusHp = 700;
-        else if (count >= 4) bonusHp = 350;
-        else if (count >= 2) bonusHp = 150;
+        int bonusStartMana = 0;
 
-        if (bonusHp > 0) {
+        if (count >= 4) {
+            bonusStartMana = 50;
+        } else if (count >= 2) {
+            bonusStartMana = 20;
+        }
+
+        if (bonusStartMana > 0) {
             for (GameUnit unit : units) {
-                if (hasTrait(unit, "fighter")) {
-                    unit.setMaxHealth(unit.getMaxHealth() + bonusHp);
-                    unit.setCurrentHealth(unit.getCurrentHealth() + bonusHp);
+                if (hasTrait(unit, "support")) {
+                    unit.setMana(Math.min(unit.getMaxMana(), unit.getMana() + bonusStartMana));
                 }
             }
         }

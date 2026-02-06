@@ -5,21 +5,255 @@
         "type": "origin",
         "description": "Straw Hats gain Health and Attack Speed.",
         "iconColor": "#facc15",
+        "effectType": "HP_AND_AS",
         "effects": [
             {
                 "minUnits": 2,
                 "description": "+200 HP, +10% AS",
-                "style": "bronze"
+                "style": "bronze",
+                "values": {
+                    "hp": 200,
+                    "as": 0.10
+                }
             },
             {
                 "minUnits": 4,
                 "description": "+400 HP, +25% AS",
-                "style": "silver"
+                "style": "silver",
+                "values": {
+                    "hp": 400,
+                    "as": 0.25
+                }
             },
             {
                 "minUnits": 6,
                 "description": "+700 HP, +50% AS",
-                "style": "gold"
+                "style": "gold",
+                "values": {
+                    "hp": 700,
+                    "as": 0.50
+                }
+            },
+            {
+                "minUnits": 8,
+                "description": "+1000 HP, +75% AS",
+                "style": "prismatic",
+                "values": {
+                    "hp": 1000,
+                    "as": 0.75
+                }
+            }
+        ]
+    },
+    {
+        "id": "marine",
+        "name": "Marine",
+        "type": "origin",
+        "description": "Marines gain Armor and Magic Resist.",
+        "iconColor": "#1e40af",
+        "effectType": "ARMOR_AND_MR",
+        "effects": [
+            {
+                "minUnits": 2,
+                "description": "+25 Armor, +25 MR",
+                "style": "bronze",
+                "values": {
+                    "armor": 25,
+                    "mr": 25
+                }
+            },
+            {
+                "minUnits": 4,
+                "description": "+60 Armor, +60 MR",
+                "style": "silver",
+                "values": {
+                    "armor": 60,
+                    "mr": 60
+                }
+            },
+            {
+                "minUnits": 6,
+                "description": "+100 Armor, +100 MR",
+                "style": "gold",
+                "values": {
+                    "armor": 100,
+                    "mr": 100
+                }
+            }
+        ]
+    },
+    {
+        "id": "warlord",
+        "name": "Warlord",
+        "type": "origin",
+        "description": "Warlords deal bonus ability damage.",
+        "iconColor": "#6b21a8",
+        "effectType": "ABILITY_DAMAGE",
+        "effects": [
+            {
+                "minUnits": 2,
+                "description": "+25% Ability Damage",
+                "style": "bronze",
+                "values": {
+                    "abilityDamage": 0.25
+                }
+            },
+            {
+                "minUnits": 4,
+                "description": "+40% Ability Damage",
+                "style": "silver",
+                "values": {
+                    "abilityDamage": 0.40
+                }
+            },
+            {
+                "minUnits": 6,
+                "description": "+60% Ability Damage",
+                "style": "gold",
+                "values": {
+                    "abilityDamage": 0.60
+                }
+            }
+        ]
+    },
+    {
+        "id": "beast_pirates",
+        "name": "Beast Pirates",
+        "type": "origin",
+        "description": "Beast Pirates deal more damage when wounded.",
+        "iconColor": "#7c3aed",
+        "effectType": "LOW_HP_DAMAGE",
+        "effects": [
+            {
+                "minUnits": 2,
+                "description": "+15% DMG below 70% HP",
+                "style": "bronze",
+                "values": {
+                    "damageBonus": 0.15,
+                    "hpThreshold": 0.70
+                }
+            },
+            {
+                "minUnits": 4,
+                "description": "+30% DMG below 70% HP",
+                "style": "silver",
+                "values": {
+                    "damageBonus": 0.30,
+                    "hpThreshold": 0.70
+                }
+            },
+            {
+                "minUnits": 6,
+                "description": "+50% DMG below 50% HP",
+                "style": "gold",
+                "values": {
+                    "damageBonus": 0.50,
+                    "hpThreshold": 0.50
+                }
+            }
+        ]
+    },
+    {
+        "id": "big_mom_pirates",
+        "name": "Big Mom Pirates",
+        "type": "origin",
+        "description": "Charlotte family heals from damage dealt.",
+        "iconColor": "#db2777",
+        "effectType": "LIFESTEAL",
+        "effects": [
+            {
+                "minUnits": 2,
+                "description": "Heal 10% of damage",
+                "style": "bronze",
+                "values": {
+                    "lifesteal": 0.10
+                }
+            },
+            {
+                "minUnits": 4,
+                "description": "Heal 20% of damage",
+                "style": "silver",
+                "values": {
+                    "lifesteal": 0.20
+                }
+            },
+            {
+                "minUnits": 6,
+                "description": "Heal 30%, revive once",
+                "style": "gold",
+                "values": {
+                    "lifesteal": 0.30,
+                    "revive": true
+                }
+            }
+        ]
+    },
+    {
+        "id": "revolutionary",
+        "name": "Revolutionary",
+        "type": "origin",
+        "description": "Revolutionaries gain Attack Speed.",
+        "iconColor": "#16a34a",
+        "effectType": "AS",
+        "effects": [
+            {
+                "minUnits": 2,
+                "description": "+10% Attack Speed",
+                "style": "bronze",
+                "values": {
+                    "as": 0.10
+                }
+            },
+            {
+                "minUnits": 4,
+                "description": "+25% Attack Speed",
+                "style": "silver",
+                "values": {
+                    "as": 0.25
+                }
+            },
+            {
+                "minUnits": 6,
+                "description": "+45% Attack Speed",
+                "style": "gold",
+                "values": {
+                    "as": 0.45
+                }
+            }
+        ]
+    },
+    {
+        "id": "whitebeard_pirates",
+        "name": "Whitebeard Pirates",
+        "type": "origin",
+        "description": "Whitebeard Pirates gain bonus Attack Damage.",
+        "iconColor": "#fbbf24",
+        "effectType": "ATK_BUFF",
+        "effects": [
+            {
+                "minUnits": 2,
+                "description": "+15% Attack Damage",
+                "style": "bronze",
+                "values": {
+                    "atkBuff": 0.15
+                }
+            },
+            {
+                "minUnits": 4,
+                "description": "+30% Attack Damage",
+                "style": "silver",
+                "values": {
+                    "atkBuff": 0.30
+                }
+            },
+            {
+                "minUnits": 6,
+                "description": "+50% ATK, shield on ally death",
+                "style": "gold",
+                "values": {
+                    "atkBuff": 0.50,
+                    "shieldOnDeath": true
+                }
             }
         ]
     },
@@ -29,21 +263,31 @@
         "type": "class",
         "description": "Fighters gain bonus Max Health.",
         "iconColor": "#ef4444",
+        "effectType": "HP",
         "effects": [
             {
                 "minUnits": 2,
                 "description": "+150 Health",
-                "style": "bronze"
+                "style": "bronze",
+                "values": {
+                    "hp": 150
+                }
             },
             {
                 "minUnits": 4,
                 "description": "+350 Health",
-                "style": "silver"
+                "style": "silver",
+                "values": {
+                    "hp": 350
+                }
             },
             {
                 "minUnits": 6,
                 "description": "+700 Health",
-                "style": "gold"
+                "style": "gold",
+                "values": {
+                    "hp": 700
+                }
             }
         ]
     },
@@ -53,49 +297,171 @@
         "type": "class",
         "description": "Swordsmen have a chance to trigger 2 extra attacks.",
         "iconColor": "#94a3b8",
+        "effectType": "EXTRA_ATTACK_CHANCE",
         "effects": [
             {
                 "minUnits": 2,
                 "description": "30% chance",
-                "style": "bronze"
+                "style": "bronze",
+                "values": {
+                    "chance": 0.30
+                }
             },
             {
                 "minUnits": 4,
                 "description": "55% chance",
-                "style": "silver"
+                "style": "silver",
+                "values": {
+                    "chance": 0.55
+                }
             },
             {
                 "minUnits": 6,
                 "description": "80% chance",
-                "style": "gold"
+                "style": "gold",
+                "values": {
+                    "chance": 0.80
+                }
             }
         ]
     },
     {
-        "id": "navigator",
-        "name": "Navigator",
+        "id": "tank",
+        "name": "Tank",
         "type": "class",
-        "description": "Navigators grant gold at end of combat.",
-        "iconColor": "#3b82f6",
+        "description": "Tanks gain bonus Health.",
+        "iconColor": "#64748b",
+        "effectType": "HP",
         "effects": [
             {
-                "minUnits": 1,
-                "description": "1-3 Gold per round",
-                "style": "gold"
+                "minUnits": 2,
+                "description": "+200 Health",
+                "style": "bronze",
+                "values": {
+                    "hp": 200
+                }
+            },
+            {
+                "minUnits": 4,
+                "description": "+500 Health",
+                "style": "gold",
+                "values": {
+                    "hp": 500
+                }
             }
         ]
     },
     {
-        "id": "doctor",
-        "name": "Doctor",
+        "id": "assassin",
+        "name": "Assassin",
         "type": "class",
-        "description": "Doctors increase effectiveness of all healing.",
-        "iconColor": "#ec4899",
+        "description": "Assassins deal bonus damage.",
+        "iconColor": "#a855f7",
+        "effectType": "ATK_BUFF",
         "effects": [
             {
-                "minUnits": 1,
-                "description": "+20% Heal",
-                "style": "gold"
+                "minUnits": 2,
+                "description": "+20% Damage",
+                "style": "bronze",
+                "values": {
+                    "atkBuff": 0.20
+                }
+            },
+            {
+                "minUnits": 4,
+                "description": "+45% Damage",
+                "style": "gold",
+                "values": {
+                    "atkBuff": 0.45
+                }
+            }
+        ]
+    },
+    {
+        "id": "mage",
+        "name": "Mage",
+        "type": "class",
+        "description": "Mages gain mana faster from attacks.",
+        "iconColor": "#8b5cf6",
+        "effectType": "MANA_GAIN",
+        "effects": [
+            {
+                "minUnits": 2,
+                "description": "+15% Mana per attack",
+                "style": "bronze",
+                "values": {
+                    "manaGain": 0.15
+                }
+            },
+            {
+                "minUnits": 4,
+                "description": "+30% Mana per attack",
+                "style": "silver",
+                "values": {
+                    "manaGain": 0.30
+                }
+            },
+            {
+                "minUnits": 6,
+                "description": "+50% Mana per attack",
+                "style": "gold",
+                "values": {
+                    "manaGain": 0.50
+                }
+            }
+        ]
+    },
+    {
+        "id": "support",
+        "name": "Support",
+        "type": "class",
+        "description": "Supports start combat with bonus mana.",
+        "iconColor": "#22c55e",
+        "effectType": "START_MANA",
+        "effects": [
+            {
+                "minUnits": 2,
+                "description": "+20 Starting Mana",
+                "style": "bronze",
+                "values": {
+                    "mana": 20
+                }
+            },
+            {
+                "minUnits": 4,
+                "description": "+50 Starting Mana",
+                "style": "gold",
+                "values": {
+                    "mana": 50
+                }
+            }
+        ]
+    },
+    {
+        "id": "berserker",
+        "name": "Berserker",
+        "type": "class",
+        "description": "Berserkers gain Attack Speed when wounded.",
+        "iconColor": "#dc2626",
+        "effectType": "LOW_HP_AS",
+        "effects": [
+            {
+                "minUnits": 2,
+                "description": "+20% AS below 60% HP",
+                "style": "bronze",
+                "values": {
+                    "as": 0.20,
+                    "hpThreshold": 0.60
+                }
+            },
+            {
+                "minUnits": 4,
+                "description": "+40% AS below 40% HP",
+                "style": "gold",
+                "values": {
+                    "as": 0.40,
+                    "hpThreshold": 0.40
+                }
             }
         ]
     },
@@ -105,11 +471,79 @@
         "type": "class",
         "description": "Snipers gain Attack Damage based on distance from target.",
         "iconColor": "#10b981",
+        "effectType": "DISTANCE_DAMAGE",
         "effects": [
             {
                 "minUnits": 2,
-                "description": "+10% DMG / Cell",
-                "style": "bronze"
+                "description": "+10% DMG per cell",
+                "style": "bronze",
+                "values": {
+                    "damagePerCell": 0.10
+                }
+            },
+            {
+                "minUnits": 4,
+                "description": "+20% DMG per cell",
+                "style": "gold",
+                "values": {
+                    "damagePerCell": 0.20
+                }
+            }
+        ]
+    },
+    {
+        "id": "navigator",
+        "name": "Navigator",
+        "type": "class",
+        "description": "Navigators grant gold at end of combat.",
+        "iconColor": "#3b82f6",
+        "effectType": "GOLD_ON_WIN",
+        "effects": [
+            {
+                "minUnits": 1,
+                "description": "1-3 Gold per round",
+                "style": "gold",
+                "values": {
+                    "goldMin": 1,
+                    "goldMax": 3
+                }
+            }
+        ]
+    },
+    {
+        "id": "doctor",
+        "name": "Doctor",
+        "type": "class",
+        "description": "Doctors increase effectiveness of all healing.",
+        "iconColor": "#ec4899",
+        "effectType": "HEAL_AMP",
+        "effects": [
+            {
+                "minUnits": 1,
+                "description": "+20% Heal",
+                "style": "gold",
+                "values": {
+                    "healAmp": 0.20
+                }
+            }
+        ]
+    },
+    {
+        "id": "musician",
+        "name": "Musician",
+        "type": "class",
+        "description": "When a Musician casts, all allies gain Attack Speed.",
+        "iconColor": "#f472b6",
+        "effectType": "AS_ON_CAST",
+        "effects": [
+            {
+                "minUnits": 1,
+                "description": "+10% AS for 4s",
+                "style": "gold",
+                "values": {
+                    "as": 0.10,
+                    "duration": 4
+                }
             }
         ]
     }
