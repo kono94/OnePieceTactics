@@ -2,7 +2,7 @@
 import { computed, ref, watch, onUnmounted } from 'vue'
 import UnitTooltip from './UnitTooltip.vue'
 import AttackAnimation from './game/AttackAnimation.vue'
-import { getAttackConfig, getAbilityConfig } from '../data/animationConfig'
+import { getAttackConfig, getAbilityConfig, type AttackType, type AbilityEffectStyle } from '../data/animationConfig'
 import type { GameState, GameUnit, GamePhase, RenderedUnit, RenderedOrb, PlayerState, DisplayedUnit } from '../types'
 
 const props = defineProps<{
@@ -286,7 +286,8 @@ const onUnitMouseLeave = () => {
 interface AttackAnimData {
     id: number
     type: 'attack' | 'ability'
-    attackType?: 'punch' | 'slash' | 'projectile'
+    attackType?: AttackType
+    effectStyle?: AbilityEffectStyle
     pattern?: string
     startX: number
     startY: number
@@ -430,6 +431,7 @@ watch(() => props.state?.recentEvents, (newEvents) => {
                 activeAnimations.value.push({
                     id: nextAnimId++,
                     type: 'ability',
+                    effectStyle: config.effectStyle,
                     pattern: source.ability?.pattern || 'SINGLE',
                     startX: source.visualX,
                     startY: source.visualY,
@@ -656,6 +658,7 @@ const onOrbClick = (orbId: string) => {
             :key="anim.id"
             :type="anim.type"
             :attack-type="anim.attackType"
+            :effect-style="anim.effectStyle"
             :pattern="anim.pattern"
             :start-x="anim.startX"
             :start-y="anim.startY"

@@ -3,6 +3,7 @@ export interface TraitEffect {
     minUnits: number;
     description: string;
     style: 'bronze' | 'silver' | 'gold' | 'prismatic';
+    values?: Record<string, any>;
 }
 
 export interface TraitDefinition {
@@ -12,6 +13,7 @@ export interface TraitDefinition {
     effects: TraitEffect[];
     type: 'origin' | 'class';
     iconColor: string; // Simple hex for placeholder
+    effectType?: string;
 }
 
 // Global store for traits, populated by App.vue from backend
