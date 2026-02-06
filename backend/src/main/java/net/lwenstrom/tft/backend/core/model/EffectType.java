@@ -21,5 +21,6 @@ public enum EffectType {
     GOLD_ON_WIN,
     HEAL_AMP,
     AS_ON_CAST,
-    CUSTOM // Escape hatch for theme-specific effects
+    CUSTOM, // Escape hatch for theme-specific effects
+    NONE
 }

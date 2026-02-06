@@ -120,15 +120,13 @@ public class CombatSystem {
         recentEvents.clear();
 
         if (allUnits.isEmpty()) {
-            System.out.println("DEBUG: allUnits is empty in simulateTick");
+            log.warn("allUnits is empty in simulateTick");
         }
         var snapshot = List.copyOf(allUnits);
         for (var unit : snapshot) {
             if (unit.getCurrentHealth() <= 0) {
                 continue;
             }
-            System.out.println(
-                    "DEBUG: Processing unit " + unit.getName() + " at (" + unit.getX() + "," + unit.getY() + ")");
 
             // Update temporary buffs
             if (unit instanceof AbstractGameUnit agu) {
@@ -182,10 +180,17 @@ public class CombatSystem {
 
                     // Handle Revive (Big Mom Pirates)
                     target.takeDamage(effectiveDamage);
-                    if (target.getCurrentHealth() <= 0 && target.hasRevive() && !target.isReviveUsed()) {
-                        target.setReviveUsed(true);
-                        target.setCurrentHealth((int) (target.getMaxHealth() * 0.4)); // Revive with 40% HP
-                        log.info("{} revives!", target.getName());
+                    if (target.getCurrentHealth() <= 0) {
+                        if (target.hasRevive() && !target.isReviveUsed()) {
+                            target.setReviveUsed(true);
+                            target.setCurrentHealth((int) (target.getMaxHealth() * 0.4)); // Revive with 40% HP
+                            log.info("{} revives!", target.getName());
+                        } else {
+                            // Trigger Whitebeard Pirates shield on death
+                            triggerShieldOnDeath(target, allUnits, currentTime);
+                            recentEvents.add(
+                                    new GameState.CombatEvent(currentTime, "DEATH", unit.getId(), target.getId(), 0));
+                        }
                     }
 
                     accumulateDamage(
@@ -196,6 +201,9 @@ public class CombatSystem {
                     // Lifesteal (Big Mom Pirates)
                     if (unit.getLifesteal() > 0) {
                         int heal = (int) (effectiveDamage * unit.getLifesteal());
+                        // Apply Doctor heal amplification
+                        heal = (int) (heal * unit.getHealAmplification());
+
                         unit.setCurrentHealth(Math.min(unit.getMaxHealth(), unit.getCurrentHealth() + heal));
                         recentEvents.add(
                                 new GameState.CombatEvent(currentTime, "HEAL", unit.getId(), unit.getId(), -heal));
@@ -244,6 +252,20 @@ public class CombatSystem {
         }
 
         return new CombatResult(false, null, Map.of(), new ArrayList<>(recentEvents));
+    }
+
+    private void triggerShieldOnDeath(GameUnit deadUnit, List<GameUnit> allUnits, long currentTime) {
+        allUnits.stream()
+                .filter(u -> u.getCurrentHealth() > 0 && CombatUtils.isAlly(deadUnit, u))
+                .filter(GameUnit::hasShieldOnDeath)
+                .forEach(u -> {
+                    // grant 15% of dead unit's max health as shield
+                    int shieldAmount = (int) (deadUnit.getMaxHealth() * 0.15f);
+                    u.setShield(u.getShield() + shieldAmount);
+                    recentEvents.add(new GameState.CombatEvent(
+                            currentTime, "SHIELD", deadUnit.getId(), u.getId(), shieldAmount));
+                    log.debug("{} receives {} shield from {}'s death", u.getName(), shieldAmount, deadUnit.getName());
+                });
     }
 
     public record CombatResult(

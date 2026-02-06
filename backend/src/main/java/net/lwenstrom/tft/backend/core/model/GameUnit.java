@@ -219,4 +219,16 @@ public interface GameUnit {
     }
 
     default void setLowHpAsThreshold(float threshold) {}
+
+    default boolean hasShieldOnDeath() {
+        return false;
+    }
+
+    default void setShieldOnDeath(boolean hasShield) {}
+
+    default int getShield() {
+        return 0;
+    }
+
+    default void setShield(int amount) {}
 }

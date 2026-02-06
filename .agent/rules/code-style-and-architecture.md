@@ -60,3 +60,6 @@ trigger: always_on
 - **Grid**: Square grid logic (Backend checks neighbors using Manhattan/Chebyshev distance as appropriate).
 - **Combat**: Simplified Auto-Battler mechanics (Move to nearest -> Attack).
 - **Theme**: One Piece (Initial implementation), but capable of hot-swapping to Pokemon/etc via config.
+
+## 5. Misc
+- when defining units in the .json files. When you define multiple values in an array and its just 3 numbers, keep them in one line and not multiple line

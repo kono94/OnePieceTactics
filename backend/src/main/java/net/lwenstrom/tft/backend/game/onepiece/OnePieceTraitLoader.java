@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.lwenstrom.tft.backend.core.engine.GenericTraitApplier;
 import net.lwenstrom.tft.backend.core.engine.TraitManager;
+import net.lwenstrom.tft.backend.core.model.EffectType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,9 +31,10 @@ public class OnePieceTraitLoader {
             JsonNode traitsArray = objectMapper.readTree(is);
             for (JsonNode traitNode : traitsArray) {
                 var traitId = traitNode.get("id").asText();
-                var effectType = traitNode.has("effectType")
+                var effectTypeStr = traitNode.has("effectType")
                         ? traitNode.get("effectType").asText()
                         : "NONE";
+                var effectType = EffectType.valueOf(effectTypeStr);
 
                 List<JsonNode> effects = new ArrayList<>();
                 if (traitNode.has("effects")) {

@@ -115,7 +115,7 @@ class CombatIntegrationTest {
                 "TestAbility",
                 "Test Description",
                 net.lwenstrom.tft.backend.core.model.AbilityType.DAMAGE,
-                "SINGLE",
+                net.lwenstrom.tft.backend.core.model.AbilityPattern.SINGLE,
                 List.of(1),
                 java.util.List.of(50, 100, 200),
                 null);
@@ -146,7 +146,7 @@ class CombatIntegrationTest {
                 "AOE",
                 "AOE Description",
                 net.lwenstrom.tft.backend.core.model.AbilityType.DAMAGE,
-                "SURROUND",
+                net.lwenstrom.tft.backend.core.model.AbilityPattern.SURROUND,
                 List.of(1),
                 java.util.List.of(25, 50, 100),
                 null);

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import java.util.Map;
 import net.lwenstrom.tft.backend.core.model.CustomEffectHandler;
+import net.lwenstrom.tft.backend.core.model.EffectType;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 import net.lwenstrom.tft.backend.core.model.TraitEffect;
 
@@ -16,17 +17,17 @@ import net.lwenstrom.tft.backend.core.model.TraitEffect;
 public class GenericTraitApplier implements TraitEffect {
 
     private final String traitId;
-    private final String effectType;
+    private final EffectType effectType;
     private final List<JsonNode> effects;
     private final Map<String, CustomEffectHandler> customHandlers;
 
-    public GenericTraitApplier(String traitId, String effectType, List<JsonNode> effects) {
+    public GenericTraitApplier(String traitId, EffectType effectType, List<JsonNode> effects) {
         this(traitId, effectType, effects, Map.of());
     }
 
     public GenericTraitApplier(
             String traitId,
-            String effectType,
+            EffectType effectType,
             List<JsonNode> effects,
             Map<String, CustomEffectHandler> customHandlers) {
         this.traitId = traitId;
@@ -54,23 +55,24 @@ public class GenericTraitApplier implements TraitEffect {
 
         // Apply effect based on effectType
         switch (effectType) {
-            case "HP" -> applyHp(units, values);
-            case "HP_AND_AS" -> applyHpAndAs(units, values);
-            case "AS" -> applyAs(units, values);
-            case "ARMOR_AND_MR" -> applyArmorAndMr(units, values);
-            case "ATK_BUFF" -> applyAtkBuff(units, values);
-            case "START_MANA" -> applyStartMana(units, values);
-            case "ABILITY_DAMAGE" -> applyAbilityDamage(units, values);
-            case "LOW_HP_DAMAGE" -> applyLowHpDamage(units, values);
-            case "LIFESTEAL" -> applyLifesteal(units, values);
-            case "EXTRA_ATTACK_CHANCE" -> applyExtraAttackChance(units, values);
-            case "MANA_GAIN" -> applyManaGain(units, values);
-            case "LOW_HP_AS" -> applyLowHpAs(units, values);
-            case "DISTANCE_DAMAGE" -> applyDistanceDamage(units, values);
-            case "GOLD_ON_WIN" -> applyGoldOnWin(units, values);
-            case "HEAL_AMP" -> applyHealAmp(units, values);
-            case "AS_ON_CAST" -> applyAsOnCast(units, values);
-            case "CUSTOM" -> applyCustom(count, units, activeEffect);
+            case HP -> applyHp(units, values);
+            case HP_AND_AS -> applyHpAndAs(units, values);
+            case AS -> applyAs(units, values);
+            case ARMOR_AND_MR -> applyArmorAndMr(units, values);
+            case ATK_BUFF -> applyAtkBuff(units, values);
+            case START_MANA -> applyStartMana(units, values);
+            case ABILITY_DAMAGE -> applyAbilityDamage(units, values);
+            case LOW_HP_DAMAGE -> applyLowHpDamage(units, values);
+            case LIFESTEAL -> applyLifesteal(units, values);
+            case EXTRA_ATTACK_CHANCE -> applyExtraAttackChance(units, values);
+            case MANA_GAIN -> applyManaGain(units, values);
+            case LOW_HP_AS -> applyLowHpAs(units, values);
+            case DISTANCE_DAMAGE -> applyDistanceDamage(units, values);
+            case GOLD_ON_WIN -> applyGoldOnWin(units, values);
+            case HEAL_AMP -> applyHealAmp(units, values);
+            case AS_ON_CAST -> applyAsOnCast(units, values);
+            case CUSTOM -> applyCustom(count, units, activeEffect);
+            case NONE -> {}
         }
     }
 
@@ -252,11 +254,17 @@ public class GenericTraitApplier implements TraitEffect {
 
     private void applyAtkBuff(List<GameUnit> units, JsonNode values) {
         float atkBuff = values.has("atkBuff") ? (float) values.get("atkBuff").asDouble() : 0f;
-        if (atkBuff <= 0) return;
+        boolean shieldOnDeath =
+                values.has("shieldOnDeath") && values.get("shieldOnDeath").asBoolean();
 
         for (GameUnit unit : units) {
             if (hasTrait(unit)) {
-                unit.setAtkBuff(unit.getAtkBuff() * (1f + atkBuff));
+                if (atkBuff > 0) {
+                    unit.setAtkBuff(unit.getAtkBuff() * (1f + atkBuff));
+                }
+                if (shieldOnDeath) {
+                    unit.setShieldOnDeath(true);
+                }
             }
         }
     }

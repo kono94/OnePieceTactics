@@ -7,7 +7,7 @@ public record AbilityDefinition(
         String name,
         String description,
         AbilityType type,
-        String pattern,
+        AbilityPattern pattern,
         List<Integer> range,
         List<Integer> values, // Exactly 3 values [lvl1, lvl2, lvl3]
         List<AbilityModifier> modifiers) {
@@ -65,7 +65,7 @@ public record AbilityDefinition(
         }
 
         // Replace other placeholders
-        formatted = formatted.replace("$pattern", pattern != null ? pattern : "SINGLE");
+        formatted = formatted.replace("$pattern", pattern != null ? pattern.name() : "SINGLE");
         formatted = formatted.replace("$type", type.toString());
 
         return formatted;

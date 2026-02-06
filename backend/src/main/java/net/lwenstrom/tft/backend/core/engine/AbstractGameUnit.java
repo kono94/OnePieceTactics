@@ -40,6 +40,7 @@ public abstract class AbstractGameUnit implements GameUnit {
     private int stunTicksRemaining = 0;
     private float atkBuff = 1.0f;
     private float spdBuff = 1.0f;
+    private int shield = 0;
 
     // Planning position (saved before combat)
     private int planningX = -1;
@@ -72,6 +73,7 @@ public abstract class AbstractGameUnit implements GameUnit {
     private float lowHpDamageThreshold = 0.0f;
     private float lowHpAsBonus = 0.0f;
     private float lowHpAsThreshold = 0.0f;
+    private boolean shieldOnDeath = false;
 
     // Musician state
     private long buffExpirationTime = 0;
@@ -149,6 +151,8 @@ public abstract class AbstractGameUnit implements GameUnit {
         this.activeAbility = other.activeAbility;
         this.buffExpirationTime = other.buffExpirationTime;
         this.activeMusicianBuff = other.activeMusicianBuff;
+        this.shieldOnDeath = other.shieldOnDeath;
+        this.shield = other.shield;
     }
 
     // ========== GETTERS ==========
@@ -375,6 +379,15 @@ public abstract class AbstractGameUnit implements GameUnit {
 
     @Override
     public void takeDamage(int amount) {
+        if (shield > 0) {
+            if (amount <= shield) {
+                shield -= amount;
+                return;
+            } else {
+                amount -= shield;
+                shield = 0;
+            }
+        }
         this.currentHealth = Math.max(0, this.currentHealth - amount);
     }
 
@@ -432,6 +445,8 @@ public abstract class AbstractGameUnit implements GameUnit {
         this.lowHpDamageThreshold = 0.0f;
         this.lowHpAsBonus = 0.0f;
         this.lowHpAsThreshold = 0.0f;
+        this.shieldOnDeath = false;
+        this.shield = 0;
     }
 
     @Override
@@ -592,5 +607,25 @@ public abstract class AbstractGameUnit implements GameUnit {
     @Override
     public void setLowHpAsThreshold(float threshold) {
         this.lowHpAsThreshold = threshold;
+    }
+
+    @Override
+    public boolean hasShieldOnDeath() {
+        return shieldOnDeath;
+    }
+
+    @Override
+    public void setShieldOnDeath(boolean hasShield) {
+        this.shieldOnDeath = hasShield;
+    }
+
+    @Override
+    public int getShield() {
+        return shield;
+    }
+
+    @Override
+    public void setShield(int amount) {
+        this.shield = amount;
     }
 }

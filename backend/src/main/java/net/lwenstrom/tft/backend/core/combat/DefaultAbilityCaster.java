@@ -111,7 +111,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
 
         // HEAL targets allies (including self)
         switch (ability.pattern()) {
-            case "SINGLE" -> {
+            case SINGLE -> {
                 // Heal lowest-health ally
                 var target = findLowestHealthAlly(source, allUnits);
                 if (target != null) {
@@ -120,7 +120,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
                     // heal
                 }
             }
-            case "SURROUND" -> {
+            case SURROUND -> {
                 // Heal all allies in range
                 int r = ability.getRangeForLevel(starLevel);
                 allUnits.stream()
@@ -187,8 +187,8 @@ public class DefaultAbilityCaster implements AbilityCaster {
         int range = ability.getRangeForLevel(starLevel);
 
         switch (ability.pattern()) {
-            case "SINGLE" -> effect.accept(target);
-            case "LINE" -> {
+            case SINGLE -> effect.accept(target);
+            case LINE -> {
                 int dx = Integer.compare(target.getX(), source.getX());
                 int dy = Integer.compare(target.getY(), source.getY());
                 for (int i = 1; i <= range; i++) {
@@ -203,7 +203,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
                             .forEach(effect);
                 }
             }
-            case "SURROUND" -> {
+            case SURROUND -> {
                 int r = range;
                 for (int dx = -r; dx <= r; dx++) {
                     for (int dy = -r; dy <= r; dy++) {
