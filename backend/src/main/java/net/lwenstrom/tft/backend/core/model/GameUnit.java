@@ -122,4 +122,101 @@ public interface GameUnit {
     default void setSpdBuff(float buff) {}
 
     GameUnit cloneUnit();
+
+    // Trait specific effects
+    default float getAbilityDamageMultiplier() {
+        return 1.0f;
+    }
+
+    default void setAbilityDamageMultiplier(float multiplier) {}
+
+    default float getLifesteal() {
+        return 0.0f;
+    }
+
+    default void setLifesteal(float lifesteal) {}
+
+    default float getManaGainMultiplier() {
+        return 1.0f;
+    }
+
+    default void setManaGainMultiplier(float multiplier) {}
+
+    default float getExtraAttackChance() {
+        return 0.0f;
+    }
+
+    default void setExtraAttackChance(float chance) {}
+
+    default float getDamagePerCell() {
+        return 0.0f;
+    }
+
+    default void setDamagePerCell(float damage) {}
+
+    default float getHealAmplification() {
+        return 1.0f;
+    }
+
+    default void setHealAmplification(float amp) {}
+
+    default boolean hasRevive() {
+        return false;
+    }
+
+    default void setHasRevive(boolean hasRevive) {}
+
+    default boolean isReviveUsed() {
+        return false;
+    }
+
+    default void setReviveUsed(boolean used) {}
+
+    default int getGoldBonusMin() {
+        return 0;
+    }
+
+    default void setGoldBonusMin(int min) {}
+
+    default int getGoldBonusMax() {
+        return 0;
+    }
+
+    default void setGoldBonusMax(int max) {}
+
+    default float getAsOnCast() {
+        return 0.0f;
+    }
+
+    default void setAsOnCast(float as) {}
+
+    default int getAsOnCastDuration() {
+        return 0;
+    }
+
+    default void setAsOnCastDuration(int duration) {}
+
+    default float getLowHpDamageBonus() {
+        return 0.0f;
+    }
+
+    default void setLowHpDamageBonus(float bonus) {}
+
+    default float getLowHpDamageThreshold() {
+        return 0.0f;
+    }
+
+    default void setLowHpDamageThreshold(float threshold) {}
+
+    default float getLowHpAsBonus() {
+        return 0.0f;
+    }
+
+    default void setLowHpAsBonus(float bonus) {}
+
+    default float getLowHpAsThreshold() {
+        return 0.0f;
+    }
+
+    default void setLowHpAsThreshold(float threshold) {}
 }

@@ -1,6 +1,8 @@
 package net.lwenstrom.tft.backend.core.combat;
 
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import net.lwenstrom.tft.backend.core.engine.AbstractGameUnit;
 import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
 import net.lwenstrom.tft.backend.core.model.ConditionalModifier;
 import net.lwenstrom.tft.backend.core.model.ExecuteModifier;
@@ -9,6 +11,7 @@ import net.lwenstrom.tft.backend.core.model.LifestealModifier;
 import net.lwenstrom.tft.backend.core.model.ScalingModifier;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class DefaultAbilityCaster implements AbilityCaster {
 
@@ -59,6 +62,9 @@ public class DefaultAbilityCaster implements AbilityCaster {
         // Apply scaling modifiers
         int scaledDamage = applyScalingModifiers(source, target, ability, damage);
 
+        // Apply Warlord ability damage multiplier
+        scaledDamage = (int) (scaledDamage * source.getAbilityDamageMultiplier());
+
         // Apply execute modifier bonus damage
         int finalDamage = applyExecuteModifier(source, target, ability, scaledDamage);
 
@@ -98,14 +104,19 @@ public class DefaultAbilityCaster implements AbilityCaster {
             int healAmount,
             DamageCallback callback) {
         int starLevel = source.getStarLevel();
+
+        // Apply Doctor heal amplification
+        int amplifiedHeal = (int) (healAmount * source.getHealAmplification());
+        final int finalHeal = amplifiedHeal;
+
         // HEAL targets allies (including self)
         switch (ability.pattern()) {
             case "SINGLE" -> {
                 // Heal lowest-health ally
                 var target = findLowestHealthAlly(source, allUnits);
                 if (target != null) {
-                    healUnit(target, healAmount);
-                    callback.onDamage(source.getId(), source.getName(), target.getId(), -healAmount); // Negative for
+                    healUnit(target, finalHeal);
+                    callback.onDamage(source.getId(), source.getName(), target.getId(), -finalHeal); // Negative for
                     // heal
                 }
             }
@@ -117,14 +128,14 @@ public class DefaultAbilityCaster implements AbilityCaster {
                         .filter(u -> CombatUtils.isAlly(source, u))
                         .filter(u -> Math.abs(u.getX() - source.getX()) <= r && Math.abs(u.getY() - source.getY()) <= r)
                         .forEach(u -> {
-                            healUnit(u, healAmount);
-                            callback.onDamage(source.getId(), source.getName(), u.getId(), -healAmount);
+                            healUnit(u, finalHeal);
+                            callback.onDamage(source.getId(), source.getName(), u.getId(), -finalHeal);
                         });
             }
             default -> {
                 // Default: heal self
-                healUnit(source, healAmount);
-                callback.onDamage(source.getId(), source.getName(), source.getId(), -healAmount);
+                healUnit(source, finalHeal);
+                callback.onDamage(source.getId(), source.getName(), source.getId(), -finalHeal);
             }
         }
     }
@@ -137,6 +148,23 @@ public class DefaultAbilityCaster implements AbilityCaster {
                 .filter(u -> u.getCurrentHealth() > 0)
                 .filter(u -> CombatUtils.isAlly(source, u))
                 .forEach(u -> u.setAtkBuff(u.getAtkBuff() * multiplier));
+
+        // Musician check
+        if (source.getAsOnCast() > 0) {
+            float musAs = source.getAsOnCast();
+            int duration = source.getAsOnCastDuration();
+            long now = System.currentTimeMillis(); // Note: Better to pass Clock, but for now this works or use source
+            // state
+            allUnits.stream()
+                    .filter(u -> u.getCurrentHealth() > 0)
+                    .filter(u -> CombatUtils.isAlly(source, u))
+                    .forEach(u -> {
+                        if (u instanceof AbstractGameUnit agu) {
+                            agu.applyTemporaryAsBuff(musAs, duration, now);
+                        }
+                    });
+            log.info("Musician {} buffs allies with +{} AS for {}s", source.getName(), musAs, duration);
+        }
     }
 
     private void castBuffSpdAbility(

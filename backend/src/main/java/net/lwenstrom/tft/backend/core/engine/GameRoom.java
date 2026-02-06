@@ -256,6 +256,18 @@ public class GameRoom {
             round++;
             players.values().forEach(p -> {
                 p.gainGold(GameConstants.BASE_INCOME + Math.min(p.getGold() / 10, GameConstants.MAX_INTEREST));
+
+                // Navigator trait gold
+                int navGold = p.getBoardUnits().stream()
+                        .filter(u -> u.getGoldBonusMax() > 0)
+                        .mapToInt(u -> (int)
+                                (u.getGoldBonusMin() + Math.random() * (u.getGoldBonusMax() - u.getGoldBonusMin() + 1)))
+                        .sum();
+                if (navGold > 0) {
+                    p.gainGold(navGold);
+                    log.info("Player {} gained {} bonus gold from Navigators", p.getName(), navGold);
+                }
+
                 p.gainXp(GameConstants.XP_PER_PHASE);
                 p.refreshShop();
                 if (p.getName().startsWith("Bot-")) {

@@ -55,6 +55,45 @@ public abstract class AbstractGameUnit implements GameUnit {
     private String ownerId;
     private String activeAbility;
 
+    // Trait specific values
+    private float abilityDamageMultiplier = 1.0f;
+    private float lifesteal = 0.0f;
+    private float manaGainMultiplier = 1.0f;
+    private float extraAttackChance = 0.0f;
+    private float damagePerCell = 0.0f;
+    private float healAmplification = 1.0f;
+    private boolean hasRevive = false;
+    private boolean reviveUsed = false;
+    private int goldBonusMin = 0;
+    private int goldBonusMax = 0;
+    private float asOnCast = 0.0f;
+    private int asOnCastDuration = 0;
+    private float lowHpDamageBonus = 0.0f;
+    private float lowHpDamageThreshold = 0.0f;
+    private float lowHpAsBonus = 0.0f;
+    private float lowHpAsThreshold = 0.0f;
+
+    // Musician state
+    private long buffExpirationTime = 0;
+    private float activeMusicianBuff = 0.0f;
+
+    @Override
+    public float getSpdBuff() {
+        return spdBuff + activeMusicianBuff;
+    }
+
+    public void updateBuffs(long currentTime) {
+        if (buffExpirationTime > 0 && currentTime >= buffExpirationTime) {
+            activeMusicianBuff = 0;
+            buffExpirationTime = 0;
+        }
+    }
+
+    public void applyTemporaryAsBuff(float as, int durationSeconds, long currentTime) {
+        this.activeMusicianBuff = as;
+        this.buffExpirationTime = currentTime + (durationSeconds * 1000L);
+    }
+
     public AbstractGameUnit(
             String definitionId, String name, int cost, AbilityDefinition ability, int range, Set<String> traits) {
         this.definitionId = definitionId;
@@ -106,9 +145,10 @@ public abstract class AbstractGameUnit implements GameUnit {
         this.nextMoveTime = other.nextMoveTime;
         this.nextAttackTime = other.nextAttackTime;
 
-        // Ownership
         this.ownerId = other.ownerId;
         this.activeAbility = other.activeAbility;
+        this.buffExpirationTime = other.buffExpirationTime;
+        this.activeMusicianBuff = other.activeMusicianBuff;
     }
 
     // ========== GETTERS ==========
@@ -222,11 +262,6 @@ public abstract class AbstractGameUnit implements GameUnit {
     @Override
     public float getAtkBuff() {
         return atkBuff;
-    }
-
-    @Override
-    public float getSpdBuff() {
-        return spdBuff;
     }
 
     @Override
@@ -379,5 +414,183 @@ public abstract class AbstractGameUnit implements GameUnit {
         this.stunTicksRemaining = 0;
         this.atkBuff = 1.0f;
         this.spdBuff = 1.0f;
+
+        // Reset trait values
+        this.abilityDamageMultiplier = 1.0f;
+        this.lifesteal = 0.0f;
+        this.manaGainMultiplier = 1.0f;
+        this.extraAttackChance = 0.0f;
+        this.damagePerCell = 0.0f;
+        this.healAmplification = 1.0f;
+        this.hasRevive = false;
+        this.reviveUsed = false;
+        this.goldBonusMin = 0;
+        this.goldBonusMax = 0;
+        this.asOnCast = 0.0f;
+        this.asOnCastDuration = 0;
+        this.lowHpDamageBonus = 0.0f;
+        this.lowHpDamageThreshold = 0.0f;
+        this.lowHpAsBonus = 0.0f;
+        this.lowHpAsThreshold = 0.0f;
+    }
+
+    @Override
+    public float getAbilityDamageMultiplier() {
+        return abilityDamageMultiplier;
+    }
+
+    @Override
+    public void setAbilityDamageMultiplier(float multiplier) {
+        this.abilityDamageMultiplier = multiplier;
+    }
+
+    @Override
+    public float getLifesteal() {
+        return lifesteal;
+    }
+
+    @Override
+    public void setLifesteal(float lifesteal) {
+        this.lifesteal = lifesteal;
+    }
+
+    @Override
+    public float getManaGainMultiplier() {
+        return manaGainMultiplier;
+    }
+
+    @Override
+    public void setManaGainMultiplier(float multiplier) {
+        this.manaGainMultiplier = multiplier;
+    }
+
+    @Override
+    public float getExtraAttackChance() {
+        return extraAttackChance;
+    }
+
+    @Override
+    public void setExtraAttackChance(float chance) {
+        this.extraAttackChance = chance;
+    }
+
+    @Override
+    public float getDamagePerCell() {
+        return damagePerCell;
+    }
+
+    @Override
+    public void setDamagePerCell(float damage) {
+        this.damagePerCell = damage;
+    }
+
+    @Override
+    public float getHealAmplification() {
+        return healAmplification;
+    }
+
+    @Override
+    public void setHealAmplification(float amp) {
+        this.healAmplification = amp;
+    }
+
+    @Override
+    public boolean hasRevive() {
+        return hasRevive;
+    }
+
+    @Override
+    public void setHasRevive(boolean hasRevive) {
+        this.hasRevive = hasRevive;
+    }
+
+    @Override
+    public boolean isReviveUsed() {
+        return reviveUsed;
+    }
+
+    @Override
+    public void setReviveUsed(boolean used) {
+        this.reviveUsed = used;
+    }
+
+    @Override
+    public int getGoldBonusMin() {
+        return goldBonusMin;
+    }
+
+    @Override
+    public void setGoldBonusMin(int min) {
+        this.goldBonusMin = min;
+    }
+
+    @Override
+    public int getGoldBonusMax() {
+        return goldBonusMax;
+    }
+
+    @Override
+    public void setGoldBonusMax(int max) {
+        this.goldBonusMax = max;
+    }
+
+    @Override
+    public float getAsOnCast() {
+        return asOnCast;
+    }
+
+    @Override
+    public void setAsOnCast(float as) {
+        this.asOnCast = as;
+    }
+
+    @Override
+    public int getAsOnCastDuration() {
+        return asOnCastDuration;
+    }
+
+    @Override
+    public void setAsOnCastDuration(int duration) {
+        this.asOnCastDuration = duration;
+    }
+
+    @Override
+    public float getLowHpDamageBonus() {
+        return lowHpDamageBonus;
+    }
+
+    @Override
+    public void setLowHpDamageBonus(float bonus) {
+        this.lowHpDamageBonus = bonus;
+    }
+
+    @Override
+    public float getLowHpDamageThreshold() {
+        return lowHpDamageThreshold;
+    }
+
+    @Override
+    public void setLowHpDamageThreshold(float threshold) {
+        this.lowHpDamageThreshold = threshold;
+    }
+
+    @Override
+    public float getLowHpAsBonus() {
+        return lowHpAsBonus;
+    }
+
+    @Override
+    public void setLowHpAsBonus(float bonus) {
+        this.lowHpAsBonus = bonus;
+    }
+
+    @Override
+    public float getLowHpAsThreshold() {
+        return lowHpAsThreshold;
+    }
+
+    @Override
+    public void setLowHpAsThreshold(float threshold) {
+        this.lowHpAsThreshold = threshold;
     }
 }

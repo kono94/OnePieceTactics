@@ -119,11 +119,20 @@ public class CombatSystem {
         participants.forEach(p -> allUnits.addAll(p.getBoardUnits()));
         recentEvents.clear();
 
-        var snapshot = new ArrayList<>(allUnits);
-
+        if (allUnits.isEmpty()) {
+            System.out.println("DEBUG: allUnits is empty in simulateTick");
+        }
+        var snapshot = List.copyOf(allUnits);
         for (var unit : snapshot) {
             if (unit.getCurrentHealth() <= 0) {
                 continue;
+            }
+            System.out.println(
+                    "DEBUG: Processing unit " + unit.getName() + " at (" + unit.getX() + "," + unit.getY() + ")");
+
+            // Update temporary buffs
+            if (unit instanceof AbstractGameUnit agu) {
+                agu.updateBuffs(currentTime);
             }
 
             // Handle stunned units - skip their turn and decrement stun counter
@@ -154,19 +163,67 @@ public class CombatSystem {
                 if (distance <= unit.getRange()) {
                     // Apply ATK buff multiplier to damage
                     int baseDamage = unit.getAttackDamage();
-                    int effectiveDamage = (int) (baseDamage * unit.getAtkBuff());
+                    float multiplier = unit.getAtkBuff();
+
+                    // Apply Low HP Damage Bonus (Beast Pirates)
+                    if (unit.getLowHpDamageBonus() > 0
+                            && (float) unit.getCurrentHealth() / unit.getMaxHealth()
+                                    <= unit.getLowHpDamageThreshold()) {
+                        multiplier += unit.getLowHpDamageBonus();
+                    }
+
+                    // Apply Distance Damage (Sniper)
+                    if (unit.getDamagePerCell() > 0) {
+                        multiplier += (distance * unit.getDamagePerCell());
+                    }
+
+                    int effectiveDamage = (int) (baseDamage * multiplier);
                     log.debug("{} attacks {} for {}", unit.getName(), target.getName(), effectiveDamage);
+
+                    // Handle Revive (Big Mom Pirates)
                     target.takeDamage(effectiveDamage);
+                    if (target.getCurrentHealth() <= 0 && target.hasRevive() && !target.isReviveUsed()) {
+                        target.setReviveUsed(true);
+                        target.setCurrentHealth((int) (target.getMaxHealth() * 0.4)); // Revive with 40% HP
+                        log.info("{} revives!", target.getName());
+                    }
+
                     accumulateDamage(
                             unit.getId(), unit.getName(), unit.getDefinitionId(), unit.getOwnerId(), effectiveDamage);
                     recentEvents.add(new GameState.CombatEvent(
                             currentTime, "DAMAGE", unit.getId(), target.getId(), effectiveDamage));
-                    unit.gainMana(GameConstants.MANA_PER_HIT);
-                    // Apply SPD buff to attack cooldown
+
+                    // Lifesteal (Big Mom Pirates)
+                    if (unit.getLifesteal() > 0) {
+                        int heal = (int) (effectiveDamage * unit.getLifesteal());
+                        unit.setCurrentHealth(Math.min(unit.getMaxHealth(), unit.getCurrentHealth() + heal));
+                        recentEvents.add(
+                                new GameState.CombatEvent(currentTime, "HEAL", unit.getId(), unit.getId(), -heal));
+                    }
+
+                    // Mana Gain Multiplier (Mage)
+                    int manaGain = (int) (GameConstants.MANA_PER_HIT * unit.getManaGainMultiplier());
+                    unit.gainMana(manaGain);
+
+                    // Speed buff + Low HP AS (Berserker)
                     float as = Math.max(0.1f, unit.getAttackSpeed());
-                    float effectiveAs = as * unit.getSpdBuff();
+                    float spdMultiplier = unit.getSpdBuff();
+                    if (unit.getLowHpAsBonus() > 0
+                            && (float) unit.getCurrentHealth() / unit.getMaxHealth() <= unit.getLowHpAsThreshold()) {
+                        spdMultiplier += unit.getLowHpAsBonus();
+                    }
+
+                    float effectiveAs = as * spdMultiplier;
                     long cooldownMs = (long) (1000 / effectiveAs);
-                    unit.setNextAttackTime(currentTime + cooldownMs);
+
+                    // Extra Attack Chance (Swordsman)
+                    if (Math.random() < unit.getExtraAttackChance()) {
+                        log.debug("{} triggers extra attack!", unit.getName());
+                        // For simplicity, we just reduce next attack time significantly
+                        unit.setNextAttackTime(currentTime + (cooldownMs / 4));
+                    } else {
+                        unit.setNextAttackTime(currentTime + cooldownMs);
+                    }
                 } else {
                     unitMover.moveTowards(unit, target, allUnits);
                 }

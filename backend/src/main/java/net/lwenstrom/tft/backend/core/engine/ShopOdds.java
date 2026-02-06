@@ -14,19 +14,18 @@ public final class ShopOdds {
     // Odds[playerLevel - 1] = { 1-cost%, 2-cost%, 3-cost%, 4-cost%, 5-cost% }
     // More generous odds - higher tiers available earlier than standard TFT
     private static final int[][] ODDS_BY_LEVEL = {
-            { 100, 0, 0, 0, 0 }, // Level 1
-            { 70, 30, 0, 0, 0 }, // Level 2
-            { 50, 35, 15, 0, 0 }, // Level 3
-            { 35, 35, 25, 5, 0 }, // Level 4
-            { 25, 30, 30, 13, 2 }, // Level 5
-            { 18, 27, 30, 20, 5 }, // Level 6
-            { 14, 22, 30, 25, 9 }, // Level 7
-            { 12, 18, 27, 28, 15 }, // Level 8
-            { 10, 15, 22, 30, 23 }, // Level 9
+        {100, 0, 0, 0, 0}, // Level 1
+        {70, 30, 0, 0, 0}, // Level 2
+        {50, 35, 15, 0, 0}, // Level 3
+        {35, 35, 25, 5, 0}, // Level 4
+        {25, 30, 30, 13, 2}, // Level 5
+        {18, 27, 30, 20, 5}, // Level 6
+        {14, 22, 30, 25, 9}, // Level 7
+        {12, 18, 27, 28, 15}, // Level 8
+        {10, 15, 22, 30, 23}, // Level 9
     };
 
-    private ShopOdds() {
-    }
+    private ShopOdds() {}
 
     public static UnitDefinition rollUnit(
             int playerLevel, List<UnitDefinition> allUnits, RandomProvider randomProvider) {
