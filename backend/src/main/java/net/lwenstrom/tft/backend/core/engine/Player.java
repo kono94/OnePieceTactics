@@ -60,8 +60,8 @@ public class Player {
         var allUnits = dataLoader.getAllUnits();
         shop = new ArrayList<>();
         for (var i = 0; i < GameConstants.SHOP_SIZE; i++) {
-            var randomIndex = randomProvider.nextInt(allUnits.size());
-            shop.add(allUnits.get(randomIndex));
+            var rolledUnit = ShopOdds.rollUnit(level, allUnits, randomProvider);
+            shop.add(rolledUnit);
         }
     }
 
