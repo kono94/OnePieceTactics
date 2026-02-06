@@ -7,8 +7,10 @@ import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
 import net.lwenstrom.tft.backend.core.model.ConditionalModifier;
 import net.lwenstrom.tft.backend.core.model.ExecuteModifier;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
+import net.lwenstrom.tft.backend.core.model.KnockbackModifier;
 import net.lwenstrom.tft.backend.core.model.LifestealModifier;
 import net.lwenstrom.tft.backend.core.model.ScalingModifier;
+import net.lwenstrom.tft.backend.core.model.StunModifier;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -73,6 +75,8 @@ public class DefaultAbilityCaster implements AbilityCaster {
 
         applyToTargets(source, allUnits, target, ability, u -> {
             u.takeDamage(finalDamage);
+            // Apply secondary effects from modifiers (stun, knockback)
+            applyStunAndKnockbackModifiers(source, u, ability);
             totalDamageDealt[0] += finalDamage;
             callback.onDamage(source.getId(), source.getName(), u.getId(), finalDamage);
         });
@@ -103,30 +107,25 @@ public class DefaultAbilityCaster implements AbilityCaster {
             AbilityDefinition ability,
             int healAmount,
             DamageCallback callback) {
-        int starLevel = source.getStarLevel();
-
         // Apply Doctor heal amplification
         int amplifiedHeal = (int) (healAmount * source.getHealAmplification());
         final int finalHeal = amplifiedHeal;
 
-        // HEAL targets allies (including self)
+        // HEAL targets allies board-wide (including self)
         switch (ability.pattern()) {
             case SINGLE -> {
-                // Heal lowest-health ally
-                var target = findLowestHealthAlly(source, allUnits);
+                // Heal lowest-health ally on board
+                GameUnit target = findLowestHealthAlly(allUnits, source);
                 if (target != null) {
                     healUnit(target, finalHeal);
-                    callback.onDamage(source.getId(), source.getName(), target.getId(), -finalHeal); // Negative for
-                    // heal
+                    callback.onDamage(source.getId(), source.getName(), target.getId(), -finalHeal);
                 }
             }
-            case SURROUND -> {
-                // Heal all allies in range
-                int r = ability.getRangeForLevel(starLevel);
+            case SURROUND, LINE -> {
+                // Heal all allies on board
                 allUnits.stream()
                         .filter(u -> u.getCurrentHealth() > 0)
                         .filter(u -> CombatUtils.isAlly(source, u))
-                        .filter(u -> Math.abs(u.getX() - source.getX()) <= r && Math.abs(u.getY() - source.getY()) <= r)
                         .forEach(u -> {
                             healUnit(u, finalHeal);
                             callback.onDamage(source.getId(), source.getName(), u.getId(), -finalHeal);
@@ -142,7 +141,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
 
     private void castBuffAtkAbility(
             GameUnit source, List<GameUnit> allUnits, AbilityDefinition ability, int buffPercent) {
-        // Buff all allies' ATK by value percent
+        // Buff all allies' ATK board-wide
         float multiplier = 1.0f + (buffPercent / 100.0f);
         allUnits.stream()
                 .filter(u -> u.getCurrentHealth() > 0)
@@ -153,8 +152,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
         if (source.getAsOnCast() > 0) {
             float musAs = source.getAsOnCast();
             int duration = source.getAsOnCastDuration();
-            long now = System.currentTimeMillis(); // Note: Better to pass Clock, but for now this works or use source
-            // state
+            long now = System.currentTimeMillis();
             allUnits.stream()
                     .filter(u -> u.getCurrentHealth() > 0)
                     .filter(u -> CombatUtils.isAlly(source, u))
@@ -169,7 +167,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
 
     private void castBuffSpdAbility(
             GameUnit source, List<GameUnit> allUnits, AbilityDefinition ability, int buffPercent) {
-        // Buff all allies' attack speed by value percent
+        // Buff all allies' attack speed board-wide
         float multiplier = 1.0f + (buffPercent / 100.0f);
         allUnits.stream()
                 .filter(u -> u.getCurrentHealth() > 0)
@@ -225,7 +223,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
         }
     }
 
-    private GameUnit findLowestHealthAlly(GameUnit source, List<GameUnit> allUnits) {
+    private GameUnit findLowestHealthAlly(List<GameUnit> allUnits, GameUnit source) {
         return allUnits.stream()
                 .filter(u -> u.getCurrentHealth() > 0)
                 .filter(u -> CombatUtils.isAlly(source, u))
@@ -293,5 +291,35 @@ public class DefaultAbilityCaster implements AbilityCaster {
                 }
             }
         }
+    }
+
+    private void applyStunAndKnockbackModifiers(GameUnit source, GameUnit target, AbilityDefinition ability) {
+        if (target == null) return;
+        int starLevel = source.getStarLevel();
+
+        for (var modifier : ability.modifiers()) {
+            if (modifier instanceof StunModifier stunModifier) {
+                int ticks = stunModifier.getStunTicks(starLevel);
+                target.setStunTicksRemaining(target.getStunTicksRemaining() + ticks);
+            } else if (modifier instanceof KnockbackModifier knockbackModifier) {
+                int cells = knockbackModifier.getCells(starLevel);
+                applyKnockback(source, target, cells);
+            }
+        }
+    }
+
+    private void applyKnockback(GameUnit source, GameUnit target, int cells) {
+        if (target == null || cells <= 0) return;
+        int dx = Integer.compare(target.getX(), source.getX());
+        int dy = Integer.compare(target.getY(), source.getY());
+
+        int newX = target.getX() + dx * cells;
+        int newY = target.getY() + dy * cells;
+
+        // Clamp to board boundaries
+        newX = Math.max(0, Math.min(6, newX));
+        newY = Math.max(0, Math.min(7, newY));
+
+        target.setPosition(newX, newY);
     }
 }

@@ -3,14 +3,46 @@
         "id": "luffy_v1",
         "name": "Monkey D. Luffy",
         "cost": 1,
-        "maxHealth": [600, 1080, 1944],
-        "maxMana": [50, 50, 50],
-        "attackDamage": [50, 90, 162],
-        "abilityPower": [0, 0, 0],
-        "armor": [20, 20, 20],
-        "magicResist": [20, 20, 20],
-        "attackSpeed": [0.65, 0.65, 0.65],
-        "range": [2, 2, 2],
+        "maxHealth": [
+            600,
+            1080,
+            1944
+        ],
+        "maxMana": [
+            50,
+            50,
+            50
+        ],
+        "attackDamage": [
+            50,
+            90,
+            162
+        ],
+        "abilityPower": [
+            0,
+            0,
+            0
+        ],
+        "armor": [
+            20,
+            20,
+            20
+        ],
+        "magicResist": [
+            20,
+            20,
+            20
+        ],
+        "attackSpeed": [
+            0.65,
+            0.65,
+            0.65
+        ],
+        "range": [
+            2,
+            2,
+            2
+        ],
         "traits": [
             "Straw Hat",
             "Fighter"
@@ -20,13 +52,29 @@
             "description": "Stretches arm to deal $value damage. Executes enemies below 30% HP.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [200, 450, 1000],
-            "range": [2, 2, 2],
+            "values": [
+                200,
+                450,
+                1000
+            ],
+            "range": [
+                2,
+                2,
+                2
+            ],
             "modifiers": [
                 {
                     "type": "EXECUTE",
-                    "hpThreshold": [0.3, 0.3, 0.3],
-                    "bonusDamageMultiplier": [0.5, 0.5, 0.5]
+                    "hpThreshold": [
+                        0.3,
+                        0.3,
+                        0.3
+                    ],
+                    "bonusDamageMultiplier": [
+                        0.5,
+                        0.5,
+                        0.5
+                    ]
                 }
             ]
         }
@@ -35,14 +83,46 @@
         "id": "nami_v1",
         "name": "Nami",
         "cost": 1,
-        "maxHealth": [450, 810, 1458],
-        "maxMana": [80, 80, 80],
-        "attackDamage": [35, 63, 113],
-        "abilityPower": [60, 60, 60],
-        "armor": [15, 15, 15],
-        "magicResist": [25, 25, 25],
-        "attackSpeed": [0.6, 0.6, 0.6],
-        "range": [4, 4, 4],
+        "maxHealth": [
+            450,
+            810,
+            1458
+        ],
+        "maxMana": [
+            80,
+            80,
+            80
+        ],
+        "attackDamage": [
+            35,
+            63,
+            113
+        ],
+        "abilityPower": [
+            60,
+            60,
+            60
+        ],
+        "armor": [
+            15,
+            15,
+            15
+        ],
+        "magicResist": [
+            25,
+            25,
+            25
+        ],
+        "attackSpeed": [
+            0.6,
+            0.6,
+            0.6
+        ],
+        "range": [
+            4,
+            4,
+            4
+        ],
         "traits": [
             "Straw Hat",
             "Navigator"
@@ -52,22 +132,62 @@
             "description": "Lightning strikes enemies in a line, stunning for $value ticks.",
             "type": "STUN",
             "pattern": "LINE",
-            "values": [2, 3, 4],
-            "range": [4, 4, 4]
+            "values": [
+                2,
+                3,
+                4
+            ],
+            "range": [
+                4,
+                4,
+                4
+            ]
         }
     },
     {
         "id": "usopp_v1",
         "name": "Usopp",
         "cost": 1,
-        "maxHealth": [400, 720, 1296],
-        "maxMana": [90, 90, 90],
-        "attackDamage": [40, 72, 129],
-        "abilityPower": [50, 50, 50],
-        "armor": [10, 10, 10],
-        "magicResist": [20, 20, 20],
-        "attackSpeed": [0.5, 0.5, 0.5],
-        "range": [5, 5, 5],
+        "maxHealth": [
+            400,
+            720,
+            1296
+        ],
+        "maxMana": [
+            90,
+            90,
+            90
+        ],
+        "attackDamage": [
+            40,
+            72,
+            129
+        ],
+        "abilityPower": [
+            50,
+            50,
+            50
+        ],
+        "armor": [
+            10,
+            10,
+            10
+        ],
+        "magicResist": [
+            20,
+            20,
+            20
+        ],
+        "attackSpeed": [
+            0.5,
+            0.5,
+            0.5
+        ],
+        "range": [
+            5,
+            5,
+            5
+        ],
         "traits": [
             "Straw Hat",
             "Sniper"
@@ -77,22 +197,62 @@
             "description": "Inspires allies, increasing attack damage by $value%.",
             "type": "BUFF_ATK",
             "pattern": "SURROUND",
-            "values": [25, 45, 80],
-            "range": [2, 2, 2]
+            "values": [
+                25,
+                45,
+                80
+            ],
+            "range": [
+                2,
+                2,
+                2
+            ]
         }
     },
     {
         "id": "zoro_v1",
         "name": "Roronoa Zoro",
         "cost": 2,
-        "maxHealth": [700, 1260, 2268],
-        "maxMana": [60, 60, 60],
-        "attackDamage": [60, 108, 194],
-        "abilityPower": [0, 0, 0],
-        "armor": [30, 30, 30],
-        "magicResist": [20, 20, 20],
-        "attackSpeed": [0.7, 0.7, 0.7],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            700,
+            1260,
+            2268
+        ],
+        "maxMana": [
+            60,
+            60,
+            60
+        ],
+        "attackDamage": [
+            60,
+            108,
+            194
+        ],
+        "abilityPower": [
+            0,
+            0,
+            0
+        ],
+        "armor": [
+            30,
+            30,
+            30
+        ],
+        "magicResist": [
+            20,
+            20,
+            20
+        ],
+        "attackSpeed": [
+            0.7,
+            0.7,
+            0.7
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Straw Hat",
             "Swordsman"
@@ -102,22 +262,62 @@
             "description": "Powerful slash deals $value damage to all adjacent enemies.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [100, 180, 324],
-            "range": [1, 1, 1]
+            "values": [
+                100,
+                180,
+                324
+            ],
+            "range": [
+                1,
+                1,
+                1
+            ]
         }
     },
     {
         "id": "sanji_v1",
         "name": "Sanji",
         "cost": 2,
-        "maxHealth": [650, 1170, 2106],
-        "maxMana": [55, 55, 55],
-        "attackDamage": [55, 99, 178],
-        "abilityPower": [0, 0, 0],
-        "armor": [25, 25, 25],
-        "magicResist": [20, 20, 20],
-        "attackSpeed": [0.75, 0.75, 0.75],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            650,
+            1170,
+            2106
+        ],
+        "maxMana": [
+            55,
+            55,
+            55
+        ],
+        "attackDamage": [
+            55,
+            99,
+            178
+        ],
+        "abilityPower": [
+            0,
+            0,
+            0
+        ],
+        "armor": [
+            25,
+            25,
+            25
+        ],
+        "magicResist": [
+            20,
+            20,
+            20
+        ],
+        "attackSpeed": [
+            0.75,
+            0.75,
+            0.75
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Straw Hat",
             "Fighter"
@@ -127,22 +327,62 @@
             "description": "Ignites legs, increasing allies' attack speed by $value%.",
             "type": "BUFF_SPD",
             "pattern": "SURROUND",
-            "values": [30, 50, 80],
-            "range": [2, 2, 2]
+            "values": [
+                30,
+                50,
+                80
+            ],
+            "range": [
+                2,
+                2,
+                2
+            ]
         }
     },
     {
         "id": "chopper_v1",
         "name": "Tony Tony Chopper",
         "cost": 2,
-        "maxHealth": [550, 990, 1782],
-        "maxMana": [70, 70, 70],
-        "attackDamage": [30, 54, 97],
-        "abilityPower": [80, 80, 80],
-        "armor": [15, 15, 15],
-        "magicResist": [30, 30, 30],
-        "attackSpeed": [0.55, 0.55, 0.55],
-        "range": [2, 2, 2],
+        "maxHealth": [
+            550,
+            990,
+            1782
+        ],
+        "maxMana": [
+            70,
+            70,
+            70
+        ],
+        "attackDamage": [
+            30,
+            54,
+            97
+        ],
+        "abilityPower": [
+            80,
+            80,
+            80
+        ],
+        "armor": [
+            15,
+            15,
+            15
+        ],
+        "magicResist": [
+            30,
+            30,
+            30
+        ],
+        "attackSpeed": [
+            0.55,
+            0.55,
+            0.55
+        ],
+        "range": [
+            2,
+            2,
+            2
+        ],
         "traits": [
             "Straw Hat",
             "Doctor"
@@ -152,22 +392,62 @@
             "description": "Heals the lowest HP ally for $value health.",
             "type": "HEAL",
             "pattern": "SINGLE",
-            "values": [150, 300, 600],
-            "range": [3, 3, 3]
+            "values": [
+                150,
+                300,
+                600
+            ],
+            "range": [
+                3,
+                3,
+                3
+            ]
         }
     },
     {
         "id": "robin_v1",
         "name": "Nico Robin",
         "cost": 3,
-        "maxHealth": [750, 1350, 2430],
-        "maxMana": [75, 75, 75],
-        "attackDamage": [55, 99, 178],
-        "abilityPower": [100, 100, 100],
-        "armor": [20, 20, 20],
-        "magicResist": [35, 35, 35],
-        "attackSpeed": [0.6, 0.6, 0.6],
-        "range": [3, 3, 3],
+        "maxHealth": [
+            750,
+            1350,
+            2430
+        ],
+        "maxMana": [
+            75,
+            75,
+            75
+        ],
+        "attackDamage": [
+            55,
+            99,
+            178
+        ],
+        "abilityPower": [
+            100,
+            100,
+            100
+        ],
+        "armor": [
+            20,
+            20,
+            20
+        ],
+        "magicResist": [
+            35,
+            35,
+            35
+        ],
+        "attackSpeed": [
+            0.6,
+            0.6,
+            0.6
+        ],
+        "range": [
+            3,
+            3,
+            3
+        ],
         "traits": [
             "Straw Hat",
             "Mage"
@@ -177,22 +457,72 @@
             "description": "Sprouts arms to crush target, dealing $value damage and stunning.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [350, 630, 1134],
-            "range": [4, 4, 4]
+            "values": [
+                350,
+                630,
+                1134
+            ],
+            "range": [
+                4,
+                4,
+                4
+            ],
+            "modifiers": [
+                {
+                    "type": "STUN",
+                    "stunTicks": [
+                        2,
+                        3,
+                        4
+                    ]
+                }
+            ]
         }
     },
     {
         "id": "franky_v1",
         "name": "Franky",
         "cost": 3,
-        "maxHealth": [900, 1620, 2916],
-        "maxMana": [80, 80, 80],
-        "attackDamage": [60, 108, 194],
-        "abilityPower": [50, 50, 50],
-        "armor": [45, 45, 45],
-        "magicResist": [25, 25, 25],
-        "attackSpeed": [0.55, 0.55, 0.55],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            900,
+            1620,
+            2916
+        ],
+        "maxMana": [
+            80,
+            80,
+            80
+        ],
+        "attackDamage": [
+            60,
+            108,
+            194
+        ],
+        "abilityPower": [
+            50,
+            50,
+            50
+        ],
+        "armor": [
+            45,
+            45,
+            45
+        ],
+        "magicResist": [
+            25,
+            25,
+            25
+        ],
+        "attackSpeed": [
+            0.55,
+            0.55,
+            0.55
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Straw Hat",
             "Tank"
@@ -202,22 +532,62 @@
             "description": "Fires a powerful beam dealing $value damage in a line.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [400, 720, 1296],
-            "range": [5, 5, 5]
+            "values": [
+                400,
+                720,
+                1296
+            ],
+            "range": [
+                5,
+                5,
+                5
+            ]
         }
     },
     {
         "id": "brook_v1",
         "name": "Brook",
         "cost": 4,
-        "maxHealth": [900, 1620, 2916],
-        "maxMana": [70, 70, 70],
-        "attackDamage": [85, 153, 275],
-        "abilityPower": [60, 60, 60],
-        "armor": [30, 30, 30],
-        "magicResist": [40, 40, 40],
-        "attackSpeed": [0.75, 0.75, 0.75],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            900,
+            1620,
+            2916
+        ],
+        "maxMana": [
+            70,
+            70,
+            70
+        ],
+        "attackDamage": [
+            85,
+            153,
+            275
+        ],
+        "abilityPower": [
+            60,
+            60,
+            60
+        ],
+        "armor": [
+            30,
+            30,
+            30
+        ],
+        "magicResist": [
+            40,
+            40,
+            40
+        ],
+        "attackSpeed": [
+            0.75,
+            0.75,
+            0.75
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Straw Hat",
             "Swordsman",
@@ -228,22 +598,62 @@
             "description": "Chilling slash freezes all adjacent enemies for $value ticks.",
             "type": "STUN",
             "pattern": "SURROUND",
-            "values": [3, 4, 5],
-            "range": [1, 1, 1]
+            "values": [
+                3,
+                4,
+                5
+            ],
+            "range": [
+                1,
+                1,
+                1
+            ]
         }
     },
     {
         "id": "jinbei_v1",
         "name": "Jinbei",
         "cost": 4,
-        "maxHealth": [1050, 1890, 3402],
-        "maxMana": [65, 65, 65],
-        "attackDamage": [80, 144, 259],
-        "abilityPower": [70, 70, 70],
-        "armor": [40, 40, 40],
-        "magicResist": [35, 35, 35],
-        "attackSpeed": [0.65, 0.65, 0.65],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            1050,
+            1890,
+            3402
+        ],
+        "maxMana": [
+            65,
+            65,
+            65
+        ],
+        "attackDamage": [
+            80,
+            144,
+            259
+        ],
+        "abilityPower": [
+            70,
+            70,
+            70
+        ],
+        "armor": [
+            40,
+            40,
+            40
+        ],
+        "magicResist": [
+            35,
+            35,
+            35
+        ],
+        "attackSpeed": [
+            0.65,
+            0.65,
+            0.65
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Straw Hat",
             "Fighter",
@@ -254,22 +664,72 @@
             "description": "Water blast deals $value damage and knocks enemies back.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [500, 900, 1620],
-            "range": [2, 2, 2]
+            "values": [
+                500,
+                900,
+                1620
+            ],
+            "range": [
+                2,
+                2,
+                2
+            ],
+            "modifiers": [
+                {
+                    "type": "KNOCKBACK",
+                    "cells": [
+                        1,
+                        1,
+                        1
+                    ]
+                }
+            ]
         }
     },
     {
         "id": "koby_v1",
         "name": "Koby",
         "cost": 1,
-        "maxHealth": [500, 900, 1620],
-        "maxMana": [60, 60, 60],
-        "attackDamage": [40, 72, 129],
-        "abilityPower": [0, 0, 0],
-        "armor": [25, 25, 25],
-        "magicResist": [20, 20, 20],
-        "attackSpeed": [0.6, 0.6, 0.6],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            500,
+            900,
+            1620
+        ],
+        "maxMana": [
+            60,
+            60,
+            60
+        ],
+        "attackDamage": [
+            40,
+            72,
+            129
+        ],
+        "abilityPower": [
+            0,
+            0,
+            0
+        ],
+        "armor": [
+            25,
+            25,
+            25
+        ],
+        "magicResist": [
+            20,
+            20,
+            20
+        ],
+        "attackSpeed": [
+            0.6,
+            0.6,
+            0.6
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Marine",
             "Fighter"
@@ -279,22 +739,62 @@
             "description": "Heals self for $value health.",
             "type": "HEAL",
             "pattern": "SINGLE",
-            "values": [150, 270, 486],
-            "range": [0, 0, 0]
+            "values": [
+                150,
+                270,
+                486
+            ],
+            "range": [
+                0,
+                0,
+                0
+            ]
         }
     },
     {
         "id": "helmeppo_v1",
         "name": "Helmeppo",
         "cost": 1,
-        "maxHealth": [450, 810, 1458],
-        "maxMana": [70, 70, 70],
-        "attackDamage": [45, 81, 145],
-        "abilityPower": [0, 0, 0],
-        "armor": [20, 20, 20],
-        "magicResist": [15, 15, 15],
-        "attackSpeed": [0.65, 0.65, 0.65],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            450,
+            810,
+            1458
+        ],
+        "maxMana": [
+            70,
+            70,
+            70
+        ],
+        "attackDamage": [
+            45,
+            81,
+            145
+        ],
+        "abilityPower": [
+            0,
+            0,
+            0
+        ],
+        "armor": [
+            20,
+            20,
+            20
+        ],
+        "magicResist": [
+            15,
+            15,
+            15
+        ],
+        "attackSpeed": [
+            0.65,
+            0.65,
+            0.65
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Marine",
             "Swordsman"
@@ -304,22 +804,62 @@
             "description": "Quick slash dealing $value damage.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [180, 324, 583],
-            "range": [1, 1, 1]
+            "values": [
+                180,
+                324,
+                583
+            ],
+            "range": [
+                1,
+                1,
+                1
+            ]
         }
     },
     {
         "id": "tashigi_v1",
         "name": "Tashigi",
         "cost": 2,
-        "maxHealth": [600, 1080, 1944],
-        "maxMana": [65, 65, 65],
-        "attackDamage": [55, 99, 178],
-        "abilityPower": [0, 0, 0],
-        "armor": [25, 25, 25],
-        "magicResist": [20, 20, 20],
-        "attackSpeed": [0.7, 0.7, 0.7],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            600,
+            1080,
+            1944
+        ],
+        "maxMana": [
+            65,
+            65,
+            65
+        ],
+        "attackDamage": [
+            55,
+            99,
+            178
+        ],
+        "abilityPower": [
+            0,
+            0,
+            0
+        ],
+        "armor": [
+            25,
+            25,
+            25
+        ],
+        "magicResist": [
+            20,
+            20,
+            20
+        ],
+        "attackSpeed": [
+            0.7,
+            0.7,
+            0.7
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Marine",
             "Swordsman"
@@ -329,22 +869,62 @@
             "description": "Precise strike dealing $value damage.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [250, 450, 810],
-            "range": [1, 1, 1]
+            "values": [
+                250,
+                450,
+                810
+            ],
+            "range": [
+                1,
+                1,
+                1
+            ]
         }
     },
     {
         "id": "hina_v1",
         "name": "Hina",
         "cost": 2,
-        "maxHealth": [700, 1260, 2268],
-        "maxMana": [75, 75, 75],
-        "attackDamage": [45, 81, 145],
-        "abilityPower": [50, 50, 50],
-        "armor": [35, 35, 35],
-        "magicResist": [30, 30, 30],
-        "attackSpeed": [0.55, 0.55, 0.55],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            700,
+            1260,
+            2268
+        ],
+        "maxMana": [
+            75,
+            75,
+            75
+        ],
+        "attackDamage": [
+            45,
+            81,
+            145
+        ],
+        "abilityPower": [
+            50,
+            50,
+            50
+        ],
+        "armor": [
+            35,
+            35,
+            35
+        ],
+        "magicResist": [
+            30,
+            30,
+            30
+        ],
+        "attackSpeed": [
+            0.55,
+            0.55,
+            0.55
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Marine",
             "Tank"
@@ -354,22 +934,62 @@
             "description": "Binds target in iron bars, stunning for $value ticks.",
             "type": "STUN",
             "pattern": "SINGLE",
-            "values": [2, 3, 4],
-            "range": [2, 2, 2]
+            "values": [
+                2,
+                3,
+                4
+            ],
+            "range": [
+                2,
+                2,
+                2
+            ]
         }
     },
     {
         "id": "smoker_v1",
         "name": "Smoker",
         "cost": 3,
-        "maxHealth": [850, 1530, 2754],
-        "maxMana": [70, 70, 70],
-        "attackDamage": [60, 108, 194],
-        "abilityPower": [60, 60, 60],
-        "armor": [40, 40, 40],
-        "magicResist": [35, 35, 35],
-        "attackSpeed": [0.6, 0.6, 0.6],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            850,
+            1530,
+            2754
+        ],
+        "maxMana": [
+            70,
+            70,
+            70
+        ],
+        "attackDamage": [
+            60,
+            108,
+            194
+        ],
+        "abilityPower": [
+            60,
+            60,
+            60
+        ],
+        "armor": [
+            40,
+            40,
+            40
+        ],
+        "magicResist": [
+            35,
+            35,
+            35
+        ],
+        "attackSpeed": [
+            0.6,
+            0.6,
+            0.6
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Marine",
             "Tank"
@@ -379,22 +999,62 @@
             "description": "Engulfs area in smoke, stunning enemies for $value ticks.",
             "type": "STUN",
             "pattern": "SURROUND",
-            "values": [2, 3, 4],
-            "range": [2, 2, 2]
+            "values": [
+                2,
+                3,
+                4
+            ],
+            "range": [
+                2,
+                2,
+                2
+            ]
         }
     },
     {
         "id": "garp_v1",
         "name": "Garp",
         "cost": 4,
-        "maxHealth": [1000, 1800, 3240],
-        "maxMana": [60, 60, 60],
-        "attackDamage": [90, 162, 291],
-        "abilityPower": [0, 0, 0],
-        "armor": [45, 45, 45],
-        "magicResist": [30, 30, 30],
-        "attackSpeed": [0.65, 0.65, 0.65],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            1000,
+            1800,
+            3240
+        ],
+        "maxMana": [
+            60,
+            60,
+            60
+        ],
+        "attackDamage": [
+            90,
+            162,
+            291
+        ],
+        "abilityPower": [
+            0,
+            0,
+            0
+        ],
+        "armor": [
+            45,
+            45,
+            45
+        ],
+        "magicResist": [
+            30,
+            30,
+            30
+        ],
+        "attackSpeed": [
+            0.65,
+            0.65,
+            0.65
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Marine",
             "Fighter"
@@ -404,13 +1064,25 @@
             "description": "Devastating punch dealing $value damage. More damage when wounded.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [600, 1080, 1944],
-            "range": [1, 1, 1],
+            "values": [
+                600,
+                1080,
+                1944
+            ],
+            "range": [
+                1,
+                1,
+                1
+            ],
             "modifiers": [
                 {
                     "type": "SCALING",
                     "scalingType": "CASTER_MISSING_HP",
-                    "factor": [0.5, 0.75, 1.0]
+                    "factor": [
+                        0.5,
+                        0.75,
+                        1.0
+                    ]
                 }
             ]
         }
@@ -419,14 +1091,46 @@
         "id": "sengoku_v1",
         "name": "Sengoku",
         "cost": 4,
-        "maxHealth": [1100, 1980, 3564],
-        "maxMana": [80, 80, 80],
-        "attackDamage": [75, 135, 243],
-        "abilityPower": [80, 80, 80],
-        "armor": [50, 50, 50],
-        "magicResist": [45, 45, 45],
-        "attackSpeed": [0.55, 0.55, 0.55],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            1100,
+            1980,
+            3564
+        ],
+        "maxMana": [
+            80,
+            80,
+            80
+        ],
+        "attackDamage": [
+            75,
+            135,
+            243
+        ],
+        "abilityPower": [
+            80,
+            80,
+            80
+        ],
+        "armor": [
+            50,
+            50,
+            50
+        ],
+        "magicResist": [
+            45,
+            45,
+            45
+        ],
+        "attackSpeed": [
+            0.55,
+            0.55,
+            0.55
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Marine",
             "Support",
@@ -437,22 +1141,62 @@
             "description": "Giant palm increases all allies' attack by $value%.",
             "type": "BUFF_ATK",
             "pattern": "SURROUND",
-            "values": [40, 60, 85],
-            "range": [5, 5, 5]
+            "values": [
+                40,
+                60,
+                85
+            ],
+            "range": [
+                5,
+                5,
+                5
+            ]
         }
     },
     {
         "id": "kizaru_v1",
         "name": "Kizaru",
         "cost": 5,
-        "maxHealth": [1100, 1980, 3564],
-        "maxMana": [80, 80, 80],
-        "attackDamage": [100, 180, 324],
-        "abilityPower": [120, 120, 120],
-        "armor": [35, 35, 35],
-        "magicResist": [40, 40, 40],
-        "attackSpeed": [0.8, 0.8, 0.8],
-        "range": [4, 4, 4],
+        "maxHealth": [
+            1100,
+            1980,
+            3564
+        ],
+        "maxMana": [
+            80,
+            80,
+            80
+        ],
+        "attackDamage": [
+            100,
+            180,
+            324
+        ],
+        "abilityPower": [
+            120,
+            120,
+            120
+        ],
+        "armor": [
+            35,
+            35,
+            35
+        ],
+        "magicResist": [
+            40,
+            40,
+            40
+        ],
+        "attackSpeed": [
+            0.8,
+            0.8,
+            0.8
+        ],
+        "range": [
+            4,
+            4,
+            4
+        ],
         "traits": [
             "Marine",
             "Assassin"
@@ -462,22 +1206,62 @@
             "description": "Light beam pierces enemies in a line for $value damage.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [800, 1440, 2592],
-            "range": [7, 7, 7]
+            "values": [
+                800,
+                1440,
+                2592
+            ],
+            "range": [
+                7,
+                7,
+                7
+            ]
         }
     },
     {
         "id": "akainu_v1",
         "name": "Akainu",
         "cost": 5,
-        "maxHealth": [1300, 2340, 4212],
-        "maxMana": [90, 90, 90],
-        "attackDamage": [110, 198, 356],
-        "abilityPower": [100, 100, 100],
-        "armor": [50, 50, 50],
-        "magicResist": [40, 40, 40],
-        "attackSpeed": [0.7, 0.7, 0.7],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            1300,
+            2340,
+            4212
+        ],
+        "maxMana": [
+            90,
+            90,
+            90
+        ],
+        "attackDamage": [
+            110,
+            198,
+            356
+        ],
+        "abilityPower": [
+            100,
+            100,
+            100
+        ],
+        "armor": [
+            50,
+            50,
+            50
+        ],
+        "magicResist": [
+            40,
+            40,
+            40
+        ],
+        "attackSpeed": [
+            0.7,
+            0.7,
+            0.7
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Marine",
             "Fighter"
@@ -487,22 +1271,62 @@
             "description": "Rains magma dealing $value damage to all nearby enemies.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [700, 1260, 2268],
-            "range": [3, 3, 3]
+            "values": [
+                700,
+                1260,
+                2268
+            ],
+            "range": [
+                3,
+                3,
+                3
+            ]
         }
     },
     {
         "id": "buggy_v1",
         "name": "Buggy",
         "cost": 1,
-        "maxHealth": [480, 864, 1555],
-        "maxMana": [65, 65, 65],
-        "attackDamage": [42, 75, 135],
-        "abilityPower": [40, 40, 40],
-        "armor": [15, 15, 15],
-        "magicResist": [20, 20, 20],
-        "attackSpeed": [0.65, 0.65, 0.65],
-        "range": [2, 2, 2],
+        "maxHealth": [
+            480,
+            864,
+            1555
+        ],
+        "maxMana": [
+            65,
+            65,
+            65
+        ],
+        "attackDamage": [
+            42,
+            75,
+            135
+        ],
+        "abilityPower": [
+            40,
+            40,
+            40
+        ],
+        "armor": [
+            15,
+            15,
+            15
+        ],
+        "magicResist": [
+            20,
+            20,
+            20
+        ],
+        "attackSpeed": [
+            0.65,
+            0.65,
+            0.65
+        ],
+        "range": [
+            2,
+            2,
+            2
+        ],
         "traits": [
             "Warlord",
             "Assassin"
@@ -512,22 +1336,62 @@
             "description": "Body parts swirl dealing $value damage around self.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [180, 324, 583],
-            "range": [1, 1, 1]
+            "values": [
+                180,
+                324,
+                583
+            ],
+            "range": [
+                1,
+                1,
+                1
+            ]
         }
     },
     {
         "id": "moria_v1",
         "name": "Moria",
         "cost": 2,
-        "maxHealth": [650, 1170, 2106],
-        "maxMana": [75, 75, 75],
-        "attackDamage": [50, 90, 162],
-        "abilityPower": [70, 70, 70],
-        "armor": [25, 25, 25],
-        "magicResist": [35, 35, 35],
-        "attackSpeed": [0.55, 0.55, 0.55],
-        "range": [3, 3, 3],
+        "maxHealth": [
+            650,
+            1170,
+            2106
+        ],
+        "maxMana": [
+            75,
+            75,
+            75
+        ],
+        "attackDamage": [
+            50,
+            90,
+            162
+        ],
+        "abilityPower": [
+            70,
+            70,
+            70
+        ],
+        "armor": [
+            25,
+            25,
+            25
+        ],
+        "magicResist": [
+            35,
+            35,
+            35
+        ],
+        "attackSpeed": [
+            0.55,
+            0.55,
+            0.55
+        ],
+        "range": [
+            3,
+            3,
+            3
+        ],
         "traits": [
             "Warlord",
             "Mage"
@@ -537,12 +1401,24 @@
             "description": "Drains shadow dealing $value damage and healing self.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [220, 396, 712],
-            "range": [4, 4, 4],
+            "values": [
+                220,
+                396,
+                712
+            ],
+            "range": [
+                4,
+                4,
+                4
+            ],
             "modifiers": [
                 {
                     "type": "LIFESTEAL",
-                    "lifestealPercent": [0.5, 0.5, 0.5]
+                    "lifestealPercent": [
+                        0.5,
+                        0.5,
+                        0.5
+                    ]
                 }
             ]
         }
@@ -551,14 +1427,46 @@
         "id": "crocodile_v1",
         "name": "Crocodile",
         "cost": 3,
-        "maxHealth": [800, 1440, 2592],
-        "maxMana": [70, 70, 70],
-        "attackDamage": [60, 108, 194],
-        "abilityPower": [90, 90, 90],
-        "armor": [25, 25, 25],
-        "magicResist": [40, 40, 40],
-        "attackSpeed": [0.6, 0.6, 0.6],
-        "range": [3, 3, 3],
+        "maxHealth": [
+            800,
+            1440,
+            2592
+        ],
+        "maxMana": [
+            70,
+            70,
+            70
+        ],
+        "attackDamage": [
+            60,
+            108,
+            194
+        ],
+        "abilityPower": [
+            90,
+            90,
+            90
+        ],
+        "armor": [
+            25,
+            25,
+            25
+        ],
+        "magicResist": [
+            40,
+            40,
+            40
+        ],
+        "attackSpeed": [
+            0.6,
+            0.6,
+            0.6
+        ],
+        "range": [
+            3,
+            3,
+            3
+        ],
         "traits": [
             "Warlord",
             "Mage"
@@ -568,12 +1476,24 @@
             "description": "Drains moisture dealing $value damage to enemies in area.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [320, 576, 1036],
-            "range": [2, 2, 2],
+            "values": [
+                320,
+                576,
+                1036
+            ],
+            "range": [
+                2,
+                2,
+                2
+            ],
             "modifiers": [
                 {
                     "type": "LIFESTEAL",
-                    "lifestealPercent": [0.3, 0.35, 0.4]
+                    "lifestealPercent": [
+                        0.3,
+                        0.35,
+                        0.4
+                    ]
                 }
             ]
         }
@@ -582,14 +1502,46 @@
         "id": "kuma_v1",
         "name": "Kuma",
         "cost": 3,
-        "maxHealth": [900, 1620, 2916],
-        "maxMana": [85, 85, 85],
-        "attackDamage": [65, 117, 210],
-        "abilityPower": [60, 60, 60],
-        "armor": [45, 45, 45],
-        "magicResist": [35, 35, 35],
-        "attackSpeed": [0.5, 0.5, 0.5],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            900,
+            1620,
+            2916
+        ],
+        "maxMana": [
+            85,
+            85,
+            85
+        ],
+        "attackDamage": [
+            65,
+            117,
+            210
+        ],
+        "abilityPower": [
+            60,
+            60,
+            60
+        ],
+        "armor": [
+            45,
+            45,
+            45
+        ],
+        "magicResist": [
+            35,
+            35,
+            35
+        ],
+        "attackSpeed": [
+            0.5,
+            0.5,
+            0.5
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Warlord",
             "Tank"
@@ -599,22 +1551,62 @@
             "description": "Compresses air into a bomb dealing $value damage.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [380, 684, 1231],
-            "range": [2, 2, 2]
+            "values": [
+                380,
+                684,
+                1231
+            ],
+            "range": [
+                2,
+                2,
+                2
+            ]
         }
     },
     {
         "id": "doflamingo_v1",
         "name": "Doflamingo",
         "cost": 4,
-        "maxHealth": [950, 1710, 3078],
-        "maxMana": [75, 75, 75],
-        "attackDamage": [85, 153, 275],
-        "abilityPower": [100, 100, 100],
-        "armor": [30, 30, 30],
-        "magicResist": [35, 35, 35],
-        "attackSpeed": [0.7, 0.7, 0.7],
-        "range": [4, 4, 4],
+        "maxHealth": [
+            950,
+            1710,
+            3078
+        ],
+        "maxMana": [
+            75,
+            75,
+            75
+        ],
+        "attackDamage": [
+            85,
+            153,
+            275
+        ],
+        "abilityPower": [
+            100,
+            100,
+            100
+        ],
+        "armor": [
+            30,
+            30,
+            30
+        ],
+        "magicResist": [
+            35,
+            35,
+            35
+        ],
+        "attackSpeed": [
+            0.7,
+            0.7,
+            0.7
+        ],
+        "range": [
+            4,
+            4,
+            4
+        ],
         "traits": [
             "Warlord",
             "Mage",
@@ -625,22 +1617,62 @@
             "description": "Burning string whip deals $value damage in a line.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [550, 990, 1782],
-            "range": [5, 5, 5]
+            "values": [
+                550,
+                990,
+                1782
+            ],
+            "range": [
+                5,
+                5,
+                5
+            ]
         }
     },
     {
         "id": "mihawk_v1",
         "name": "Mihawk",
         "cost": 4,
-        "maxHealth": [900, 1620, 2916],
-        "maxMana": [70, 70, 70],
-        "attackDamage": [95, 171, 307],
-        "abilityPower": [0, 0, 0],
-        "armor": [35, 35, 35],
-        "magicResist": [30, 30, 30],
-        "attackSpeed": [0.75, 0.75, 0.75],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            900,
+            1620,
+            2916
+        ],
+        "maxMana": [
+            70,
+            70,
+            70
+        ],
+        "attackDamage": [
+            95,
+            171,
+            307
+        ],
+        "abilityPower": [
+            0,
+            0,
+            0
+        ],
+        "armor": [
+            35,
+            35,
+            35
+        ],
+        "magicResist": [
+            30,
+            30,
+            30
+        ],
+        "attackSpeed": [
+            0.75,
+            0.75,
+            0.75
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Warlord",
             "Swordsman"
@@ -650,22 +1682,62 @@
             "description": "Massive air blade deals $value damage across the battlefield.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [600, 1080, 1944],
-            "range": [7, 7, 7]
+            "values": [
+                600,
+                1080,
+                1944
+            ],
+            "range": [
+                7,
+                7,
+                7
+            ]
         }
     },
     {
         "id": "hancock_v1",
         "name": "Boa Hancock",
         "cost": 4,
-        "maxHealth": [850, 1530, 2754],
-        "maxMana": [80, 80, 80],
-        "attackDamage": [70, 126, 226],
-        "abilityPower": [110, 110, 110],
-        "armor": [25, 25, 25],
-        "magicResist": [45, 45, 45],
-        "attackSpeed": [0.65, 0.65, 0.65],
-        "range": [4, 4, 4],
+        "maxHealth": [
+            850,
+            1530,
+            2754
+        ],
+        "maxMana": [
+            80,
+            80,
+            80
+        ],
+        "attackDamage": [
+            70,
+            126,
+            226
+        ],
+        "abilityPower": [
+            110,
+            110,
+            110
+        ],
+        "armor": [
+            25,
+            25,
+            25
+        ],
+        "magicResist": [
+            45,
+            45,
+            45
+        ],
+        "attackSpeed": [
+            0.65,
+            0.65,
+            0.65
+        ],
+        "range": [
+            4,
+            4,
+            4
+        ],
         "traits": [
             "Warlord",
             "Mage"
@@ -675,22 +1747,62 @@
             "description": "Hearts of stone petrify enemies, stunning for $value ticks.",
             "type": "STUN",
             "pattern": "SURROUND",
-            "values": [3, 4, 5],
-            "range": [3, 3, 3]
+            "values": [
+                3,
+                4,
+                5
+            ],
+            "range": [
+                3,
+                3,
+                3
+            ]
         }
     },
     {
         "id": "gifter_v1",
         "name": "Gifter",
         "cost": 1,
-        "maxHealth": [550, 990, 1782],
-        "maxMana": [55, 55, 55],
-        "attackDamage": [48, 86, 154],
-        "abilityPower": [0, 0, 0],
-        "armor": [25, 25, 25],
-        "magicResist": [15, 15, 15],
-        "attackSpeed": [0.65, 0.65, 0.65],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            550,
+            990,
+            1782
+        ],
+        "maxMana": [
+            55,
+            55,
+            55
+        ],
+        "attackDamage": [
+            48,
+            86,
+            154
+        ],
+        "abilityPower": [
+            0,
+            0,
+            0
+        ],
+        "armor": [
+            25,
+            25,
+            25
+        ],
+        "magicResist": [
+            15,
+            15,
+            15
+        ],
+        "attackSpeed": [
+            0.65,
+            0.65,
+            0.65
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Beast Pirates",
             "Fighter"
@@ -700,22 +1812,62 @@
             "description": "Beast rush deals $value damage.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [170, 306, 550],
-            "range": [1, 1, 1]
+            "values": [
+                170,
+                306,
+                550
+            ],
+            "range": [
+                1,
+                1,
+                1
+            ]
         }
     },
     {
         "id": "headliner_v1",
         "name": "Headliner",
         "cost": 1,
-        "maxHealth": [520, 936, 1684],
-        "maxMana": [60, 60, 60],
-        "attackDamage": [45, 81, 145],
-        "abilityPower": [0, 0, 0],
-        "armor": [20, 20, 20],
-        "magicResist": [20, 20, 20],
-        "attackSpeed": [0.7, 0.7, 0.7],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            520,
+            936,
+            1684
+        ],
+        "maxMana": [
+            60,
+            60,
+            60
+        ],
+        "attackDamage": [
+            45,
+            81,
+            145
+        ],
+        "abilityPower": [
+            0,
+            0,
+            0
+        ],
+        "armor": [
+            20,
+            20,
+            20
+        ],
+        "magicResist": [
+            20,
+            20,
+            20
+        ],
+        "attackSpeed": [
+            0.7,
+            0.7,
+            0.7
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Beast Pirates",
             "Berserker"
@@ -725,22 +1877,62 @@
             "description": "Enters rage, increasing attack by $value%.",
             "type": "BUFF_ATK",
             "pattern": "SINGLE",
-            "values": [30, 50, 80],
-            "range": [0, 0, 0]
+            "values": [
+                30,
+                50,
+                80
+            ],
+            "range": [
+                0,
+                0,
+                0
+            ]
         }
     },
     {
         "id": "ulti_v1",
         "name": "Ulti",
         "cost": 2,
-        "maxHealth": [650, 1170, 2106],
-        "maxMana": [55, 55, 55],
-        "attackDamage": [60, 108, 194],
-        "abilityPower": [0, 0, 0],
-        "armor": [30, 30, 30],
-        "magicResist": [20, 20, 20],
-        "attackSpeed": [0.7, 0.7, 0.7],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            650,
+            1170,
+            2106
+        ],
+        "maxMana": [
+            55,
+            55,
+            55
+        ],
+        "attackDamage": [
+            60,
+            108,
+            194
+        ],
+        "abilityPower": [
+            0,
+            0,
+            0
+        ],
+        "armor": [
+            30,
+            30,
+            30
+        ],
+        "magicResist": [
+            20,
+            20,
+            20
+        ],
+        "attackSpeed": [
+            0.7,
+            0.7,
+            0.7
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Beast Pirates",
             "Berserker"
@@ -750,22 +1942,62 @@
             "description": "Devastating headbutt deals $value damage.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [280, 504, 907],
-            "range": [1, 1, 1]
+            "values": [
+                280,
+                504,
+                907
+            ],
+            "range": [
+                1,
+                1,
+                1
+            ]
         }
     },
     {
         "id": "page_one_v1",
         "name": "Page One",
         "cost": 2,
-        "maxHealth": [750, 1350, 2430],
-        "maxMana": [75, 75, 75],
-        "attackDamage": [50, 90, 162],
-        "abilityPower": [0, 0, 0],
-        "armor": [40, 40, 40],
-        "magicResist": [30, 30, 30],
-        "attackSpeed": [0.55, 0.55, 0.55],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            750,
+            1350,
+            2430
+        ],
+        "maxMana": [
+            75,
+            75,
+            75
+        ],
+        "attackDamage": [
+            50,
+            90,
+            162
+        ],
+        "abilityPower": [
+            0,
+            0,
+            0
+        ],
+        "armor": [
+            40,
+            40,
+            40
+        ],
+        "magicResist": [
+            30,
+            30,
+            30
+        ],
+        "attackSpeed": [
+            0.55,
+            0.55,
+            0.55
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Beast Pirates",
             "Tank"
@@ -775,22 +2007,62 @@
             "description": "Increases allies' attack by $value%.",
             "type": "BUFF_ATK",
             "pattern": "SURROUND",
-            "values": [20, 35, 55],
-            "range": [2, 2, 2]
+            "values": [
+                20,
+                35,
+                55
+            ],
+            "range": [
+                2,
+                2,
+                2
+            ]
         }
     },
     {
         "id": "sasaki_v1",
         "name": "Sasaki",
         "cost": 3,
-        "maxHealth": [900, 1620, 2916],
-        "maxMana": [80, 80, 80],
-        "attackDamage": [65, 117, 210],
-        "abilityPower": [0, 0, 0],
-        "armor": [50, 50, 50],
-        "magicResist": [30, 30, 30],
-        "attackSpeed": [0.5, 0.5, 0.5],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            900,
+            1620,
+            2916
+        ],
+        "maxMana": [
+            80,
+            80,
+            80
+        ],
+        "attackDamage": [
+            65,
+            117,
+            210
+        ],
+        "abilityPower": [
+            0,
+            0,
+            0
+        ],
+        "armor": [
+            50,
+            50,
+            50
+        ],
+        "magicResist": [
+            30,
+            30,
+            30
+        ],
+        "attackSpeed": [
+            0.5,
+            0.5,
+            0.5
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Beast Pirates",
             "Tank"
@@ -800,22 +2072,62 @@
             "description": "Charges forward dealing $value damage in a line.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [350, 630, 1134],
-            "range": [3, 3, 3]
+            "values": [
+                350,
+                630,
+                1134
+            ],
+            "range": [
+                3,
+                3,
+                3
+            ]
         }
     },
     {
         "id": "whos_who_v1",
         "name": "Who's-Who",
         "cost": 3,
-        "maxHealth": [750, 1350, 2430],
-        "maxMana": [55, 55, 55],
-        "attackDamage": [75, 135, 243],
-        "abilityPower": [0, 0, 0],
-        "armor": [30, 30, 30],
-        "magicResist": [25, 25, 25],
-        "attackSpeed": [0.8, 0.8, 0.8],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            750,
+            1350,
+            2430
+        ],
+        "maxMana": [
+            55,
+            55,
+            55
+        ],
+        "attackDamage": [
+            75,
+            135,
+            243
+        ],
+        "abilityPower": [
+            0,
+            0,
+            0
+        ],
+        "armor": [
+            30,
+            30,
+            30
+        ],
+        "magicResist": [
+            25,
+            25,
+            25
+        ],
+        "attackSpeed": [
+            0.8,
+            0.8,
+            0.8
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Beast Pirates",
             "Assassin"
@@ -825,22 +2137,62 @@
             "description": "Rapid strikes deal $value damage.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [400, 720, 1296],
-            "range": [1, 1, 1]
+            "values": [
+                400,
+                720,
+                1296
+            ],
+            "range": [
+                1,
+                1,
+                1
+            ]
         }
     },
     {
         "id": "queen_v1",
         "name": "Queen",
         "cost": 4,
-        "maxHealth": [1100, 1980, 3564],
-        "maxMana": [85, 85, 85],
-        "attackDamage": [70, 126, 226],
-        "abilityPower": [80, 80, 80],
-        "armor": [45, 45, 45],
-        "magicResist": [35, 35, 35],
-        "attackSpeed": [0.55, 0.55, 0.55],
-        "range": [3, 3, 3],
+        "maxHealth": [
+            1100,
+            1980,
+            3564
+        ],
+        "maxMana": [
+            85,
+            85,
+            85
+        ],
+        "attackDamage": [
+            70,
+            126,
+            226
+        ],
+        "abilityPower": [
+            80,
+            80,
+            80
+        ],
+        "armor": [
+            45,
+            45,
+            45
+        ],
+        "magicResist": [
+            35,
+            35,
+            35
+        ],
+        "attackSpeed": [
+            0.55,
+            0.55,
+            0.55
+        ],
+        "range": [
+            3,
+            3,
+            3
+        ],
         "traits": [
             "Beast Pirates",
             "Tank",
@@ -851,22 +2203,62 @@
             "description": "Toxic shot deals $value damage to enemies in area.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [450, 810, 1458],
-            "range": [2, 2, 2]
+            "values": [
+                450,
+                810,
+                1458
+            ],
+            "range": [
+                2,
+                2,
+                2
+            ]
         }
     },
     {
         "id": "king_v1",
         "name": "King",
         "cost": 4,
-        "maxHealth": [1000, 1800, 3240],
-        "maxMana": [70, 70, 70],
-        "attackDamage": [90, 162, 291],
-        "abilityPower": [60, 60, 60],
-        "armor": [40, 40, 40],
-        "magicResist": [35, 35, 35],
-        "attackSpeed": [0.7, 0.7, 0.7],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            1000,
+            1800,
+            3240
+        ],
+        "maxMana": [
+            70,
+            70,
+            70
+        ],
+        "attackDamage": [
+            90,
+            162,
+            291
+        ],
+        "abilityPower": [
+            60,
+            60,
+            60
+        ],
+        "armor": [
+            40,
+            40,
+            40
+        ],
+        "magicResist": [
+            35,
+            35,
+            35
+        ],
+        "attackSpeed": [
+            0.7,
+            0.7,
+            0.7
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Beast Pirates",
             "Fighter",
@@ -877,13 +2269,25 @@
             "description": "Ignites dealing $value damage. More damage when wounded.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [500, 900, 1620],
-            "range": [2, 2, 2],
+            "values": [
+                500,
+                900,
+                1620
+            ],
+            "range": [
+                2,
+                2,
+                2
+            ],
             "modifiers": [
                 {
                     "type": "SCALING",
                     "scalingType": "CASTER_MISSING_HP",
-                    "factor": [0.4, 0.6, 0.8]
+                    "factor": [
+                        0.4,
+                        0.6,
+                        0.8
+                    ]
                 }
             ]
         }
@@ -892,14 +2296,46 @@
         "id": "kaido_v1",
         "name": "Kaido",
         "cost": 5,
-        "maxHealth": [1400, 2520, 4536],
-        "maxMana": [100, 100, 100],
-        "attackDamage": [110, 198, 356],
-        "abilityPower": [80, 80, 80],
-        "armor": [55, 55, 55],
-        "magicResist": [45, 45, 45],
-        "attackSpeed": [0.65, 0.65, 0.65],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            1400,
+            2520,
+            4536
+        ],
+        "maxMana": [
+            100,
+            100,
+            100
+        ],
+        "attackDamage": [
+            110,
+            198,
+            356
+        ],
+        "abilityPower": [
+            80,
+            80,
+            80
+        ],
+        "armor": [
+            55,
+            55,
+            55
+        ],
+        "magicResist": [
+            45,
+            45,
+            45
+        ],
+        "attackSpeed": [
+            0.65,
+            0.65,
+            0.65
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Beast Pirates",
             "Tank",
@@ -910,13 +2346,29 @@
             "description": "Devastating club strike deals $value damage to all nearby and stuns.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [750, 1350, 2430],
-            "range": [2, 2, 2],
+            "values": [
+                750,
+                1350,
+                2430
+            ],
+            "range": [
+                2,
+                2,
+                2
+            ],
             "modifiers": [
                 {
                     "type": "EXECUTE",
-                    "hpThreshold": [0.25, 0.3, 0.35],
-                    "bonusDamageMultiplier": [0.5, 0.6, 0.7]
+                    "hpThreshold": [
+                        0.25,
+                        0.3,
+                        0.35
+                    ],
+                    "bonusDamageMultiplier": [
+                        0.5,
+                        0.6,
+                        0.7
+                    ]
                 }
             ]
         }
@@ -925,14 +2377,46 @@
         "id": "chess_soldiers_v1",
         "name": "Chess Soldiers",
         "cost": 1,
-        "maxHealth": [580, 1044, 1879],
-        "maxMana": [70, 70, 70],
-        "attackDamage": [35, 63, 113],
-        "abilityPower": [0, 0, 0],
-        "armor": [30, 30, 30],
-        "magicResist": [25, 25, 25],
-        "attackSpeed": [0.55, 0.55, 0.55],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            580,
+            1044,
+            1879
+        ],
+        "maxMana": [
+            70,
+            70,
+            70
+        ],
+        "attackDamage": [
+            35,
+            63,
+            113
+        ],
+        "abilityPower": [
+            0,
+            0,
+            0
+        ],
+        "armor": [
+            30,
+            30,
+            30
+        ],
+        "magicResist": [
+            25,
+            25,
+            25
+        ],
+        "attackSpeed": [
+            0.55,
+            0.55,
+            0.55
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Big Mom Pirates",
             "Tank"
@@ -942,22 +2426,62 @@
             "description": "Increases allies' attack by $value%.",
             "type": "BUFF_ATK",
             "pattern": "SURROUND",
-            "values": [15, 25, 40],
-            "range": [1, 1, 1]
+            "values": [
+                15,
+                25,
+                40
+            ],
+            "range": [
+                1,
+                1,
+                1
+            ]
         }
     },
     {
         "id": "prometheus_v1",
         "name": "Prometheus",
         "cost": 1,
-        "maxHealth": [420, 756, 1360],
-        "maxMana": [60, 60, 60],
-        "attackDamage": [40, 72, 129],
-        "abilityPower": [70, 70, 70],
-        "armor": [10, 10, 10],
-        "magicResist": [30, 30, 30],
-        "attackSpeed": [0.65, 0.65, 0.65],
-        "range": [3, 3, 3],
+        "maxHealth": [
+            420,
+            756,
+            1360
+        ],
+        "maxMana": [
+            60,
+            60,
+            60
+        ],
+        "attackDamage": [
+            40,
+            72,
+            129
+        ],
+        "abilityPower": [
+            70,
+            70,
+            70
+        ],
+        "armor": [
+            10,
+            10,
+            10
+        ],
+        "magicResist": [
+            30,
+            30,
+            30
+        ],
+        "attackSpeed": [
+            0.65,
+            0.65,
+            0.65
+        ],
+        "range": [
+            3,
+            3,
+            3
+        ],
         "traits": [
             "Big Mom Pirates",
             "Mage"
@@ -967,22 +2491,62 @@
             "description": "Flames deal $value damage to nearby enemies.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [160, 288, 518],
-            "range": [1, 1, 1]
+            "values": [
+                160,
+                288,
+                518
+            ],
+            "range": [
+                1,
+                1,
+                1
+            ]
         }
     },
     {
         "id": "perospero_v1",
         "name": "Charlotte Perospero",
         "cost": 2,
-        "maxHealth": [650, 1170, 2106],
-        "maxMana": [80, 80, 80],
-        "attackDamage": [45, 81, 145],
-        "abilityPower": [80, 80, 80],
-        "armor": [25, 25, 25],
-        "magicResist": [35, 35, 35],
-        "attackSpeed": [0.55, 0.55, 0.55],
-        "range": [3, 3, 3],
+        "maxHealth": [
+            650,
+            1170,
+            2106
+        ],
+        "maxMana": [
+            80,
+            80,
+            80
+        ],
+        "attackDamage": [
+            45,
+            81,
+            145
+        ],
+        "abilityPower": [
+            80,
+            80,
+            80
+        ],
+        "armor": [
+            25,
+            25,
+            25
+        ],
+        "magicResist": [
+            35,
+            35,
+            35
+        ],
+        "attackSpeed": [
+            0.55,
+            0.55,
+            0.55
+        ],
+        "range": [
+            3,
+            3,
+            3
+        ],
         "traits": [
             "Big Mom Pirates",
             "Mage"
@@ -992,22 +2556,62 @@
             "description": "Heals allies in area for $value.",
             "type": "HEAL",
             "pattern": "SURROUND",
-            "values": [150, 270, 486],
-            "range": [2, 2, 2]
+            "values": [
+                150,
+                270,
+                486
+            ],
+            "range": [
+                2,
+                2,
+                2
+            ]
         }
     },
     {
         "id": "daifuku_v1",
         "name": "Charlotte Daifuku",
         "cost": 2,
-        "maxHealth": [700, 1260, 2268],
-        "maxMana": [65, 65, 65],
-        "attackDamage": [55, 99, 178],
-        "abilityPower": [50, 50, 50],
-        "armor": [30, 30, 30],
-        "magicResist": [20, 20, 20],
-        "attackSpeed": [0.65, 0.65, 0.65],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            700,
+            1260,
+            2268
+        ],
+        "maxMana": [
+            65,
+            65,
+            65
+        ],
+        "attackDamage": [
+            55,
+            99,
+            178
+        ],
+        "abilityPower": [
+            50,
+            50,
+            50
+        ],
+        "armor": [
+            30,
+            30,
+            30
+        ],
+        "magicResist": [
+            20,
+            20,
+            20
+        ],
+        "attackSpeed": [
+            0.65,
+            0.65,
+            0.65
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Big Mom Pirates",
             "Fighter"
@@ -1017,22 +2621,62 @@
             "description": "Summons genie to slash dealing $value damage.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [250, 450, 810],
-            "range": [2, 2, 2]
+            "values": [
+                250,
+                450,
+                810
+            ],
+            "range": [
+                2,
+                2,
+                2
+            ]
         }
     },
     {
         "id": "cracker_v1",
         "name": "Charlotte Cracker",
         "cost": 3,
-        "maxHealth": [850, 1530, 2754],
-        "maxMana": [75, 75, 75],
-        "attackDamage": [70, 126, 226],
-        "abilityPower": [60, 60, 60],
-        "armor": [35, 35, 35],
-        "magicResist": [25, 25, 25],
-        "attackSpeed": [0.7, 0.7, 0.7],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            850,
+            1530,
+            2754
+        ],
+        "maxMana": [
+            75,
+            75,
+            75
+        ],
+        "attackDamage": [
+            70,
+            126,
+            226
+        ],
+        "abilityPower": [
+            60,
+            60,
+            60
+        ],
+        "armor": [
+            35,
+            35,
+            35
+        ],
+        "magicResist": [
+            25,
+            25,
+            25
+        ],
+        "attackSpeed": [
+            0.7,
+            0.7,
+            0.7
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Big Mom Pirates",
             "Swordsman"
@@ -1042,22 +2686,62 @@
             "description": "Powerful slash deals $value damage to all adjacent.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [320, 576, 1036],
-            "range": [1, 1, 1]
+            "values": [
+                320,
+                576,
+                1036
+            ],
+            "range": [
+                1,
+                1,
+                1
+            ]
         }
     },
     {
         "id": "smoothie_v1",
         "name": "Charlotte Smoothie",
         "cost": 3,
-        "maxHealth": [800, 1440, 2592],
-        "maxMana": [70, 70, 70],
-        "attackDamage": [65, 117, 210],
-        "abilityPower": [70, 70, 70],
-        "armor": [30, 30, 30],
-        "magicResist": [30, 30, 30],
-        "attackSpeed": [0.65, 0.65, 0.65],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            800,
+            1440,
+            2592
+        ],
+        "maxMana": [
+            70,
+            70,
+            70
+        ],
+        "attackDamage": [
+            65,
+            117,
+            210
+        ],
+        "abilityPower": [
+            70,
+            70,
+            70
+        ],
+        "armor": [
+            30,
+            30,
+            30
+        ],
+        "magicResist": [
+            30,
+            30,
+            30
+        ],
+        "attackSpeed": [
+            0.65,
+            0.65,
+            0.65
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Big Mom Pirates",
             "Berserker"
@@ -1067,12 +2751,24 @@
             "description": "Drains $value health from target, healing self.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [350, 630, 1134],
-            "range": [2, 2, 2],
+            "values": [
+                350,
+                630,
+                1134
+            ],
+            "range": [
+                2,
+                2,
+                2
+            ],
             "modifiers": [
                 {
                     "type": "LIFESTEAL",
-                    "lifestealPercent": [0.5, 0.5, 0.5]
+                    "lifestealPercent": [
+                        0.5,
+                        0.5,
+                        0.5
+                    ]
                 }
             ]
         }
@@ -1081,14 +2777,46 @@
         "id": "katakuri_v1",
         "name": "Charlotte Katakuri",
         "cost": 5,
-        "maxHealth": [1200, 2160, 3888],
-        "maxMana": [80, 80, 80],
-        "attackDamage": [100, 180, 324],
-        "abilityPower": [80, 80, 80],
-        "armor": [40, 40, 40],
-        "magicResist": [40, 40, 40],
-        "attackSpeed": [0.75, 0.75, 0.75],
-        "range": [2, 2, 2],
+        "maxHealth": [
+            1200,
+            2160,
+            3888
+        ],
+        "maxMana": [
+            80,
+            80,
+            80
+        ],
+        "attackDamage": [
+            100,
+            180,
+            324
+        ],
+        "abilityPower": [
+            80,
+            80,
+            80
+        ],
+        "armor": [
+            40,
+            40,
+            40
+        ],
+        "magicResist": [
+            40,
+            40,
+            40
+        ],
+        "attackSpeed": [
+            0.75,
+            0.75,
+            0.75
+        ],
+        "range": [
+            2,
+            2,
+            2
+        ],
         "traits": [
             "Big Mom Pirates",
             "Fighter"
@@ -1098,13 +2826,29 @@
             "description": "Piercing strike deals $value damage. Executes low HP enemies.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [700, 1260, 2268],
-            "range": [3, 3, 3],
+            "values": [
+                700,
+                1260,
+                2268
+            ],
+            "range": [
+                3,
+                3,
+                3
+            ],
             "modifiers": [
                 {
                     "type": "EXECUTE",
-                    "hpThreshold": [0.2, 0.25, 0.3],
-                    "bonusDamageMultiplier": [0.6, 0.7, 0.8]
+                    "hpThreshold": [
+                        0.2,
+                        0.25,
+                        0.3
+                    ],
+                    "bonusDamageMultiplier": [
+                        0.6,
+                        0.7,
+                        0.8
+                    ]
                 }
             ]
         }
@@ -1113,14 +2857,46 @@
         "id": "big_mom_v1",
         "name": "Big Mom",
         "cost": 5,
-        "maxHealth": [1350, 2430, 4374],
-        "maxMana": [100, 100, 100],
-        "attackDamage": [95, 171, 307],
-        "abilityPower": [120, 120, 120],
-        "armor": [50, 50, 50],
-        "magicResist": [50, 50, 50],
-        "attackSpeed": [0.6, 0.6, 0.6],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            1350,
+            2430,
+            4374
+        ],
+        "maxMana": [
+            100,
+            100,
+            100
+        ],
+        "attackDamage": [
+            95,
+            171,
+            307
+        ],
+        "abilityPower": [
+            120,
+            120,
+            120
+        ],
+        "armor": [
+            50,
+            50,
+            50
+        ],
+        "magicResist": [
+            50,
+            50,
+            50
+        ],
+        "attackSpeed": [
+            0.6,
+            0.6,
+            0.6
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Big Mom Pirates",
             "Mage",
@@ -1131,12 +2907,24 @@
             "description": "Steals souls dealing $value damage to all nearby enemies.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [600, 1080, 1944],
-            "range": [2, 2, 2],
+            "values": [
+                600,
+                1080,
+                1944
+            ],
+            "range": [
+                2,
+                2,
+                2
+            ],
             "modifiers": [
                 {
                     "type": "LIFESTEAL",
-                    "lifestealPercent": [0.4, 0.5, 0.6]
+                    "lifestealPercent": [
+                        0.4,
+                        0.5,
+                        0.6
+                    ]
                 }
             ]
         }
@@ -1145,14 +2933,46 @@
         "id": "hack_v1",
         "name": "Hack",
         "cost": 1,
-        "maxHealth": [550, 990, 1782],
-        "maxMana": [55, 55, 55],
-        "attackDamage": [48, 86, 154],
-        "abilityPower": [0, 0, 0],
-        "armor": [25, 25, 25],
-        "magicResist": [20, 20, 20],
-        "attackSpeed": [0.65, 0.65, 0.65],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            550,
+            990,
+            1782
+        ],
+        "maxMana": [
+            55,
+            55,
+            55
+        ],
+        "attackDamage": [
+            48,
+            86,
+            154
+        ],
+        "abilityPower": [
+            0,
+            0,
+            0
+        ],
+        "armor": [
+            25,
+            25,
+            25
+        ],
+        "magicResist": [
+            20,
+            20,
+            20
+        ],
+        "attackSpeed": [
+            0.65,
+            0.65,
+            0.65
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Revolutionary",
             "Fighter"
@@ -1162,22 +2982,62 @@
             "description": "Powerful punch deals $value damage.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [180, 324, 583],
-            "range": [1, 1, 1]
+            "values": [
+                180,
+                324,
+                583
+            ],
+            "range": [
+                1,
+                1,
+                1
+            ]
         }
     },
     {
         "id": "koala_v1",
         "name": "Koala",
         "cost": 2,
-        "maxHealth": [600, 1080, 1944],
-        "maxMana": [70, 70, 70],
-        "attackDamage": [50, 90, 162],
-        "abilityPower": [60, 60, 60],
-        "armor": [20, 20, 20],
-        "magicResist": [25, 25, 25],
-        "attackSpeed": [0.7, 0.7, 0.7],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            600,
+            1080,
+            1944
+        ],
+        "maxMana": [
+            70,
+            70,
+            70
+        ],
+        "attackDamage": [
+            50,
+            90,
+            162
+        ],
+        "abilityPower": [
+            60,
+            60,
+            60
+        ],
+        "armor": [
+            20,
+            20,
+            20
+        ],
+        "magicResist": [
+            25,
+            25,
+            25
+        ],
+        "attackSpeed": [
+            0.7,
+            0.7,
+            0.7
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Revolutionary",
             "Fighter",
@@ -1188,22 +3048,62 @@
             "description": "Increases allies' attack by $value%.",
             "type": "BUFF_ATK",
             "pattern": "SURROUND",
-            "values": [25, 40, 60],
-            "range": [2, 2, 2]
+            "values": [
+                25,
+                40,
+                60
+            ],
+            "range": [
+                2,
+                2,
+                2
+            ]
         }
     },
     {
         "id": "belo_betty_v1",
         "name": "Belo Betty",
         "cost": 2,
-        "maxHealth": [550, 990, 1782],
-        "maxMana": [80, 80, 80],
-        "attackDamage": [40, 72, 129],
-        "abilityPower": [80, 80, 80],
-        "armor": [15, 15, 15],
-        "magicResist": [30, 30, 30],
-        "attackSpeed": [0.6, 0.6, 0.6],
-        "range": [4, 4, 4],
+        "maxHealth": [
+            550,
+            990,
+            1782
+        ],
+        "maxMana": [
+            80,
+            80,
+            80
+        ],
+        "attackDamage": [
+            40,
+            72,
+            129
+        ],
+        "abilityPower": [
+            80,
+            80,
+            80
+        ],
+        "armor": [
+            15,
+            15,
+            15
+        ],
+        "magicResist": [
+            30,
+            30,
+            30
+        ],
+        "attackSpeed": [
+            0.6,
+            0.6,
+            0.6
+        ],
+        "range": [
+            4,
+            4,
+            4
+        ],
         "traits": [
             "Revolutionary",
             "Support"
@@ -1213,22 +3113,62 @@
             "description": "Rallies all allies, increasing attack by $value%.",
             "type": "BUFF_ATK",
             "pattern": "SURROUND",
-            "values": [30, 50, 75],
-            "range": [5, 5, 5]
+            "values": [
+                30,
+                50,
+                75
+            ],
+            "range": [
+                5,
+                5,
+                5
+            ]
         }
     },
     {
         "id": "ivankov_v1",
         "name": "Ivankov",
         "cost": 3,
-        "maxHealth": [800, 1440, 2592],
-        "maxMana": [85, 85, 85],
-        "attackDamage": [55, 99, 178],
-        "abilityPower": [90, 90, 90],
-        "armor": [25, 25, 25],
-        "magicResist": [40, 40, 40],
-        "attackSpeed": [0.6, 0.6, 0.6],
-        "range": [2, 2, 2],
+        "maxHealth": [
+            800,
+            1440,
+            2592
+        ],
+        "maxMana": [
+            85,
+            85,
+            85
+        ],
+        "attackDamage": [
+            55,
+            99,
+            178
+        ],
+        "abilityPower": [
+            90,
+            90,
+            90
+        ],
+        "armor": [
+            25,
+            25,
+            25
+        ],
+        "magicResist": [
+            40,
+            40,
+            40
+        ],
+        "attackSpeed": [
+            0.6,
+            0.6,
+            0.6
+        ],
+        "range": [
+            2,
+            2,
+            2
+        ],
         "traits": [
             "Revolutionary",
             "Support"
@@ -1238,22 +3178,62 @@
             "description": "Heals all allies in range for $value.",
             "type": "HEAL",
             "pattern": "SURROUND",
-            "values": [250, 450, 810],
-            "range": [3, 3, 3]
+            "values": [
+                250,
+                450,
+                810
+            ],
+            "range": [
+                3,
+                3,
+                3
+            ]
         }
     },
     {
         "id": "sabo_v1",
         "name": "Sabo",
         "cost": 4,
-        "maxHealth": [1000, 1800, 3240],
-        "maxMana": [65, 65, 65],
-        "attackDamage": [90, 162, 291],
-        "abilityPower": [70, 70, 70],
-        "armor": [35, 35, 35],
-        "magicResist": [30, 30, 30],
-        "attackSpeed": [0.75, 0.75, 0.75],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            1000,
+            1800,
+            3240
+        ],
+        "maxMana": [
+            65,
+            65,
+            65
+        ],
+        "attackDamage": [
+            90,
+            162,
+            291
+        ],
+        "abilityPower": [
+            70,
+            70,
+            70
+        ],
+        "armor": [
+            35,
+            35,
+            35
+        ],
+        "magicResist": [
+            30,
+            30,
+            30
+        ],
+        "attackSpeed": [
+            0.75,
+            0.75,
+            0.75
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Revolutionary",
             "Fighter"
@@ -1263,22 +3243,62 @@
             "description": "Flaming claw deals $value damage.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [600, 1080, 1944],
-            "range": [1, 1, 1]
+            "values": [
+                600,
+                1080,
+                1944
+            ],
+            "range": [
+                1,
+                1,
+                1
+            ]
         }
     },
     {
         "id": "dragon_v1",
         "name": "Dragon",
         "cost": 5,
-        "maxHealth": [1150, 2070, 3726],
-        "maxMana": [90, 90, 90],
-        "attackDamage": [85, 153, 275],
-        "abilityPower": [130, 130, 130],
-        "armor": [40, 40, 40],
-        "magicResist": [45, 45, 45],
-        "attackSpeed": [0.65, 0.65, 0.65],
-        "range": [3, 3, 3],
+        "maxHealth": [
+            1150,
+            2070,
+            3726
+        ],
+        "maxMana": [
+            90,
+            90,
+            90
+        ],
+        "attackDamage": [
+            85,
+            153,
+            275
+        ],
+        "abilityPower": [
+            130,
+            130,
+            130
+        ],
+        "armor": [
+            40,
+            40,
+            40
+        ],
+        "magicResist": [
+            45,
+            45,
+            45
+        ],
+        "attackSpeed": [
+            0.65,
+            0.65,
+            0.65
+        ],
+        "range": [
+            3,
+            3,
+            3
+        ],
         "traits": [
             "Revolutionary",
             "Mage"
@@ -1288,22 +3308,62 @@
             "description": "Summons storm dealing $value damage to all nearby enemies.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [650, 1170, 2106],
-            "range": [3, 3, 3]
+            "values": [
+                650,
+                1170,
+                2106
+            ],
+            "range": [
+                3,
+                3,
+                3
+            ]
         }
     },
     {
         "id": "thatch_v1",
         "name": "Thatch",
         "cost": 1,
-        "maxHealth": [480, 864, 1555],
-        "maxMana": [55, 55, 55],
-        "attackDamage": [50, 90, 162],
-        "abilityPower": [0, 0, 0],
-        "armor": [20, 20, 20],
-        "magicResist": [15, 15, 15],
-        "attackSpeed": [0.7, 0.7, 0.7],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            480,
+            864,
+            1555
+        ],
+        "maxMana": [
+            55,
+            55,
+            55
+        ],
+        "attackDamage": [
+            50,
+            90,
+            162
+        ],
+        "abilityPower": [
+            0,
+            0,
+            0
+        ],
+        "armor": [
+            20,
+            20,
+            20
+        ],
+        "magicResist": [
+            15,
+            15,
+            15
+        ],
+        "attackSpeed": [
+            0.7,
+            0.7,
+            0.7
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Whitebeard Pirates",
             "Swordsman"
@@ -1313,22 +3373,62 @@
             "description": "Quick slash deals $value damage.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [190, 342, 615],
-            "range": [1, 1, 1]
+            "values": [
+                190,
+                342,
+                615
+            ],
+            "range": [
+                1,
+                1,
+                1
+            ]
         }
     },
     {
         "id": "jozu_v1",
         "name": "Jozu",
         "cost": 2,
-        "maxHealth": [800, 1440, 2592],
-        "maxMana": [80, 80, 80],
-        "attackDamage": [50, 90, 162],
-        "abilityPower": [0, 0, 0],
-        "armor": [45, 45, 45],
-        "magicResist": [35, 35, 35],
-        "attackSpeed": [0.5, 0.5, 0.5],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            800,
+            1440,
+            2592
+        ],
+        "maxMana": [
+            80,
+            80,
+            80
+        ],
+        "attackDamage": [
+            50,
+            90,
+            162
+        ],
+        "abilityPower": [
+            0,
+            0,
+            0
+        ],
+        "armor": [
+            45,
+            45,
+            45
+        ],
+        "magicResist": [
+            35,
+            35,
+            35
+        ],
+        "attackSpeed": [
+            0.5,
+            0.5,
+            0.5
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Whitebeard Pirates",
             "Tank"
@@ -1338,22 +3438,62 @@
             "description": "Heals self for $value.",
             "type": "HEAL",
             "pattern": "SINGLE",
-            "values": [300, 540, 972],
-            "range": [0, 0, 0]
+            "values": [
+                300,
+                540,
+                972
+            ],
+            "range": [
+                0,
+                0,
+                0
+            ]
         }
     },
     {
         "id": "vista_v1",
         "name": "Vista",
         "cost": 3,
-        "maxHealth": [800, 1440, 2592],
-        "maxMana": [65, 65, 65],
-        "attackDamage": [75, 135, 243],
-        "abilityPower": [0, 0, 0],
-        "armor": [30, 30, 30],
-        "magicResist": [25, 25, 25],
-        "attackSpeed": [0.75, 0.75, 0.75],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            800,
+            1440,
+            2592
+        ],
+        "maxMana": [
+            65,
+            65,
+            65
+        ],
+        "attackDamage": [
+            75,
+            135,
+            243
+        ],
+        "abilityPower": [
+            0,
+            0,
+            0
+        ],
+        "armor": [
+            30,
+            30,
+            30
+        ],
+        "magicResist": [
+            25,
+            25,
+            25
+        ],
+        "attackSpeed": [
+            0.75,
+            0.75,
+            0.75
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Whitebeard Pirates",
             "Swordsman"
@@ -1363,22 +3503,62 @@
             "description": "Rose petals slash dealing $value damage to all adjacent.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [340, 612, 1101],
-            "range": [1, 1, 1]
+            "values": [
+                340,
+                612,
+                1101
+            ],
+            "range": [
+                1,
+                1,
+                1
+            ]
         }
     },
     {
         "id": "ace_v1",
         "name": "Ace",
         "cost": 4,
-        "maxHealth": [950, 1710, 3078],
-        "maxMana": [70, 70, 70],
-        "attackDamage": [80, 144, 259],
-        "abilityPower": [100, 100, 100],
-        "armor": [30, 30, 30],
-        "magicResist": [35, 35, 35],
-        "attackSpeed": [0.7, 0.7, 0.7],
-        "range": [3, 3, 3],
+        "maxHealth": [
+            950,
+            1710,
+            3078
+        ],
+        "maxMana": [
+            70,
+            70,
+            70
+        ],
+        "attackDamage": [
+            80,
+            144,
+            259
+        ],
+        "abilityPower": [
+            100,
+            100,
+            100
+        ],
+        "armor": [
+            30,
+            30,
+            30
+        ],
+        "magicResist": [
+            35,
+            35,
+            35
+        ],
+        "attackSpeed": [
+            0.7,
+            0.7,
+            0.7
+        ],
+        "range": [
+            3,
+            3,
+            3
+        ],
         "traits": [
             "Whitebeard Pirates",
             "Mage",
@@ -1389,22 +3569,62 @@
             "description": "Blazing fist deals $value damage to all nearby enemies.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [500, 900, 1620],
-            "range": [2, 2, 2]
+            "values": [
+                500,
+                900,
+                1620
+            ],
+            "range": [
+                2,
+                2,
+                2
+            ]
         }
     },
     {
         "id": "marco_v1",
         "name": "Marco",
         "cost": 4,
-        "maxHealth": [900, 1620, 2916],
-        "maxMana": [85, 85, 85],
-        "attackDamage": [65, 117, 210],
-        "abilityPower": [110, 110, 110],
-        "armor": [30, 30, 30],
-        "magicResist": [45, 45, 45],
-        "attackSpeed": [0.65, 0.65, 0.65],
-        "range": [2, 2, 2],
+        "maxHealth": [
+            900,
+            1620,
+            2916
+        ],
+        "maxMana": [
+            85,
+            85,
+            85
+        ],
+        "attackDamage": [
+            65,
+            117,
+            210
+        ],
+        "abilityPower": [
+            110,
+            110,
+            110
+        ],
+        "armor": [
+            30,
+            30,
+            30
+        ],
+        "magicResist": [
+            45,
+            45,
+            45
+        ],
+        "attackSpeed": [
+            0.65,
+            0.65,
+            0.65
+        ],
+        "range": [
+            2,
+            2,
+            2
+        ],
         "traits": [
             "Whitebeard Pirates",
             "Support",
@@ -1415,22 +3635,62 @@
             "description": "Blue flames heal all allies in range for $value.",
             "type": "HEAL",
             "pattern": "SURROUND",
-            "values": [350, 630, 1134],
-            "range": [3, 3, 3]
+            "values": [
+                350,
+                630,
+                1134
+            ],
+            "range": [
+                3,
+                3,
+                3
+            ]
         }
     },
     {
         "id": "whitebeard_v1",
         "name": "Whitebeard",
         "cost": 5,
-        "maxHealth": [1400, 2520, 4536],
-        "maxMana": [90, 90, 90],
-        "attackDamage": [120, 216, 388],
-        "abilityPower": [80, 80, 80],
-        "armor": [50, 50, 50],
-        "magicResist": [40, 40, 40],
-        "attackSpeed": [0.65, 0.65, 0.65],
-        "range": [1, 1, 1],
+        "maxHealth": [
+            1400,
+            2520,
+            4536
+        ],
+        "maxMana": [
+            90,
+            90,
+            90
+        ],
+        "attackDamage": [
+            120,
+            216,
+            388
+        ],
+        "abilityPower": [
+            80,
+            80,
+            80
+        ],
+        "armor": [
+            50,
+            50,
+            50
+        ],
+        "magicResist": [
+            40,
+            40,
+            40
+        ],
+        "attackSpeed": [
+            0.65,
+            0.65,
+            0.65
+        ],
+        "range": [
+            1,
+            1,
+            1
+        ],
         "traits": [
             "Whitebeard Pirates",
             "Fighter"
@@ -1440,13 +3700,25 @@
             "description": "Shatters air dealing $value damage to all nearby. More when wounded.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [700, 1260, 2268],
-            "range": [2, 2, 2],
+            "values": [
+                700,
+                1260,
+                2268
+            ],
+            "range": [
+                2,
+                2,
+                2
+            ],
             "modifiers": [
                 {
                     "type": "SCALING",
                     "scalingType": "CASTER_MISSING_HP",
-                    "factor": [0.6, 0.8, 1.0]
+                    "factor": [
+                        0.6,
+                        0.8,
+                        1.0
+                    ]
                 }
             ]
         }
