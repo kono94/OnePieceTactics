@@ -421,6 +421,31 @@ const getBaseValue = (val: any) => {
 
 ---
 
+## Unit Icon Style
+
+All unit icons follow a standardized **High-Quality Anime Style** to ensure a premium look in the shop and on the game grid.
+
+### Visual Constraints
+- **Style**: High-quality **Modern Pixel Art**, clean bold digital lines, distinct pixel grid, cel-shaded.
+- **Framing**: Centered, zoomed-in head-and-shoulders (filling ~80% of the frame).
+- **Outline**: Thick black outline for high contrast and readability.
+- **Background**: Solid flat very light colors determined by unit cost. No gradients.
+- **Resolution**: 1024x1024 (scaled down for web use).
+
+### Prompt Template
+`High-quality modern pixel art portrait of [Character Name] from One Piece, head and shoulders, centered, filling the frame, extremely clean bold lines, distinct pixel grid, cel-shaded, [Visual Characteristic], [Background Description], high-fidelity pixelated illustration, 1024x1024. No text, no frames, no gradients, sharp edges.`
+
+### Background Colors by Cost
+| Cost | Prompt Color Description | HEX Code |
+| :--- | :--- | :--- |
+| **1 Star** | `solid flat very light grey background (#f0f0f0)` | `#f0f0f0` |
+| **2 Star** | `solid flat very light green background (#f0fdf4)` | `#f0fdf4` |
+| **3 Star** | `solid flat very light blue background (#f0f9ff)` | `#f0f9ff` |
+| **4 Star** | `solid flat very light purple background (#faf5ff)` | `#faf5ff` |
+| **5 Star** | `solid flat very light orange background (#fff7ed)` | `#fff7ed` |
+
+---
+
 ## Conventions & Patterns
 
 1. **No Router**: View state is a simple reactive string, toggled by WebSocket events.
