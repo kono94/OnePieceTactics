@@ -433,7 +433,7 @@ All unit icons follow a standardized **High-Quality Anime Style** to ensure a pr
 - **Resolution**: 1024x1024 (scaled down for web use).
 
 ### Prompt Template
-`High-quality modern pixel art portrait of [Character Name] from One Piece, head and shoulders, centered, filling the frame, extremely clean bold lines, distinct pixel grid, cel-shaded, [Visual Characteristic], [Background Description], high-fidelity pixelated illustration, 1024x1024. No text, no frames, no gradients, sharp edges.`
+`High-quality modern pixel art portrait of [Character Name] from One Piece, head and shoulders, centered, filling the frame, extremely clean bold lines, distinct pixel grid, cel-shaded, [Visual Characteristic], [Background Description including HEX code like #f0f0f0], high-fidelity pixelated illustration, 1024x1024. No text, no frames, no gradients, sharp edges.`
 
 ### Background Colors by Cost
 | Cost | Prompt Color Description | HEX Code |
@@ -443,6 +443,21 @@ All unit icons follow a standardized **High-Quality Anime Style** to ensure a pr
 | **3 Star** | `solid flat very light blue background (#f0f9ff)` | `#f0f9ff` |
 | **4 Star** | `solid flat very light purple background (#faf5ff)` | `#faf5ff` |
 | **5 Star** | `solid flat very light orange background (#fff7ed)` | `#fff7ed` |
+
+---
+
+### Batch Generation Workflow (4-Quadrant Grid)
+
+To optimize generation costs and consistency, units can be generated in a 4-quadrant grid and then split using the `quadrant_cutter.py` utility.
+
+**4-Quadrant Prompt Template**:
+`A single 1024x1024 image divided into 4 equal quadrants. Each quadrant contains a high-quality modern pixel art portrait of a different One Piece character: [Character 1] (Top-Left), [Character 2] (Top-Right), [Character 3] (Bottom-Left), [Character 4] (Bottom-Right). Each character is head and shoulders, centered, filling its quadrant, extremely clean bold lines, distinct pixel grid, cel-shaded, [Visual Characteristics], [Background Descriptions including HEX codes like #f0f0f0]. No text, no frames, no gradients, sharp edges. 1024x1024 total resolution.`
+
+**Usage**:
+```bash
+python3 quadrant_cutter.py <generated_image_path> <output_directory>
+```
+This produces 4 files: `*_q1.png` (Top-Left), `*_q2.png` (Top-Right), `*_q3.png` (Bottom-Left), and `*_q4.png` (Bottom-Right).
 
 ---
 
