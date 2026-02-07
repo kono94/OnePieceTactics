@@ -459,6 +459,15 @@ python3 quadrant_cutter.py <generated_image_path> <output_directory>
 ```
 This produces 4 files: `*_q1.png` (Top-Left), `*_q2.png` (Top-Right), `*_q3.png` (Bottom-Left), and `*_q4.png` (Bottom-Right).
 
+> [!IMPORTANT]
+> **AI Instruction: Character Icon Generation**
+> When asked to add new units or update icons, ALWAYS:
+> 1. Use the **4-Quadrant Prompt Template** to generate 4 characters at once.
+> 2. Ensure each quadrant specifies the correct solid background HEX code based on unit cost.
+> 3. Use the `quadrant_cutter.py` script to split the generated image.
+> 4. Rename and move the resulting `_qN.png` files to `public/assets/units/{definitionId}.png`.
+> 5. Verify the background color and pixel art style consistency before finalizing.
+
 ---
 
 ## Conventions & Patterns
