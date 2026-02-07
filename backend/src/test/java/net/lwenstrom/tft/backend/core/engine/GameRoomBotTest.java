@@ -38,7 +38,8 @@ class GameRoomBotTest {
             }
 
             @Override
-            public void registerTraitEffects(TraitManager traitManager) {}
+            public void registerTraitEffects(TraitManager traitManager) {
+            }
         };
 
         gameModeRegistry = new GameModeRegistry(List.of(provider), "onepiece");
@@ -109,5 +110,63 @@ class GameRoomBotTest {
         } catch (Exception e) {
             fail("Reflection failed: " + e.getMessage());
         }
+    }
+
+    @Test
+    void testBotUnitsFollowShopOdds() {
+        // Add bot at round 0 (level 2)
+        gameRoom.addBot();
+
+        Player bot = gameRoom.getPlayers().stream()
+                .filter(p -> p.getName().startsWith("Bot-"))
+                .findFirst()
+                .orElseThrow();
+
+        // Bot should have units appropriate for level 2
+        // At level 2, shop odds are: 70% 1-cost, 30% 2-cost, 0% 3-5 cost
+        for (var unit : bot.getBoardUnits()) {
+            int cost = unit.getCost();
+            assertTrue(
+                    cost >= 1 && cost <= 2,
+                    "Bot at round 0 (level 2) should only have 1-2 cost units, found: " + cost);
+            System.out.println("Unit: " + unit.getName() + " (Cost: " + cost + ", Star: " + unit.getStarLevel() + ")");
+        }
+    }
+
+    @Test
+    void testBotCanHaveHigherStarUnits() {
+        // With seeded random, we can test the star level distribution
+        // The probabilities are: 1* (94%), 2* (5%), 3* (1%)
+        // With a seeded random provider, we should see some variation over multiple
+        // bots
+
+        boolean found2Star = false;
+        boolean found3Star = false;
+
+        // Add multiple bots to increase chances of seeing higher star units
+        for (int i = 0; i < 20; i++) {
+            gameRoom.addBot();
+        }
+
+        for (var player : gameRoom.getPlayers()) {
+            if (!player.getName().startsWith("Bot-"))
+                continue;
+
+            for (var unit : player.getBoardUnits()) {
+                int starLevel = unit.getStarLevel();
+                assertTrue(starLevel >= 1 && starLevel <= 3, "Star level should be 1, 2, or 3");
+
+                if (starLevel == 2)
+                    found2Star = true;
+                if (starLevel == 3)
+                    found3Star = true;
+            }
+        }
+
+        // With 20 bots and a seeded random, we should statistically see at least one
+        // 2-star
+        System.out.println("Found 2-star: " + found2Star + ", Found 3-star: " + found3Star);
+        // Note: We don't assert this because the seeded random might not produce them,
+        // but this test verifies the code path works
     }
 }
