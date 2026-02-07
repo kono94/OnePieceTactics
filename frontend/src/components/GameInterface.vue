@@ -8,6 +8,7 @@ import PlayerList from './PlayerList.vue'
 import EndScreen from './EndScreen.vue'
 import type { GameState, GameUnit, UnitDefinition, PlayerState } from '../types'
 import { getUnitIconPath } from '../utils/iconUtils'
+import { getRarityColor } from '../utils/colorUtils'
 import { SHOP_ODDS } from '../data/shopOdds'
 
 const props = defineProps<{
@@ -375,7 +376,7 @@ const rarityColors = [
                                 @dragend="onBenchDragEnd"
                                 @mouseenter="!isDraggingUnit ? hoveredBenchUnitId = slot.unit!.id : null"
                                 @mouseleave="hoveredBenchUnitId = null">
-                                                            <div class="bench-unit-inner">
+                                                            <div class="bench-unit-inner" :style="{ borderColor: getRarityColor(slot.unit.cost) }">
                                   <img :src="getUnitIconPath(slot.unit.definitionId, props.state?.gameMode)" 
                                        class="bench-unit-img" />
                                </div>
@@ -558,7 +559,7 @@ const rarityColors = [
     color: black;
     font-size: 11px;
     background-color: #1e293b;
-    border: 2px solid #10b981; /* Green border for player units */
+    border: 2px solid #334155; 
     box-shadow: 0 4px 6px rgba(0,0,0,0.5);
     overflow: hidden;
 }

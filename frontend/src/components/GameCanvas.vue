@@ -5,6 +5,7 @@ import AttackAnimation from './game/AttackAnimation.vue'
 import { getAttackConfig, getAbilityConfig, type AttackType, type AbilityEffectStyle } from '../data/animationConfig'
 import type { GameState, GameUnit, GamePhase, RenderedUnit, RenderedOrb, PlayerState, DisplayedUnit } from '../types'
 import { getUnitIconPath } from '../utils/iconUtils'
+import { getRarityColor, TEAM_COLORS } from '../utils/colorUtils'
 
 const props = defineProps<{
     state: GameState | null,
@@ -119,10 +120,10 @@ const getUnitStyle = (unit: RenderedUnit) => {
         top: (unit.visualY * CELL_SIZE + 5) + 'px',
         width: '50px',
         height: '50px',
-        borderColor: unit.isMine ? '#10b981' : '#ef4444', 
+        borderColor: getRarityColor(unit.cost), 
         borderWidth: '2px',
         borderStyle: 'solid',
-        boxShadow: unit.isMine ? '0 0 10px rgba(16, 185, 129, 0.6)' : 'none',
+        boxShadow: unit.isMine ? `0 0 10px ${TEAM_COLORS.FRIENDLY}99` : 'none',
         zIndex: hoveredUnitId.value === unit.id ? 100 : 10,
         pointerEvents: shouldDisablePointer ? 'none' : 'auto',
         transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
@@ -141,7 +142,7 @@ const getUnitStyle = (unit: RenderedUnit) => {
         }
         
         if (extraGlows.length > 0) {
-            const teamGlow = unit.isMine ? '0 0 10px rgba(16, 185, 129, 0.6)' : '';
+            const teamGlow = unit.isMine ? `0 0 10px ${TEAM_COLORS.FRIENDLY}99` : '';
             styles.boxShadow = [...extraGlows, teamGlow].filter(g => g).join(', ');
         }
     }
@@ -617,7 +618,10 @@ const onOrbClick = (orbId: string) => {
              @mouseenter="onUnitMouseEnter(unit.id)"
              @mouseleave="onUnitMouseLeave">
              
-            <div class="hp-bar" :style="{ width: (unit.currentHealth / unit.maxHealth * 100) + '%' }"></div>
+            <div class="hp-bar" :style="{ 
+                width: (unit.currentHealth / unit.maxHealth * 100) + '%',
+                backgroundColor: unit.ownerId === myPlayerId ? TEAM_COLORS.FRIENDLY : TEAM_COLORS.OPPONENT
+            }"></div>
             <div v-if="unit.maxMana > 0" class="mana-bar" :style="{ width: (unit.mana / unit.maxMana * 100) + '%' }"></div>
             <img :src="unit.image" class="unit-img" :alt="unit.name" />
             <div class="star-indicator" :class="'stars-' + (unit.starLevel || 1)">
