@@ -41,9 +41,9 @@ const travelStyle = computed(() => {
   const angle = Math.atan2(dy, dx) * (180 / Math.PI)
   
   return {
-    '--travel-x': `${dx * 55}px`,
-    '--travel-y': `${dy * 55}px`,
-    '--travel-distance': `${distance * 55}px`,
+    '--travel-x': `${dx * 60}px`,
+    '--travel-y': `${dy * 60}px`,
+    '--travel-distance': `${distance * 60}px`,
     '--angle': `${angle}deg`,
     '--color': props.color,
     '--color-glow': props.color + '88'
@@ -62,7 +62,7 @@ onMounted(() => {
     class="attack-animation" 
     :class="animationClass"
     :style="[
-      { left: startX * 55 + 27 + 'px', top: startY * 55 + 27 + 'px' },
+      { left: startX * 60 + 30 + 'px', top: startY * 60 + 30 + 'px' },
       travelStyle
     ]"
   >
@@ -135,9 +135,9 @@ onMounted(() => {
 }
 
 @keyframes slash-swipe {
-  0% { transform: scaleX(0) rotate(var(--angle)); opacity: 1; }
-  50% { transform: scaleX(1.5) rotate(var(--angle)); opacity: 1; }
-  100% { transform: scaleX(0.5) rotate(var(--angle)) translate(var(--travel-x), var(--travel-y)); opacity: 0; }
+  0% { transform: rotate(var(--angle)) scaleX(0); opacity: 1; }
+  50% { transform: rotate(var(--angle)) scaleX(1.5); opacity: 1; }
+  100% { transform: rotate(var(--angle)) translate(var(--travel-distance), 0) scaleX(0.5); opacity: 0; }
 }
 
 /* === ATTACK: BLUNT === */
@@ -151,7 +151,7 @@ onMounted(() => {
 
 @keyframes blunt-hit {
   0% { transform: scale(0.2); opacity: 1; }
-  100% { transform: scale(2.2); opacity: 0; }
+  100% { transform: translate(var(--travel-x), var(--travel-y)) scale(2.2); opacity: 0; }
 }
 
 /* === ATTACK: PROJECTILE === */
@@ -182,7 +182,7 @@ onMounted(() => {
 
 @keyframes ability-pulse {
   0% { transform: scale(0.5); opacity: 1; box-shadow: 0 0 0 var(--color); }
-  100% { transform: scale(2); opacity: 0; box-shadow: 0 0 40px var(--color); }
+  100% { transform: translate(var(--travel-x), var(--travel-y)) scale(2); opacity: 0; box-shadow: 0 0 40px var(--color); }
 }
 
 .ability-line .ability-effect {
@@ -238,7 +238,7 @@ onMounted(() => {
 @keyframes magma-fall {
   0% { transform: translateY(-100px) scale(1); opacity: 0; }
   30% { opacity: 1; }
-  100% { transform: translateY(var(--travel-y)) scale(1.5); opacity: 0; }
+  100% { transform: translate(var(--travel-x), var(--travel-y)) scale(1.5); opacity: 0; }
 }
 
 /* === PREMIUM: QUAKE === */
