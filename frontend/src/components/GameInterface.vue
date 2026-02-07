@@ -371,18 +371,26 @@ const rarityColors = [
                            <div v-if="slot.unit" 
                                 class="bench-unit" 
                                 :class="{ 'star-up': isStarringUp(slot.unit.id) }"
+                                :style="{ '--rarity-color': getRarityColor(slot.unit.cost) }"
                                 draggable="true"
                                 @dragstart="(e) => onBenchDragStart(e, slot.unit!)"
                                 @dragend="onBenchDragEnd"
                                 @mouseenter="!isDraggingUnit ? hoveredBenchUnitId = slot.unit!.id : null"
                                 @mouseleave="hoveredBenchUnitId = null">
-                                                            <div class="bench-unit-inner" :style="{ borderColor: getRarityColor(slot.unit.cost) }">
+                               <!-- Cost Top Glow (Outside inner to avoid clipping) -->
+                               <div class="cost-top-glow"></div>
+
+                               <!-- 2-Star Energy Halo Effect (Before inner to be behind) -->
+                               <div v-if="slot.unit.starLevel === 2" class="star-2-halo">
+                                   <div class="halo-ring"></div>
+                               </div>
+
+                               <!-- 3-Star Conqueror Flow Effect (Before inner to be behind) -->
+                               <div v-if="slot.unit.starLevel === 3" class="star-3-flow"></div>
+
+                               <div class="bench-unit-inner" :style="{ borderColor: getRarityColor(slot.unit.cost) }">
                                   <img :src="getUnitIconPath(slot.unit.definitionId, props.state?.gameMode)" 
                                        class="bench-unit-img" />
-                               </div>
-                               
-                               <div class="star-indicator" :class="'stars-' + (slot.unit.starLevel || 1)">
-                                   <span v-for="n in (slot.unit.starLevel || 1)" :key="n" class="star-dot"></span>
                                </div>
                                
                                <!-- Star-up celebration effect -->
@@ -562,6 +570,7 @@ const rarityColors = [
     border: 2px solid #334155; 
     box-shadow: 0 4px 6px rgba(0,0,0,0.5);
     overflow: hidden;
+    z-index: 5; /* Ensure icon is above halo/flow */
 }
 .bench-unit-img {
     width: 100%;
@@ -1088,41 +1097,6 @@ const rarityColors = [
     transition: all 1s ease;
 }
 
-/* Star Level Indicator */
-.star-indicator {
-    position: absolute;
-    bottom: -4px; /* Move to the absolute bottom rim */
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 2px;
-    z-index: 100; /* Ensure it's above the unit border */
-}
-
-.star-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #fbbf24, #f59e0b);
-    box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(0, 0, 0, 1.0); /* Solid black outline */
-    box-sizing: border-box; /* Ensure border doesn't shrink the dot */
-}
-
-/* Enhanced glow for 2-star units */
-.stars-2 .star-dot {
-    background: linear-gradient(135deg, #fcd34d, #fbbf24);
-    box-shadow: 0 0 3px #fbbf24, 0 0 1px rgba(0, 0, 0, 0.5);
-}
-
-/* Bright gold glow for 3-star (max) units */
-.stars-3 .star-dot {
-    width: 7px;
-    height: 7px;
-    background: linear-gradient(135deg, #fef3c7, #fbbf24);
-    box-shadow: 0 0 4px #fbbf24, 0 0 8px rgba(251, 191, 36, 0.6);
-}
-
 /* ========== STAR-UP CELEBRATION ========== */
 .bench-unit.star-up .bench-unit-inner {
     animation: starUpGlow 1.2s ease-out;
@@ -1182,4 +1156,81 @@ const rarityColors = [
         transform: rotate(var(--angle)) translateY(-50px) scale(0.5);
     }
 }
+/* Cost Top Glow */
+.cost-top-glow {
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 8px;
+    background: radial-gradient(ellipse at center, var(--rarity-color), transparent 70%);
+    opacity: 0.6;
+    pointer-events: none;
+    z-index: 5;
+    filter: blur(2px);
+}
+
+/* 2-Star Energy Halo Effect */
+.star-2-halo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 66px; /* Increased to avoid any overlap */
+    height: 66px;
+    pointer-events: none;
+    z-index: 1; 
+}
+
+.halo-ring {
+    position: absolute;
+    inset: 0;
+    border: 2px dashed var(--rarity-color);
+    border-radius: 50%;
+    opacity: 0.5;
+    animation: rotate-halo 15s linear infinite;
+    box-shadow: 0 0 8px var(--rarity-color);
+}
+
+@keyframes rotate-halo { 
+    from { transform: rotate(0deg); } 
+    to { transform: rotate(360deg); } 
+}
+
+/* 3-Star Conqueror Flow Effect */
+.star-3-flow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 66px;
+    height: 66px;
+    border-radius: 50%;
+    padding: 5px; /* Gradient starts outside 56px */
+    background-clip: content-box;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.star-3-flow::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, var(--rarity-color), #fff, var(--rarity-color), #000, var(--rarity-color));
+    animation: rotate-halo 1.5s linear infinite;
+    z-index: -1;
+}
+
+.star-3-flow::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    box-shadow: 0 0 20px var(--rarity-color);
+    opacity: 0.6;
+    z-index: -2;
+}
+
 </style>

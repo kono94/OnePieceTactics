@@ -126,7 +126,8 @@ const getUnitStyle = (unit: RenderedUnit) => {
         boxShadow: unit.isMine ? `0 0 10px ${TEAM_COLORS.FRIENDLY}99` : 'none',
         zIndex: hoveredUnitId.value === unit.id ? 100 : 10,
         pointerEvents: shouldDisablePointer ? 'none' : 'auto',
-        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        '--rarity-color': getRarityColor(unit.cost)
     }
 
     // Apply status effect visuals
@@ -624,9 +625,16 @@ const onOrbClick = (orbId: string) => {
             }"></div>
             <div v-if="unit.maxMana > 0" class="mana-bar" :style="{ width: (unit.mana / unit.maxMana * 100) + '%' }"></div>
             <img :src="unit.image" class="unit-img" :alt="unit.name" />
-            <div class="star-indicator" :class="'stars-' + (unit.starLevel || 1)">
-                <span v-for="n in (unit.starLevel || 1)" :key="n" class="star-dot"></span>
+            <!-- Cost Top Glow -->
+            <div class="cost-top-glow"></div>
+
+            <!-- 2-Star Energy Halo Effect -->
+            <div v-if="unit.starLevel === 2" class="star-2-halo">
+                <div class="halo-ring"></div>
             </div>
+
+            <!-- 3-Star Conqueror Flow Effect -->
+            <div v-if="unit.starLevel === 3" class="star-3-flow"></div>
 
             <!-- Stun Badge -->
             <div v-if="unit.stunTicksRemaining > 0" class="stun-badge">
@@ -774,6 +782,21 @@ const onOrbClick = (orbId: string) => {
     cursor: grabbing;
 }
 
+/* Cost Top Glow */
+.cost-top-glow {
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 10px;
+    background: radial-gradient(ellipse at center, var(--rarity-color), transparent 70%);
+    opacity: 0.6;
+    pointer-events: none;
+    z-index: 5;
+    filter: blur(2px);
+}
+
 .unit-img {
     width: 100%;
     height: 100%;
@@ -852,51 +875,64 @@ const onOrbClick = (orbId: string) => {
     transform: translate(-25px, -20px); /* Centerish above unit */
 }
 
+/* 2-Star Energy Halo Effect */
+.star-2-halo {
+    position: absolute;
+    inset: -6px;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.halo-ring {
+    position: absolute;
+    inset: 0;
+    border: 2px dashed var(--rarity-color);
+    border-radius: 50%;
+    opacity: 0.5;
+    animation: rotate-halo 15s linear infinite;
+    box-shadow: 0 0 10px var(--rarity-color);
+}
+
+@keyframes rotate-halo { 
+    from { transform: rotate(0deg); } 
+    to { transform: rotate(360deg); } 
+}
+
+/* 3-Star Conqueror Flow Effect */
+.star-3-flow {
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    padding: 3px;
+    background-clip: content-box;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.star-3-flow::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, var(--rarity-color), #fff, var(--rarity-color), #000, var(--rarity-color));
+    animation: rotate-halo 1.5s linear infinite;
+    z-index: -1;
+}
+
+.star-3-flow::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    box-shadow: 0 0 20px var(--rarity-color);
+    opacity: 0.6;
+    z-index: -2;
+}
+
 @keyframes floatUp {
     0% { transform: translate(-25px, -20px); opacity: 0; scale: 0.5; }
     20% { transform: translate(-25px, -40px); opacity: 1; scale: 1.2; }
     100% { transform: translate(-25px, -60px); opacity: 0; scale: 1.0; }
-}
-
-/* Star Level Indicator */
-.star-indicator {
-    position: absolute;
-    bottom: -4px; /* Move to the bottom rim */
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 2px;
-    z-index: 100; /* Above all unit layers */
-}
-
-.star-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #fbbf24, #f59e0b);
-    box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(0, 0, 0, 1.0); /* Solid black outline */
-    box-sizing: border-box;
-}
-
-/* Enhanced glow for 2-star units */
-.stars-2 .star-dot {
-    background: linear-gradient(135deg, #fcd34d, #fbbf24);
-    box-shadow: 0 0 3px #fbbf24, 0 0 1px rgba(0, 0, 0, 0.5);
-}
-
-/* Bright gold glow for 3-star (max) units */
-.stars-3 .star-dot {
-    width: 7px;
-    height: 7px;
-    background: linear-gradient(135deg, #fef3c7, #fbbf24);
-    box-shadow: 0 0 4px #fbbf24, 0 0 8px rgba(251, 191, 36, 0.6);
-}
-
-/* ========== DEATH ANIMATION ========== */
-.unit.dying {
-    animation: unitDeath 0.6s ease-out forwards;
-    pointer-events: none;
 }
 
 @keyframes unitDeath {
