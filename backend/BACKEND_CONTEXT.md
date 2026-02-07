@@ -1,6 +1,6 @@
 # Backend Context - Architectural Blueprint
 
-> **Last Updated**: 2026-02-06
+> **Last Updated**: 2026-02-07
 > **Purpose**: Comprehensive technical reference for AI developers and engineers to understand the game server's architecture, game loop, and communication patterns.
 
 ---
@@ -51,6 +51,7 @@ src/main/java/net/lwenstrom/tft/backend/
 │   ├── GameController.java         # WebSocket/REST handler, central dispatcher, @Scheduled tick
 │   ├── GameModeProvider.java       # Interface for theme-specific data paths & trait effects
 │   ├── GameModeRegistry.java       # Holds active GameModeProvider, configured via `game.mode` property
+│   ├── GameConstants.java          # Centralized constants (economy, combat, timing, grid, loot)
 │   ├── combat/                     # Combat sub-system (Strategy Pattern)
 │   │   ├── TargetSelector.java     # Interface: finds attack target
 │   │   ├── NearestEnemyTargetSelector.java  # Implementation: nearest enemy by distance
@@ -63,6 +64,7 @@ src/main/java/net/lwenstrom/tft/backend/
 │   │   ├── GameEngine.java         # Spring Service: manages GameRoom instances
 │   │   ├── GameRoom.java           # Per-room state: players, phase, matchups, combat lifecycle
 │   │   ├── Player.java             # Player entity: health, gold, level, board, bench, shop
+│   │   ├── Bench.java              # Fixed-size (9 slots) bench with null-safe operations
 │   │   ├── Grid.java               # 7x4 (planning) / 7x8 (combat) grid management
 │   │   ├── CombatSystem.java       # Combat simulation per tick
 │   │   ├── TraitManager.java       # Applies cumulative trait bonuses to units
@@ -78,13 +80,16 @@ src/main/java/net/lwenstrom/tft/backend/
 │   │   ├── ActionType.java         # Enum: BUY, SELL, MOVE, REROLL, EXP, LOCK
 │   │   ├── GameUnit.java           # Interface: unit contract + formattedAbilityDescription()
 │   │   ├── GameMode.java           # Enum: ONEPIECE, POKEMON
-│   │   ├── GamePhase.java          # Enum: LOBBY, PLANNING, COMBAT
+│   │   ├── GamePhase.java          # Enum: LOBBY, PLANNING, COMBAT, END
 │   │   ├── AbilityDefinition.java  # Record: ability with List<Integer> values/range
 │   │   ├── AbilityModifier.java    # Sealed interface: SCALING, CONDITIONAL, LIFESTEAL, EXECUTE
 │   │   ├── ScalingModifier.java    # Additional damage scaling (missing HP, mana, etc.)
 │   │   ├── ConditionalModifier.java # Condition-based ability effects
 │   │   ├── LifestealModifier.java  # Converts damage to healing
 │   │   ├── ExecuteModifier.java    # Bonus damage to low-HP targets
+│   │   ├── CustomEffectHandler.java # Interface for custom trait effect handlers
+│   │   ├── EffectType.java         # Enum: HEALTH_BOOST, ATK_BOOST, SPD_BOOST, ARMOR, etc.
+│   │   ├── TraitMetadata.java      # Record: type-safe trait handling metadata
 │   │   └── Trait.java, TraitEffect.java, AbilityType.java, GameItem.java, LootOrb.java, LootType.java
 │   ├── random/                     # Randomness abstraction for testability
 │   │   ├── RandomProvider.java     # Interface: shuffle, nextInt, nextDouble
@@ -376,6 +381,8 @@ The shop uses a TFT-style probability distribution where higher-cost units becom
 | **WebSocket Config** | `src/main/java/.../config/WebSocketConfig.java` |
 | **WebSocket/REST Controller** | `src/main/java/.../core/GameController.java` |
 | **Data Loader** | `src/main/java/.../core/DataLoader.java` |
+| **Game Constants** | `src/main/java/.../core/GameConstants.java` |
+| **Bench System** | `src/main/java/.../core/engine/Bench.java` |
 | **Game State DTO** | `src/main/java/.../core/model/GameState.java` |
 | **Ability Type Enum** | `src/main/java/.../core/model/AbilityType.java` |
 | **Ability Caster** | `src/main/java/.../core/combat/DefaultAbilityCaster.java` |
@@ -629,9 +636,58 @@ public record LootOrb(String id, int x, int y, LootType type, String contentId, 
 
 ---
 
+## 16. Game Constants (`GameConstants`)
+
+All magic numbers have been extracted into a centralized `GameConstants` class for maintainability and consistency.
+
+### 16.1 Categories
+
+**Combat Constants**:
+- `MANA_PER_HIT = 10`
+- `ABILITY_COOLDOWN_MS = 1000L`
+- `COMBAT_PHASE_MS = 25000L`
+
+**Economy Constants**:
+- `XP_PER_PHASE = 2`
+- `XP_BUY_COST = 4`
+- `XP_BUY_AMOUNT = 4`
+- `REROLL_COST = 2`
+- `STARTING_GOLD = 10`
+- `BASE_INCOME = 5`
+- `MAX_INTEREST = 5`
+
+**Grid & Units**:
+- `MAX_BENCH_SIZE = 9`
+- `SHOP_SIZE = 5`
+- `GRID_COLS = 7`
+- `PLAYER_ROWS = 4`
+- `COMBAT_ROWS = 8`
+
+**Damage**:
+- `BASE_COMBAT_DAMAGE = 2`
+
+**Timing**:
+- `TICK_RATE_MS = 100`
+- `BASE_PLANNING_DURATION_MS = 15000L`
+- `PLANNING_DURATION_INCREMENT_MS = 250L`
+
+**Bot Configuration**:
+- `BOT_STARTING_LEVEL = 2`
+- `BOT_MAX_LEVEL = 9`
+- `BOT_MAX_UNITS_PER_ROW = 7`
+
+**Loot Orbs**:
+- `MIN_ORB_COUNT = 2`
+- `MAX_ORB_COUNT = 4`
+- `ORB_GOLD_CHANCE_PERCENT = 60`
+- `MIN_ORB_GOLD = 3`
+- `MAX_ORB_GOLD = 8`
+
+---
+
 ## 17. Combat Phase Restrictions
 
-### 16.1 Sell Restrictions
+### 17.1 Sell Restrictions
 
 ```java
 // GameController.handleAction()
@@ -646,7 +702,7 @@ case SELL -> {
 | Bench | ✅ Can sell | ✅ Can sell |
 | Board | ✅ Can sell | ❌ Cannot sell |
 
-### 16.2 Move Restrictions
+### 17.2 Move Restrictions
 
 During COMBAT phase, unit movement is restricted:
 
@@ -659,7 +715,7 @@ During COMBAT phase, unit movement is restricted:
 
 The `Player.moveUnit()` method checks `inCombat` flag and returns early for board operations.
 
-### 16.3 Deferred Star-Up
+### 17.3 Deferred Star-Up
 
 When a unit would upgrade during COMBAT phase, the upgrade is queued:
 
@@ -674,7 +730,7 @@ public void processPendingUpgrades()  // Called at start of PLANNING phase
 
 ## 18. Player Elimination & Game Ending
 
-### 17.1 Elimination Logic
+### 18.1 Elimination Logic
 
 When a player's health reaches 0:
 
@@ -682,7 +738,7 @@ When a player's health reaches 0:
 2. If `loser.getHealth() <= 0`, their `place` is set to `aliveCount + 1`.
 3. Eliminated players are **excluded from matchmaking** in subsequent combat phases.
 
-### 17.2 Game End Condition
+### 18.2 Game End Condition
 
 Checked at two points:
 
@@ -693,7 +749,7 @@ Checked at two points:
 2. **At start of PLANNING phase** (`startPhase`):
    - Same check as a fallback.
 
-### 17.3 Final Placement Ranking
+### 18.3 Final Placement Ranking
 
 | Place | Meaning |
 |-------|--------|
@@ -705,11 +761,11 @@ Checked at two points:
 
 ## 19. Ghost/Clone Matchmaking System
 
-### 18.1 Purpose
+### 19.1 Purpose
 
 When there's an **odd number of alive players**, a "ghost" (clone) is created so every player has an opponent.
 
-### 18.2 How It Works
+### 19.2 How It Works
 
 1. At combat phase start, alive players are shuffled and paired.
 2. If one player remains unpaired (odd count):
@@ -717,7 +773,7 @@ When there's an **odd number of alive players**, a "ghost" (clone) is created so
    - `donor.createGhost()` creates a clone of that player.
    - The unpaired player fights the ghost.
 
-### 18.3 Ghost Properties
+### 19.3 Ghost Properties
 
 ```java
 public Player createGhost() {
@@ -743,26 +799,78 @@ public Player createGhost() {
 
 ---
 
-## 20. Bench System
+## 20. Bench System (`Bench` Class)
 
-### 19.1 Fixed-Size Slot Architecture
+### 20.1 Fixed-Size Slot Architecture
 
-The bench is a **fixed-size list** with 9 slots (indices 0-8). Nulls represent empty slots:
+The bench has been refactored into a dedicated `Bench` class with **null-safe operations**. It uses a fixed-size array with 9 slots (indices 0-8), where nulls represent empty slots:
 
 ```java
-private final List<GameUnit> bench = new ArrayList<>(Arrays.asList(new GameUnit[MAX_BENCH_SIZE]));
+public class Bench {
+    private final GameUnit[] slots = new GameUnit[GameConstants.MAX_BENCH_SIZE];
+    
+    public record BenchEntry(int index, GameUnit unit) {}
+    
+    public Optional<Integer> findFirstEmptySlot() { ... }
+    public Optional<GameUnit> get(int slot) { ... }
+    public void set(int slot, GameUnit unit) { ... }
+    public void swap(int slotA, int slotB) { ... }
+    public Optional<BenchEntry> findUnit(String unitId) { ... }
+    public Stream<GameUnit> units() { ... }
+}
 ```
 
-This design enables **slot-based swapping** where units maintain specific positions.
+This design enables **slot-based swapping** where units maintain specific positions, with cleaner null handling and type safety.
 
-### 19.2 Bench Operations
+### 20.2 Bench Operations
 
 | Operation | Method | Frontend Payload |
 |-----------|--------|------------------|
-| Buy → Bench | `buyUnit(shopIndex)` | Finds first empty slot |
-| Bench → Board | `moveUnit(unitId, x, y)` | `targetY >= 0` |
-| Board → Bench | `moveUnit(unitId, x, -1)` | `targetX = slot, targetY = -1` |
-| Bench ↔ Bench | `moveUnit(unitId, slot, -1)` | `targetX = target slot, targetY = -1` |
+| Buy → Bench | `Player.buyUnit(shopIndex)` | Finds first empty slot via `Bench.findFirstEmptySlot()` |
+| Bench → Board | `Player.moveUnit(unitId, x, y)` | `targetY >= 0` → calls `moveBenchToBoard()` |
+| Board → Bench | `Player.moveUnit(unitId, x, -1)` | `targetX = slot, targetY = -1` → calls `moveBoardToBench()` |
+| Bench ↔ Bench | `Player.moveUnit(unitId, slot, -1)` | Swaps using `Bench.swap()` via `swapBenchSlots()` |
+
+---
+
+## 21. Bot AI & Roster System
+
+### 21.1 Bot Roster Logic
+
+Bots now use **level-based shop odds** when spawning units, ensuring fair play compared to real players:
+
+**Bot Starting State** (set in `GameRoom.startMatch()`):
+- **Level**: `BOT_STARTING_LEVEL = 2`
+- **Unit Selection**: Uses `ShopOdds.rollUnit()` with bot's current level for each roster slot
+
+**Bot Roster Refresh** (`GameRoom.refreshBotRoster()`):
+- Triggered each **PLANNING** phase
+- Bot level increments by 1 per round (capped at `BOT_MAX_LEVEL = 9`)
+- Units are selected using the **same shop probability distribution** as players
+- Bots have a **low probability** to spawn with 2-star or 3-star units:
+  - 10% chance for 2-star unit
+  - 2% chance for 3-star unit
+
+**Bot Unit Placement**:
+- Units fill the board from left-to-right, top-to-bottom
+- Max units per row: `BOT_MAX_UNITS_PER_ROW = 7`
+
+### 21.2 Loot Orb Probability Changes
+
+Loot orbs now use **player level + 1** shop odds for unit drops:
+
+```java
+// In GameRoom.spawnLootOrbsForPlayer()
+if (randomProvider.nextDouble() < 0.4) { // 40% chance for unit orb
+    var unitDef = ShopOdds.rollUnit(
+        dataLoader.getUnitDefinitions(),
+        player.getLevel() + 1, // Use level+1 for slightly better odds
+        randomProvider
+    );
+}
+```
+
+This ensures loot orbs provide slightly better quality units than the player's current shop.
 
 ---
 

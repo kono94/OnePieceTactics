@@ -41,7 +41,9 @@ frontend/
 │   ├── favicon.svg           # Default favicon (One Piece)
 │   ├── pokeball.png          # Pokemon mode favicon
 │   └── assets/
-│       └── units/            # Unit sprite images (e.g., luffy.png)
+│       └── units/            # Unit sprite images organized by game mode
+│           ├── onepiece/     # One Piece character icons (e.g., luffy_v1.png)
+│           └── pokemon/      # Pokemon character icons (e.g., pikachu.png)
 │
 └── src/
     ├── main.ts               # Vue app bootstrap (createApp, mount)
@@ -49,26 +51,32 @@ frontend/
     ├── style.css             # Global base styles (font, colors)
     │
     ├── components/           # All UI components
-    │   ├── Lobby.vue         # Room create/join screen
+    │   ├── Lobby.vue         # Room create/join screen with Enter key support
     │   ├── WaitingRoom.vue   # Pre-game lobby with player list
-    │   ├── GameInterface.vue # Main game wrapper (stats, bench, shop)
-    │   ├── GameCanvas.vue    # Grid rendering, drag-and-drop, combat visuals
+    │   ├── GameInterface.vue # Main game wrapper (stats, bench, shop with odds tooltip)
+    │   ├── GameCanvas.vue    # Grid rendering, drag-and-drop, combat visuals, cost-based borders
     │   ├── TraitSidebar.vue  # Active synergy/trait display
     │   ├── PlayerList.vue    # Scoreboard overlay (all players' HP/level)
     │   ├── UnitTooltip.vue   # Hover tooltip for unit stats
     │   ├── PhaseAnnouncement.vue  # Animated PLANNING/COMBAT banners
     │   ├── EndScreen.vue     # Game-over leaderboard and "Play Again"
+    │   ├── VersionDisplay.vue # Git-based version info (bottom-left corner)
     │   └── game/
     │       ├── AttackAnimation.vue  # Renders attack & ability visual effects
-    │       ├── DamageReport.vue     # Collapsible damage tracking panel (post-combat stats)
+    │       ├── DamageReport.vue     # Tabbed damage tracking panel (you/opponent)
     │       └── OutcomeOverlay.vue   # "ROUND WON/LOST" splash after combat
     │
     ├── types/
     │   ├── index.ts              # Central export for all game types
     │   └── game.ts               # TypeScript DTOs mirroring backend Java models
     │
+    ├── utils/
+    │   ├── colorUtils.ts         # Rarity and team color constants/utilities
+    │   └── iconUtils.ts          # Unit icon path resolution (game mode aware)
+    │
     └── data/
         ├── animationConfig.ts  # Per-unit attack/ability animation config (type, color)
+        ├── shopOdds.ts         # Level-based shop probability distribution (1-5★)
         └── traitData.ts        # Trait definitions & helpers (loaded from backend)
 ```
 
@@ -319,6 +327,86 @@ const getBaseValue = (val: any) => {
   - `.inactive` (gray): Other star levels' values
 - Deep scoped styles (`:deep(.active)`) apply highlighting within v-html content
 
+### 14. Utility Modules: Icon Resolution & Color Management
+
+**Icon Path Resolution** (`utils/iconUtils.ts`):
+- `getUnitIconPath(definitionId, gameMode)` resolves icon paths dynamically
+- Icon assets are organized by game mode:
+  - `/assets/units/onepiece/luffy_v1.png`
+  - `/assets/units/pokemon/pikachu.png`
+- Supports theme-swapping without hardcoded paths
+- Fallback to default icon if definitionId is missing
+
+**Color Utilities** (`utils/colorUtils.ts`):
+- **Rarity Colors**: Cost-based color palette (1★ gray → 5★ gold)
+  - Used for unit borders, glows, and visual emphasis
+- **Team Colors**: Friendly (emerald) vs. Opponent (red)
+  - Applied to health bars and team indicators
+- Centralized color constants ensure visual consistency
+
+### 15. Shop Probability Distribution System
+
+**Shop Odds Data** (`data/shopOdds.ts`):
+- Level-based probability matrix for unit costs (1★ to 5★)
+- Example: Level 1 → 100% chance for 1★ units, 0% for others
+- Frontend displays odds as tooltip when hovering over player level
+
+**UI Integration** (`GameInterface.vue`):
+- Hover over level indicator shows probability breakdown
+- Visual table displays percentages for each cost tier
+- Cursor styled as non-selectable (`cursor: default`) for better UX
+
+### 16. Version Display System
+
+**Build-Time Injection** (`VersionDisplay.vue`):
+- Git tag, commit hash, and build timestamp injected via environment variables:
+  - `VITE_GIT_TAG`, `VITE_GIT_COMMIT`, `VITE_BUILD_TIME`
+- Environment variables set during Docker build via `ARG` and `ENV`
+- Displays version in bottom-left corner with formatted build time
+
+**Visual Design**:
+- Fixed position (bottom-left)
+- Translucent text with monospace font
+- Hover for enhanced visibility
+- Tooltip shows full details (tag, commit, build time)
+
+**Dockerfile Integration**:
+```dockerfile
+ARG GIT_TAG=dev
+ARG GIT_COMMIT=unknown
+ARG BUILD_TIME=unknown
+ENV VITE_GIT_TAG=${GIT_TAG}
+ENV VITE_GIT_COMMIT=${GIT_COMMIT}
+ENV VITE_BUILD_TIME=${BUILD_TIME}
+```
+
+### 17. Cost-Based Visual Styling
+
+**Unit Borders & Glows** (`GameCanvas.vue`):
+- 1★ units: Gray/slate borders
+- 2★ units: Green borders with enhanced glow
+- 3★ units: Blue borders with enhanced glow
+- 4★ units: Purple borders with enhanced glow
+- 5★ units: Gold borders with enhanced glow
+
+**Star-Level Visual Enhancement**:
+- 2★ units: Cost-colored double border + top glow effect
+- 3★ units: Cost-colored triple border + enhanced top glow
+- Glow colors dynamically adapt to unit cost via `getRarityColor()`
+
+**Health Bar Team Colors**:
+- Friendly units: Emerald green bars
+- Opponent units: Red bars
+- Replaces generic green for better team distinction
+
+### 18. Keyboard Controls Enhancement
+
+**Enter Key Support** (`Lobby.vue`):
+- Pressing Enter while focused on room ID input triggers:
+  - "Join Game" if room ID is entered
+  - "Create Game" if room ID field is empty
+- Improved UX for faster navigation
+
 ---
 
 ## Important File Paths
@@ -331,11 +419,16 @@ const getBaseValue = (val: any) => {
 | Main Game UI                 | `src/components/GameInterface.vue`            |
 | Grid/Board Renderer          | `src/components/GameCanvas.vue`               |
 | Damage Tracking Panel        | `src/components/game/DamageReport.vue`        |
+| Version Display              | `src/components/VersionDisplay.vue`           |
 | TypeScript Types             | `src/types/game.ts` (exported via `types/index.ts`) |
 | Trait Definitions            | `src/data/traitData.ts`                       |
 | Animation Config             | `src/data/animationConfig.ts`                 |
+| Shop Odds Distribution       | `src/data/shopOdds.ts`                        |
+| Icon Path Utilities          | `src/utils/iconUtils.ts`                      |
+| Color Utilities              | `src/utils/colorUtils.ts`                     |
 | Vite Config                  | `vite.config.ts`                              |
-| Unit Assets                  | `public/assets/units/{definitionId}.png`      |
+| Unit Assets (One Piece)      | `public/assets/units/onepiece/{definitionId}.png` |
+| Unit Assets (Pokemon)        | `public/assets/units/pokemon/{definitionId}.png`  |
 
 ---
 
@@ -392,18 +485,19 @@ const getBaseValue = (val: any) => {
 | Component              | Responsibility                                                                 |
 |------------------------|--------------------------------------------------------------------------------|
 | `App.vue`              | WebSocket lifecycle, global state, view switching, event relay                 |
-| `Lobby.vue`            | Create/join room forms, emits `create` and `join` events                       |
+| `Lobby.vue`            | Create/join room forms, emits `create` and `join` events, Enter key support    |
 | `WaitingRoom.vue`      | Displays connected players, host can start game                                |
-| `GameInterface.vue`    | Main game screen layout: stats panel, bench, shop, child components            |
-| `GameCanvas.vue`       | Renders 8x7 grid, units, drag-and-drop, tooltips, animations, loot orbs        |
+| `GameInterface.vue`    | Main game screen layout: stats panel, bench, shop with odds tooltip            |
+| `GameCanvas.vue`       | Renders 8x7 grid, units with cost-based borders, drag-and-drop, tooltips, animations, loot orbs |
 | `TraitSidebar.vue`     | Shows active traits/synergies with breakpoint progress and tooltips            |
 | `PlayerList.vue`       | Displays all players' HP, level, ghost indicator, sorted by health/elimination order |
 | `UnitTooltip.vue`      | Displays unit stats (HP, ATK, SPD, Range, Mana, Traits, Ability) with dynamic positioning, HTML-formatted ability descriptions with star-level highlighting |
 | `PhaseAnnouncement.vue`| Animated banners for phase transitions (PLANNING PHASE / BATTLE START)        |
-| `AttackAnimation.vue`  | Renders per-unit attack effects (punch, slash, projectile) and ability bursts  |
-| `DamageReport.vue`     | Collapsible side panel showing damage dealt by each unit after combat          |
+| `AttackAnimation.vue`  | Renders per-unit attack effects (punch, slash, projectile) with directional orientation and ability bursts |
+| `DamageReport.vue`     | Tabbed damage panel (You/Opponent) showing damage dealt by each unit after combat |
 | `OutcomeOverlay.vue`   | Large "ROUND WON/LOST" splash after combat ends                                |
 | `EndScreen.vue`        | Final leaderboard with "Play Again" reload button                              |
+| `VersionDisplay.vue`   | Git-based version info (tag/commit/build time) in bottom-left corner           |
 
 ---
 
@@ -476,12 +570,15 @@ This produces 4 files: `*_q1.png` (Top-Left), `*_q2.png` (Top-Right), `*_q3.png`
 2. **Prop Drilling**: Preferred over stores for this single-page, real-time app.
 3. **Scoped Styles**: Every component encapsulates its own CSS.
 4. **Responsive to Server State**: Frontend never computes game logic; it re-renders when `gameState` changes.
-5. **Image Assets by ID**: Unit images follow the pattern `/assets/units/{definitionId}.png`.
-6. **Transient Animations**: Phase announcements, ability casts, and outcome overlays auto-dismiss via `setTimeout`.
-7. **Event Deduplication**: Combat events are deduplicated using timestamps to prevent animation spam.
-8. **Dynamic Positioning**: Tooltips intelligently position above/below units based on grid location.
-9. **Status Effect Stacking**: Visual effects (buffs, team borders) combine additively rather than overwriting.
-10. **Lifecycle Cleanup**: All timers and animations are properly cleaned up on component unmount.
+5. **Image Assets by Game Mode**: Unit images organized by theme: `/assets/units/{gameMode}/{definitionId}.png` (e.g., `onepiece/luffy_v1.png`).
+6. **Centralized Utilities**: Color palette (`colorUtils.ts`) and icon resolution (`iconUtils.ts`) ensure consistency.
+7. **Transient Animations**: Phase announcements, ability casts, and outcome overlays auto-dismiss via `setTimeout`.
+8. **Event Deduplication**: Combat events are deduplicated using timestamps to prevent animation spam.
+9. **Dynamic Positioning**: Tooltips intelligently position above/below units based on grid location.
+10. **Status Effect Stacking**: Visual effects (buffs, team borders) combine additively rather than overwriting.
+11. **Lifecycle Cleanup**: All timers and animations are properly cleaned up on component unmount.
+12. **Keyboard Shortcuts**: Enter key triggers actions in focused forms for faster navigation.
+13. **Build-Time Metadata**: Version info injected via Docker build args for traceability.
 
 ---
 
