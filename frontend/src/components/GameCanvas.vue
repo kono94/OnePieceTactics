@@ -4,6 +4,7 @@ import UnitTooltip from './UnitTooltip.vue'
 import AttackAnimation from './game/AttackAnimation.vue'
 import { getAttackConfig, getAbilityConfig, type AttackType, type AbilityEffectStyle } from '../data/animationConfig'
 import type { GameState, GameUnit, GamePhase, RenderedUnit, RenderedOrb, PlayerState, DisplayedUnit } from '../types'
+import { getUnitIconPath } from '../utils/iconUtils'
 
 const props = defineProps<{
     state: GameState | null,
@@ -75,7 +76,7 @@ const renderedUnits = computed((): RenderedUnit[] => {
                         visualY,
                         ownerId: player.playerId,
                         isMine: player.playerId === myId,
-                        image: `/assets/units/${u.definitionId}.png`
+                        image: getUnitIconPath(u.definitionId, props.state?.gameMode)
                     }
                 }))
         }

@@ -294,7 +294,8 @@ const handleLeaveLobby = () => {
                                    :damage-log="gameState.damageLog" 
                                    :my-player-id="myPlayerId"
                                    :opponent-id="opponentId"
-                                   :opponent-name="opponentName" />
+                                   :opponent-name="opponentName"
+                                   :game-mode="gameState.gameMode" />
                  </template>
              </template>
              <div v-else class="loading-screen">

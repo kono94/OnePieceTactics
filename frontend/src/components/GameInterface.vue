@@ -7,6 +7,7 @@ import TraitSidebar from './TraitSidebar.vue'
 import PlayerList from './PlayerList.vue'
 import EndScreen from './EndScreen.vue'
 import type { GameState, GameUnit, UnitDefinition, PlayerState } from '../types'
+import { getUnitIconPath } from '../utils/iconUtils'
 
 const props = defineProps<{
   state: GameState | null,
@@ -339,7 +340,7 @@ watch(() => benchUnits.value, (newBench) => {
                                 @mouseenter="!isDraggingUnit ? hoveredBenchUnitId = slot.unit!.id : null"
                                 @mouseleave="hoveredBenchUnitId = null">
                                                             <div class="bench-unit-inner">
-                                  <img :src="`/assets/units/${slot.unit.definitionId}.png`" 
+                                  <img :src="getUnitIconPath(slot.unit.definitionId, props.state?.gameMode)" 
                                        class="bench-unit-img" />
                                </div>
                                
@@ -387,7 +388,7 @@ watch(() => benchUnits.value, (newBench) => {
                          @mouseleave="hoveredShopIndex = null">
                          <template v-if="card">
                              <div class="shop-card-portrait">
-                                 <img :src="`/assets/units/${card.id}.png`" class="shop-card-img" />
+                                 <img :src="getUnitIconPath(card.id, props.state?.gameMode)" class="shop-card-img" />
                              </div>
                              <div class="shop-card-content">
                                  <div class="name">{{ card.name }}</div>

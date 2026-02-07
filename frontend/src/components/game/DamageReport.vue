@@ -61,12 +61,14 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import type { DamageEntry } from '../../types';
+import { getUnitIconPath } from '../../utils/iconUtils'
 
 const props = defineProps<{
   damageLog: Record<string, DamageEntry> | null,
   myPlayerId?: string,
   opponentId?: string,
-  opponentName?: string
+  opponentName?: string,
+  gameMode?: string
 }>();
 
 const isCollapsed = ref(true);
@@ -83,7 +85,7 @@ const sortedEntries = computed(() => {
       unitId,
       unitName: data.unitName,
       damage: data.damage,
-      image: `/assets/units/${data.definitionId}.png`
+      image: getUnitIconPath(data.definitionId, props.gameMode)
     }))
     .sort((a, b) => b.damage - a.damage);
 });
