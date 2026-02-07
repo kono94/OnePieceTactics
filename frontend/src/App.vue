@@ -7,6 +7,7 @@ import WaitingRoom from './components/WaitingRoom.vue'
 import GameInterface from './components/GameInterface.vue'
 import OutcomeOverlay from './components/game/OutcomeOverlay.vue'
 import DamageReport from './components/game/DamageReport.vue'
+import VersionDisplay from './components/VersionDisplay.vue'
 
 import { setTraitData } from './data/traitData'
 import type { GameState, GameAction, CombatResultPayload, GameEvent, DamageEntry } from './types'
@@ -98,6 +99,12 @@ const opponentName = computed(() => {
     if (!gameState.value || !opponentId.value) return undefined;
     return gameState.value.players[opponentId.value]?.name || 'Opponent';
 });
+
+const showVersion = computed(() => {
+    // Show version only on lobby view or during LOBBY phase in game view
+    return currentView.value === 'lobby' || gameState.value?.phase === 'LOBBY';
+});
+
 
 const subscribeToRoom = (roomId: string) => {
     if (!client.value || !isConnected.value) return
@@ -262,6 +269,7 @@ const handleLeaveLobby = () => {
 
 <template>
   <div class="app-container">
+    <VersionDisplay :visible="showVersion" />
     <div v-if="!isConnected" class="loading-screen">
         Connecting to Server...
     </div>
