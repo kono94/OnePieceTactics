@@ -16,21 +16,41 @@ For detailed architectural information, refer to the context documents:
 |----------|-------------|
 | **[Backend Context](backend/BACKEND_CONTEXT.md)** | Game engine, combat system, WebSocket API, state management |
 | **[Frontend Context](frontend/FRONTEND_CONTEXT.md)** | Vue.js architecture, component hierarchy, animation system |
+| **[Deployment Guide](deployment/DEPLOYMENT_GUIDE.md)** | Docker Compose setup, GitOps deployment to production |
 
 ---
 
 ## ✨ Features
 
-- **Up to 8 players** per game room (human + AI bots)
+### Core Gameplay
+- **Up to 8 players** per game room (human + AI bots with adaptive shop odds)
 - **Real-time state sync** via STOMP WebSockets (100ms tick rate)
-- **Theme-agnostic core engine** — swap between One Piece and Pokemon themes
+- **Theme-agnostic core engine** — swap between One Piece and Pokemon themes via config
 - **Auto-battler mechanics**: Shop, XP, Gold (with interest), Trait Synergies, Unit Combinations
-- **Grid-based combat** with pathfinding (BFS), ability casting, and visual attack animations
+- **Grid-based combat** with BFS pathfinding, ability casting, and directional attack animations
 - **Star-level progression** — combine 3 identical units to upgrade (1★ → 2★ → 3★) with explicit 3-value stat scaling
-- **Advanced ability system** — Damage, Stun, Heal, Buff with modifiers (Lifesteal, Execute, Scaling, Conditional)
-- **Loot orbs** — Gold and unit rewards spawn after combat
-- **Damage tracking** — Post-combat report showing damage dealt per unit
+- **Advanced ability system** — Damage, Stun, Shield, Heal, Buff with modifiers (Lifesteal, Execute, Scaling, Conditional, Knockback)
+- **Data-driven trait system** — All trait effects loaded from JSON configuration (no hardcoded logic)
+- **TFT-style shop odds** — Level-based probability distribution for unit costs (1★-5★)
 - **In-memory game state** — no database required
+
+### Combat & Progression
+- **Ghost/clone matchmaking** — Odd player count creates AI clones for balanced combat
+- **Player elimination** — Ranked placement system with game-ending logic
+- **Loot orbs** — Gold and unit rewards spawn after combat rounds
+- **Tabbed damage report** — Post-combat tracking for your units vs opponent with visual damage bars
+- **Per-unit attack animations** — Punch, slash, projectile with directional orientation
+- **Ability patterns** — Single-target, line, and AoE effects with range-based targeting
+
+### UI/UX Enhancements
+- **Cost-based visual styling** — Dynamic borders and glows based on unit rarity (1★ gray → 5★ gold)
+- **Star-level visual effects** — Enhanced borders and top glows for 2★ and 3★ units
+- **Shop probability tooltip** — Hover over player level to see current unit cost distribution
+- **Git-based version display** — Build metadata (tag, commit, timestamp) in bottom-left corner
+- **Smart unit tooltips** — HTML-formatted ability descriptions with star-level value highlighting
+- **Keyboard shortcuts** — Enter key support for room creation/joining
+- **Bench reordering** — Swap and rearrange units even during combat phase
+- **Team-colored health bars** — Emerald for allies, red for opponents
 
 ---
 
@@ -184,4 +204,4 @@ This project is for educational purposes.
 
 ---
 
-*Last updated: 2026-01-31*
+*Last updated: 2026-02-07*
