@@ -119,6 +119,8 @@ function getHealthBarClass(health: number) {
     border-bottom: 1px solid #334155;
     padding-bottom: 6px;
     margin: 0;
+    cursor: default;
+    user-select: none;
 }
 
 .list-container {

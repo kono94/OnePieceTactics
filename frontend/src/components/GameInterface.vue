@@ -8,6 +8,7 @@ import PlayerList from './PlayerList.vue'
 import EndScreen from './EndScreen.vue'
 import type { GameState, GameUnit, UnitDefinition, PlayerState } from '../types'
 import { getUnitIconPath } from '../utils/iconUtils'
+import { SHOP_ODDS } from '../data/shopOdds'
 
 const props = defineProps<{
   state: GameState | null,
@@ -250,6 +251,23 @@ watch(() => benchUnits.value, (newBench) => {
     })
 }, { deep: true })
 
+// ========== SHOP ODDS TOOLTIP ==========
+const hoveredLevelBadge = ref(false)
+
+const currentShopOdds = computed(() => {
+    if (!myPlayer.value) return [0, 0, 0, 0, 0]
+    const levelIndex = Math.max(0, Math.min(myPlayer.value.level - 1, SHOP_ODDS.length - 1))
+    return SHOP_ODDS[levelIndex]
+})
+
+const rarityColors = [
+    '#94a3b8', // 1-cost
+    '#22c55e', // 2-cost
+    '#3b82f6', // 3-cost
+    '#a855f7', // 4-cost
+    '#eab308'  // 5-cost
+]
+
 </script>
 
 <template>
@@ -296,7 +314,25 @@ watch(() => benchUnits.value, (newBench) => {
             <!-- Player Stats -->
             <div class="stats-panel">
                 <div class="level-info">
-                    <div class="level-badge">Lvl {{ myPlayer.level }}</div>
+                    <div class="level-badge" 
+                         @mouseenter="hoveredLevelBadge = true" 
+                         @mouseleave="hoveredLevelBadge = false">
+                        Lvl {{ myPlayer.level }}
+                        
+                        <!-- Shop Odds Tooltip -->
+                        <transition name="fade">
+                            <div v-if="hoveredLevelBadge" class="odds-tooltip">
+                                <div class="odds-header">Shop Odds</div>
+                                <div class="odds-grid">
+                                    <div v-for="(prob, tier) in currentShopOdds" :key="tier" class="odds-row">
+                                        <span class="tier-indicator" :style="{ backgroundColor: rarityColors[tier] }"></span>
+                                        <span class="tier-label">{{ tier + 1 }}-Cost:</span>
+                                        <span class="prob-value">{{ prob }}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </transition>
+                    </div>
                     <div class="xp-bar" :title="`XP: ${myPlayer.xp} / ${myPlayer.nextLevelXp || 10}`">
                         <div class="xp-fill" :style="{ width: (myPlayer.xp / (myPlayer.nextLevelXp || 10) * 100) + '%' }"></div>
                         <span class="xp-text">{{ myPlayer.xp }} / {{ myPlayer.nextLevelXp || 10 }} XP</span>
@@ -589,6 +625,65 @@ watch(() => benchUnits.value, (newBench) => {
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     white-space: nowrap; /* Fix: prevent wrapping */
     flex-shrink: 0;
+    cursor: default;
+    user-select: none;
+    position: relative;
+}
+
+.odds-tooltip {
+    position: absolute;
+    bottom: 130%;
+    left: 0;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    border-radius: 8px;
+    width: 140px;
+    z-index: 1000;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+}
+
+.odds-header {
+    font-size: 11px;
+    font-weight: 800;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 4px;
+}
+
+.odds-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.odds-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+}
+
+.tier-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+}
+
+.tier-label {
+    flex: 1;
+    color: #cbd5e1;
+    font-weight: 500;
+}
+
+.prob-value {
+    color: white;
+    font-weight: 800;
 }
 
 .xp-bar {
@@ -641,10 +736,14 @@ watch(() => benchUnits.value, (newBench) => {
     font-weight: 900;
     line-height: 1;
     text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    cursor: default;
+    user-select: none;
 }
 .gold-label {
     font-size: 11px;
     opacity: 0.8;
+    cursor: default;
+    user-select: none;
 }
 
 
@@ -658,6 +757,8 @@ watch(() => benchUnits.value, (newBench) => {
     font-size: 14px;
     font-weight: 900;
     color: #94a3b8;
+    cursor: default;
+    user-select: none;
 }
 .unit-count.max-units {
     color: #ef4444;
@@ -758,6 +859,8 @@ watch(() => benchUnits.value, (newBench) => {
     letter-spacing: 2px;
     color: #94a3b8;
     text-transform: uppercase;
+    cursor: default;
+    user-select: none;
 }
 
 .sell-zone.active .sell-text {
