@@ -1,39 +1,38 @@
-# Backend Context - Architectural Blueprint
-
-> **Last Updated**: 2026-02-07
-> **Purpose**: Comprehensive technical reference for AI developers and engineers to understand the game server's architecture, game loop, and communication patterns.
-
----
+# Backend Context - One Piece Tactics
 
 ## 1. System Overview
 
-This backend is a **Stateful Game Server** for an Auto-Battler (Teamfight Tactics-style) game. It is the **single source of truth** for all game state. The frontend is purely a rendering layer that sends player actions and receives authoritative state updates.
+**Role**: Stateful, Real-Time Game Server for TFT-style Auto-Battler
 
-**Key Characteristics**:
-- **In-Memory State**: All game state (`GameRoom`, `Player`, `GameUnit`) is held in memory; no database persistence for match state.
-- **Theme-Agnostic Core**: The engine core is generic (`GameUnit`, `Trait`, `Origin`). "One Piece" and "Pokemon" are themes loaded via configuration and `GameModeProvider` implementations.
-- **WebSocket-First Communication**: Real-time state synchronization via STOMP over WebSocket.
-- **Server-Side Authority**: All game logic (gold, XP, combat calculations) executes on the backend. The frontend cannot cheat.
+The backend is the **single source of truth** for all game state. It manages:
+- Multi-player game rooms with in-memory state
+- Round-based game loop (LOBBY → PLANNING → COMBAT → END)
+- Turn-based combat simulation with ability casting
+- Real-time state synchronization via WebSockets
+- Theme-agnostic game engine with pluggable game modes
+
+**No database persistence** — all game state lives in memory for the duration of a match.
 
 ---
 
 ## 2. Tech Stack & Standards
 
-| Category | Value |
-|----------|-------|
-| **Java Version** | 25 (with preview features) |
-| **Spring Boot Version** | 4.0.1 |
-| **Build Tool** | Maven |
-| **Dependency Injection** | Constructor Injection only (`@RequiredArgsConstructor` via Lombok) |
-| **Code Formatting** | Spotless + Palantir Java Format (`mvn spotless:apply`) |
-| **Key Libraries** | `spring-boot-starter-websocket`, `spring-boot-starter-web`, `lombok`, `jackson-databind` |
+| Component | Version/Tool | Notes |
+|-----------|-------------|-------|
+| **Java** | 25 | Preview features enabled |
+| **Spring Boot** | 4.0.1 | Latest stable |
+| **Build Tool** | Maven | `pom.xml` in root |
+| **WebSockets** | STOMP over SockJS | Real-time communication |
+| **JSON** | Jackson | Serialization/deserialization |
+| **Code Style** | Spotless (Palantir Format) | Run `mvn spotless:apply` |
+| **DI Pattern** | Constructor injection only | Lombok `@RequiredArgsConstructor` |
 
-**Coding Standards** (Enforced by Project Guidelines):
-- **`var` keyword**: Use explicitly for local variables.
-- **Stream API**: Preferred over imperative loops for collection processing.
-- **Records**: Used for DTOs and immutable data (`GameState`, `UnitDefinition`, `GameAction`).
-- **No Field Injection**: `@Autowired` on fields is forbidden.
-- **camelCase for Acronyms**: `userId`, `aiPlayer`, not `userID`, `AIPlayer`.
+### Java 25 Modern Features in Use
+- **Records**: All DTOs and immutable data (`GameState`, `GameAction`, `PlayerState`)
+- **`var` keyword**: Used extensively for local variables
+- **Stream API**: Collection processing over imperative loops
+- **Pattern Matching**: Not heavily used yet, but available
+- **No Javadoc**: Code is self-documenting per project standards
 
 ---
 
@@ -41,313 +40,350 @@ This backend is a **Stateful Game Server** for an Auto-Battler (Teamfight Tactic
 
 ```
 src/main/java/net/lwenstrom/tft/backend/
-├── BackendApplication.java         # Spring Boot entry point, enables @Scheduling
-├── api/
-│   └── InfoController.java         # REST: /api/config, /api/traits
-├── config/
-│   └── WebSocketConfig.java        # STOMP WebSocket configuration
-├── core/                           # Theme-Agnostic Game Engine
-│   ├── DataLoader.java             # Loads units/traits JSON based on active GameMode
-│   ├── GameController.java         # WebSocket/REST handler, central dispatcher, @Scheduled tick
-│   ├── GameModeProvider.java       # Interface for theme-specific data paths & trait effects
-│   ├── GameModeRegistry.java       # Holds active GameModeProvider, configured via `game.mode` property
-│   ├── GameConstants.java          # Centralized constants (economy, combat, timing, grid, loot)
-│   ├── combat/                     # Combat sub-system (Strategy Pattern)
-│   │   ├── TargetSelector.java     # Interface: finds attack target
-│   │   ├── NearestEnemyTargetSelector.java  # Implementation: nearest enemy by distance
-│   │   ├── UnitMover.java          # Interface: moves unit towards target
-│   │   ├── BfsUnitMover.java       # Implementation: BFS pathfinding movement
-│   │   ├── AbilityCaster.java      # Interface: casts unit ability
-│   │   ├── DefaultAbilityCaster.java  # Implementation: handles all ability types (DMG, STUN, HEAL, BUFF)
-│   │   └── CombatUtils.java        # Static helpers (getDistance, isEnemy, isAlly)
-│   ├── engine/                     # Core game loop & entities
-│   │   ├── GameEngine.java         # Spring Service: manages GameRoom instances
-│   │   ├── GameRoom.java           # Per-room state: players, phase, matchups, combat lifecycle
-│   │   ├── Player.java             # Player entity: health, gold, level, board, bench, shop
-│   │   ├── Bench.java              # Fixed-size (9 slots) bench with null-safe operations
-│   │   ├── Grid.java               # 7x4 (planning) / 7x8 (combat) grid management
-│   │   ├── CombatSystem.java       # Combat simulation per tick
-│   │   ├── TraitManager.java       # Applies cumulative trait bonuses to units
-│   │   ├── GenericTraitApplier.java # Data-driven trait applier (reads effects from JSON)
-│   │   ├── ShopOdds.java            # TFT-style level-based shop probability distribution
-│   │   ├── AbstractGameUnit.java   # Base unit with stats, position, mana, items
-│   │   ├── StandardGameUnit.java   # Concrete GameUnit implementation
-│   │   └── UnitDefinition.java     # Record: immutable unit template with List-based stats
-│   ├── model/                      # Data Transfer Objects (Records)
-│   │   ├── GameState.java          # Full room snapshot sent to frontend
-│   │   ├── PlayerState.java        # Nested record inside GameState
-│   │   ├── GameAction.java         # Incoming player action (BUY, MOVE, REROLL, etc.)
-│   │   ├── ActionType.java         # Enum: BUY, SELL, MOVE, REROLL, EXP, LOCK
-│   │   ├── GameUnit.java           # Interface: unit contract + formattedAbilityDescription()
-│   │   ├── GameMode.java           # Enum: ONEPIECE, POKEMON
-│   │   ├── GamePhase.java          # Enum: LOBBY, PLANNING, COMBAT, END
-│   │   ├── AbilityDefinition.java  # Record: ability with List<Integer> values/range
-│   │   ├── AbilityModifier.java    # Sealed interface: SCALING, CONDITIONAL, LIFESTEAL, EXECUTE
-│   │   ├── ScalingModifier.java    # Additional damage scaling (missing HP, mana, etc.)
-│   │   ├── ConditionalModifier.java # Condition-based ability effects
-│   │   ├── LifestealModifier.java  # Converts damage to healing
-│   │   ├── ExecuteModifier.java    # Bonus damage to low-HP targets
-│   │   ├── CustomEffectHandler.java # Interface for custom trait effect handlers
-│   │   ├── EffectType.java         # Enum: HEALTH_BOOST, ATK_BOOST, SPD_BOOST, ARMOR, etc.
-│   │   ├── TraitMetadata.java      # Record: type-safe trait handling metadata
-│   │   └── Trait.java, TraitEffect.java, AbilityType.java, GameItem.java, LootOrb.java, LootType.java
-│   ├── random/                     # Randomness abstraction for testability
-│   │   ├── RandomProvider.java     # Interface: shuffle, nextInt, nextDouble
-│   │   └── DefaultRandomProvider.java  # Production implementation (java.util.Random)
-│   └── time/                       # Time abstraction for testability
-│       ├── Clock.java              # Interface: currentTimeMillis()
-│       └── SystemClock.java        # Production implementation (System.currentTimeMillis)
-└── game/                           # Theme-Specific Implementations
-    ├── onepiece/
-    │   ├── OnePieceGameModeProvider.java  # Provides paths to One Piece data, registers traits
-    │   └── OnePieceTraitLoader.java       # Loads traits from JSON using GenericTraitApplier
-    └── pokemon/
-        ├── PokemonGameModeProvider.java
-        └── PokemonTraitLoader.java
-```
+├── BackendApplication.java         # Spring Boot entry point (@EnableScheduling)
+├── api/                             # REST API endpoints
+│   └── InfoController.java         # GET /api/config, /api/traits, /api/mode
+├── config/                          # Spring configuration
+│   └── WebSocketConfig.java        # STOMP WebSocket setup
+├── core/                            # Core game engine (theme-agnostic)
+│   ├── DataLoader.java             # Loads units/traits from JSON
+│   ├── GameController.java         # WebSocket message handlers + scheduled tick
+│   ├── GameModeProvider.java       # Interface for theme providers
+│   ├── GameModeRegistry.java       # Active mode selection (@Value game.mode)
+│   ├── GameConstants.java          # Global constants (tick rate, gold, XP, etc.)
+│   ├── combat/                     # Combat mechanics
+│   │   ├── AbilityCaster.java      # Interface for ability execution
+│   │   ├── DefaultAbilityCaster.java # Standard ability implementation
+│   │   ├── TargetSelector.java     # Interface for target selection
+│   │   ├── NearestEnemyTargetSelector.java # Default targeting
+│   │   ├── UnitMover.java          # Interface for pathfinding
+│   │   └── BfsUnitMover.java       # BFS pathfinding implementation
+│   ├── engine/                     # Core game objects
+│   │   ├── GameEngine.java         # Room manager + tick orchestration
+│   │   ├── GameRoom.java           # Single match instance (state, players, phases)
+│   │   ├── Player.java             # Player state (gold, XP, bench, board, shop)
+│   │   ├── CombatSystem.java       # Combat simulation (attacks, abilities, damage)
+│   │   ├── TraitManager.java       # Trait effect registration/application
+│   │   ├── GenericTraitApplier.java # Generic trait stat modifiers
+│   │   ├── UnitDefinition.java     # Unit blueprint (from JSON)
+│   │   ├── StandardGameUnit.java   # Mutable GameUnit implementation
+│   │   ├── Bench.java              # Bench slot management
+│   │   ├── Grid.java               # Board grid utilities
+│   │   └── ShopOdds.java           # Level-based shop probability distribution
+│   ├── model/                      # Data models (mostly records)
+│   │   ├── GameState.java          # Top-level state snapshot (sent to frontend)
+│   │   ├── GameAction.java         # Player action (BUY, SELL, MOVE, etc.)
+│   │   ├── GameUnit.java           # Interface for units
+│   │   ├── GamePhase.java          # LOBBY, PLANNING, COMBAT, END
+│   │   ├── ActionType.java         # BUY, SELL, MOVE, REROLL, EXP, LOCK, COLLECT_ORB
+│   │   ├── AbilityDefinition.java  # Ability blueprint
+│   │   ├── AbilityType.java        # DAMAGE, HEAL, BUFF, etc.
+│   │   ├── Trait.java              # Active trait state
+│   │   ├── TraitMetadata.java      # Trait metadata (name, description, thresholds)
+│   │   ├── LootOrb.java            # Post-combat loot drops
+│   │   └── ... (modifiers: Stun, Lifesteal, Execute, etc.)
+│   ├── random/                     # Randomness abstraction
+│   │   └── RandomProvider.java     # Interface for testable RNG
+│   └── time/                       # Time abstraction
+│       └── Clock.java              # Interface for testable time
+└── game/                           # Game mode implementations
+    ├── onepiece/                   # One Piece theme
+    │   ├── OnePieceGameModeProvider.java  # Provider impl
+    │   ├── OnePieceTraitLoader.java       # Custom trait registration
+    │   └── traits/                 # Custom One Piece trait effects
+    └── pokemon/                    # Pokemon theme (stub)
+        └── PokemonGameModeProvider.java
 
-> **Note**: Individual trait implementation classes (e.g., `StrawHatTrait.java`, `FighterTrait.java`) have been removed. All traits are now **data-driven** via `traits_onepiece.json` and `GenericTraitApplier`.
+src/main/resources/
+└── data/
+    ├── units_onepiece.json         # One Piece unit definitions
+    ├── traits_onepiece.json        # One Piece trait metadata
+    ├── units_pokemon.json          # Pokemon unit definitions
+    └── traits_pokemon.json         # Pokemon trait metadata
+```
 
 ---
 
 ## 4. The "Game Loop" Explained
 
-The backend operates on a **100ms tick loop** driven by Spring's `@Scheduled` annotation.
+### High-Level Flow
 
-### 4.1 Tick Execution Flow
-
-```
-@Scheduled(fixedRate = 100)
-GameController.tick()
-    └── GameEngine.tick()
-            └── for each GameRoom:
-                    GameRoom.tick()
-                        ├── [LOBBY phase] → No-op
-                        ├── [PLANNING phase] → Check phase timeout → transition to COMBAT
-                        └── [COMBAT phase] → CombatSystem.simulateTick() for each active matchup
-                                             └── Check combat end → handleCombatEnd() → deduct HP
-    └── Broadcast GameState to /topic/room/{id}
-    └── Remove ended games from active rooms
+```mermaid
+graph TD
+    A[GameController.tick<br/>@Scheduled 100ms] --> B[GameEngine.tick]
+    B --> C{For each GameRoom}
+    C --> D[GameRoom.tick]
+    D --> E{Current Phase?}
+    E -->|PLANNING| F[Decrement timer<br/>Auto-advance when 0]
+    E -->|COMBAT| G[CombatSystem.simulateTick<br/>Units attack/cast/move]
+    E -->|LOBBY/END| H[No-op or cleanup]
+    F --> I[Broadcast GameState<br/>via WebSocket]
+    G --> I
+    H --> I
 ```
 
-### 4.2 Phase Transitions
+### Threading Model
+- **Single-threaded simulation**: All game logic runs on Spring's `@Scheduled` thread pool
+- **WebSocket handlers**: Run on separate threads but queue actions for next tick
+- **No race conditions**: GameRoom operations are not thread-safe but accessed sequentially
 
-| Phase | Duration | Trigger to Next Phase |
-|-------|----------|----------------------|
-| `LOBBY` | Infinite | Host sends `/app/start` message |
-| `PLANNING` | 15s + (round-1) × 2s | Timer expiry |
-| `COMBAT` | Same formula | Timer expiry OR all combats resolved |
+### Phase Lifecycle
 
-**PLANNING Phase**:
-1. Restore all units to their saved planning positions (post-combat).
-2. Increment round counter.
-3. Award passive income: `5 gold + min(currentGold/10, 5)` (interest).
-4. Award XP: `2 XP`.
-5. Refresh shop for all players (including bots).
+1. **LOBBY**: Players join, host starts match
+2. **PLANNING** (30s default):
+   - Players buy/sell units, arrange board
+   - Shop can be rerolled/locked
+   - XP can be purchased
+3. **COMBAT** (variable duration):
+   - `CombatSystem` clones player boards
+   - Units move toward enemies (BFS pathfinding)
+   - Units attack on cooldown, gain mana, cast abilities
+   - Combat ends when one side is eliminated or timeout (30s)
+   - Winner/loser determined, damage applied to loser's health
+   - Loot orbs spawn for winner
+4. **PLANNING** (repeat): Round increments, shop refreshes with new odds
+5. **END**: Final player standing wins
 
-**COMBAT Phase**:
-1. Pair players randomly using `RandomProvider.shuffle()`.
-2. For each pair, call `CombatSystem.startCombat()`:
-   - Save unit planning positions.
-   - Apply trait bonuses via `TraitManager.applyTraits()`.
-   - Mirror one player's units to the "TOP" grid half (rows 0-3), opponent to "BOTTOM" (rows 4-7).
-3. Each tick, `CombatSystem.simulateTick()` runs:
-   - Units find targets, attack (if in range), or move closer.
-   - Mana is gained on attack; abilities cast at full mana.
-4. Combat ends when only one player has surviving units → loser takes `2 + survivingUnits` damage.
-5. `CombatResultListener` emits `COMBAT_RESULT` event to `/topic/room/{id}/event` with winner/loser IDs and damage log.
-
-### 4.3 Combat Simulation (`CombatSystem.simulateTick`)
-
-```java
-for each unit (not dead):
-    if stunned (stunTicksRemaining > 0): decrement stun counter, skip turn
-    if cooldown active: skip
-    if mana full: cast ability, reset mana, set attack cooldown
-    else:
-        find target (NearestEnemyTargetSelector)
-        if in range:
-            attack with atkBuff multiplier
-            deal damage, gain mana
-            apply spdBuff to attack cooldown
-        else: move towards target (BfsUnitMover using pathfinding)
-
-check if only one player has living units → return CombatResult(ended=true, winnerId, damageLog)
-```
-
-**Key Interfaces (Strategy Pattern)**:
-- `TargetSelector`: How to pick an enemy target.
-- `UnitMover`: How to pathfind/move.
-- `AbilityCaster`: How to execute ability logic.
-
-These are injected into `CombatSystem`, enabling easy unit testing and swapping logic.
+### Tick Rate
+- **100ms** (`GameConstants.TICK_RATE_MS`)
+- Combat simulation: 10 ticks/second
+- Attack speed: `1.0 AS = 1 attack/second = 10 ticks between attacks`
 
 ---
 
-## 5. State Management
+## 5. Theme-Agnostic Architecture
 
-### 5.1 Where State Lives
+### The GameMode System
 
-| Entity | Scope | Lifecycle |
-|--------|-------|-----------|
-| `GameEngine` | Singleton (Spring `@Service`) | Application lifespan |
-| `GameRoom` | One per active room | Created on `/app/create`, auto-removed when game ends |
-| `Player` | One per player in a room | Lives inside `GameRoom.players` map |
-| `GameUnit` | Per unit | Lives in `Player.boardUnits` or `Player.bench` |
+The engine is **completely theme-agnostic**. "One Piece" is just a data skin.
 
-### 5.2 Key State Objects
+**How it works**:
+1. Set `GAME_MODE=onepiece` (or `pokemon`) as environment variable
+2. `GameModeRegistry` reads this and finds the matching `GameModeProvider`
+3. `DataLoader` loads units/traits from the provider's JSON paths
+4. Custom trait effects are registered via `GameModeProvider.registerTraitEffects()`
 
-**`GameRoom`** holds:
-- `phase: GamePhase` (LOBBY, PLANNING, COMBAT)
-- `round: int`
-- `players: Map<String, Player>`
-- `activeCombats: List<List<Player>>` (pairs fighting)
-- `currentMatchups: Map<String, String>` (player ID → opponent ID)
-- `phaseEndTime: long`
+**Key Classes**:
+- `GameMode` enum: `ONEPIECE`, `POKEMON`
+- `GameModeProvider` interface: Defines `getUnitsPath()`, `getTraitsPath()`, `registerTraitEffects()`
+- `GameModeRegistry`: Service that holds active mode and provider map
+- `DataLoader`: Loads JSON data at startup (`@PostConstruct`)
 
-**`Player`** holds:
-- `health`, `gold`, `level`, `xp`
-- `grid: Grid` (7×4 grid for planning)
-- `boardUnits: List<GameUnit>`, `bench: List<GameUnit>`
-- `shop: List<UnitDefinition>` (5 purchasable units)
-
-### 5.3 Serialized State (`GameState` Record)
-
-The entire room state is serialized as a `GameState` record and sent to all clients every tick:
-
+**Example**: `OnePieceGameModeProvider`
 ```java
-public record GameState(
+@Service
+public class OnePieceGameModeProvider implements GameModeProvider {
+    @Override
+    public GameMode getMode() { return GameMode.ONEPIECE; }
+    
+    @Override
+    public String getUnitsPath() { return "/data/units_onepiece.json"; }
+    
+    @Override
+    public String getTraitsPath() { return "/data/traits_onepiece.json"; }
+    
+    @Override
+    public void registerTraitEffects(TraitManager traitManager) {
+        // Register custom One Piece trait logic
+        OnePieceTraitLoader.load(traitManager);
+    }
+}
+```
+
+---
+
+## 6. API & Event Intermediary
+
+### REST Endpoints
+
+| Endpoint | Method | Response | Purpose |
+|----------|--------|----------|---------|
+| `/api/config` | GET | `{gameMode: "onepiece"}` | Get active game mode |
+| `/api/traits` | GET | `TraitMetadata[]` | Get trait metadata |
+| `/api/mode` | GET | `GameMode` | Get game mode enum |
+
+### WebSocket Communication
+
+**Endpoint**: `/tft-websocket`  
+**Protocol**: STOMP over SockJS  
+**Broker Prefix**: `/topic`  
+**App Prefix**: `/app`
+
+#### Client → Server (MessageMapping)
+
+| Destination | Payload | Action |
+|-------------|---------|--------|
+| `/app/create` | `{roomId, playerName}` | Create room + join as host |
+| `/app/join` | `{roomId, playerName}` | Join existing room |
+| `/app/leave` | `{roomId, playerName}` | Leave room |
+| `/app/start` | `{roomId, playerName}` | Start match (host only) |
+| `/app/room/{id}/add-bot` | `{}` | Add bot player to room |
+| `/app/room/{id}/action` | `GameAction` (see below) | Player action |
+
+#### GameAction Payload Structure
+```json
+{
+  "type": "BUY | SELL | MOVE | REROLL | EXP | LOCK | COLLECT_ORB",
+  "playerId": "uuid",
+  "unitId": "uuid",           // for SELL, MOVE
+  "orbId": "uuid",            // for COLLECT_ORB
+  "targetX": 0,               // for MOVE
+  "targetY": 0,               // for MOVE
+  "shopIndex": 0              // for BUY
+}
+```
+
+#### Server → Client (Topics)
+
+| Topic | Payload | Frequency |
+|-------|---------|-----------|
+| `/topic/room/{roomId}` | `GameState` | Every 100ms (tick) |
+| `/topic/room/{roomId}/event` | `{type, payload}` | On specific events |
+
+**GameState Structure** (Record, fully serialized to JSON):
+```java
+record GameState(
     String roomId,
     String hostId,
-    GamePhase phase,
+    GamePhase phase,           // LOBBY, PLANNING, COMBAT, END
     long round,
     long timeRemainingMs,
     long totalPhaseDuration,
     Map<String, PlayerState> players,
-    Map<String, String> matchups,
+    Map<String, String> matchups,  // playerId -> opponentId
     List<CombatEvent> recentEvents,
+    Map<String, DamageEntry> damageLog,
     GameMode gameMode
-) { ... }
+)
+
+record PlayerState(
+    String playerId,
+    String name,
+    int health,
+    int gold,
+    int level,
+    int xp,
+    int nextLevelXp,
+    Integer place,             // null if alive, 1-8 if eliminated
+    String combatSide,         // "TOP" or "BOTTOM"
+    List<GameUnit> bench,
+    List<GameUnit> board,
+    List<Trait> activeTraits,
+    List<UnitDefinition> shop,
+    List<LootOrb> lootOrbs,
+    boolean isGhost            // true for bot players
+)
 ```
 
----
-
-## 6. API & Event Contract
-
-### 6.1 WebSocket Endpoints
-
-**Connection**: `ws://<host>:8080/tft-websocket` (STOMP protocol)
-
-| Destination | Direction | Payload | Description |
-|-------------|-----------|---------|-------------|
-| `/app/create` | Client → Server | `{ roomId, playerName }` | Create room, auto-join host |
-| `/app/join` | Client → Server | `{ roomId, playerName }` | Join existing room |
-| `/app/leave` | Client → Server | `{ roomId, playerName }` | Leave room |
-| `/app/start` | Client → Server | `{ roomId, playerName }` | Host starts match (fills bots to 8) |
-| `/app/room/{id}/action` | Client → Server | `GameAction` | Player action (BUY, MOVE, REROLL, EXP) |
-| `/app/room/{id}/add-bot` | Client → Server | (none) | Add a bot to the room |
-| `/topic/room/{id}` | Server → Client | `GameState` | Full state broadcast every 100ms |
-| `/topic/room/{id}/event` | Server → Client | `{ type, payload }` | Combat result events (`COMBAT_RESULT`) |
-
-### 6.2 `GameAction` Payload Structure
-
+**Event Payload Example** (COMBAT_RESULT):
 ```json
 {
-  "type": "BUY" | "SELL" | "MOVE" | "REROLL" | "EXP" | "LOCK" | "COLLECT_ORB",
-  "playerId": "uuid-string",
-  "unitId": "uuid-string",       // For MOVE, SELL
-  "targetX": 0-6,                // For MOVE
-  "targetY": -1 to 7,            // For MOVE (-1 = bench)
-  "shopIndex": 0-4,              // For BUY
-  "orbId": "uuid-string"         // For COLLECT_ORB
+  "type": "COMBAT_RESULT",
+  "payload": {
+    "winnerId": "uuid",
+    "loserId": "uuid",
+    "participantIds": ["uuid1", "uuid2"],
+    "damageLog": {
+      "unit-id-1": {"name": "Luffy", "damage": 1234},
+      "unit-id-2": {"name": "Zoro", "damage": 890}
+    }
+  }
 }
 ```
 
-### 6.3 REST Endpoints
-
-| Endpoint | Method | Response | Description |
-|----------|--------|----------|-------------|
-| `/api/config` | GET | `{ "gameMode": "onepiece" }` | Current game mode |
-| `/api/mode` | GET | `"onepiece"` | Active game mode enum value |
-| `/api/traits` | GET | `[{...trait metadata}]` | Trait definitions for UI |
-
 ---
 
-## 7. Testability Architecture
+## 7. State Management Deep Dive
 
-The backend was refactored for high testability using dependency injection for side-effects:
+### Where is GameState held?
 
-### 7.1 Time Abstraction
-
+**Per-Room Instance** in `GameRoom` class:
 ```java
-public interface Clock {
-    long currentTimeMillis();
+public class GameRoom {
+    private GameState currentState;  // Built on-demand from mutable objects
+    private final Map<String, Player> players = new ConcurrentHashMap<>();
+    private Grid grid;
+    private CombatSystem combatSystem;
+    // ...
 }
-// Production: SystemClock (uses System.currentTimeMillis())
-// Test: MockClock (controllable time)
 ```
 
-### 7.2 Random Abstraction
+- `GameRoom` holds **mutable** `Player` objects, `Grid`, etc.
+- `getState()` builds an **immutable snapshot** (`GameState` record) for serialization
+- Frontend never modifies state — all changes flow through `GameAction` → `GameController` → `GameRoom`
 
+### Player State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> Lobby: addPlayer()
+    Lobby --> Planning: startMatch()
+    Planning --> Combat: nextPhase()
+    Combat --> Planning: endCombat() (winner/loser determined)
+    Planning --> End: checkAndTriggerGameEnd() (1 player alive)
+    End --> [*]: GameEngine.tick() removes room
+```
+
+---
+
+## 8. Combat System Architecture
+
+### Combat Initialization
 ```java
-public interface RandomProvider {
-    <T> void shuffle(List<T> list);
-    int nextInt(int bound);
-    double nextDouble();
-    Random getRandom();
-}
-// Production: DefaultRandomProvider (java.util.Random)
-// Test: SeededRandomProvider (deterministic via seed)
+CombatSystem.startCombat(Collection<Player> players)
+  → Clone all units from each player's board
+  → Apply trait bonuses (TraitManager)
+  → Position units on mirrored grids (TOP/BOTTOM)
+  → Reset combat timers
 ```
 
-### 7.3 Combat Strategy Interfaces
+### Combat Tick Simulation
+```java
+CombatSystem.simulateTick(List<Player> participants)
+  → For each alive unit:
+      1. Check stun status, decrement if stunned
+      2. Find nearest enemy (TargetSelector)
+      3. If in range: attack if cooldown ready
+         - Deal damage, gain mana, accumulate damage log
+      4. Else: move toward enemy (UnitMover.BFS)
+      5. Check if unit can cast ability (mana >= maxMana)
+         - AbilityCaster.cast(ability, caster, targets)
+         - Apply damage/heal/buff/debuff
+  → Remove dead units
+  → Check win condition (one side eliminated)
+```
 
-All combat behaviors are injectable:
-- `TargetSelector`
-- `UnitMover`
-- `AbilityCaster`
+### Ability Casting Flow
+```java
+DefaultAbilityCaster.cast()
+  → Determine targets based on AbilityPattern + range
+  → Apply base effect (DAMAGE, HEAL, BUFF)
+  → Apply modifiers (Stun, Lifesteal, Execute, Knockback, Scaling)
+  → Trigger custom effects (CustomEffectHandler)
+  → Emit combat events
+```
 
-This allows unit tests to mock specific behaviors without running full combat simulations.
-
----
-
-## 8. Game Mode System
-
-Themes are hot-swappable via the `game.mode` property (default: `onepiece`).
-
-### 8.1 How It Works
-
-1. `GameModeRegistry` collects all `GameModeProvider` beans.
-2. On startup, selects provider matching `game.mode` property.
-3. `DataLoader` uses provider to load correct JSON files.
-4. `TraitManager` receives mode-specific trait effect registrations.
-
-### 8.2 Implementing a New Theme
-
-1. Create package under `game/<themename>/`.
-2. Implement `GameModeProvider`:
-   ```java
-   @Component
-   public class MyThemeProvider implements GameModeProvider {
-       public GameMode getMode() { return GameMode.MY_THEME; }
-       public String getUnitsPath() { return "/data/units_mytheme.json"; }
-       public String getTraitsPath() { return "/data/traits_mytheme.json"; }
-       public void registerTraitEffects(TraitManager tm) {
-           MyThemeTraitLoader.load(tm); // Uses GenericTraitApplier
-       }
-   }
-   ```
-3. Add `MY_THEME` to `GameMode` enum.
-4. Create JSON data files in `src/main/resources/data/`.
-5. Create a `TraitLoader` that reads traits from JSON and uses `GenericTraitApplier`.
+### Combat End
+```java
+GameRoom.handleCombatEnd()
+  → Determine winner/loser (or draw)
+  → Apply damage = (loser's surviving units + round) to loser's health
+  → Spawn loot orbs for winner (gold or units based on ShopOdds)
+  → Notify frontend via COMBAT_RESULT event
+  → Advance to next PLANNING phase
+```
 
 ---
 
-## 9. Shop Probability System
+## 9. Shop & Economy System
 
-### 9.1 Level-Based Odds (`ShopOdds`)
+### Shop Refresh Logic
+- **On round start**: `Player.refreshShop()` called for all players
+- **Manual reroll**: Costs 2 gold (`GameConstants.REROLL_COST`)
+- **Shop lock**: Preserves shop contents across rounds
 
-The shop uses a TFT-style probability distribution where higher-cost units become available as players level up:
+### Shop Probability Distribution
+Defined in `ShopOdds.java` — **level-dependent** odds for each unit cost tier:
 
 | Level | 1-Cost | 2-Cost | 3-Cost | 4-Cost | 5-Cost |
 |-------|--------|--------|--------|--------|--------|
@@ -361,286 +397,167 @@ The shop uses a TFT-style probability distribution where higher-cost units becom
 | 8 | 12% | 18% | 27% | 28% | 15% |
 | 9 | 10% | 15% | 22% | 30% | 23% |
 
-### 9.2 How It Works
+### Auto-Upgrade System
+When a player buys a unit:
+1. Check bench + board for 3 copies of same unit at same star level
+2. If found, combine into higher star → refund sell value of 2 units
+3. Stats scale: `stat[starLevel - 1]` from UnitDefinition JSON
+4. Upgrades can chain (3x 1★ → 1x 2★, then if 3x 2★ → 1x 3★)
 
-1. `Player.refreshShop()` calls `ShopOdds.rollUnit()` for each shop slot.
-2. `rollCostTier()` uses the probability table to determine unit cost.
-3. A random unit of that cost is selected from the available pool.
-4. **Fallback logic**: If no units of the rolled tier exist, tries lower tiers.
-
----
-
-## 10. Key File Locations Quick Reference
-
-| Purpose | Path |
-|---------|------|
-| **Main Application** | `src/main/java/.../BackendApplication.java` |
-| **Game Engine Service** | `src/main/java/.../core/engine/GameEngine.java` |
-| **Game Room (State Holder)** | `src/main/java/.../core/engine/GameRoom.java` |
-| **Combat System** | `src/main/java/.../core/engine/CombatSystem.java` |
-| **WebSocket Config** | `src/main/java/.../config/WebSocketConfig.java` |
-| **WebSocket/REST Controller** | `src/main/java/.../core/GameController.java` |
-| **Data Loader** | `src/main/java/.../core/DataLoader.java` |
-| **Game Constants** | `src/main/java/.../core/GameConstants.java` |
-| **Bench System** | `src/main/java/.../core/engine/Bench.java` |
-| **Game State DTO** | `src/main/java/.../core/model/GameState.java` |
-| **Ability Type Enum** | `src/main/java/.../core/model/AbilityType.java` |
-| **Ability Caster** | `src/main/java/.../core/combat/DefaultAbilityCaster.java` |
-| **Loot Orb/Type** | `src/main/java/.../core/model/LootOrb.java`, `LootType.java` |
-| **Shop Odds** | `src/main/java/.../core/engine/ShopOdds.java` |
-| **Generic Trait Applier** | `src/main/java/.../core/engine/GenericTraitApplier.java` |
-| **Unit Data (One Piece)** | `src/main/resources/data/units_onepiece.json` |
-| **Trait Data (One Piece)** | `src/main/resources/data/traits_onepiece.json` |
+### Loot Orbs
+Spawn after combat for winner:
+- **Gold orbs**: 1-2 gold per orb
+- **Unit orbs**: Random unit from (player.level + 1) shop odds
+- Orbs persist until collected via `COLLECT_ORB` action
 
 ---
 
-## 11. Grid System
+## 10. Trait System
 
-| Constant | Value | Notes |
-|----------|-------|-------|
-| `Grid.COLS` | 7 | Board width |
-| `Grid.PLAYER_ROWS` | 4 | Each player's half |
-| `Grid.COMBAT_ROWS` | 8 | Full combat board (4 + 4) |
+### How Traits Work
+1. **Activation**: `TraitManager.calculateActiveTraits(List<GameUnit> units)`
+   - Count trait occurrences on board
+   - Check if threshold met (e.g., 2/4/6 for Pirate)
+2. **Application**: `TraitManager.applyTraits(GameUnit unit, List<Trait> activeTraits)`
+   - For each active trait, apply stat modifiers or custom logic
+3. **Timing**:
+   - Calculated at start of combat (`CombatSystem.startCombat`)
+   - Recalculated if units die mid-combat (some traits)
 
-**Planning Phase**: Each player sees their own 7×4 grid.
+### Generic vs Custom Traits
+- **Generic**: Defined in `GenericTraitApplier` (stat bonuses read from JSON)
+- **Custom**: Registered per-theme in `OnePieceTraitLoader.load(TraitManager)`
 
-**Combat Phase**: Grids are merged:
-- Player 1 (TOP): Units mirrored to rows 0-3.
-- Player 2 (BOTTOM): Units placed on rows 4-7.
-
----
-
-## 12. Dependency Injection Graph
-
-```
-BackendApplication
-    └── ObjectMapper (Bean)
-
-GameController (Singleton)
-    ├── SimpMessagingTemplate (WebSocket sender)
-    ├── GameEngine
-    ├── DataLoader
-    └── GameModeRegistry
-
-GameEngine (Singleton)
-    ├── DataLoader
-    ├── GameModeRegistry
-    ├── Clock
-    └── RandomProvider
-
-GameRoom (Per-Room Instance)
-    ├── DataLoader
-    ├── GameModeRegistry
-    ├── Clock
-    ├── RandomProvider
-    ├── TraitManager (created per room)
-    └── CombatSystem
-            ├── TraitManager
-            ├── Clock
-            ├── TargetSelector
-            ├── UnitMover
-            └── AbilityCaster
+**Example Custom Trait** (Conqueror's Haki):
+```java
+traitManager.registerEffect("conquerors_haki", (unit, tier) -> {
+    unit.setLowHpDamageBonus(0.3f * tier);
+    unit.setLowHpDamageThreshold(0.4f);
+});
 ```
 
 ---
 
-## 13. Common Operations Cheat Sheet
+## 11. Key File Locations
 
-| Task | Location | Method |
-|------|----------|--------|
-| Create a room | `GameEngine` | `createRoom()` |
-| Add a player | `GameRoom` | `addPlayer(name)` |
-| Buy a unit | `Player` | `buyUnit(shopIndex)` |
-| Move a unit | `GameRoom` → `Player` | `moveUnit(unitId, x, y)` |
-| Start match | `GameRoom` | `startMatch()` |
-| Simulate combat tick | `CombatSystem` | `simulateTick(participants)` |
-| Apply traits | `TraitManager` | `applyTraits(units)` |
-| Refresh shop | `Player` | `refreshShop()` |
-| Deal damage to player | `Player` | `takeDamage(amount)` |
-| Sell unit | `Player` | `sellUnit(unitId, allowBoardSell)` |
-| Collect loot orb | `Player` | `collectOrb(orbId)` |
-| Process deferred upgrades | `Player` | `processPendingUpgrades()` |
+| Purpose | Absolute Path |
+|---------|---------------|
+| **Main Application** | `/backend/src/main/java/net/lwenstrom/tft/backend/BackendApplication.java` |
+| **Game Loop Orchestrator** | `/backend/src/main/java/net/lwenstrom/tft/backend/core/engine/GameEngine.java` |
+| **Room Instance** | `/backend/src/main/java/net/lwenstrom/tft/backend/core/engine/GameRoom.java` |
+| **WebSocket Config** | `/backend/src/main/java/net/lwenstrom/tft/backend/config/WebSocketConfig.java` |
+| **Message Handlers** | `/backend/src/main/java/net/lwenstrom/tft/backend/core/GameController.java` |
+| **Combat Simulation** | `/backend/src/main/java/net/lwenstrom/tft/backend/core/engine/CombatSystem.java` |
+| **Theme Provider (One Piece)** | `/backend/src/main/java/net/lwenstrom/tft/backend/game/onepiece/OnePieceGameModeProvider.java` |
+| **Data Files** | `/backend/src/main/resources/data/*.json` |
 
 ---
 
-## 14. Ability System
+## 12. Common Debugging Entry Points
 
-### 13.1 Ability Types (`AbilityType` Enum)
+### "How does the game loop advance?"
+→ `GameController.tick()` (@Scheduled) → `GameEngine.tick()` → `GameRoom.tick()`
 
-| Type | Effect | Value Meaning |
-|------|--------|---------------|
-| `DAMAGE` | Deal damage to enemies | Base damage (scaled by star level) |
-| `STUN` | Target skips N combat ticks | Stun duration in ticks |
-| `HEAL` | Restore HP to self or allies | Heal amount |
-| `BUFF_ATK` | Increase ATK for all allied units | % increase (e.g., 20 = +20%) |
-| `BUFF_SPD` | Decrease attack cooldown for allies | % increase to attack speed |
+### "How are player actions handled?"
+→ `GameController.handleAction()` → `GameRoom` or `Player` methods
 
-### 13.2 `AbilityDefinition` Record (Star-Level Scaling)
+### "Where is combat damage calculated?"
+→ `CombatSystem.simulateTick()` → attack logic or `AbilityCaster.cast()`
 
-Ability values and ranges are now **explicit lists** with exactly 3 values for star levels 1/2/3:
+### "How do traits modify units?"
+→ `TraitManager.applyTraits()` → `GenericTraitApplier` or custom effect lambda
+
+### "How does the theme system work?"
+→ `GameModeRegistry` → `GameModeProvider` → `DataLoader.loadUnits()`
+
+---
+
+## 13. Configuration & Environment Variables
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `GAME_MODE` | `onepiece` | Active game mode (`onepiece` or `pokemon`) |
+| (None) | — | All other config is hardcoded in `GameConstants.java` |
+
+To change game mode:
+```bash
+export GAME_MODE=pokemon
+mvn spring-boot:run
+```
+
+---
+
+## 14. Design Principles Summary
+
+✅ **Theme-agnostic core**: Units, traits, abilities are data-driven  
+✅ **Constructor injection only**: All DI via Lombok `@RequiredArgsConstructor`  
+✅ **Records for DTOs**: `GameState`, `GameAction`, `PlayerState`, etc.  
+✅ **No Javadoc**: Code is self-documenting  
+✅ **Streams over loops**: Functional style for collections  
+✅ **In-memory state**: No database, stateless REST, stateful WebSocket  
+✅ **Single source of truth**: Backend authority, frontend renders only  
+
+---
+
+## 15. Testing & Development
+
+### Run Backend
+```bash
+cd backend
+export GAME_MODE=onepiece
+mvn spring-boot:run
+```
+
+### Format Code
+```bash
+mvn spotless:apply
+```
+
+### Access Endpoints
+- WebSocket: `ws://localhost:8080/tft-websocket`
+- REST API: `http://localhost:8080/api/config`
+
+## 16. Testability Architecture
+
+The backend was refactored for high testability using dependency injection for side-effects:
+
+### Time Abstraction
 
 ```java
-public record AbilityDefinition(
-    String name,
-    String description,           // e.g., "Deals $value damage"
-    AbilityType type,
-    String pattern,               // SINGLE, LINE, SURROUND
-    List<Integer> range,          // [r1, r2, r3] per star level
-    List<Integer> values,         // [v1, v2, v3] per star level
-    List<AbilityModifier> modifiers
-) {
-    public int getValueForLevel(int starLevel);    // Returns values[starLevel-1]
-    public int getRangeForLevel(int starLevel);    // Returns range[starLevel-1]
-    public String getFormattedDescription(int starLevel); // $value → "v1/v2/v3" with HTML highlighting
+public interface Clock {
+    long currentTimeMillis();
 }
+// Production: SystemClock (uses System.currentTimeMillis())
+// Test: MockClock (controllable time)
 ```
 
-### 13.3 Ability Targeting Patterns (`DefaultAbilityCaster`)
-
-| Pattern | DAMAGE/STUN Behavior | HEAL Behavior |
-|---------|---------------------|---------------|
-| `SINGLE` | Target nearest enemy | Heal lowest-health ally |
-| `LINE` | All enemies in a line to range | N/A |
-| `SURROUND` | All enemies within range radius | All allies within range |
-
-### 13.4 Unit Status Effects
-
-Units have temporary combat buffs that reset after each combat:
-
-| Field | Type | Default | Purpose |
-|-------|------|---------|---------|
-| `stunTicksRemaining` | int | 0 | Skips turn while > 0, decrements each tick |
-| `atkBuff` | float | 1.0f | Multiplier for attack damage |
-| `spdBuff` | float | 1.0f | Multiplier for attack speed (affects cooldown) |
-
-### 13.5 Ability Modifier System
-
-Modifiers enhance or alter ability behavior. They are **backend-only** and defined as a sealed interface hierarchy.
-
-#### Sealed Interface (`AbilityModifier`)
+### Random Abstraction
 
 ```java
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public sealed interface AbilityModifier
-    permits ScalingModifier, ConditionalModifier, LifestealModifier, ExecuteModifier {}
-```
-
-#### Modifier Types
-
-| Type | Record | Purpose |
-|------|--------|---------|
-| `SCALING` | `ScalingModifier` | Dynamic damage scaling based on caster/target HP/mana |
-| `CONDITIONAL` | `ConditionalModifier` | Condition-gated effects (HP thresholds, stun state) |
-| `LIFESTEAL` | `LifestealModifier` | Heals caster based on damage dealt |
-| `EXECUTE` | `ExecuteModifier` | Bonus damage to low-HP targets |
-
-#### Scaling Types (`ScalingModifier.ScalingType`)
-
-| Type | Effect |
-|------|--------|
-| `CASTER_MISSING_HP` | More damage when caster is low HP |
-| `CASTER_MANA_PERCENT` | Scale with current mana |
-| `TARGET_MAX_HP_PERCENT` | % of target max HP as bonus damage |
-| `TARGET_MISSING_HP` | More damage when target is low HP |
-
-#### Condition Types (`ConditionalModifier.ConditionType`)
-
-| Type | Trigger |
-|------|---------|
-| `TARGET_HP_BELOW` | Target HP% below threshold |
-| `TARGET_HP_ABOVE` | Target HP% above threshold |
-| `TARGET_STUNNED` | Target is currently stunned |
-| `CASTER_HP_BELOW` | Caster HP% below threshold |
-| `CASTER_FULL_MANA` | Caster has full mana |
-
-#### Example JSON
-
-```json
-{
-  "modifiers": [
-    { "type": "EXECUTE", "hpThreshold": [0.3, 0.35, 0.4], "bonusDamageMultiplier": [1.5, 1.75, 2.0] },
-    { "type": "LIFESTEAL", "lifestealPercent": [0.2, 0.25, 0.3] }
-  ]
+public interface RandomProvider {
+    <T> void shuffle(List<T> list);
+    int nextInt(int bound);
+    double nextDouble();
+    Random getRandom();
 }
+// Production: DefaultRandomProvider (java.util.Random)
+// Test: SeededRandomProvider (deterministic via seed)
 ```
 
-### 13.6 Unit Stats Scaling (Explicit 3-Value Lists)
+### Combat Strategy Interfaces
 
-All unit stats are defined as **explicit lists** with exactly 3 values for star levels 1/2/3. No implicit multipliers.
+All combat behaviors are injectable:
+- `TargetSelector`
+- `UnitMover`
+- `AbilityCaster`
 
-#### `UnitDefinition` Record
-
-```java
-public record UnitDefinition(
-    String id, String name, int cost,
-    List<Integer> maxHealth,      // [hp1, hp2, hp3]
-    List<Integer> maxMana,
-    List<Integer> attackDamage,
-    List<Float> attackSpeed,      // [as1, as2, as3]
-    AbilityDefinition ability
-) {
-    public int getMaxHealth(int level);      // Returns maxHealth[level-1]
-    public int getAttackDamage(int level);   // Returns attackDamage[level-1]
-}
-```
+This allows unit tests to mock specific behaviors without running full combat simulations.
 
 ---
 
-## 15. Damage Tracking System
+## 17. Game Constants (`GameConstants`)
 
-### 14.1 How It Works
-
-`CombatSystem` tracks all damage dealt during combat via `damageLog`:
-
-```java
-public record DamageEntry(String unitName, String definitionId, String ownerId, int damage) {}
-
-// Accumulated per unit ID:
-private Map<String, DamageEntry> damageLog;
-```
-
-- Damage accumulates from both **auto-attacks** and **abilities**.
-- Negative damage values represent **healing** (for display purposes).
-- Log is cleared at `startCombat()` and included in `CombatResult`.
-
-### 14.2 Data Flow
-
-1. `CombatSystem.simulateTick()` calls `accumulateDamage()` on each hit.
-2. On combat end, `CombatResult.damageLog()` is passed to `GameRoom.handleCombatEnd()`.
-3. `CombatResultListener.onCombatResult()` emits damageLog to frontend via WebSocket.
-4. Live damage is also synced in `GameState.damageLog` every tick during combat.
-
----
-
-## 16. Loot Orb System
-
-### 15.1 Records
-
-```java
-public enum LootType { GOLD, UNIT }
-public record LootOrb(String id, int x, int y, LootType type, String contentId, int amount) {}
-```
-
-### 15.2 Spawning Logic (`GameRoom.spawnLootOrbsForPlayer`)
-
-- Orbs spawn on **even rounds** (round 2, 4, 6, ...) at the start of PLANNING phase.
-- Each player receives **1-3 orbs** randomly placed on their grid (top half, rows 0-3).
-- **70% chance**: Gold orb (3-8 gold).
-- **30% chance**: Unit orb (random unit from pool).
-
-### 15.3 Collection (`Player.collectOrb`)
-
-- Triggered via `COLLECT_ORB` action from frontend.
-- **Gold orbs**: Add gold to player.
-- **Unit orbs**: Add unit to bench (if space), otherwise refund as gold.
-
----
-
-## 16. Game Constants (`GameConstants`)
-
-All magic numbers have been extracted into a centralized `GameConstants` class for maintainability and consistency.
-
-### 16.1 Categories
+All magic numbers have been extracted into a centralized `GameConstants` class:
 
 **Combat Constants**:
 - `MANA_PER_HIT = 10`
@@ -685,26 +602,89 @@ All magic numbers have been extracted into a centralized `GameConstants` class f
 
 ---
 
-## 17. Combat Phase Restrictions
+## 18. Ability System Details
 
-### 17.1 Sell Restrictions
+### Ability Types (`AbilityType` Enum)
+
+| Type | Effect | Value Meaning |
+|------|--------|---------------|
+| `DAMAGE` | Deal damage to enemies | Base damage (scaled by star level) |
+| `STUN` | Target skips N combat ticks | Stun duration in ticks |
+| `HEAL` | Restore HP to self or allies | Heal amount |
+| `BUFF_ATK` | Increase ATK for all allied units | % increase (e.g., 20 = +20%) |
+| `BUFF_SPD` | Decrease attack cooldown for allies | % increase to attack speed |
+
+### `AbilityDefinition` Record (Star-Level Scaling)
+
+Ability values and ranges are **explicit lists** with exactly 3 values for star levels 1/2/3:
 
 ```java
-// GameController.handleAction()
-case SELL -> {
-    // Allow selling bench units anytime, but board units only during PLANNING
-    p.sellUnit(action.unitId(), room.getState().phase() == GamePhase.PLANNING);
+public record AbilityDefinition(
+    String name,
+    String description,
+    AbilityType type,
+    String pattern,               // SINGLE, LINE, SURROUND
+    List<Integer> range,          // [r1, r2, r3] per star level
+    List<Integer> values,         // [v1, v2, v3] per star level
+    List<AbilityModifier> modifiers
+) {
+    public int getValueForLevel(int starLevel);    // Returns values[starLevel-1]
+    public int getRangeForLevel(int starLevel);    // Returns range[starLevel-1]
+    public String getFormattedDescription(int starLevel);
 }
 ```
+
+### Ability Targeting Patterns
+
+| Pattern | DAMAGE/STUN Behavior | HEAL/BUFF Behavior |
+|---------|---------------------|-------------------|
+| `SINGLE` | Target nearest enemy | Heal lowest-health ally |
+| `LINE` | All enemies in a line to range | All allies in line |
+| `SURROUND` | All enemies within range radius | All allies within range |
+
+### Ability Modifier System (Sealed Interface)
+
+Modifiers enhance or alter ability behavior:
+
+```java
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+public sealed interface AbilityModifier
+    permits ScalingModifier, ConditionalModifier, LifestealModifier, ExecuteModifier {}
+```
+
+**Modifier Types**:
+
+| Type | Purpose |
+|------|---------|
+| `SCALING` | Dynamic damage scaling based on caster/target HP/mana |
+| `CONDITIONAL` | Condition-gated effects (HP thresholds, stun state) |
+| `LIFESTEAL` | Heals caster based on damage dealt |
+| `EXECUTE` | Bonus damage to low-HP targets |
+| `KNOCKBACK` | Pushes target away |
+| `STUN` | Prevents target from acting for N ticks |
+
+**Example JSON**:
+```json
+{
+  "modifiers": [
+    { "type": "EXECUTE", "hpThreshold": [0.3, 0.35, 0.4], "bonusDamageMultiplier": [1.5, 1.75, 2.0] },
+    { "type": "LIFESTEAL", "lifestealPercent": [0.2, 0.25, 0.3] }
+  ]
+}
+```
+
+---
+
+## 19. Combat Phase Restrictions
+
+### Sell Restrictions
 
 | Unit Location | PLANNING Phase | COMBAT Phase |
 |---------------|----------------|--------------|
 | Bench | ✅ Can sell | ✅ Can sell |
 | Board | ✅ Can sell | ❌ Cannot sell |
 
-### 17.2 Move Restrictions
-
-During COMBAT phase, unit movement is restricted:
+### Move Restrictions
 
 | Action | PLANNING Phase | COMBAT Phase |
 |--------|----------------|--------------|
@@ -715,41 +695,28 @@ During COMBAT phase, unit movement is restricted:
 
 The `Player.moveUnit()` method checks `inCombat` flag and returns early for board operations.
 
-### 17.3 Deferred Star-Up
+### Deferred Star-Up
 
-When a unit would upgrade during COMBAT phase, the upgrade is queued:
-
-```java
-public void processPendingUpgrades()  // Called at start of PLANNING phase
-```
-
-- Units don't visually upgrade mid-combat (avoids confusion).
-- Pending upgrades are processed when PLANNING phase begins.
+When a unit would upgrade during COMBAT phase, the upgrade is queued and processed at the start of the next PLANNING phase via `Player.processPendingUpgrades()`.
 
 ---
 
-## 18. Player Elimination & Game Ending
+## 20. Player Elimination & Game Ending
 
-### 18.1 Elimination Logic
+### Elimination Logic
 
 When a player's health reaches 0:
+1. `handleCombatEnd()` calls `loser.takeDamage(damage)`
+2. If `loser.getHealth() <= 0`, their `place` is set to `aliveCount + 1`
+3. Eliminated players are excluded from matchmaking in subsequent rounds
 
-1. `handleCombatEnd()` calls `loser.takeDamage(damage)`.
-2. If `loser.getHealth() <= 0`, their `place` is set to `aliveCount + 1`.
-3. Eliminated players are **excluded from matchmaking** in subsequent combat phases.
+### Game End Condition
 
-### 18.2 Game End Condition
+Checked after each combat and at start of PLANNING:
+- If `alivePlayers.size() <= 1`, phase transitions to `GamePhase.END`
+- Last surviving player gets `place = 1`
 
-Checked at two points:
-
-1. **After each combat ends** (`handleCombatEnd`):
-   - If `alivePlayers.size() <= 1`, phase transitions to `GamePhase.END`.
-   - The last surviving player gets `place = 1`.
-
-2. **At start of PLANNING phase** (`startPhase`):
-   - Same check as a fallback.
-
-### 18.3 Final Placement Ranking
+### Final Placement Ranking
 
 | Place | Meaning |
 |-------|--------|
@@ -759,21 +726,21 @@ Checked at two points:
 
 ---
 
-## 19. Ghost/Clone Matchmaking System
+## 21. Ghost/Clone Matchmaking System
 
-### 19.1 Purpose
+### Purpose
 
 When there's an **odd number of alive players**, a "ghost" (clone) is created so every player has an opponent.
 
-### 19.2 How It Works
+### How It Works
 
-1. At combat phase start, alive players are shuffled and paired.
+1. At combat phase start, alive players are shuffled and paired
 2. If one player remains unpaired (odd count):
-   - A random **donor** is selected from paired players.
-   - `donor.createGhost()` creates a clone of that player.
-   - The unpaired player fights the ghost.
+   - A random **donor** is selected from paired players
+   - `donor.createGhost()` creates a clone of that player
+   - The unpaired player fights the ghost
 
-### 19.3 Ghost Properties
+### Ghost Properties
 
 ```java
 public Player createGhost() {
@@ -781,9 +748,9 @@ public Player createGhost() {
     ghostPlayer.setGhost(true);
     ghostPlayer.setHealth(this.health);
     ghostPlayer.setLevel(this.level);
-
+    
     for (GameUnit unit : this.boardUnits) {
-        GameUnit cloned = unit.cloneUnit();  // Deep copy via GameUnit.cloneUnit()
+        GameUnit cloned = unit.cloneUnit();
         ghostPlayer.boardUnits.add(cloned);
         ghostPlayer.grid.placeUnit(cloned, cloned.getX(), cloned.getY());
     }
@@ -791,19 +758,19 @@ public Player createGhost() {
 }
 ```
 
-**Key behaviors:**
-- `ghost` flag is `true`.
-- Ghosts are included in `GameState.players` for UI rendering.
-- **Ghosts don't take damage**: If a ghost loses, the original donor is not penalized.
-- Ghosts are **not added to `players` map** (only exist in `activeCombats`).
+**Key behaviors**:
+- `ghost` flag is `true`
+- Ghosts are included in `GameState.players` for UI rendering
+- **Ghosts don't take damage**: If a ghost loses, the original donor is not penalized
+- Ghosts are **not added to `players` map** (only exist in `activeCombats`)
 
 ---
 
-## 20. Bench System (`Bench` Class)
+## 22. Bench System (`Bench` Class)
 
-### 20.1 Fixed-Size Slot Architecture
+### Fixed-Size Slot Architecture
 
-The bench has been refactored into a dedicated `Bench` class with **null-safe operations**. It uses a fixed-size array with 9 slots (indices 0-8), where nulls represent empty slots:
+The bench uses a dedicated `Bench` class with **null-safe operations** and a fixed-size array (9 slots):
 
 ```java
 public class Bench {
@@ -820,44 +787,93 @@ public class Bench {
 }
 ```
 
-This design enables **slot-based swapping** where units maintain specific positions, with cleaner null handling and type safety.
+This design enables **slot-based swapping** where units maintain specific positions.
 
-### 20.2 Bench Operations
+### Bench Operations
 
 | Operation | Method | Frontend Payload |
 |-----------|--------|------------------|
-| Buy → Bench | `Player.buyUnit(shopIndex)` | Finds first empty slot via `Bench.findFirstEmptySlot()` |
-| Bench → Board | `Player.moveUnit(unitId, x, y)` | `targetY >= 0` → calls `moveBenchToBoard()` |
-| Board → Bench | `Player.moveUnit(unitId, x, -1)` | `targetX = slot, targetY = -1` → calls `moveBoardToBench()` |
-| Bench ↔ Bench | `Player.moveUnit(unitId, slot, -1)` | Swaps using `Bench.swap()` via `swapBenchSlots()` |
+| Buy → Bench | `Player.buyUnit(shopIndex)` | Finds first empty slot |
+| Bench → Board | `Player.moveUnit(unitId, x, y)` | `targetY >= 0` |
+| Board → Bench | `Player.moveUnit(unitId, x, -1)` | `targetX = slot, targetY = -1` |
+| Bench ↔ Bench | `Player.moveUnit(unitId, slot, -1)` | Swaps using `Bench.swap()` |
 
 ---
 
-## 21. Bot AI & Roster System
+## 23. Bot AI & Roster System
 
-### 21.1 Bot Roster Logic
+### Bot Roster Logic
 
-Bots now use **level-based shop odds** when spawning units, ensuring fair play compared to real players:
+Bots use **level-based shop odds** when spawning units, ensuring fair play:
 
-**Bot Starting State** (set in `GameRoom.startMatch()`):
-- **Level**: `BOT_STARTING_LEVEL = 2`
-- **Unit Selection**: Uses `ShopOdds.rollUnit()` with bot's current level for each roster slot
+**Bot Starting State** (`GameRoom.startMatch()`):
+- Level: `BOT_STARTING_LEVEL = 2`
+- Unit selection: Uses `ShopOdds.rollUnit()` with bot's current level
 
 **Bot Roster Refresh** (`GameRoom.refreshBotRoster()`):
-- Triggered each **PLANNING** phase
+- Triggered each PLANNING phase
 - Bot level increments by 1 per round (capped at `BOT_MAX_LEVEL = 9`)
-- Units are selected using the **same shop probability distribution** as players
-- Bots have a **low probability** to spawn with 2-star or 3-star units:
+- Units selected using same shop probability distribution as players
+- Low probability for 2-star/3-star units:
   - 10% chance for 2-star unit
   - 2% chance for 3-star unit
 
 **Bot Unit Placement**:
-- Units fill the board from left-to-right, top-to-bottom
+- Units fill board from left-to-right, top-to-bottom
 - Max units per row: `BOT_MAX_UNITS_PER_ROW = 7`
 
-### 21.2 Loot Orb Probability Changes
+---
 
-Loot orbs now use **player level + 1** shop odds for unit drops:
+## 24. Damage Tracking System
+
+### How It Works
+
+`CombatSystem` tracks all damage dealt during combat via `damageLog`:
+
+```java
+public record DamageEntry(String unitName, String definitionId, String ownerId, int damage) {}
+
+private Map<String, DamageEntry> damageLog;
+```
+
+- Damage accumulates from both **auto-attacks** and **abilities**
+- Negative damage values represent **healing**
+- Log is cleared at `startCombat()` and included in `CombatResult`
+
+### Data Flow
+
+1. `CombatSystem.simulateTick()` calls `accumulateDamage()` on each hit
+2. On combat end, `CombatResult.damageLog()` is passed to `GameRoom.handleCombatEnd()`
+3. `CombatResultListener.onCombatResult()` emits damageLog to frontend via WebSocket
+4. Live damage is also synced in `GameState.damageLog` every tick during combat
+
+---
+
+## 25. Loot Orb System Details
+
+### Records
+
+```java
+public enum LootType { GOLD, UNIT }
+public record LootOrb(String id, int x, int y, LootType type, String contentId, int amount) {}
+```
+
+### Spawning Logic (`GameRoom.spawnLootOrbsForPlayer`)
+
+- Orbs spawn on **even rounds** (round 2, 4, 6, ...) at the start of PLANNING phase
+- Each player receives **1-3 orbs** randomly placed on their grid (top half, rows 0-3)
+- **60% chance**: Gold orb (3-8 gold)
+- **40% chance**: Unit orb (random unit from player level+1 pool)
+
+### Collection (`Player.collectOrb`)
+
+- Triggered via `COLLECT_ORB` action from frontend
+- **Gold orbs**: Add gold to player
+- **Unit orbs**: Add unit to bench (if space), otherwise refund as gold
+
+### Loot Orb Probability Changes
+
+Loot orbs use **player level + 1** shop odds for unit drops:
 
 ```java
 // In GameRoom.spawnLootOrbsForPlayer()
@@ -874,4 +890,20 @@ This ensures loot orbs provide slightly better quality units than the player's c
 
 ---
 
-*This document is auto-generated by AI analysis. For implementation details, refer to the actual source code.*
+## 26. Grid System
+
+| Constant | Value | Notes |
+|----------|-------|-------|
+| `Grid.COLS` | 7 | Board width |
+| `Grid.PLAYER_ROWS` | 4 | Each player's half |
+| `Grid.COMBAT_ROWS` | 8 | Full combat board (4 + 4) |
+
+**Planning Phase**: Each player sees their own 7×4 grid.
+
+**Combat Phase**: Grids are merged:
+- Player 1 (TOP): Units mirrored to rows 0-3
+- Player 2 (BOTTOM): Units placed on rows 4-7
+
+---
+
+**END OF BACKEND_CONTEXT.md**
