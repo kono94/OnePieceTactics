@@ -68,7 +68,7 @@ class GameRoomBotTest {
             int x = unit.getX();
             int y = unit.getY();
             assertTrue(x >= 0 && x <= 6, "X should be 0-6");
-            assertTrue(y >= 0 && y <= 3, "Y should be 0-3 for bot initial placement (assuming player view)");
+            assertTrue(y >= 0 && y <= 2, "Y should be 0-2 for bot initial placement (assuming player view)");
             // Note: My implementation used y 0-3 for bot which mimics player area.
         }
     }

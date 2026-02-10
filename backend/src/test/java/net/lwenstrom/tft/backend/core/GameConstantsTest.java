@@ -29,8 +29,8 @@ class GameConstantsTest {
         assertEquals(9, GameConstants.MAX_BENCH_SIZE);
         assertEquals(5, GameConstants.SHOP_SIZE);
         assertEquals(7, GameConstants.GRID_COLS);
-        assertEquals(4, GameConstants.PLAYER_ROWS);
-        assertEquals(8, GameConstants.COMBAT_ROWS);
+        assertEquals(3, GameConstants.PLAYER_ROWS);
+        assertEquals(6, GameConstants.COMBAT_ROWS);
     }
 
     @Test

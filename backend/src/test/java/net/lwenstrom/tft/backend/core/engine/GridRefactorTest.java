@@ -50,7 +50,8 @@ class GridRefactorTest {
             }
 
             @Override
-            public void registerTraitEffects(TraitManager traitManager) {}
+            public void registerTraitEffects(TraitManager traitManager) {
+            }
         };
         return new GameModeRegistry(List.of(provider), "onepiece");
     }
@@ -76,15 +77,15 @@ class GridRefactorTest {
     void testGridConstraints() {
         var grid = new Grid();
         assertEquals(Grid.PLAYER_ROWS, Grid.PLAYER_ROWS);
-        assertEquals(4, Grid.PLAYER_ROWS);
+        assertEquals(3, Grid.PLAYER_ROWS);
         assertEquals(7, Grid.COLS);
 
         GameUnit u = new StandardGameUnit(createDummyDef());
 
         // Valid placement
-        grid.placeUnit(u, 3, 3);
-        assertEquals(3, u.getX());
-        assertEquals(3, u.getY());
+        grid.placeUnit(u, 2, 2);
+        assertEquals(2, u.getX());
+        assertEquals(2, u.getY());
 
         // Invalid placement
         assertThrows(IllegalArgumentException.class, () -> grid.placeUnit(u, Grid.COLS, 0));
@@ -110,15 +111,15 @@ class GridRefactorTest {
         p1.setLevel(3);
         p2.setLevel(3);
 
-        // Move P1 unit to (3, 3) - Back Center
-        p1.moveUnit(u1.getId(), 3, 3);
+        // Move P1 unit to (3, 2) - Back Center
+        p1.moveUnit(u1.getId(), 3, 2);
         assertEquals(3, u1.getX());
-        assertEquals(3, u1.getY());
+        assertEquals(2, u1.getY());
 
-        // Move P2 unit to (3, 3) - Back Center
-        p2.moveUnit(u2.getId(), 3, 3);
+        // Move P2 unit to (3, 2) - Back Center
+        p2.moveUnit(u2.getId(), 3, 2);
         assertEquals(3, u2.getX());
-        assertEquals(3, u2.getY());
+        assertEquals(2, u2.getY());
 
         // Start Combat
         var cs = createTestCombatSystem();
@@ -135,21 +136,21 @@ class GridRefactorTest {
 
         cs.startCombat(Arrays.asList(p1, p2));
 
-        // P1 (Top) at (3,3) Backline -> Should mirror to Arena Top Edge (0)
+        // P1 (Top) at (3,2) Backline -> Should mirror to Arena Top Edge (0)
         assertEquals(3, u1.getX(), "P1 X should be 3");
         assertEquals(0, u1.getY(), "P1 Y should be 0 (Top Edge)");
 
-        // P2 (Bottom) at (3,3) Backline -> Should offset to Arena Bottom Edge (7)
+        // P2 (Bottom) at (3,2) Backline -> Should offset to Arena Bottom Edge (5)
         assertEquals(3, u2.getX(), "P2 X should be 3");
-        assertEquals(7, u2.getY(), "P2 Y should be 7 (Bottom Edge)");
+        assertEquals(5, u2.getY(), "P2 Y should be 5 (Bottom Edge)");
 
         // End Combat
         cs.endCombat(Arrays.asList(p1, p2));
 
         // Restore
         assertEquals(3, u1.getX());
-        assertEquals(3, u1.getY());
+        assertEquals(2, u1.getY());
         assertEquals(3, u2.getX());
-        assertEquals(3, u2.getY());
+        assertEquals(2, u2.getY());
     }
 }

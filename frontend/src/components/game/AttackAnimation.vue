@@ -13,6 +13,7 @@ const props = defineProps<{
   endY: number
   color: string
   definitionId: string
+  cellSize: number
 }>()
 
 const emit = defineEmits(['complete'])
@@ -41,12 +42,13 @@ const travelStyle = computed(() => {
   const angle = Math.atan2(dy, dx) * (180 / Math.PI)
   
   return {
-    '--travel-x': `${dx * 60}px`,
-    '--travel-y': `${dy * 60}px`,
-    '--travel-distance': `${distance * 60}px`,
+    '--travel-x': `${dx * props.cellSize}px`,
+    '--travel-y': `${dy * props.cellSize}px`,
+    '--travel-distance': `${distance * props.cellSize}px`,
     '--angle': `${angle}deg`,
     '--color': props.color,
-    '--color-glow': props.color + '88'
+    '--color-glow': props.color + '88',
+    '--cell-size': `${props.cellSize}px`
   }
 })
 
@@ -62,7 +64,7 @@ onMounted(() => {
     class="attack-animation" 
     :class="animationClass"
     :style="[
-      { left: startX * 60 + 30 + 'px', top: startY * 60 + 30 + 'px' },
+      { left: startX * cellSize + (cellSize / 2) + 'px', top: startY * cellSize + (cellSize / 2) + 'px' },
       travelStyle
     ]"
   >
@@ -171,8 +173,8 @@ onMounted(() => {
 
 /* === ABILITY: GENERIC === */
 .ability-single .ability-effect, .ability-surround .ability-effect {
-  width: 60px;
-  height: 60px;
+  width: var(--cell-size, 60px);
+  height: var(--cell-size, 60px);
   border: 4px solid var(--color);
   border-radius: 50%;
   animation: ability-pulse 0.6s ease-out forwards;

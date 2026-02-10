@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, onUnmounted } from 'vue'
+import { computed, ref, watch, onUnmounted, onMounted } from 'vue'
 import UnitTooltip from './UnitTooltip.vue'
 import AttackAnimation from './game/AttackAnimation.vue'
 import { getAttackConfig, getAbilityConfig, type AttackType, type AbilityEffectStyle } from '../data/animationConfig'
@@ -13,12 +13,12 @@ const props = defineProps<{
     isDraggingProp?: boolean
 }>()
 
-const emit = defineEmits(['move', 'drag-start', 'drag-end', 'collect-orb'])
+const emit = defineEmits(['move', 'drag-start', 'drag-end', 'collect-orb', 'update:cell-size', 'update:is-over-grid'])
 
 // Grid Constants
-const GRID_ROWS = 8
+const GRID_ROWS = 6
 const GRID_COLS = 7
-const PLAYER_ROWS = 4 // Height of one player's board (half of arena)
+const PLAYER_ROWS = 3 // Height of one player's board (half of arena)
 
 const renderedUnits = computed((): RenderedUnit[] => {
     const state = props.state
@@ -101,13 +101,53 @@ const renderedOrbs = computed((): RenderedOrb[] => {
     })
 })
 
-const CELL_SIZE = 60
+const containerRef = ref<HTMLElement | null>(null)
+const CELL_SIZE = ref(60)
+
+const updateCellSize = () => {
+    if (!containerRef.value) return
+    
+    const container = containerRef.value
+    const padding = 20
+    const availableWidth = container.clientWidth - padding
+    const availableHeight = container.clientHeight - padding
+    
+    // Calculate max cell size for width and height
+    const maxCellWidth = availableWidth / GRID_COLS
+    const maxCellHeight = availableHeight / GRID_ROWS
+    
+    // Use the smaller of the two, capped at a reasonable max/min
+    CELL_SIZE.value = Math.max(40, Math.min(100, Math.min(maxCellWidth, maxCellHeight)))
+    emit('update:cell-size', CELL_SIZE.value)
+}
+
+let resizeObserver: ResizeObserver | null = null
+
+onMounted(() => {
+    updateCellSize()
+    resizeObserver = new ResizeObserver(() => {
+        updateCellSize()
+    })
+    if (containerRef.value) {
+        resizeObserver.observe(containerRef.value)
+    }
+})
+
+onUnmounted(() => {
+    if (resizeObserver) {
+        resizeObserver.disconnect()
+    }
+})
 
 // Drag state
 const isDragging = ref(false)
 const draggingUnitId = ref<string|null>(null)
 const dragOverCellIndex = ref(-1)
 const hoveredUnitId = ref<string|null>(null)
+
+// Preload blank drag image to ensure setDragImage is reliable
+const blankDragImage = new Image()
+blankDragImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
 
 const getUnitStyle = (unit: RenderedUnit) => {
     // Disable pointer events on units when dragging, EXCEPT the unit being dragged.
@@ -116,10 +156,10 @@ const getUnitStyle = (unit: RenderedUnit) => {
                                  && unit.id !== draggingUnitId.value;
 
     const styles: Record<string, string | number> = {
-        left: (unit.visualX * CELL_SIZE + 5) + 'px',
-        top: (unit.visualY * CELL_SIZE + 5) + 'px',
-        width: '50px',
-        height: '50px',
+        left: (unit.visualX * CELL_SIZE.value + 5) + 'px',
+        top: (unit.visualY * CELL_SIZE.value + 5) + 'px',
+        width: (CELL_SIZE.value - 10) + 'px',
+        height: (CELL_SIZE.value - 10) + 'px',
         borderColor: getRarityColor(unit.cost), 
         borderWidth: '2px',
         borderStyle: 'solid',
@@ -177,10 +217,10 @@ const hoveredUnit = computed((): RenderedUnit | null | undefined => {
 
 const getTooltipAnchorStyle = (unit: RenderedUnit) => {
     return {
-        left: (unit.visualX * CELL_SIZE + 5) + 'px',
-        top: (unit.visualY * CELL_SIZE + 5) + 'px',
-        width: '50px',
-        height: '50px',
+        left: (unit.visualX * CELL_SIZE.value + 5) + 'px',
+        top: (unit.visualY * CELL_SIZE.value + 5) + 'px',
+        width: (CELL_SIZE.value - 10) + 'px',
+        height: (CELL_SIZE.value - 10) + 'px',
         position: 'absolute' as const,
         zIndex: 1000,
         pointerEvents: 'none' as const
@@ -205,22 +245,13 @@ const onDragStart = (evt: DragEvent, unit: RenderedUnit) => {
     draggingUnitId.value = unit.id
     // Clear hover state on drag start
     hoveredUnitId.value = null
-    emit('drag-start', unit)
+    emit('drag-start', { unit, x: evt.clientX, y: evt.clientY })
     if (evt.dataTransfer) {
         evt.dataTransfer.setData('unitId', unit.id)
         evt.dataTransfer.effectAllowed = 'move'
         
-        // Use the actual DOM element for the drag image if possible
-        const target = evt.target as HTMLElement;
-        const img = target.querySelector('img');
-        if (img) {
-             evt.dataTransfer.setDragImage(img, 25, 25);
-        } else {
-            // Fallback
-             const fallbackImg = new Image();
-             fallbackImg.src = unit.image;
-             evt.dataTransfer.setDragImage(fallbackImg, 25, 25);
-        }
+        // Hide default drag image reliably with preloaded blank image
+        evt.dataTransfer.setDragImage(blankDragImage, 0, 0);
     }
 }
 
@@ -264,6 +295,7 @@ const onDragOver = (evt: DragEvent, cellIndex: number) => {
     }
 
     dragOverCellIndex.value = cellIndex
+    emit('update:is-over-grid', true)
     if (evt.dataTransfer) {
         evt.dataTransfer.dropEffect = 'move'
     }
@@ -271,6 +303,7 @@ const onDragOver = (evt: DragEvent, cellIndex: number) => {
 
 const onDragLeave = () => {
     dragOverCellIndex.value = -1
+    emit('update:is-over-grid', false)
 }
 
 // Hover handlers for Tooltip
@@ -403,8 +436,8 @@ watch(() => props.state?.recentEvents, (newEvents) => {
                 const healId = nextAnimId++
                 floatingHeals.value.push({
                     id: healId,
-                    x: target.visualX * CELL_SIZE + 25,
-                    y: target.visualY * CELL_SIZE + 10,
+                    x: target.visualX * CELL_SIZE.value + CELL_SIZE.value / 2,
+                    y: target.visualY * CELL_SIZE.value + 10,
                     text: `+${healAmount}`
                 })
                 setTimeout(() => {
@@ -448,8 +481,8 @@ watch(() => props.state?.recentEvents, (newEvents) => {
             // Floating text for skill
             castingAnimations.value.push({
                 id: nextAnimId++,
-                x: source.visualX * CELL_SIZE + 30,
-                y: source.visualY * CELL_SIZE,
+                x: source.visualX * CELL_SIZE.value + CELL_SIZE.value / 2,
+                y: source.visualY * CELL_SIZE.value,
                 text: source.activeAbility || 'Ability!'
             })
             setTimeout(() => {
@@ -592,8 +625,13 @@ const onOrbClick = (orbId: string) => {
 </script>
 
 <template>
-  <div class="board-container">
-    <div class="grid" @mouseleave="dragOverCellIndex = -1">
+  <div class="board-container" ref="containerRef">
+    <div class="grid" :style="{ 
+        width: (GRID_COLS * CELL_SIZE) + 'px', 
+        height: (GRID_ROWS * CELL_SIZE) + 'px',
+        gridTemplateColumns: `repeat(${GRID_COLS}, 1fr)`,
+        gridTemplateRows: `repeat(${GRID_ROWS}, 1fr)`
+    }" @mouseleave="dragOverCellIndex = -1">
         <!-- Render Grid Cells as Drop Zones -->
         <div v-for="i in (GRID_ROWS * GRID_COLS)" :key="'cell-'+i" 
              class="cell" 
@@ -624,7 +662,7 @@ const onOrbClick = (orbId: string) => {
                 backgroundColor: unit.ownerId === myPlayerId ? TEAM_COLORS.FRIENDLY : TEAM_COLORS.OPPONENT
             }"></div>
             <div v-if="unit.maxMana > 0" class="mana-bar" :style="{ width: (unit.mana / unit.maxMana * 100) + '%' }"></div>
-            <img :src="unit.image" class="unit-img" :alt="unit.name" />
+            <img :src="unit.image" class="unit-img" :alt="unit.name" draggable="false" />
             <!-- Cost Top Glow -->
             <div class="cost-top-glow"></div>
 
@@ -653,12 +691,14 @@ const onOrbClick = (orbId: string) => {
              :class="orb.type.toLowerCase()"
              :style="{ 
                 left: (orb.visualX * CELL_SIZE + 10) + 'px', 
-                top: (orb.visualY * CELL_SIZE + 10) + 'px' 
+                top: (orb.visualY * CELL_SIZE + 10) + 'px',
+                width: (CELL_SIZE - 20) + 'px',
+                height: (CELL_SIZE - 20) + 'px'
              }"
              @click="onOrbClick(orb.id)">
             <div class="orb-inner">
                 <div class="orb-glow"></div>
-                <div class="orb-content">
+                <div class="orb-content" :style="{ fontSize: (CELL_SIZE * 0.45) + 'px' }">
                     <span v-if="orb.type === 'GOLD'">🪙</span>
                     <span v-else>🎁</span>
                 </div>
@@ -679,6 +719,7 @@ const onOrbClick = (orbId: string) => {
             :end-y="anim.endY"
             :color="anim.color"
             :definition-id="anim.definitionId"
+            :cell-size="CELL_SIZE"
             @complete="removeAnimation(anim.id)"
         />
 
@@ -718,20 +759,20 @@ const onOrbClick = (orbId: string) => {
 .board-container {
     display: flex;
     justify-content: center;
-    margin-top: 5px;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
 }
 
 .grid {
     position: relative;
-    width: 420px; /* GRID_COLS * CELL_SIZE (7*60) */
-    height: 480px; /* GRID_ROWS * CELL_SIZE (8*60) */
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    grid-template-rows: repeat(8, 1fr);
     background-color: #1e293b;
     border: 2px solid #555;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
     z-index: 50;
+    transition: width 0.2s, height 0.2s;
 }
 
 .cell {
@@ -878,7 +919,11 @@ const onOrbClick = (orbId: string) => {
 /* 2-Star Energy Halo Effect */
 .star-2-halo {
     position: absolute;
-    inset: -6px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 118%;
+    height: 118%;
     pointer-events: none;
     z-index: -1;
 }
@@ -901,9 +946,13 @@ const onOrbClick = (orbId: string) => {
 /* 3-Star Conqueror Flow Effect */
 .star-3-flow {
     position: absolute;
-    inset: -3px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 118%;
+    height: 118%;
     border-radius: 50%;
-    padding: 3px;
+    padding: 5px;
     background-clip: content-box;
     pointer-events: none;
     z-index: -1;

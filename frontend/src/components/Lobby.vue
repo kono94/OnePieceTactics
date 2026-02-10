@@ -15,7 +15,6 @@ defineEmits(['create', 'join'])
   <div class="lobby">
     <div class="title">
         <h1>{{ title }}</h1>
-        <p>Tactical Auto Battler</p>
     </div>
     
     <div class="actions">

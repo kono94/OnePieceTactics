@@ -20,8 +20,8 @@ public final class GameConstants {
     public static final int MAX_BENCH_SIZE = 9;
     public static final int SHOP_SIZE = 5;
     public static final int GRID_COLS = 7;
-    public static final int PLAYER_ROWS = 4;
-    public static final int COMBAT_ROWS = 8;
+    public static final int PLAYER_ROWS = 3;
+    public static final int COMBAT_ROWS = 6;
 
     // Damage
     public static final int BASE_COMBAT_DAMAGE = 2;
@@ -43,5 +43,6 @@ public final class GameConstants {
     public static final int MIN_ORB_GOLD = 3;
     public static final int MAX_ORB_GOLD = 8;
 
-    private GameConstants() {}
+    private GameConstants() {
+    }
 }

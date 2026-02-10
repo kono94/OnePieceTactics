@@ -342,7 +342,7 @@ public class GameRoom {
                 starLevel = 2;
             }
 
-            bot.addUnitToBoard(def, i, 3, starLevel);
+            bot.addUnitToBoard(def, i, Grid.PLAYER_ROWS - 1, starLevel);
         }
     }
 

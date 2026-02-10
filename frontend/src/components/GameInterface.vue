@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, onUnmounted } from 'vue'
+import { computed, ref, watch, onUnmounted, onMounted } from 'vue'
 import GameCanvas from './GameCanvas.vue'
 import UnitTooltip from './UnitTooltip.vue'
 import PhaseAnnouncement from './PhaseAnnouncement.vue'
@@ -75,6 +75,7 @@ function buyXp() {
 }
 
 const onBenchDragStart = (evt: DragEvent, unit: GameUnit) => {
+    mousePos.value = { x: evt.clientX, y: evt.clientY }
     isDraggingUnit.value = true
     draggedUnit.value = unit
     // Clear hover states when drag starts
@@ -85,12 +86,8 @@ const onBenchDragStart = (evt: DragEvent, unit: GameUnit) => {
         evt.dataTransfer.setData('unitId', unit.id)
         evt.dataTransfer.effectAllowed = 'move'
         
-        // Set drag image to the image element inside the bench unit
-        const target = evt.target as HTMLElement;
-        const img = target.querySelector('img');
-        if (img) {
-             evt.dataTransfer.setDragImage(img, 25, 25);
-        }
+        // Hide default drag image reliably with preloaded blank image
+        evt.dataTransfer.setDragImage(blankDragImage, 0, 0);
     }
 }
 
@@ -99,6 +96,7 @@ const onBenchDragEnd = () => {
     draggedUnit.value = null
     isSellZoneHovered.value = false
     dragOverBenchIndex.value = -1
+    isOverGrid.value = false
 }
 
 const onBenchDrop = (evt: DragEvent, index: number) => {
@@ -148,6 +146,55 @@ const handleCollectOrb = (orbId: string) => {
 const hoveredBenchUnitId = ref<string|null>(null)
 const hoveredShopIndex = ref<number|null>(null)
 
+// Preload blank drag image to ensure setDragImage is reliable
+const blankDragImage = new Image()
+blankDragImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+
+// ========== DRAG AND GHOST STATE ==========
+const mousePos = ref({ x: 0, y: 0 })
+const gridCellSize = ref(60)
+const isOverGrid = ref(false)
+
+const onMouseMove = (evt: MouseEvent) => {
+    if (isDraggingUnit.value) {
+        mousePos.value = { x: evt.clientX, y: evt.clientY }
+    }
+}
+
+const onGlobalDrag = (evt: DragEvent) => {
+    if (isDraggingUnit.value && evt.clientX !== 0) {
+        mousePos.value = { x: evt.clientX, y: evt.clientY }
+    }
+}
+
+const onGlobalDragOver = (evt: DragEvent) => {
+    evt.preventDefault() // FIX: Stop native drop rejection animation (lag)
+    if (isDraggingUnit.value && evt.clientX !== 0) {
+        mousePos.value = { x: evt.clientX, y: evt.clientY }
+    }
+}
+
+const onGlobalDragEnd = () => {
+    isDraggingUnit.value = false
+    draggedUnit.value = null
+}
+
+onMounted(() => {
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('dragover', onGlobalDragOver)
+    window.addEventListener('drag', onGlobalDrag)
+    window.addEventListener('dragend', onGlobalDragEnd)
+    window.addEventListener('drop', onGlobalDragEnd)
+})
+
+onUnmounted(() => {
+    window.removeEventListener('mousemove', onMouseMove)
+    window.removeEventListener('dragover', onGlobalDragOver)
+    window.removeEventListener('drag', onGlobalDrag)
+    window.removeEventListener('dragend', onGlobalDragEnd)
+    window.removeEventListener('drop', onGlobalDragEnd)
+})
+
 // ========== DRAG AND SELL STATE ==========
 const isDraggingUnit = ref(false)
 const draggedUnit = ref<GameUnit | null>(null)
@@ -194,10 +241,11 @@ const onSellDrop = (evt: DragEvent) => {
 }
 
 // Grid drag handlers
-const onGridDragStart = (unit: GameUnit) => {
+const onGridDragStart = (data: { unit: GameUnit, x: number, y: number }) => {
+    mousePos.value = { x: data.x, y: data.y }
     isDraggingUnit.value = true
     isDraggingFromGrid.value = true
-    draggedUnit.value = unit
+    draggedUnit.value = data.unit
     // Clear hover states
     hoveredBenchUnitId.value = null
     hoveredShopIndex.value = null
@@ -208,6 +256,7 @@ const onGridDragEnd = () => {
     isDraggingFromGrid.value = false
     draggedUnit.value = null
     isSellZoneHovered.value = false
+    isOverGrid.value = false
 }
 
 // ========== STAR-UP CELEBRATION FOR BENCH ==========
@@ -306,7 +355,9 @@ const rarityColors = [
                 @move="handleBoardMove" 
                 @drag-start="onGridDragStart"
                 @drag-end="onGridDragEnd"
-                @collect-orb="handleCollectOrb" />
+                @collect-orb="handleCollectOrb"
+                @update:cell-size="(s) => gridCellSize = s"
+                @update:is-over-grid="(v) => isOverGrid = v" />
             <PlayerList v-if="state" :players="allPlayers" :my-player-id="myPlayer?.playerId" />
         </div>
 
@@ -390,7 +441,8 @@ const rarityColors = [
 
                                <div class="bench-unit-inner" :style="{ borderColor: getRarityColor(slot.unit.cost) }">
                                   <img :src="getUnitIconPath(slot.unit.definitionId, props.state?.gameMode)" 
-                                       class="bench-unit-img" />
+                                       class="bench-unit-img"
+                                       draggable="false" />
                                </div>
                                
                                <!-- Star-up celebration effect -->
@@ -433,7 +485,7 @@ const rarityColors = [
                          @mouseleave="hoveredShopIndex = null">
                          <template v-if="card">
                              <div class="shop-card-portrait">
-                                 <img :src="getUnitIconPath(card.id, props.state?.gameMode)" class="shop-card-img" />
+                                 <img :src="getUnitIconPath(card.id, props.state?.gameMode)" class="shop-card-img" draggable="false" />
                              </div>
                              <div class="shop-card-content">
                                  <div class="name">{{ card.name }}</div>
@@ -469,6 +521,28 @@ const rarityColors = [
     <div v-else class="waiting-message">
         Waiting for game state...
     </div>
+
+    <!-- Drag Ghost -->
+    <Teleport to="body">
+        <div v-if="isDraggingUnit && draggedUnit && (mousePos.x !== 0 || mousePos.y !== 0)" 
+             class="drag-ghost"
+             :style="{
+                left: mousePos.x + 'px',
+                top: mousePos.y + 'px',
+                width: (isOverGrid ? gridCellSize : 64) + 'px',
+                height: (isOverGrid ? gridCellSize : 64) + 'px',
+                borderColor: getRarityColor(draggedUnit.cost),
+                '--rarity-color': getRarityColor(draggedUnit.cost)
+             }">
+            <img :src="getUnitIconPath(draggedUnit.definitionId, props.state?.gameMode)" class="ghost-img" />
+            
+            <div class="cost-top-glow"></div>
+            <div v-if="draggedUnit.starLevel === 2" class="star-2-halo">
+                <div class="halo-ring"></div>
+            </div>
+            <div v-if="draggedUnit.starLevel === 3" class="star-3-flow"></div>
+        </div>
+    </Teleport>
   </div>
 </template>
 
@@ -1156,7 +1230,10 @@ const rarityColors = [
         transform: rotate(var(--angle)) translateY(-50px) scale(0.5);
     }
 }
-/* Cost Top Glow */
+</style>
+
+<style>
+/* Global styles for teleported Drag Ghost and Shared Unit Effects */
 .cost-top-glow {
     position: absolute;
     top: 5px;
@@ -1171,14 +1248,13 @@ const rarityColors = [
     filter: blur(2px);
 }
 
-/* 2-Star Energy Halo Effect */
 .star-2-halo {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 66px; /* Increased to avoid any overlap */
-    height: 66px;
+    width: 118%;
+    height: 118%;
     pointer-events: none;
     z-index: 1; 
 }
@@ -1198,16 +1274,15 @@ const rarityColors = [
     to { transform: rotate(360deg); } 
 }
 
-/* 3-Star Conqueror Flow Effect */
 .star-3-flow {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 66px;
-    height: 66px;
+    width: 118%;
+    height: 118%;
     border-radius: 50%;
-    padding: 5px; /* Gradient starts outside 56px */
+    padding: 5px;
     background-clip: content-box;
     pointer-events: none;
     z-index: 1;
@@ -1233,4 +1308,26 @@ const rarityColors = [
     z-index: -2;
 }
 
+.drag-ghost {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(30, 41, 59, 0.8);
+    backdrop-filter: blur(4px);
+    border: 2px solid var(--rarity-color);
+    border-radius: 50%;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    transition: width 0.15s ease, height 0.15s ease;
+}
+
+.ghost-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
 </style>
