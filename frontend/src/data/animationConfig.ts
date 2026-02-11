@@ -73,7 +73,7 @@ export const ATTACK_ANIMATIONS: Record<string, AttackAnimationConfig> = {
     // === REVOLUTIONARY ===
     'hack_v1': { type: 'punch', color: '#2563eb' },
     'koala_v1': { type: 'punch', color: '#fb7185' },
-    'belo_betty_v1': { type: 'blunt', color: '#be123c' },
+    'belo_betty_v1': { type: 'projectile', color: '#be123c' },
     'ivankov_v1': { type: 'punch', color: '#a855f7' },
     'sabo_v1': { type: 'punch', color: '#f97316' },
     'dragon_v1': { type: 'punch', color: '#059669' },

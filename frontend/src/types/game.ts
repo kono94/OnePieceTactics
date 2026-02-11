@@ -136,6 +136,7 @@ export interface CombatEvent {
     sourceId: string
     targetId: string
     value: number
+    skillName?: string
 }
 
 export interface DamageEntry {

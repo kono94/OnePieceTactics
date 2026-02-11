@@ -27,7 +27,8 @@ public class CombatSystem {
     private Map<String, DamageEntry> damageLog = new HashMap<>();
     private List<GameState.CombatEvent> recentEvents = new ArrayList<>();
 
-    public record DamageEntry(String unitName, String definitionId, String ownerId, int damage) {}
+    public record DamageEntry(String unitName, String definitionId, String ownerId, int damage) {
+    }
 
     public CombatSystem(
             TraitManager traitManager,
@@ -148,7 +149,8 @@ public class CombatSystem {
             if (unit.getMaxMana() > 0 && unit.getMana() >= unit.getMaxMana()) {
                 abilityCaster.castAbility(unit, allUnits, targetSelector, (uId, uName, tId, dmg) -> {
                     accumulateDamage(uId, uName, unit.getDefinitionId(), unit.getOwnerId(), dmg);
-                    recentEvents.add(new GameState.CombatEvent(currentTime, "SKILL", uId, tId, dmg));
+                    recentEvents.add(new GameState.CombatEvent(
+                            currentTime, "SKILL", uId, tId, dmg, unit.getAbility().name()));
                 });
                 unit.setMana(0);
                 unit.setNextAttackTime(currentTime + GameConstants.ABILITY_COOLDOWN_MS);
@@ -165,8 +167,8 @@ public class CombatSystem {
 
                     // Apply Low HP Damage Bonus (Beast Pirates)
                     if (unit.getLowHpDamageBonus() > 0
-                            && (float) unit.getCurrentHealth() / unit.getMaxHealth()
-                                    <= unit.getLowHpDamageThreshold()) {
+                            && (float) unit.getCurrentHealth() / unit.getMaxHealth() <= unit
+                                    .getLowHpDamageThreshold()) {
                         multiplier += unit.getLowHpDamageBonus();
                     }
 
@@ -188,15 +190,15 @@ public class CombatSystem {
                         } else {
                             // Trigger Whitebeard Pirates shield on death
                             triggerShieldOnDeath(target, allUnits, currentTime);
-                            recentEvents.add(
-                                    new GameState.CombatEvent(currentTime, "DEATH", unit.getId(), target.getId(), 0));
+                            recentEvents.add(new GameState.CombatEvent(
+                                    currentTime, "DEATH", unit.getId(), target.getId(), 0, null));
                         }
                     }
 
                     accumulateDamage(
                             unit.getId(), unit.getName(), unit.getDefinitionId(), unit.getOwnerId(), effectiveDamage);
                     recentEvents.add(new GameState.CombatEvent(
-                            currentTime, "DAMAGE", unit.getId(), target.getId(), effectiveDamage));
+                            currentTime, "DAMAGE", unit.getId(), target.getId(), effectiveDamage, null));
 
                     // Lifesteal (Big Mom Pirates)
                     if (unit.getLifesteal() > 0) {
@@ -206,7 +208,8 @@ public class CombatSystem {
 
                         unit.setCurrentHealth(Math.min(unit.getMaxHealth(), unit.getCurrentHealth() + heal));
                         recentEvents.add(
-                                new GameState.CombatEvent(currentTime, "HEAL", unit.getId(), unit.getId(), -heal));
+                                new GameState.CombatEvent(currentTime, "HEAL", unit.getId(), unit.getId(), -heal,
+                                        null));
                     }
 
                     // Mana Gain Multiplier (Mage)
@@ -263,11 +266,12 @@ public class CombatSystem {
                     int shieldAmount = (int) (deadUnit.getMaxHealth() * 0.15f);
                     u.setShield(u.getShield() + shieldAmount);
                     recentEvents.add(new GameState.CombatEvent(
-                            currentTime, "SHIELD", deadUnit.getId(), u.getId(), shieldAmount));
+                            currentTime, "SHIELD", deadUnit.getId(), u.getId(), shieldAmount, null));
                     log.debug("{} receives {} shield from {}'s death", u.getName(), shieldAmount, deadUnit.getName());
                 });
     }
 
     public record CombatResult(
-            boolean ended, String winnerId, Map<String, DamageEntry> damageLog, List<GameState.CombatEvent> events) {}
+            boolean ended, String winnerId, Map<String, DamageEntry> damageLog, List<GameState.CombatEvent> events) {
+    }
 }

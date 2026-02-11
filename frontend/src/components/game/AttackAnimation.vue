@@ -45,6 +45,10 @@ const travelStyle = computed(() => {
     '--travel-x': `${dx * props.cellSize}px`,
     '--travel-y': `${dy * props.cellSize}px`,
     '--travel-distance': `${distance * props.cellSize}px`,
+    '--travel-distance-raw': distance,
+    '--travel-duration': props.type === 'attack'
+        ? `${Math.max(0.2, Math.min(0.8, distance * 0.1))}s`
+        : (props.type === 'ability' ? '0.8s' : '0.3s'),
     '--angle': `${angle}deg`,
     '--color': props.color,
     '--color-glow': props.color + '88',
@@ -53,9 +57,13 @@ const travelStyle = computed(() => {
 })
 
 onMounted(() => {
-  // Auto-remove after animation completes
-  const duration = props.type === 'ability' ? 800 : 300
-  setTimeout(() => emit('complete'), duration)
+  // Calculate duration based on distance for all attacks (approx 10 cells per second)
+  const isAttack = props.type === 'attack'
+  const travelDuration = isAttack 
+    ? Math.max(200, Math.min(800, (travelStyle.value['--travel-distance-raw'] as number) * 100))
+    : (props.type === 'ability' ? 800 : 300)
+
+  setTimeout(() => emit('complete'), travelDuration)
 })
 </script>
 
@@ -113,7 +121,7 @@ onMounted(() => {
   height: 30px;
   border: 3px solid var(--color);
   border-radius: 50%;
-  animation: impact-pop 0.3s ease-out forwards;
+  animation: impact-pop var(--travel-duration) ease-out forwards;
 }
 
 .attack-kick .impact-ring {
@@ -133,7 +141,7 @@ onMounted(() => {
   background: var(--color);
   box-shadow: 0 0 10px var(--color);
   transform: rotate(var(--angle, 0deg));
-  animation: slash-swipe 0.3s ease-out forwards;
+  animation: slash-swipe var(--travel-duration) ease-out forwards;
 }
 
 @keyframes slash-swipe {
@@ -148,7 +156,9 @@ onMounted(() => {
   height: 40px;
   border: 4px double var(--color);
   border-radius: 10px;
-  animation: blunt-hit 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+  box-shadow: 0 0 15px var(--color);
+  background: var(--color-glow);
+  animation: blunt-hit var(--travel-duration) cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
 }
 
 @keyframes blunt-hit {
@@ -163,7 +173,7 @@ onMounted(() => {
   background: var(--color);
   border-radius: 50%;
   box-shadow: 0 0 15px var(--color);
-  animation: projectile-fly 0.4s ease-in forwards;
+  animation: projectile-fly var(--travel-duration) ease-in forwards;
 }
 
 @keyframes projectile-fly {

@@ -494,7 +494,7 @@ watch(() => props.state?.recentEvents, (newEvents) => {
                 id: nextAnimId++,
                 x: source.visualX * CELL_SIZE.value + CELL_SIZE.value / 2,
                 y: source.visualY * CELL_SIZE.value,
-                text: source.activeAbility || 'Ability!'
+                text: event.skillName || source.activeAbility || (source.ability ? source.ability.name : 'Ability!')
             })
             setTimeout(() => {
                 castingAnimations.value.shift()
