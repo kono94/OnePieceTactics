@@ -299,18 +299,18 @@ public class MockUnit implements GameUnit {
     }
 
     // Stun/buff fields for combat effects
-    private int stunTicksRemaining = 0;
+    private float stunSecondsRemaining = 0;
     private float atkBuff = 1.0f;
     private float spdBuff = 1.0f;
 
     @Override
-    public int getStunTicksRemaining() {
-        return stunTicksRemaining;
+    public float getStunSecondsRemaining() {
+        return stunSecondsRemaining;
     }
 
     @Override
-    public void setStunTicksRemaining(int ticks) {
-        this.stunTicksRemaining = ticks;
+    public void setStunSecondsRemaining(float seconds) {
+        this.stunSecondsRemaining = seconds;
     }
 
     @Override
@@ -519,7 +519,7 @@ public class MockUnit implements GameUnit {
         clone.nextMoveTime = this.nextMoveTime;
         clone.ability = this.ability;
         clone.activeAbility = this.activeAbility;
-        clone.stunTicksRemaining = this.stunTicksRemaining;
+        clone.stunSecondsRemaining = this.stunSecondsRemaining;
         clone.atkBuff = this.atkBuff;
         clone.spdBuff = this.spdBuff;
         clone.abilityDamageMultiplier = this.abilityDamageMultiplier;

@@ -93,8 +93,7 @@ class CombatIntegrationTest {
                 .withHealth(100, 100)
                 .withAttackDamage(10);
         var deadUnit = MockUnit.create("dead", p2.getId()).withPosition(3, 4).withHealth(0, 100);
-        var targetUnit =
-                MockUnit.create("target", p2.getId()).withPosition(4, 4).withHealth(50, 100);
+        var targetUnit = MockUnit.create("target", p2.getId()).withPosition(4, 4).withHealth(50, 100);
 
         addUnitToPlayer(p1, aliveUnit);
         addUnitToPlayer(p2, deadUnit);
@@ -173,6 +172,51 @@ class CombatIntegrationTest {
         assertEquals(75, enemy1.getCurrentHealth(), "Adjacent enemy at (2,2) should take 25 damage");
         assertEquals(75, enemy2.getCurrentHealth(), "Adjacent enemy at (3,2) should take 25 damage");
         assertEquals(75, enemy3.getCurrentHealth(), "Adjacent enemy at (4,4) should take 25 damage");
+    }
+
+    @Test
+    void testCombat_StunPersistence() {
+        var testClock = createTestClock();
+        var combatSystem = createTestCombatSystem(testClock);
+        var p1 = new Player("P1", null, createSeededRandomProvider());
+        var p2 = new Player("P2", null, createSeededRandomProvider());
+
+        // Stunned unit should not attack
+        var stunnedUnit = MockUnit.create("stunned", p1.getId())
+                .withPosition(3, 3)
+                .withAttackDamage(50)
+                .withRange(1);
+        stunnedUnit.setStunSecondsRemaining(1.0f); // 1.0 second stun
+
+        var target = MockUnit.create("target", p2.getId())
+                .withPosition(3, 4)
+                .withHealth(100, 100);
+
+        addUnitToPlayer(p1, stunnedUnit);
+        addUnitToPlayer(p2, target);
+
+        // Run 5 ticks (0.5 seconds)
+        for (int i = 0; i < 5; i++) {
+            combatSystem.simulateTick(List.of(p1, p2));
+            testClock.advance(100); // 100ms per tick
+        }
+
+        // Verify still stunned and no damage dealt
+        assertTrue(stunnedUnit.getStunSecondsRemaining() > 0.45f, "Should have ~0.5s remaining");
+        assertEquals(100, target.getCurrentHealth(), "Target should not have taken damage");
+
+        // Run 6 more ticks (1.1 seconds total)
+        for (int i = 0; i < 6; i++) {
+            combatSystem.simulateTick(List.of(p1, p2));
+            testClock.advance(100);
+        }
+
+        // Verify stun is gone
+        assertEquals(0, stunnedUnit.getStunSecondsRemaining(), 0.01);
+
+        // Run 1 more tick - should attack now
+        combatSystem.simulateTick(List.of(p1, p2));
+        assertTrue(target.getCurrentHealth() < 100, "Target should have taken damage after stun expired");
     }
 
     private void addUnitToPlayer(Player player, MockUnit unit) {

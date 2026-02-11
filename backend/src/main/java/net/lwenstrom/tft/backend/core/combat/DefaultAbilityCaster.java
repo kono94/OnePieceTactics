@@ -19,7 +19,8 @@ public class DefaultAbilityCaster implements AbilityCaster {
 
     @Override
     public void castAbility(GameUnit source, List<GameUnit> allUnits, TargetSelector targetSelector) {
-        castAbility(source, allUnits, targetSelector, (id, name, tId, dmg) -> {});
+        castAbility(source, allUnits, targetSelector, (id, name, tId, dmg) -> {
+        });
     }
 
     @Override
@@ -37,10 +38,10 @@ public class DefaultAbilityCaster implements AbilityCaster {
 
         switch (abilityType) {
             case DAMAGE -> castDamageAbility(source, allUnits, targetSelector, ability, value, callback);
-            case STUN -> castStunAbility(source, allUnits, targetSelector, ability, value);
+            case STUN -> castStunAbility(source, allUnits, targetSelector, ability, value, callback);
             case HEAL -> castHealAbility(source, allUnits, ability, value, callback);
-            case BUFF_ATK -> castBuffAtkAbility(source, allUnits, ability, value);
-            case BUFF_SPD -> castBuffSpdAbility(source, allUnits, ability, value);
+            case BUFF_ATK -> castBuffAtkAbility(source, allUnits, ability, value, callback);
+            case BUFF_SPD -> castBuffSpdAbility(source, allUnits, ability, value, callback);
         }
     }
 
@@ -71,7 +72,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
         int finalDamage = applyExecuteModifier(source, target, ability, scaledDamage);
 
         // Track total damage dealt for lifesteal
-        var totalDamageDealt = new int[] {0};
+        var totalDamageDealt = new int[] { 0 };
 
         applyToTargets(source, allUnits, target, ability, u -> {
             u.takeDamage(finalDamage);
@@ -90,14 +91,16 @@ public class DefaultAbilityCaster implements AbilityCaster {
             List<GameUnit> allUnits,
             TargetSelector targetSelector,
             AbilityDefinition ability,
-            int stunTicks) {
+            int stunSeconds,
+            DamageCallback callback) {
         var target = targetSelector.findTarget(source, allUnits);
         if (target == null) {
             return;
         }
 
         applyToTargets(source, allUnits, target, ability, u -> {
-            u.setStunTicksRemaining(u.getStunTicksRemaining() + stunTicks);
+            u.setStunSecondsRemaining(u.getStunSecondsRemaining() + stunSeconds);
+            callback.onDamage(source.getId(), source.getName(), u.getId(), 0);
         });
     }
 
@@ -140,13 +143,17 @@ public class DefaultAbilityCaster implements AbilityCaster {
     }
 
     private void castBuffAtkAbility(
-            GameUnit source, List<GameUnit> allUnits, AbilityDefinition ability, int buffPercent) {
+            GameUnit source, List<GameUnit> allUnits, AbilityDefinition ability, int buffPercent,
+            DamageCallback callback) {
         // Buff all allies' ATK board-wide
         float multiplier = 1.0f + (buffPercent / 100.0f);
         allUnits.stream()
                 .filter(u -> u.getCurrentHealth() > 0)
                 .filter(u -> CombatUtils.isAlly(source, u))
-                .forEach(u -> u.setAtkBuff(u.getAtkBuff() * multiplier));
+                .forEach(u -> {
+                    u.setAtkBuff(u.getAtkBuff() * multiplier);
+                    callback.onDamage(source.getId(), source.getName(), u.getId(), 0);
+                });
 
         // Musician check
         if (source.getAsOnCast() > 0) {
@@ -166,13 +173,17 @@ public class DefaultAbilityCaster implements AbilityCaster {
     }
 
     private void castBuffSpdAbility(
-            GameUnit source, List<GameUnit> allUnits, AbilityDefinition ability, int buffPercent) {
+            GameUnit source, List<GameUnit> allUnits, AbilityDefinition ability, int buffPercent,
+            DamageCallback callback) {
         // Buff all allies' attack speed board-wide
         float multiplier = 1.0f + (buffPercent / 100.0f);
         allUnits.stream()
                 .filter(u -> u.getCurrentHealth() > 0)
                 .filter(u -> CombatUtils.isAlly(source, u))
-                .forEach(u -> u.setSpdBuff(u.getSpdBuff() * multiplier));
+                .forEach(u -> {
+                    u.setSpdBuff(u.getSpdBuff() * multiplier);
+                    callback.onDamage(source.getId(), source.getName(), u.getId(), 0);
+                });
     }
 
     private void applyToTargets(
@@ -294,13 +305,14 @@ public class DefaultAbilityCaster implements AbilityCaster {
     }
 
     private void applyStunAndKnockbackModifiers(GameUnit source, GameUnit target, AbilityDefinition ability) {
-        if (target == null) return;
+        if (target == null)
+            return;
         int starLevel = source.getStarLevel();
 
         for (var modifier : ability.modifiers()) {
             if (modifier instanceof StunModifier stunModifier) {
-                int ticks = stunModifier.getStunTicks(starLevel);
-                target.setStunTicksRemaining(target.getStunTicksRemaining() + ticks);
+                int seconds = stunModifier.getStunSeconds(starLevel);
+                target.setStunSecondsRemaining(target.getStunSecondsRemaining() + seconds);
             } else if (modifier instanceof KnockbackModifier knockbackModifier) {
                 int cells = knockbackModifier.getCells(starLevel);
                 applyKnockback(source, target, cells);
@@ -309,7 +321,8 @@ public class DefaultAbilityCaster implements AbilityCaster {
     }
 
     private void applyKnockback(GameUnit source, GameUnit target, int cells) {
-        if (target == null || cells <= 0) return;
+        if (target == null || cells <= 0)
+            return;
         int dx = Integer.compare(target.getX(), source.getX());
         int dy = Integer.compare(target.getY(), source.getY());
 

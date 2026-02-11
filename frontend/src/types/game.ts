@@ -59,7 +59,7 @@ export interface GameUnit {
     ability: AbilityDefinition | null
     activeAbility: string | null
     // Combat status effects
-    stunTicksRemaining: number
+    stunSecondsRemaining: number
     atkBuff: number  // 1.0 = no buff
     spdBuff: number  // 1.0 = no buff
 }

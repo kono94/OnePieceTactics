@@ -135,8 +135,9 @@ public class CombatSystem {
             }
 
             // Handle stunned units - skip their turn and decrement stun counter
-            if (unit.getStunTicksRemaining() > 0) {
-                unit.setStunTicksRemaining(unit.getStunTicksRemaining() - 1);
+            if (unit.getStunSecondsRemaining() > 0) {
+                float remaining = unit.getStunSecondsRemaining() - (GameConstants.TICK_RATE_MS / 1000.0f);
+                unit.setStunSecondsRemaining(Math.max(0, remaining));
                 continue;
             }
 

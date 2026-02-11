@@ -28,7 +28,7 @@ class GameConstantsTest {
     void testGridConstants() {
         assertEquals(9, GameConstants.MAX_BENCH_SIZE);
         assertEquals(5, GameConstants.SHOP_SIZE);
-        assertEquals(7, GameConstants.GRID_COLS);
+        assertEquals(9, GameConstants.GRID_COLS);
         assertEquals(3, GameConstants.PLAYER_ROWS);
         assertEquals(6, GameConstants.COMBAT_ROWS);
     }
@@ -49,7 +49,7 @@ class GameConstantsTest {
     void testBotConstants() {
         assertEquals(2, GameConstants.BOT_STARTING_LEVEL);
         assertEquals(9, GameConstants.BOT_MAX_LEVEL);
-        assertEquals(7, GameConstants.BOT_MAX_UNITS_PER_ROW);
+        assertEquals(9, GameConstants.BOT_MAX_UNITS_PER_ROW);
     }
 
     @Test

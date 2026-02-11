@@ -37,7 +37,7 @@ public abstract class AbstractGameUnit implements GameUnit {
     private final List<GameItem> items = new ArrayList<>();
 
     // Combat buffs (reset after combat)
-    private int stunTicksRemaining = 0;
+    private float stunSecondsRemaining = 0;
     private float atkBuff = 1.0f;
     private float spdBuff = 1.0f;
     private int shield = 0;
@@ -133,7 +133,7 @@ public abstract class AbstractGameUnit implements GameUnit {
         // Items are not cloned for now (ghosts don't need them)
 
         // Combat buffs
-        this.stunTicksRemaining = other.stunTicksRemaining;
+        this.stunSecondsRemaining = other.stunSecondsRemaining;
         this.atkBuff = other.atkBuff;
         this.spdBuff = other.spdBuff;
 
@@ -259,8 +259,8 @@ public abstract class AbstractGameUnit implements GameUnit {
     }
 
     @Override
-    public int getStunTicksRemaining() {
-        return stunTicksRemaining;
+    public float getStunSecondsRemaining() {
+        return stunSecondsRemaining;
     }
 
     @Override
@@ -341,8 +341,8 @@ public abstract class AbstractGameUnit implements GameUnit {
     }
 
     @Override
-    public void setStunTicksRemaining(int ticks) {
-        this.stunTicksRemaining = ticks;
+    public void setStunSecondsRemaining(float seconds) {
+        this.stunSecondsRemaining = seconds;
     }
 
     @Override
@@ -424,7 +424,7 @@ public abstract class AbstractGameUnit implements GameUnit {
             this.attackSpeed = savedAttackSpeed;
         }
         // Reset combat buffs
-        this.stunTicksRemaining = 0;
+        this.stunSecondsRemaining = 0;
         this.atkBuff = 1.0f;
         this.spdBuff = 1.0f;
 

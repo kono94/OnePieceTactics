@@ -170,7 +170,7 @@ const getUnitStyle = (unit: RenderedUnit) => {
     }
 
     // Apply status effect visuals
-    if (unit.stunTicksRemaining > 0) {
+    if (unit.stunSecondsRemaining > 0) {
         styles.filter = 'grayscale(1) brightness(0.8)';
     } else {
         // Clean look: team-only glow
@@ -684,7 +684,7 @@ const onOrbClick = (orbId: string) => {
                         <div class="cost-top-glow"></div>
                         <div v-if="unit.starLevel === 2" class="star-2-halo"></div>
                         <div v-if="unit.starLevel === 3" class="star-3-flow"></div>
-                        <div v-if="unit.stunTicksRemaining > 0" class="stun-badge">STUNNED</div>
+                        <div v-if="unit.stunSecondsRemaining > 0" class="stun-badge">STUNNED ({{ unit.stunSecondsRemaining.toFixed(1) }}s)</div>
                         <div v-if="isStarringUp(unit.id)" class="star-up-burst">
                             <span v-for="i in 8" :key="i" class="star-particle" :style="{ '--particle-index': i }"></span>
                         </div>
@@ -938,7 +938,7 @@ const onOrbClick = (orbId: string) => {
 
 .buff-container {
     position: absolute;
-    right: -22px;
+    left: -15px;
     top: 50%;
     transform: translateY(-50%);
     display: flex;

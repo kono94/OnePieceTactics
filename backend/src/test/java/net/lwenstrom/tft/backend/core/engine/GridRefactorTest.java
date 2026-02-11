@@ -78,7 +78,7 @@ class GridRefactorTest {
         var grid = new Grid();
         assertEquals(Grid.PLAYER_ROWS, Grid.PLAYER_ROWS);
         assertEquals(3, Grid.PLAYER_ROWS);
-        assertEquals(7, Grid.COLS);
+        assertEquals(9, Grid.COLS);
 
         GameUnit u = new StandardGameUnit(createDummyDef());
 

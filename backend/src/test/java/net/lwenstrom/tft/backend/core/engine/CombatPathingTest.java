@@ -130,7 +130,8 @@ public class CombatPathingTest {
         }
 
         @Override
-        public void gainMana(int amount) {}
+        public void gainMana(int amount) {
+        }
 
         @Override
         public int getStarLevel() {
@@ -153,7 +154,8 @@ public class CombatPathingTest {
         }
 
         @Override
-        public void setNextAttackTime(long time) {}
+        public void setNextAttackTime(long time) {
+        }
 
         @Override
         public long getNextMoveTime() {
@@ -166,10 +168,12 @@ public class CombatPathingTest {
         }
 
         @Override
-        public void savePlanningPosition() {}
+        public void savePlanningPosition() {
+        }
 
         @Override
-        public void restorePlanningPosition() {}
+        public void restorePlanningPosition() {
+        }
 
         @Override
         public net.lwenstrom.tft.backend.core.model.AbilityDefinition getAbility() {
@@ -182,13 +186,16 @@ public class CombatPathingTest {
         }
 
         @Override
-        public void setActiveAbility(String abilityName) {}
+        public void setActiveAbility(String abilityName) {
+        }
 
         @Override
-        public void setMana(int mana) {}
+        public void setMana(int mana) {
+        }
 
         @Override
-        public void setMaxHealth(int maxHealth) {}
+        public void setMaxHealth(int maxHealth) {
+        }
 
         @Override
         public void setCurrentHealth(int currentHealth) {
@@ -196,21 +203,22 @@ public class CombatPathingTest {
         }
 
         @Override
-        public void setAttackSpeed(float attackSpeed) {}
+        public void setAttackSpeed(float attackSpeed) {
+        }
 
         // Stun/buff methods
-        private int stunTicksRemaining = 0;
+        private float stunSecondsRemaining = 0;
         private float atkBuff = 1.0f;
         private float spdBuff = 1.0f;
 
         @Override
-        public int getStunTicksRemaining() {
-            return stunTicksRemaining;
+        public float getStunSecondsRemaining() {
+            return stunSecondsRemaining;
         }
 
         @Override
-        public void setStunTicksRemaining(int ticks) {
-            this.stunTicksRemaining = ticks;
+        public void setStunSecondsRemaining(float seconds) {
+            this.stunSecondsRemaining = seconds;
         }
 
         @Override
@@ -239,7 +247,7 @@ public class CombatPathingTest {
             clone.hp = this.hp;
             clone.nextMoveTime = this.nextMoveTime;
             clone.range = this.range;
-            clone.stunTicksRemaining = this.stunTicksRemaining;
+            clone.stunSecondsRemaining = this.stunSecondsRemaining;
             clone.atkBuff = this.atkBuff;
             clone.spdBuff = this.spdBuff;
             return clone;

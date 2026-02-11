@@ -62,29 +62,41 @@ public interface GameUnit {
 
     void setNextMoveTime(long time);
 
-    default void setMaxHealth(int maxHealth) {}
+    default void setMaxHealth(int maxHealth) {
+    }
 
-    default void setCurrentHealth(int currentHealth) {}
+    default void setCurrentHealth(int currentHealth) {
+    }
 
-    default void setMaxMana(int maxMana) {}
+    default void setMaxMana(int maxMana) {
+    }
 
-    default void setAttackDamage(int attackDamage) {}
+    default void setAttackDamage(int attackDamage) {
+    }
 
-    default void setAbilityPower(int abilityPower) {}
+    default void setAbilityPower(int abilityPower) {
+    }
 
-    default void setArmor(int armor) {}
+    default void setArmor(int armor) {
+    }
 
-    default void setMagicResist(int magicResist) {}
+    default void setMagicResist(int magicResist) {
+    }
 
-    default void setAttackSpeed(float attackSpeed) {}
+    default void setAttackSpeed(float attackSpeed) {
+    }
 
-    default void setStarLevel(int starLevel) {}
+    default void setStarLevel(int starLevel) {
+    }
 
-    default void setMana(int mana) {}
+    default void setMana(int mana) {
+    }
 
-    default void savePlanningPosition() {}
+    default void savePlanningPosition() {
+    }
 
-    default void restorePlanningPosition() {}
+    default void restorePlanningPosition() {
+    }
 
     AbilityDefinition getAbility();
 
@@ -92,7 +104,8 @@ public interface GameUnit {
     @JsonProperty("formattedAbilityDescription")
     default String formattedAbilityDescription() {
         var ability = getAbility();
-        if (ability == null) return "";
+        if (ability == null)
+            return "";
         return ability.getFormattedDescription(getStarLevel());
     }
 
@@ -101,25 +114,28 @@ public interface GameUnit {
     void setActiveAbility(String abilityName);
 
     // Stun status (unit skips turns while > 0)
-    default int getStunTicksRemaining() {
+    default float getStunSecondsRemaining() {
         return 0;
     }
 
-    default void setStunTicksRemaining(int ticks) {}
+    default void setStunSecondsRemaining(float seconds) {
+    }
 
     // Attack buff multiplier (1.0 = no buff)
     default float getAtkBuff() {
         return 1.0f;
     }
 
-    default void setAtkBuff(float buff) {}
+    default void setAtkBuff(float buff) {
+    }
 
     // Speed buff multiplier (1.0 = no buff)
     default float getSpdBuff() {
         return 1.0f;
     }
 
-    default void setSpdBuff(float buff) {}
+    default void setSpdBuff(float buff) {
+    }
 
     GameUnit cloneUnit();
 
@@ -128,107 +144,125 @@ public interface GameUnit {
         return 1.0f;
     }
 
-    default void setAbilityDamageMultiplier(float multiplier) {}
+    default void setAbilityDamageMultiplier(float multiplier) {
+    }
 
     default float getLifesteal() {
         return 0.0f;
     }
 
-    default void setLifesteal(float lifesteal) {}
+    default void setLifesteal(float lifesteal) {
+    }
 
     default float getManaGainMultiplier() {
         return 1.0f;
     }
 
-    default void setManaGainMultiplier(float multiplier) {}
+    default void setManaGainMultiplier(float multiplier) {
+    }
 
     default float getExtraAttackChance() {
         return 0.0f;
     }
 
-    default void setExtraAttackChance(float chance) {}
+    default void setExtraAttackChance(float chance) {
+    }
 
     default float getDamagePerCell() {
         return 0.0f;
     }
 
-    default void setDamagePerCell(float damage) {}
+    default void setDamagePerCell(float damage) {
+    }
 
     default float getHealAmplification() {
         return 1.0f;
     }
 
-    default void setHealAmplification(float amp) {}
+    default void setHealAmplification(float amp) {
+    }
 
     default boolean hasRevive() {
         return false;
     }
 
-    default void setHasRevive(boolean hasRevive) {}
+    default void setHasRevive(boolean hasRevive) {
+    }
 
     default boolean isReviveUsed() {
         return false;
     }
 
-    default void setReviveUsed(boolean used) {}
+    default void setReviveUsed(boolean used) {
+    }
 
     default int getGoldBonusMin() {
         return 0;
     }
 
-    default void setGoldBonusMin(int min) {}
+    default void setGoldBonusMin(int min) {
+    }
 
     default int getGoldBonusMax() {
         return 0;
     }
 
-    default void setGoldBonusMax(int max) {}
+    default void setGoldBonusMax(int max) {
+    }
 
     default float getAsOnCast() {
         return 0.0f;
     }
 
-    default void setAsOnCast(float as) {}
+    default void setAsOnCast(float as) {
+    }
 
     default int getAsOnCastDuration() {
         return 0;
     }
 
-    default void setAsOnCastDuration(int duration) {}
+    default void setAsOnCastDuration(int duration) {
+    }
 
     default float getLowHpDamageBonus() {
         return 0.0f;
     }
 
-    default void setLowHpDamageBonus(float bonus) {}
+    default void setLowHpDamageBonus(float bonus) {
+    }
 
     default float getLowHpDamageThreshold() {
         return 0.0f;
     }
 
-    default void setLowHpDamageThreshold(float threshold) {}
+    default void setLowHpDamageThreshold(float threshold) {
+    }
 
     default float getLowHpAsBonus() {
         return 0.0f;
     }
 
-    default void setLowHpAsBonus(float bonus) {}
+    default void setLowHpAsBonus(float bonus) {
+    }
 
     default float getLowHpAsThreshold() {
         return 0.0f;
     }
 
-    default void setLowHpAsThreshold(float threshold) {}
+    default void setLowHpAsThreshold(float threshold) {
+    }
 
     default boolean hasShieldOnDeath() {
         return false;
     }
 
-    default void setShieldOnDeath(boolean hasShield) {}
+    default void setShieldOnDeath(boolean hasShield) {
+    }
 
     default int getShield() {
         return 0;
     }
 
-    default void setShield(int amount) {}
+    default void setShield(int amount) {
+    }
 }
