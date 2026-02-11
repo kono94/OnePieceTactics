@@ -13,12 +13,13 @@ const props = defineProps<{
     isDraggingProp?: boolean
 }>()
 
-const emit = defineEmits(['move', 'drag-start', 'drag-end', 'collect-orb', 'update:cell-size', 'update:is-over-grid'])
+const emit = defineEmits(['move', 'drag-start', 'drag-end', 'collect-orb', 'update:cell-size', 'update:is-over-grid', 'show-tooltip', 'hide-tooltip'])
 
 // Grid Constants
 const GRID_ROWS = 6
-const GRID_COLS = 7
+const GRID_COLS = 9
 const PLAYER_ROWS = 3 // Height of one player's board (half of arena)
+const GRID_GUTTER = 6 // Space between cells and board border to prevent clipping
 
 const renderedUnits = computed((): RenderedUnit[] => {
     const state = props.state
@@ -108,7 +109,7 @@ const updateCellSize = () => {
     if (!containerRef.value) return
     
     const container = containerRef.value
-    const padding = 20
+    const padding = 60 // Increased padding for more breathing room
     const availableWidth = container.clientWidth - padding
     const availableHeight = container.clientHeight - padding
     
@@ -117,7 +118,8 @@ const updateCellSize = () => {
     const maxCellHeight = availableHeight / GRID_ROWS
     
     // Use the smaller of the two, capped at a reasonable max/min
-    CELL_SIZE.value = Math.max(40, Math.min(100, Math.min(maxCellWidth, maxCellHeight)))
+    // REFINED: Clamping to 85px max to prevent "oversized" look
+    CELL_SIZE.value = Math.max(40, Math.min(85, Math.min(maxCellWidth, maxCellHeight)))
     emit('update:cell-size', CELL_SIZE.value)
 }
 
@@ -145,9 +147,6 @@ const draggingUnitId = ref<string|null>(null)
 const dragOverCellIndex = ref(-1)
 const hoveredUnitId = ref<string|null>(null)
 
-// Preload blank drag image to ensure setDragImage is reliable
-const blankDragImage = new Image()
-blankDragImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
 
 const getUnitStyle = (unit: RenderedUnit) => {
     // Disable pointer events on units when dragging, EXCEPT the unit being dragged.
@@ -217,8 +216,8 @@ const hoveredUnit = computed((): RenderedUnit | null | undefined => {
 
 const getTooltipAnchorStyle = (unit: RenderedUnit) => {
     return {
-        left: (unit.visualX * CELL_SIZE.value + 5) + 'px',
-        top: (unit.visualY * CELL_SIZE.value + 5) + 'px',
+        left: (unit.visualX * CELL_SIZE.value + GRID_GUTTER + 5) + 'px',
+        top: (unit.visualY * CELL_SIZE.value + GRID_GUTTER + 5) + 'px',
         width: (CELL_SIZE.value - 10) + 'px',
         height: (CELL_SIZE.value - 10) + 'px',
         position: 'absolute' as const,
@@ -250,8 +249,11 @@ const onDragStart = (evt: DragEvent, unit: RenderedUnit) => {
         evt.dataTransfer.setData('unitId', unit.id)
         evt.dataTransfer.effectAllowed = 'move'
         
-        // Hide default drag image reliably with preloaded blank image
-        evt.dataTransfer.setDragImage(blankDragImage, 0, 0);
+        // Use only the icon for the drag image to avoid capturing bars/halos
+        const img = (evt.currentTarget as HTMLElement)?.querySelector('.unit-img');
+        if (img) {
+            evt.dataTransfer.setDragImage(img, 32, 32);
+        }
     }
 }
 
@@ -268,7 +270,10 @@ const onDrop = (evt: DragEvent, x: number, y: number) => {
     dragOverCellIndex.value = -1
     
     // Block grid drops during combat
-    if (props.state?.phase === 'COMBAT') return 
+    if (props.state?.phase === 'COMBAT') {
+        onDragEnd() // Ensure drag state is cleared immediately (fixes lag)
+        return 
+    }
     if (evt.dataTransfer) {
         const unitId = evt.dataTransfer.getData('unitId')
         if (unitId) {
@@ -307,13 +312,19 @@ const onDragLeave = () => {
 }
 
 // Hover handlers for Tooltip
-const onUnitMouseEnter = (unitId: string) => {
+const onUnitMouseEnter = (evt: MouseEvent, unit: RenderedUnit) => {
     if (!isDragging.value && !props.isDraggingProp) {
-        hoveredUnitId.value = unitId
+        hoveredUnitId.value = unit.id
+        emit('show-tooltip', {
+            rect: (evt.currentTarget as HTMLElement).getBoundingClientRect(),
+            unit: unit,
+            placement: unit.visualY < 4 ? 'bottom' : 'top'
+        })
     }
 }
 const onUnitMouseLeave = () => {
     hoveredUnitId.value = null
+    emit('hide-tooltip')
 }
 
 // ========== ANIMATION SYSTEM ==========
@@ -625,112 +636,101 @@ const onOrbClick = (orbId: string) => {
 </script>
 
 <template>
-  <div class="board-container" ref="containerRef">
-    <div class="grid" :style="{ 
-        width: (GRID_COLS * CELL_SIZE) + 'px', 
-        height: (GRID_ROWS * CELL_SIZE) + 'px',
-        gridTemplateColumns: `repeat(${GRID_COLS}, 1fr)`,
-        gridTemplateRows: `repeat(${GRID_ROWS}, 1fr)`
-    }" @mouseleave="dragOverCellIndex = -1">
-        <!-- Render Grid Cells as Drop Zones -->
-        <div v-for="i in (GRID_ROWS * GRID_COLS)" :key="'cell-'+i" 
-             class="cell" 
-             :class="{ 
-                'player-half': Math.floor((i-1)/GRID_COLS) >= PLAYER_ROWS, 
-                'enemy-half': Math.floor((i-1)/GRID_COLS) < PLAYER_ROWS,
-                'highlight-drop': (isDragging || isDraggingProp) && Math.floor((i-1)/GRID_COLS) >= PLAYER_ROWS && props.state?.phase !== 'COMBAT',
-                'active-drop': dragOverCellIndex === (i-1) && Math.floor((i-1)/GRID_COLS) >= PLAYER_ROWS && props.state?.phase !== 'COMBAT'
-             }"
-             @dragover="(e) => onDragOver(e, i-1)"
-             @dragleave="onDragLeave"
-             @drop="(e) => onDrop(e, (i-1)%GRID_COLS, Math.floor((i-1)/GRID_COLS))">
-        </div>
-        
-        <!-- Render Units (including dying units for animation) -->
-        <div v-for="unit in displayedUnits" :key="unit.id" 
-             class="unit" 
-             :style="getUnitStyle(unit)"
-             :class="{ 'mine': unit.ownerId === myPlayerId, 'dying': unit.isDying, 'star-up': isStarringUp(unit.id) }"
-             :draggable="unit.ownerId === myPlayerId && !unit.isDying"
-             @dragstart="(e) => onDragStart(e, unit)"
-             @dragend="onDragEnd"
-             @mouseenter="onUnitMouseEnter(unit.id)"
-             @mouseleave="onUnitMouseLeave">
-             
-            <div class="hp-bar" :style="{ 
-                width: (unit.currentHealth / unit.maxHealth * 100) + '%',
-                backgroundColor: unit.ownerId === myPlayerId ? TEAM_COLORS.FRIENDLY : TEAM_COLORS.OPPONENT
-            }"></div>
-            <div v-if="unit.maxMana > 0" class="mana-bar" :style="{ width: (unit.mana / unit.maxMana * 100) + '%' }"></div>
-            <img :src="unit.image" class="unit-img" :alt="unit.name" draggable="false" />
-            <!-- Cost Top Glow -->
-            <div class="cost-top-glow"></div>
+  <div class="main-canvas-container" ref="containerRef">
+    <div class="board-container" :style="{ 
+        width: (GRID_COLS * CELL_SIZE + (GRID_GUTTER * 2)) + 'px', 
+        height: (GRID_ROWS * CELL_SIZE + (GRID_GUTTER * 2)) + 'px'
+    }">
+        <div class="board-clipper">
+            <div class="grid" :style="{
+                gridTemplateColumns: `repeat(${GRID_COLS}, ${CELL_SIZE}px)`,
+                gridTemplateRows: `repeat(${GRID_ROWS}, ${CELL_SIZE}px)`
+            }" @mouseleave="dragOverCellIndex = -1">
+                <!-- Render Grid Cells as Drop Zones -->
+                <div v-for="i in (GRID_ROWS * GRID_COLS)" :key="'cell-'+i" 
+                     class="cell" 
+                     :class="{ 
+                        'player-half': Math.floor((i-1)/GRID_COLS) >= PLAYER_ROWS, 
+                        'enemy-half': Math.floor((i-1)/GRID_COLS) < PLAYER_ROWS,
+                        'highlight-drop': (isDragging || isDraggingProp) && Math.floor((i-1)/GRID_COLS) >= PLAYER_ROWS && props.state?.phase !== 'COMBAT',
+                        'active-drop': dragOverCellIndex === (i-1) && Math.floor((i-1)/GRID_COLS) >= PLAYER_ROWS && props.state?.phase !== 'COMBAT'
+                     }"
+                     @dragover="(e) => onDragOver(e, i-1)"
+                     @dragleave="onDragLeave"
+                     @drop="(e) => onDrop(e, (i-1)%GRID_COLS, Math.floor((i-1)/GRID_COLS))">
+                </div>
 
-            <!-- 2-Star Energy Halo Effect -->
-            <div v-if="unit.starLevel === 2" class="star-2-halo">
-                <div class="halo-ring"></div>
-            </div>
+                <!-- Absolute content overlay (aligned to grid cells) -->
+                <div class="grid-overlay" :style="{ inset: GRID_GUTTER + 'px' }">
+                    <!-- Render Units -->
+                    <div v-for="unit in displayedUnits" :key="unit.id" 
+                         class="unit" 
+                         :style="getUnitStyle(unit)"
+                         :class="{ 'mine': unit.ownerId === myPlayerId, 'dying': unit.isDying, 'star-up': isStarringUp(unit.id) }"
+                         :draggable="unit.ownerId === myPlayerId && !unit.isDying"
+                         @dragstart="(e) => onDragStart(e, unit)"
+                         @dragend="onDragEnd"
+                         @mouseenter="(e) => onUnitMouseEnter(e, unit)"
+                         @mouseleave="onUnitMouseLeave">
+                         
+                        <div class="hp-bar" :style="{ 
+                            width: (unit.currentHealth / unit.maxHealth * 100) + '%',
+                            backgroundColor: unit.ownerId === myPlayerId ? TEAM_COLORS.FRIENDLY : TEAM_COLORS.OPPONENT
+                        }"></div>
+                        <div v-if="unit.maxMana > 0" class="mana-bar" :style="{ width: (unit.mana / unit.maxMana * 100) + '%' }"></div>
+                        <img :src="unit.image" class="unit-img" :alt="unit.name" draggable="false" />
+                        <div class="cost-top-glow"></div>
+                        <div v-if="unit.starLevel === 2" class="star-2-halo">
+                            <div class="halo-ring"></div>
+                        </div>
+                        <div v-if="unit.starLevel === 3" class="star-3-flow"></div>
+                        <div v-if="unit.stunTicksRemaining > 0" class="stun-badge">STUNNED</div>
+                        <div v-if="isStarringUp(unit.id)" class="star-up-burst">
+                            <span v-for="i in 8" :key="i" class="star-particle" :style="{ '--particle-index': i }"></span>
+                        </div>
+                    </div>
 
-            <!-- 3-Star Conqueror Flow Effect -->
-            <div v-if="unit.starLevel === 3" class="star-3-flow"></div>
+                    <!-- Render Loot Orbs -->
+                    <div v-for="orb in renderedOrbs" :key="orb.id"
+                         class="loot-orb"
+                         :class="orb.type.toLowerCase()"
+                         :style="{ 
+                            left: (orb.visualX * CELL_SIZE + (CELL_SIZE - (CELL_SIZE - 20))/2) + 'px', 
+                            top: (orb.visualY * CELL_SIZE + (CELL_SIZE - (CELL_SIZE - 20))/2) + 'px',
+                            width: (CELL_SIZE - 20) + 'px',
+                            height: (CELL_SIZE - 20) + 'px'
+                         }"
+                         @click="onOrbClick(orb.id)">
+                        <div class="orb-inner">
+                            <div class="orb-glow"></div>
+                            <div class="orb-content" :style="{ fontSize: (CELL_SIZE * 0.45) + 'px' }">
+                                <span v-if="orb.type === 'GOLD'">🪙</span>
+                                <span v-else>🎁</span>
+                            </div>
+                        </div>
+                    </div>
 
-            <!-- Stun Badge -->
-            <div v-if="unit.stunTicksRemaining > 0" class="stun-badge">
-                STUNNED
-            </div>
-            
-            <!-- Star-up celebration effect -->
-            <div v-if="isStarringUp(unit.id)" class="star-up-burst">
-                <span v-for="i in 8" :key="i" class="star-particle" :style="{ '--particle-index': i }"></span>
-            </div>
-        </div>
-
-        <!-- Render Loot Orbs -->
-        <div v-for="orb in renderedOrbs" :key="orb.id"
-             class="loot-orb"
-             :class="orb.type.toLowerCase()"
-             :style="{ 
-                left: (orb.visualX * CELL_SIZE + 10) + 'px', 
-                top: (orb.visualY * CELL_SIZE + 10) + 'px',
-                width: (CELL_SIZE - 20) + 'px',
-                height: (CELL_SIZE - 20) + 'px'
-             }"
-             @click="onOrbClick(orb.id)">
-            <div class="orb-inner">
-                <div class="orb-glow"></div>
-                <div class="orb-content" :style="{ fontSize: (CELL_SIZE * 0.45) + 'px' }">
-                    <span v-if="orb.type === 'GOLD'">🪙</span>
-                    <span v-else>🎁</span>
+                    <!-- Animations -->
+                    <AttackAnimation 
+                        v-for="anim in activeAnimations" 
+                        :key="anim.id"
+                        :type="anim.type"
+                        :attack-type="anim.attackType"
+                        :effect-style="anim.effectStyle"
+                        :pattern="anim.pattern"
+                        :start-x="anim.startX"
+                        :start-y="anim.startY"
+                        :end-x="anim.endX"
+                        :end-y="anim.endY"
+                        :color="anim.color"
+                        :definition-id="anim.definitionId"
+                        :cell-size="CELL_SIZE"
+                        @complete="removeAnimation(anim.id)"
+                    />
                 </div>
             </div>
         </div>
 
-        <!-- Attack & Ability Animations -->
-        <AttackAnimation 
-            v-for="anim in activeAnimations" 
-            :key="anim.id"
-            :type="anim.type"
-            :attack-type="anim.attackType"
-            :effect-style="anim.effectStyle"
-            :pattern="anim.pattern"
-            :start-x="anim.startX"
-            :start-y="anim.startY"
-            :end-x="anim.endX"
-            :end-y="anim.endY"
-            :color="anim.color"
-            :definition-id="anim.definitionId"
-            :cell-size="CELL_SIZE"
-            @complete="removeAnimation(anim.id)"
-        />
-
-        <!-- Shared Tooltip Anchor -->
-         <div v-if="hoveredUnit" 
-             class="tooltip-anchor"
-             :style="getTooltipAnchorStyle(hoveredUnit)">
-             <transition name="fade">
-                 <UnitTooltip :unit="hoveredUnit" :placement="hoveredUnit.visualY < 4 ? 'bottom' : 'top'" />
-             </transition>
-        </div>
         <!-- Player Names Overlay -->
         <div class="overlays">
              <div class="name-tag enemy" v-if="opponentName">{{ opponentName }}</div>
@@ -756,34 +756,77 @@ const onOrbClick = (orbId: string) => {
 
 <style scoped>
 /* (Keep existing styles) */
-.board-container {
+.main-canvas-container {
     display: flex;
     justify-content: center;
     align-items: center;
     width: 100%;
     height: 100%;
-    overflow: hidden;
+    overflow: visible; /* CRITICAL: Allow tooltips to float over panels */
+    padding: 30px;
+}
+
+.board-container {
+    position: relative;
+    padding: 0;
+    background: rgba(15, 23, 42, 0.4);
+    border-radius: 12px;
+    border: 3px solid rgba(51, 65, 85, 0.8);
+    box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.6),
+        inset 0 0 40px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    overflow: visible; /* CRITICAL: Allow names/tooltips outside grid */
+}
+
+.board-clipper {
+    position: absolute;
+    inset: 0;
+    border-radius: 9px; /* Slightly inner for the outer border */
+    overflow: hidden; /* CRITICAL: Clips cell backgrounds/units at board edge */
+    z-index: 1;
+}
+
+.board-container::before {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    pointer-events: none;
 }
 
 .grid {
     position: relative;
     display: grid;
-    background-color: #1e293b;
-    border: 2px solid #555;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-    z-index: 50;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    background: transparent;
     transition: width 0.2s, height 0.2s;
+    padding: 6px; /* GRID_GUTTER constant value */
+    box-sizing: border-box;
+}
+
+.grid-overlay {
+    position: absolute;
+    pointer-events: none;
+    z-index: 10;
 }
 
 .cell {
-    border: 1px solid #334155;
+    border: 1px solid rgba(255, 255, 255, 0.05); 
+    box-sizing: border-box;
     transition: all 0.2s;
+    background: radial-gradient(circle at center, rgba(30, 41, 59, 0.1) 0%, transparent 70%);
 }
+
 .cell.player-half {
-    background-color: rgba(59, 130, 246, 0.05);
+    background-color: rgba(59, 130, 246, 0.03);
 }
+
 .cell.enemy-half {
-    background-color: rgba(239, 68, 68, 0.05);
+    background-color: rgba(239, 68, 68, 0.03);
 }
 
 /* Hover effect for cells when NOT dragging */
@@ -819,6 +862,9 @@ const onOrbClick = (orbId: string) => {
 .unit.mine {
     cursor: grab;
 }
+.unit:hover {
+    z-index: 2000; /* Unified top layer */
+}
 .unit.mine:active {
     cursor: grabbing;
 }
@@ -844,6 +890,7 @@ const onOrbClick = (orbId: string) => {
     object-fit: cover; 
     border-radius: 50%;
     pointer-events: none;
+    z-index: 2; /* Relative to parent .unit, ensures it stays above halos but under bars */
 }
 
 .hp-bar {
@@ -925,7 +972,7 @@ const onOrbClick = (orbId: string) => {
     width: 118%;
     height: 118%;
     pointer-events: none;
-    z-index: -1;
+    z-index: 1; /* Under unit-img */
 }
 
 .halo-ring {
@@ -955,7 +1002,7 @@ const onOrbClick = (orbId: string) => {
     padding: 5px;
     background-clip: content-box;
     pointer-events: none;
-    z-index: -1;
+    z-index: 1; /* Under unit-img */
 }
 
 .star-3-flow::before {
@@ -1116,6 +1163,7 @@ const onOrbClick = (orbId: string) => {
     height: 35px;
     cursor: pointer;
     z-index: 60;
+    pointer-events: auto; /* Ensure they work inside overlay */
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -1173,6 +1221,15 @@ const onOrbClick = (orbId: string) => {
     transform: scale(0.8);
     opacity: 0.5;
 }
+/* Overlays & Tooltips */
+.overlays {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100; /* Above board and units */
+}
+
+
 </style>
 
 

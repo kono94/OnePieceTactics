@@ -19,7 +19,7 @@ public final class GameConstants {
     // Grid & Units
     public static final int MAX_BENCH_SIZE = 9;
     public static final int SHOP_SIZE = 5;
-    public static final int GRID_COLS = 7;
+    public static final int GRID_COLS = 9;
     public static final int PLAYER_ROWS = 3;
     public static final int COMBAT_ROWS = 6;
 
@@ -34,7 +34,7 @@ public final class GameConstants {
     // Bot
     public static final int BOT_STARTING_LEVEL = 2;
     public static final int BOT_MAX_LEVEL = 9;
-    public static final int BOT_MAX_UNITS_PER_ROW = 7;
+    public static final int BOT_MAX_UNITS_PER_ROW = 9;
 
     // Loot Orbs
     public static final int MIN_ORB_COUNT = 2;

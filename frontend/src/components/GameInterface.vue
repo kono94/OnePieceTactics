@@ -75,19 +75,20 @@ function buyXp() {
 }
 
 const onBenchDragStart = (evt: DragEvent, unit: GameUnit) => {
-    mousePos.value = { x: evt.clientX, y: evt.clientY }
     isDraggingUnit.value = true
     draggedUnit.value = unit
     // Clear hover states when drag starts
-    hoveredBenchUnitId.value = null
-    hoveredShopIndex.value = null
+    handleHideTooltip()
     
     if (evt.dataTransfer) {
         evt.dataTransfer.setData('unitId', unit.id)
         evt.dataTransfer.effectAllowed = 'move'
         
-        // Hide default drag image reliably with preloaded blank image
-        evt.dataTransfer.setDragImage(blankDragImage, 0, 0);
+        // Use only the icon for the drag image to avoid capturing neighbors/tooltips
+        const img = (evt.currentTarget as HTMLElement)?.querySelector('.bench-unit-img');
+        if (img) {
+            evt.dataTransfer.setDragImage(img, 32, 32);
+        }
     }
 }
 
@@ -142,58 +143,27 @@ const handleCollectOrb = (orbId: string) => {
     emit('action', { type: 'COLLECT_ORB', orbId, playerId: myPlayer.value?.playerId })
 }
 
-// Tooltip state for bench and shop
-const hoveredBenchUnitId = ref<string|null>(null)
-const hoveredShopIndex = ref<number|null>(null)
+// Unified Global Tooltip State
+const activeTooltip = ref<{
+    unit: any,
+    rect: DOMRect,
+    placement: 'top' | 'bottom',
+    shift?: 'left' | 'more-left' | 'center'
+} | null>(null)
 
-// Preload blank drag image to ensure setDragImage is reliable
-const blankDragImage = new Image()
-blankDragImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
-
-// ========== DRAG AND GHOST STATE ==========
-const mousePos = ref({ x: 0, y: 0 })
-const gridCellSize = ref(60)
-const isOverGrid = ref(false)
-
-const onMouseMove = (evt: MouseEvent) => {
-    if (isDraggingUnit.value) {
-        mousePos.value = { x: evt.clientX, y: evt.clientY }
+const handleShowTooltip = (rect: DOMRect, unit: any, placement: 'top' | 'bottom' = 'top', shift?: 'left' | 'more-left' | 'center') => {
+    if (isDraggingUnit.value) return
+    activeTooltip.value = {
+        unit,
+        rect,
+        placement,
+        shift
     }
 }
 
-const onGlobalDrag = (evt: DragEvent) => {
-    if (isDraggingUnit.value && evt.clientX !== 0) {
-        mousePos.value = { x: evt.clientX, y: evt.clientY }
-    }
+const handleHideTooltip = () => {
+    activeTooltip.value = null
 }
-
-const onGlobalDragOver = (evt: DragEvent) => {
-    evt.preventDefault() // FIX: Stop native drop rejection animation (lag)
-    if (isDraggingUnit.value && evt.clientX !== 0) {
-        mousePos.value = { x: evt.clientX, y: evt.clientY }
-    }
-}
-
-const onGlobalDragEnd = () => {
-    isDraggingUnit.value = false
-    draggedUnit.value = null
-}
-
-onMounted(() => {
-    window.addEventListener('mousemove', onMouseMove)
-    window.addEventListener('dragover', onGlobalDragOver)
-    window.addEventListener('drag', onGlobalDrag)
-    window.addEventListener('dragend', onGlobalDragEnd)
-    window.addEventListener('drop', onGlobalDragEnd)
-})
-
-onUnmounted(() => {
-    window.removeEventListener('mousemove', onMouseMove)
-    window.removeEventListener('dragover', onGlobalDragOver)
-    window.removeEventListener('drag', onGlobalDrag)
-    window.removeEventListener('dragend', onGlobalDragEnd)
-    window.removeEventListener('drop', onGlobalDragEnd)
-})
 
 // ========== DRAG AND SELL STATE ==========
 const isDraggingUnit = ref(false)
@@ -242,13 +212,11 @@ const onSellDrop = (evt: DragEvent) => {
 
 // Grid drag handlers
 const onGridDragStart = (data: { unit: GameUnit, x: number, y: number }) => {
-    mousePos.value = { x: data.x, y: data.y }
     isDraggingUnit.value = true
     isDraggingFromGrid.value = true
     draggedUnit.value = data.unit
     // Clear hover states
-    hoveredBenchUnitId.value = null
-    hoveredShopIndex.value = null
+    handleHideTooltip()
 }
 
 const onGridDragEnd = () => {
@@ -356,8 +324,8 @@ const rarityColors = [
                 @drag-start="onGridDragStart"
                 @drag-end="onGridDragEnd"
                 @collect-orb="handleCollectOrb"
-                @update:cell-size="(s) => gridCellSize = s"
-                @update:is-over-grid="(v) => isOverGrid = v" />
+                @show-tooltip="(data) => handleShowTooltip(data.rect, data.unit, data.placement)"
+                @hide-tooltip="handleHideTooltip" />
             <PlayerList v-if="state" :players="allPlayers" :my-player-id="myPlayer?.playerId" />
         </div>
 
@@ -392,10 +360,10 @@ const rarityColors = [
                 </div>
                 <div class="stats-row">
                     <div class="gold-info">
-                        <span class="gold-amount">{{ myPlayer.gold }}</span>
-                        <span class="gold-label">Gold</span>
+                        <span class="gold-amount" style="font-size: 28px;">{{ myPlayer.gold }}</span>
+                        <span class="gold-label" style="font-size: 14px;">Gold</span>
                     </div>
-                    <div class="unit-count" :class="{ 'max-units': myPlayerBoardUnits.length >= myPlayer.level }">
+                    <div class="unit-count" :class="{ 'max-units': myPlayerBoardUnits.length >= myPlayer.level }" style="font-size: 18px;">
                         {{ myPlayerBoardUnits.length }}/{{ myPlayer.level }}
                     </div>
                 </div>
@@ -426,8 +394,8 @@ const rarityColors = [
                                 draggable="true"
                                 @dragstart="(e) => onBenchDragStart(e, slot.unit!)"
                                 @dragend="onBenchDragEnd"
-                                @mouseenter="!isDraggingUnit ? hoveredBenchUnitId = slot.unit!.id : null"
-                                @mouseleave="hoveredBenchUnitId = null">
+                                @mouseenter="(e) => handleShowTooltip((e.currentTarget as HTMLElement).getBoundingClientRect(), slot.unit!)"
+                                @mouseleave="handleHideTooltip">
                                <!-- Cost Top Glow (Outside inner to avoid clipping) -->
                                <div class="cost-top-glow"></div>
 
@@ -440,22 +408,15 @@ const rarityColors = [
                                <div v-if="slot.unit.starLevel === 3" class="star-3-flow"></div>
 
                                <div class="bench-unit-inner" :style="{ borderColor: getRarityColor(slot.unit.cost) }">
+                                  <div v-if="isStarringUp(slot.unit.id)" class="star-up-burst">
+                                   <span v-for="j in 8" :key="j" class="star-particle" :style="{ '--particle-index': j }"></span>
+                               </div>
                                   <img :src="getUnitIconPath(slot.unit.definitionId, props.state?.gameMode)" 
                                        class="bench-unit-img"
                                        draggable="false" />
                                </div>
                                
-                               <!-- Star-up celebration effect -->
-                               <div v-if="isStarringUp(slot.unit.id)" class="star-up-burst">
-                                   <span v-for="j in 8" :key="j" class="star-particle" :style="{ '--particle-index': j }"></span>
-                               </div>
                               
-                              <!-- Tooltip for Bench -->
-                              <transition name="fade">
-                                 <UnitTooltip v-if="hoveredBenchUnitId === slot.unit.id" 
-                                              :unit="slot.unit" 
-                                              class="bench-tooltip" />
-                              </transition>
                            </div>
                         </div>
                     </div>
@@ -481,8 +442,8 @@ const rarityColors = [
                     <div v-for="(card, idx) in shopCards" :key="idx" class="shop-card" 
                          :class="{ 'empty': !card, 'can-buy': card && myPlayer.gold >= card.cost, [`rarity-${card?.cost || 1}`]: card }"
                          @click="card && buyUnit(Number(idx))"
-                         @mouseenter="card && !isDraggingUnit ? hoveredShopIndex = Number(idx) : null"
-                         @mouseleave="hoveredShopIndex = null">
+                         @mouseenter="(e) => card ? handleShowTooltip((e.currentTarget as HTMLElement).getBoundingClientRect(), card, 'top', idx === 4 ? 'more-left' : idx === 3 ? 'left' : undefined) : null"
+                         @mouseleave="handleHideTooltip">
                          <template v-if="card">
                              <div class="shop-card-portrait">
                                  <img :src="getUnitIconPath(card.id, props.state?.gameMode)" class="shop-card-img" draggable="false" />
@@ -491,13 +452,6 @@ const rarityColors = [
                                  <div class="name">{{ card.name }}</div>
                                  <div class="cost">{{ card.cost }}g</div>
                              </div>
-                             <transition name="fade">
-                               <UnitTooltip v-if="hoveredShopIndex === idx" 
-                                           :unit="card" 
-                                           placement="top"
-                                           :shift="idx === 4 ? 'more-left' : idx === 3 ? 'left' : undefined"
-                                           class="shop-tooltip" />
-                             </transition>
                          </template>
                     </div>
                 </div>
@@ -522,26 +476,26 @@ const rarityColors = [
         Waiting for game state...
     </div>
 
-    <!-- Drag Ghost -->
+    <!-- Global Tooltip Teleport -->
     <Teleport to="body">
-        <div v-if="isDraggingUnit && draggedUnit && (mousePos.x !== 0 || mousePos.y !== 0)" 
-             class="drag-ghost"
-             :style="{
-                left: mousePos.x + 'px',
-                top: mousePos.y + 'px',
-                width: (isOverGrid ? gridCellSize : 64) + 'px',
-                height: (isOverGrid ? gridCellSize : 64) + 'px',
-                borderColor: getRarityColor(draggedUnit.cost),
-                '--rarity-color': getRarityColor(draggedUnit.cost)
-             }">
-            <img :src="getUnitIconPath(draggedUnit.definitionId, props.state?.gameMode)" class="ghost-img" />
-            
-            <div class="cost-top-glow"></div>
-            <div v-if="draggedUnit.starLevel === 2" class="star-2-halo">
-                <div class="halo-ring"></div>
+        <transition name="fade">
+            <div v-if="activeTooltip" 
+                 class="global-tooltip-container"
+                 :style="{ 
+                    position: 'fixed',
+                    left: activeTooltip.rect.left + 'px',
+                    top: activeTooltip.rect.top + 'px',
+                    width: activeTooltip.rect.width + 'px',
+                    height: activeTooltip.rect.height + 'px',
+                    zIndex: 100000,
+                    pointerEvents: 'none'
+                 }">
+                <UnitTooltip 
+                    :unit="activeTooltip.unit" 
+                    :placement="activeTooltip.placement"
+                    :shift="activeTooltip.shift" />
             </div>
-            <div v-if="draggedUnit.starLevel === 3" class="star-3-flow"></div>
-        </div>
+        </transition>
     </Teleport>
   </div>
 </template>
@@ -562,24 +516,26 @@ const rarityColors = [
     display: flex;
     flex-direction: column;
     padding: 0;
-    background: rgba(15, 23, 42, 0.9);
-    border-bottom: 1px solid #334155;
+    background: rgba(15, 23, 42, 0.7);
+    border-bottom: 2px solid rgba(51, 65, 85, 0.5);
+    backdrop-filter: blur(12px);
+    z-index: 100;
     transition: background-color 0.5s;
 }
 
 .top-bar.combat {
-    background: rgba(69, 10, 10, 0.9);
-    border-bottom-color: #ef4444;
+    background: rgba(69, 10, 10, 0.7);
+    border-bottom-color: rgba(239, 68, 68, 0.5);
 }
 
 .phase-info {
     display: flex;
     justify-content: space-between;
-    padding: 6px 20px;
-    font-size: 16px;
-    font-weight: bold;
+    padding: 10px 24px;
+    font-size: 18px;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
     align-items: center;
 }
 
@@ -624,27 +580,32 @@ const rarityColors = [
     align-items: center;
     position: relative; /* For tooltip positioning */
     cursor: grab;
+    z-index: 10;
+    transition: transform 0.2s ease;
 }
-.bench-unit:active {
+.bench-unit:hover {
     cursor: grabbing;
+    z-index: 2000; /* Unified top layer */
+    transform: scale(1.1) translateY(-5px);
+    filter: brightness(1.1);
 }
 
 .bench-unit-inner {
     position: relative;
-    width: 56px;
-    height: 56px;
+    width: 64px;  /* Synced to bench-slot */
+    height: 64px; /* Synced to bench-slot */
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
     font-weight: bold;
     color: black;
-    font-size: 11px;
+    font-size: 13px;
     background-color: #1e293b;
-    border: 2px solid #334155; 
-    box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+    border: 3px solid #334155; 
+    box-shadow: 0 8px 16px rgba(0,0,0,0.6);
     overflow: hidden;
-    z-index: 5; /* Ensure icon is above halo/flow */
+    z-index: 5;
 }
 .bench-unit-img {
     width: 100%;
@@ -652,6 +613,7 @@ const rarityColors = [
     object-fit: cover;
     border-radius: 50%;
     pointer-events: none;
+    z-index: 2; /* Ensures portrait stays above halos/flows */
 }
 
 .main-area {
@@ -663,17 +625,19 @@ const rarityColors = [
     align-items: center;
     background: #1a1a1a;
     overflow: visible;
+    z-index: 70; /* Above bottom-ui (60) for tooltips */
 }
 
 .bottom-ui {
     flex-shrink: 0;
-    height: 160px; /* Slightly more buffer than 150px, still slim */
-    background: #0f172a;
-    border-top: 2px solid #334155;
+    height: 180px; /* Increased height */
+    background: rgba(15, 23, 42, 0.8);
+    border-top: 2px solid rgba(51, 65, 85, 0.5);
+    backdrop-filter: blur(16px);
     display: grid;
-    grid-template-columns: 160px 1.5fr 0.8fr;
-    padding: 8px 12px;
-    gap: 12px;
+    grid-template-columns: 200px 1.2fr 1fr; /* Optimized distribution */
+    padding: 12px 20px;
+    gap: 20px;
     position: relative;
     z-index: 60;
     overflow: visible;
@@ -681,16 +645,17 @@ const rarityColors = [
 
 /* Stats Panel */
 .stats-panel {
-    width: 160px; /* Reduced from 180px */
-    min-width: 160px;
+    width: 200px; /* Increased from 160px */
+    min-width: 200px;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    background: rgba(30, 41, 59, 0.5);
-    padding: 10px; /* Tightened */
+    background: rgba(30, 41, 59, 0.4);
+    padding: 12px;
     border-radius: 12px;
-    border: 1px solid #334155;
+    border: 1px solid rgba(51, 65, 85, 0.5);
+    backdrop-filter: blur(8px);
 }
 
 .level-info {
@@ -861,23 +826,28 @@ const rarityColors = [
     padding: 12px;
     box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
     flex: 1; /* Stretch to fill available vertical space */
+    overflow: visible;
 }
 
 .bench-slots {
     display: flex;
-    gap: 6px;
+    gap: 4px; /* Tightened gap */
+    overflow: visible;
 }
 
 .bench-slot {
-    width: 60px; /* Increased from 52px */
-    height: 60px; /* Increased from 52px */
-    background: #1e293b;
+    width: 64px; 
+    height: 64px; 
+    background: rgba(30, 41, 59, 0.6);
     border: 1px solid #334155;
     border-radius: 8px;
     display: flex;
     justify-content: center;
     align-items: center;
     transition: all 0.2s ease;
+    position: relative;
+    z-index: 1;
+    overflow: visible;
 }
 
 .bench-slot.highlight-drop {
@@ -970,23 +940,26 @@ const rarityColors = [
 /* Shop */
 .shop-area {
     flex: 1;
-    min-width: 380px;
     display: flex;
     flex-direction: column;
-    gap: 8px; /* Reduced gap */
+    gap: 8px;
     height: 100%;
+    min-width: 0; /* Allow shrinking */
+    overflow: visible;
 }
 
 .shop-cards {
     display: flex;
     gap: 6px;
-    flex: 1;
+    height: 105px; /* Enforce stable height to prevent refresh button jump */
+    flex-shrink: 0;
 }
 
 .shop-card {
     position: relative;
     flex: 1 1 0;
-    min-width: 70px; /* Reduced from 80px */
+    min-width: 80px; /* Further reduced min-width */
+    flex-shrink: 1;
     height: 100%;
     background: #1e293b;
     border: 2px solid #334155;
@@ -1005,11 +978,30 @@ const rarityColors = [
 .shop-card.rarity-4 { border-color: #a855f7; background: linear-gradient(135deg, #581c87 0%, #1e293b 100%); }
 .shop-card.rarity-5 { border-color: #eab308; background: linear-gradient(135deg, #78350f 0%, #1e293b 100%); }
 
+.shop-card {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 80px; /* Further reduced min-width */
+    flex-shrink: 1;
+    height: 100%;
+    background: #1e293b;
+    border: 2px solid #334155;
+    border-radius: 8px; /* Slightly tighter radius */
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    padding: 4px; /* Reduced padding */
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    /* overflow: hidden; -- Allows tooltips to be visible */
+    z-index: 1;
+}
+
 .shop-card.can-buy:hover {
-    transform: translateY(-4px); /* Enhanced jump */
-    z-index: 100; /* Ensure tooltip is above everything */
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6), 0 0 15px rgba(96, 165, 250, 0.3);
+    transform: scale(1.05) translateY(-5px); /* Unified scale and lift */
+    z-index: 2000; /* Unified top layer */
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.8), 0 0 20px rgba(96, 165, 250, 0.4);
     border-color: #60a5fa;
+    filter: brightness(1.1);
 }
 
 .shop-card.rarity-1.can-buy:hover { border-color: #94a3b8; box-shadow: 0 0 10px rgba(148, 163, 184, 0.3); }
@@ -1028,8 +1020,8 @@ const rarityColors = [
 
 .shop-card-portrait {
     width: 100%;
-    height: 52px; /* Reduced from 60px */
-    margin-bottom: 3px; /* Reduced margin */
+    height: 48px; /* Reduced from 60px as requested */
+    margin-bottom: 4px; 
     flex-shrink: 0;
     overflow: hidden;
     border-radius: 6px;
@@ -1056,19 +1048,19 @@ const rarityColors = [
     width: 100%;
     text-align: center;
     font-weight: 800;
-    font-size: 13px;
+    font-size: 15px; /* Increased from 13px */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     color: #ffffff;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-    margin-bottom: 2px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    margin-bottom: 4px;
 }
 
 .shop-card .cost {
-    font-size: 11px;
+    font-size: 14px; /* Increased from 11px */
     color: #fbbf24;
-    font-weight: 600;
+    font-weight: 800;
 }
 
 .shop-tooltip, .bench-tooltip {
@@ -1256,7 +1248,7 @@ const rarityColors = [
     width: 118%;
     height: 118%;
     pointer-events: none;
-    z-index: 1; 
+    z-index: 1; /* Under unit-img */
 }
 
 .halo-ring {
@@ -1285,7 +1277,7 @@ const rarityColors = [
     padding: 5px;
     background-clip: content-box;
     pointer-events: none;
-    z-index: 1;
+    z-index: 1; /* Under unit-img */
 }
 
 .star-3-flow::before {
@@ -1308,26 +1300,4 @@ const rarityColors = [
     z-index: -2;
 }
 
-.drag-ghost {
-    position: fixed;
-    pointer-events: none;
-    z-index: 9999;
-    transform: translate(-50%, -50%);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: rgba(30, 41, 59, 0.8);
-    backdrop-filter: blur(4px);
-    border: 2px solid var(--rarity-color);
-    border-radius: 50%;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-    transition: width 0.15s ease, height 0.15s ease;
-}
-
-.ghost-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-}
 </style>
