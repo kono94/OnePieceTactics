@@ -77,7 +77,7 @@ write_files:
       echo "[$(date)] GitOps Deploy Triggered"
       
       cd "$PROJECT_DIR"
-      git fetch --all --tags
+      git fetch --all --tags --force
       
       LATEST_TAG=$(git describe --tags --abbrev=0 origin/main 2>/dev/null || echo "main")
       echo "Deploying: $LATEST_TAG"
