@@ -173,17 +173,9 @@ const getUnitStyle = (unit: RenderedUnit) => {
     if (unit.stunTicksRemaining > 0) {
         styles.filter = 'grayscale(1) brightness(0.8)';
     } else {
-        const extraGlows: string[] = [];
-        if (unit.atkBuff > 1.01) {
-            extraGlows.push('0 0 15px rgba(249, 115, 22, 0.8)');
-        }
-        if (unit.spdBuff > 1.01) {
-            extraGlows.push('0 0 15px rgba(59, 130, 246, 0.8)');
-        }
-        
-        if (extraGlows.length > 0) {
-            const teamGlow = unit.isMine ? `0 0 10px ${TEAM_COLORS.FRIENDLY}99` : '';
-            styles.boxShadow = [...extraGlows, teamGlow].filter(g => g).join(', ');
+        // Clean look: team-only glow
+        if (unit.isMine) {
+            styles.boxShadow = `0 0 10px ${TEAM_COLORS.FRIENDLY}99`;
         }
     }
 
@@ -673,16 +665,24 @@ const onOrbClick = (orbId: string) => {
                          @mouseenter="(e) => onUnitMouseEnter(e, unit)"
                          @mouseleave="onUnitMouseLeave">
                          
-                        <div class="hp-bar" :style="{ 
-                            width: (unit.currentHealth / unit.maxHealth * 100) + '%',
-                            backgroundColor: unit.ownerId === myPlayerId ? TEAM_COLORS.FRIENDLY : TEAM_COLORS.OPPONENT
-                        }"></div>
-                        <div v-if="unit.maxMana > 0" class="mana-bar" :style="{ width: (unit.mana / unit.maxMana * 100) + '%' }"></div>
+                        <div class="hp-bar-container">
+                            <div class="hp-bar-fill" :style="{ 
+                                width: (unit.currentHealth / unit.maxHealth * 100) + '%',
+                                backgroundColor: unit.ownerId === myPlayerId ? TEAM_COLORS.FRIENDLY : TEAM_COLORS.OPPONENT
+                            }"></div>
+                        </div>
+                        <div v-if="unit.maxMana > 0" class="mana-pill">
+                            <div class="mana-fill-btm" :style="{ height: (unit.mana / unit.maxMana * 100) + '%' }"></div>
+                        </div>
+                        <div class="buff-container">
+                            <div v-if="unit.atkBuff > 1.01" class="buff-icon atk-buff">⚔️</div>
+                            <div v-if="unit.spdBuff > 1.01" class="buff-icon spd-buff">⚡</div>
+                            <div v-if="unit.atkBuff < 0.99" class="buff-icon atk-debuff">🔻</div>
+                            <div v-if="unit.spdBuff < 0.99" class="buff-icon spd-debuff">❄️</div>
+                        </div>
                         <img :src="unit.image" class="unit-img" :alt="unit.name" draggable="false" />
                         <div class="cost-top-glow"></div>
-                        <div v-if="unit.starLevel === 2" class="star-2-halo">
-                            <div class="halo-ring"></div>
-                        </div>
+                        <div v-if="unit.starLevel === 2" class="star-2-halo"></div>
                         <div v-if="unit.starLevel === 3" class="star-3-flow"></div>
                         <div v-if="unit.stunTicksRemaining > 0" class="stun-badge">STUNNED</div>
                         <div v-if="isStarringUp(unit.id)" class="star-up-burst">
@@ -853,7 +853,7 @@ const onOrbClick = (orbId: string) => {
     justify-content: center;
     align-items: center;
     border: 2px solid white;
-    transition: left 0.2s, top 0.2s; 
+    transition: left 0.2s, top 0.2s, border-color 0.2s, box-shadow 0.2s; 
     box-shadow: 0 4px 6px rgba(0,0,0,0.5);
     z-index: 10;
     pointer-events: auto; 
@@ -893,27 +893,79 @@ const onOrbClick = (orbId: string) => {
     z-index: 2; /* Relative to parent .unit, ensures it stays above halos but under bars */
 }
 
-.hp-bar {
+.hp-bar-container {
     position: absolute;
-    top: -8px; 
-    left: 0;
-    width: 100%; 
-    height: 4px;
-    background-color: #ef4444;
-    border-radius: 2px;
-    box-shadow: 0 0 2px black;
+    top: -6px; /* Moved lower, closer to unit */
+    left: 2px;
+    right: 2px;
+    height: 6px;
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 3px;
+    /* Removed heavy border for a cleaner "glass" look */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    overflow: hidden;
+    z-index: 20;
 }
 
-.mana-bar {
-    position: absolute;
-    top: -4px;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background-color: #3b82f6;
-    border-radius: 2px;
-    box-shadow: 0 0 2px black;
+.hp-bar-fill {
+    height: 100%;
+    transition: width 0.3s cubic-bezier(0.1, 0.7, 0.1, 1);
 }
+
+.mana-pill {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 20px; /* Reduced size from 24px */
+    height: 20px;
+    background-color: rgba(15, 23, 42, 0.9);
+    border-radius: 50%;
+    /* Use a themed, transparent border to make it less dominant */
+    border: 1.5px solid rgba(125, 211, 252, 0.4); 
+    box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+    z-index: 30;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.mana-fill-btm {
+    width: 100%;
+    background-color: #2563eb; /* Slightly deeper, more vibrant blue */
+    transition: height 0.3s ease-out;
+}
+
+.buff-container {
+    position: absolute;
+    right: -22px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 50;
+    pointer-events: none;
+}
+
+.buff-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 1px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    background-color: #0f172a;
+    color: white;
+}
+
+.buff-icon.atk-buff { background-color: #22c55e; }
+.buff-icon.spd-buff { background-color: #3b82f6; }
+.buff-icon.atk-debuff { background-color: #ef4444; }
+.buff-icon.spd-debuff { background-color: #6366f1; }
 
 .fade-enter-active,
 .fade-leave-active {
@@ -966,43 +1018,22 @@ const onOrbClick = (orbId: string) => {
 /* 2-Star Energy Halo Effect */
 .star-2-halo {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 118%;
-    height: 118%;
-    pointer-events: none;
-    z-index: 1; /* Under unit-img */
-}
-
-.halo-ring {
-    position: absolute;
-    inset: 0;
-    border: 2px dashed var(--rarity-color);
+    inset: -6px;
     border-radius: 50%;
-    opacity: 0.5;
-    animation: rotate-halo 15s linear infinite;
-    box-shadow: 0 0 10px var(--rarity-color);
-}
-
-@keyframes rotate-halo { 
-    from { transform: rotate(0deg); } 
-    to { transform: rotate(360deg); } 
+    border: 1px dashed var(--rarity-color);
+    opacity: 0.6;
+    animation: rotate-halo 10s linear infinite;
+    z-index: 2;
+    pointer-events: none;
 }
 
 /* 3-Star Conqueror Flow Effect */
 .star-3-flow {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 118%;
-    height: 118%;
+    inset: -4px;
     border-radius: 50%;
-    padding: 5px;
-    background-clip: content-box;
     pointer-events: none;
-    z-index: 1; /* Under unit-img */
+    z-index: 5;
 }
 
 .star-3-flow::before {
@@ -1013,6 +1044,8 @@ const onOrbClick = (orbId: string) => {
     background: conic-gradient(from 0deg, var(--rarity-color), #fff, var(--rarity-color), #000, var(--rarity-color));
     animation: rotate-halo 1.5s linear infinite;
     z-index: -1;
+    -webkit-mask: radial-gradient(transparent 65%, black 66%);
+    mask: radial-gradient(transparent 65%, black 66%);
 }
 
 .star-3-flow::after {
@@ -1023,6 +1056,11 @@ const onOrbClick = (orbId: string) => {
     box-shadow: 0 0 20px var(--rarity-color);
     opacity: 0.6;
     z-index: -2;
+}
+
+@keyframes rotate-halo {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 @keyframes floatUp {
