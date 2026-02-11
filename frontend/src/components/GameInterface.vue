@@ -171,6 +171,7 @@ const draggedUnit = ref<GameUnit | null>(null)
 const isSellZoneHovered = ref(false)
 const isDraggingFromGrid = ref(false)
 const dragOverBenchIndex = ref(-1)
+const isOverGrid = ref(false)
 
 // Calculate sell value: cost × 3^(starLevel - 1)
 function calculateSellRefund(unit: GameUnit | null): number {
@@ -324,6 +325,7 @@ const rarityColors = [
                 @drag-start="onGridDragStart"
                 @drag-end="onGridDragEnd"
                 @collect-orb="handleCollectOrb"
+                @update:is-over-grid="(val) => isOverGrid = val"
                 @show-tooltip="(data) => handleShowTooltip(data.rect, data.unit, data.placement)"
                 @hide-tooltip="handleHideTooltip" />
             <PlayerList v-if="state" :players="allPlayers" :my-player-id="myPlayer?.playerId" />
