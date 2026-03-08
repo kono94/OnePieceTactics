@@ -283,7 +283,10 @@ public class GameRoom {
         this.phaseEndTime = clock.currentTimeMillis() + currentPhaseDuration;
 
         if (phase == GamePhase.COMBAT) {
-            players.values().stream().filter(p -> p.getHealth() > 0).forEach(p -> p.setInCombat(true));
+            players.values().stream().filter(p -> p.getHealth() > 0).forEach(p -> {
+                p.setInCombat(true);
+                p.autoFillBoard();
+            });
 
             currentRoundDamageLog.clear();
 

@@ -386,6 +386,29 @@ public class Player {
 
     // ========== END MOVE UNIT REFACTORED ==========
 
+    public void autoFillBoard() {
+        int missingCapacity = this.level - this.boardUnits.size();
+        if (missingCapacity <= 0) return;
+
+        for (int i = 0; i < GameConstants.MAX_BENCH_SIZE && missingCapacity > 0; i++) {
+            var unit = bench.getOrNull(i);
+            if (unit != null) {
+                boolean placed = false;
+                for (int y = GameConstants.PLAYER_ROWS - 1; y >= 0 && !placed; y--) {
+                    for (int x = 0; x < GameConstants.GRID_COLS && !placed; x++) {
+                        if (grid.isEmpty(x, y)) {
+                            bench.clear(i);
+                            grid.placeUnit(unit, x, y);
+                            boardUnits.add(unit);
+                            placed = true;
+                            missingCapacity--;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public void removeAllUnits() {
         new ArrayList<>(boardUnits).forEach(u -> {
             grid.removeUnit(u);

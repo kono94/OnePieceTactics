@@ -627,7 +627,7 @@ const rarityColors = [
     align-items: center;
     background: #1a1a1a;
     overflow: visible;
-    z-index: 70; /* Above bottom-ui (60) for tooltips */
+    z-index: 60; /* Under bottom-ui (70) so bottom tooltips can overlap */
 }
 
 .bottom-ui {
@@ -641,7 +641,7 @@ const rarityColors = [
     padding: 12px 20px;
     gap: 20px;
     position: relative;
-    z-index: 60;
+    z-index: 70; /* Above main-area (60) so odds tooltip can overlap */
     overflow: visible;
 }
 
