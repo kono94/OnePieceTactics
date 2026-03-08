@@ -1018,7 +1018,11 @@ const onOrbClick = (orbId: string) => {
 /* 2-Star Energy Halo Effect */
 .star-2-halo {
     position: absolute;
-    inset: -6px;
+    top: -6px;
+    left: -6px;
+    width: calc(100% + 12px);
+    height: calc(100% + 12px);
+    transform: none;
     border-radius: 50%;
     border: 1px dashed var(--rarity-color);
     opacity: 0.6;
@@ -1030,7 +1034,11 @@ const onOrbClick = (orbId: string) => {
 /* 3-Star Conqueror Flow Effect */
 .star-3-flow {
     position: absolute;
-    inset: -4px;
+    top: -4px;
+    left: -4px;
+    width: calc(100% + 8px);
+    height: calc(100% + 8px);
+    transform: none;
     border-radius: 50%;
     pointer-events: none;
     z-index: 5;
@@ -1039,19 +1047,25 @@ const onOrbClick = (orbId: string) => {
 .star-3-flow::before {
     content: '';
     position: absolute;
-    inset: -2px;
+    top: -2px;
+    left: -2px;
+    width: calc(100% + 4px);
+    height: calc(100% + 4px);
     border-radius: 50%;
     background: conic-gradient(from 0deg, var(--rarity-color), #fff, var(--rarity-color), #000, var(--rarity-color));
     animation: rotate-halo 1.5s linear infinite;
     z-index: -1;
-    -webkit-mask: radial-gradient(transparent 65%, black 66%);
-    mask: radial-gradient(transparent 65%, black 66%);
+    -webkit-mask: radial-gradient(circle at center, transparent 65%, black 66%);
+    mask: radial-gradient(circle at center, transparent 65%, black 66%);
 }
 
 .star-3-flow::after {
     content: '';
     position: absolute;
-    inset: -6px;
+    top: -6px;
+    left: -6px;
+    width: calc(100% + 12px);
+    height: calc(100% + 12px);
     border-radius: 50%;
     box-shadow: 0 0 20px var(--rarity-color);
     opacity: 0.6;
