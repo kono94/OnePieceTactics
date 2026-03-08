@@ -34,8 +34,12 @@ class GameEndCleanupTest {
         testClock.advance(30000);
         room.tick(); // This should detect combat end and transition
 
-        // Force next phase transition
+        // Force next phase transition (to END_CELEBRATION)
         testClock.advance(30000);
+        room.tick();
+
+        // Advance past the 8-second END_CELEBRATION phase
+        testClock.advance(15000);
         room.tick();
 
         // After transitioning to planning with only P1 alive, game should end
@@ -68,10 +72,14 @@ class GameEndCleanupTest {
         // Eliminate all except P1
         room.getPlayers().stream().filter(p -> !p.getName().equals("P1")).forEach(p -> p.setHealth(0));
 
-        // Transition through phases
+        // Transition through phases (COMBAT -> PLANNING -> END_CELEBRATION)
         testClock.advance(30000);
         engine.tick();
         testClock.advance(30000);
+        engine.tick();
+
+        // Advance past END_CELEBRATION -> END
+        testClock.advance(15000);
         engine.tick();
 
         assertTrue(room.isEnded(), "Game should have ended");

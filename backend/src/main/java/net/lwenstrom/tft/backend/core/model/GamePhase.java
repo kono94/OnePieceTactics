@@ -4,5 +4,6 @@ public enum GamePhase {
     LOBBY,
     PLANNING,
     COMBAT,
+    END_CELEBRATION,
     END
 }

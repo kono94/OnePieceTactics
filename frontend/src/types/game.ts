@@ -7,7 +7,7 @@
 // Enums
 // ============================================================================
 
-export type GamePhase = 'LOBBY' | 'PLANNING' | 'COMBAT' | 'END'
+export type GamePhase = 'LOBBY' | 'PLANNING' | 'COMBAT' | 'END_CELEBRATION' | 'END'
 
 export type GameMode = 'onepiece' | 'pokemon'
 

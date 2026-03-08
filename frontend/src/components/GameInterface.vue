@@ -287,12 +287,32 @@ const rarityColors = [
     '#eab308'  // 5-cost
 ]
 
+// ========== END SCREEN DELAY ==========
+const showEndScreen = ref(false)
+const endScreenTimer = ref<number | null>(null)
+
+watch([() => props.state?.phase, isDead], ([newPhase, dead]) => {
+    if (newPhase === 'END_CELEBRATION' || newPhase === 'END' || dead) {
+        if (!showEndScreen.value && endScreenTimer.value === null) {
+            endScreenTimer.value = window.setTimeout(() => {
+                showEndScreen.value = true
+            }, 4000) // 4 seconds delay to watch the animation and 0 HP
+        }
+    } else {
+        showEndScreen.value = false
+        if (endScreenTimer.value !== null) {
+            clearTimeout(endScreenTimer.value)
+            endScreenTimer.value = null
+        }
+    }
+}, { immediate: true })
+
 </script>
 
 <template>
   <div class="game-interface">
     <PhaseAnnouncement v-if="state" :phase="state.phase" />
-    <EndScreen v-if="state?.phase === 'END'" :players="allPlayers" :my-player-id="myPlayer?.playerId" />
+    <EndScreen v-if="showEndScreen" :players="allPlayers" :my-player-id="myPlayer?.playerId" />
 
 
     <template v-if="state">
@@ -310,7 +330,7 @@ const rarityColors = [
                 <div class="timer-bar-fill" 
                      :style="{ 
                         width: (state.timeRemainingMs / Math.max(1, state.totalPhaseDuration || (state.phase === 'PLANNING' ? 8000 : 20000)) * 100) + '%',
-                        backgroundColor: state.phase === 'COMBAT' ? '#ef4444' : '#3b82f6'
+                        backgroundColor: state.phase === 'COMBAT' ? '#ef4444' : (state.phase === 'END_CELEBRATION' ? '#eab308' : '#3b82f6')
                      }">
                 </div>
             </div>

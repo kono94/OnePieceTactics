@@ -22,7 +22,7 @@ watch(() => props.phase, (newPhase, oldPhase) => {
         isCombat.value = true
         triggerAnimation()
     } else {
-        // Other phases if any (e.g., DROPPING, END)
+        // Other phases if any (e.g., LOBBY, END_CELEBRATION, END)
         showAnnouncement.value = false
     }
 }, { immediate: true }) // Check immediately on load too

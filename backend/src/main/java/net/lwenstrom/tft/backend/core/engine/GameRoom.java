@@ -183,13 +183,14 @@ public class GameRoom {
     }
 
     public void tick() {
-        if (phase == GamePhase.LOBBY) {
+        if (phase == GamePhase.LOBBY || phase == GamePhase.END) {
             return;
         }
 
         long now = clock.currentTimeMillis();
         if (now >= phaseEndTime) {
             nextPhase();
+            return;
         }
 
         lastTickEvents.clear();
@@ -208,6 +209,12 @@ public class GameRoom {
             }
             currentRoundDamageLog.putAll(combatSystem.getDamageLog());
 
+            // If handleCombatEnd triggered a game end, the phase is no longer COMBAT.
+            // We should stop processing further COMBAT logic this tick.
+            if (phase != GamePhase.COMBAT) {
+                return;
+            }
+
             if (activeCombats.isEmpty()) {
                 nextPhase();
             }
@@ -217,11 +224,21 @@ public class GameRoom {
     }
 
     private void nextPhase() {
+        if (phase == GamePhase.END) {
+            return;
+        }
+
         if (phase == GamePhase.COMBAT && !activeCombats.isEmpty()) {
             for (var pair : activeCombats) {
                 handleCombatEnd(true, null, pair);
             }
             activeCombats.clear();
+        }
+
+        if (phase == GamePhase.END_CELEBRATION) {
+            this.phase = GamePhase.END;
+            updateGameState(0);
+            return;
         }
 
         if (phase == GamePhase.PLANNING) {
@@ -240,8 +257,7 @@ public class GameRoom {
                     players.values().stream().filter(p -> p.getHealth() > 0).count();
             if (alivePlayers <= 1) {
                 log.info("Game ending: only {} player(s) remaining", alivePlayers);
-                this.phase = GamePhase.END;
-                updateGameState(0);
+                startPhase(GamePhase.END_CELEBRATION);
                 return;
             }
 
@@ -408,6 +424,9 @@ public class GameRoom {
         if (phase == GamePhase.COMBAT) {
             return GameConstants.COMBAT_PHASE_MS;
         }
+        if (phase == GamePhase.END_CELEBRATION) {
+            return 6000L; // 6 seconds for celebration animation
+        }
         return GameConstants.BASE_PLANNING_DURATION_MS + (round - 1) * GameConstants.PLANNING_DURATION_INCREMENT_MS;
     }
 
@@ -496,8 +515,7 @@ public class GameRoom {
             if (alivePlayers.size() == 1) {
                 alivePlayers.get(0).setPlace(1);
             }
-            this.phase = GamePhase.END;
-            updateGameState(0);
+            startPhase(GamePhase.END_CELEBRATION);
         }
     }
 

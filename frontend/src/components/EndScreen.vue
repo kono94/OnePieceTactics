@@ -5,9 +5,14 @@
         <!-- Background accent -->
         <div class="end-screen__accent"></div>
         
-        <h1 class="end-screen__title" :class="isWinner ? 'end-screen__title--winner' : 'end-screen__title--loser'">
-            {{ isWinner ? 'Victory' : 'Game Over' }}
-        </h1>
+        <div class="end-screen__burst-container" ref="burstContainer">
+            <div class="end-screen__burst-icon" :class="getPlaceClass(myPlace)">
+                {{ getPlaceIcon(myPlace) }}
+            </div>
+            <h1 class="end-screen__title" :class="getPlaceClass(myPlace)">
+                {{ getPlaceTitle(myPlace) }}
+            </h1>
+        </div>
         
          <div class="end-screen__result">
             You finished <span :class="getPlaceClass(myPlace)">#{{ myPlace || '-' }}</span>
@@ -39,19 +44,21 @@
              </div>
         </div>
         
-        <button 
-            @click="reloadGame"
-            class="end-screen__play-again"
-        >
-            Play Again
-        </button>
+        <div class="end-screen__actions">
+            <button @click="reloadGame" class="end-screen__play-again">
+                Play Again
+            </button>
+            <button @click="returnHome" class="end-screen__return-home">
+                Return to Home
+            </button>
+        </div>
 
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import type { PlayerState } from '../types';
 
 const props = defineProps<{
@@ -78,8 +85,103 @@ function getPlaceClass(place: number | string | null | undefined) {
   return 'place--default';
 }
 
+function getPlaceIcon(place: number | string | null | undefined) {
+  if (place === 1) return '🏆';
+  if (place === 2) return '🥈';
+  if (place === 3) return '🥉';
+  return '💀';
+}
+
+function getPlaceTitle(place: number | string | null | undefined) {
+  if (place === 1) return '1st Place';
+  if (place === 2) return '2nd Place';
+  if (place === 3) return '3rd Place';
+  return 'Game Over';
+}
+
 function reloadGame() {
     window.location.reload();
+}
+
+function returnHome() {
+    window.location.href = '/';
+}
+
+// === GOLDEN BURST & CONFETTI ===
+const burstContainer = ref<HTMLElement | null>(null);
+
+onMounted(() => {
+    // Slight delay to ensure DOM is ready and entry animation is playing
+    setTimeout(() => {
+        triggerBurst();
+    }, 100);
+});
+
+function triggerBurst() {
+    if (!burstContainer.value) return;
+
+    let particleColor = '#64748b'; // default slate
+    if (myPlace.value === 1) particleColor = '#fbbf24'; // gold
+    else if (myPlace.value === 2) particleColor = '#e2e8f0'; // silver
+    else if (myPlace.value === 3) particleColor = '#d97706'; // bronze
+
+    // Burst particles
+    for (let i = 0; i < 40; i++) {
+        const p = document.createElement('div');
+        p.className = 'burst-particle';
+        
+        // Randomly mix standard color with a bit of white or darker variants
+        const colors = [particleColor, '#ffffff', particleColor];
+        p.style.background = colors[Math.floor(Math.random() * colors.length)];
+        
+        p.style.left = '50%';
+        p.style.top = '20%';
+        
+        const angle = Math.random() * Math.PI * 2;
+        const distance = Math.random() * 300 + 50;
+        const duration = Math.random() * 0.8 + 0.4;
+
+        p.style.transition = `all ${duration}s cubic-bezier(0.1, 0.8, 0.3, 1)`;
+        burstContainer.value.appendChild(p);
+
+        // Force reflow
+        void p.offsetWidth;
+
+        const tx = Math.cos(angle) * distance;
+        const ty = Math.sin(angle) * distance;
+        p.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0)`;
+        p.style.opacity = '0';
+
+        setTimeout(() => { p.remove(); }, duration * 1000);
+    }
+
+    // Confetti (falling from top)
+    for (let i = 0; i < 60; i++) {
+        const c = document.createElement('div');
+        c.className = 'confetti-particle';
+        const colors = [particleColor, '#ffffff', particleColor, particleColor];
+        c.style.background = colors[Math.floor(Math.random() * colors.length)];
+        
+        c.style.width = c.style.height = (Math.random() * 8 + 4) + 'px';
+        c.style.left = (Math.random() * 100) + '%';
+        c.style.top = '-20px';
+        c.style.borderRadius = Math.random() > 0.5 ? '0' : '50%';
+        
+        const duration = Math.random() * 2 + 1.5;
+        const drift = (Math.random() * 200 - 100) + 'px';
+        
+        c.style.transition = `top ${duration}s cubic-bezier(.37,0,.63,1), left ${duration}s ease, transform ${duration}s linear`;
+        burstContainer.value.appendChild(c);
+
+        // Force reflow
+        void c.offsetWidth;
+
+        c.style.top = '120%';
+        c.style.left = `calc(${c.style.left} + ${drift})`;
+        c.style.transform = `rotate(${Math.random() * 720}deg)`;
+
+        setTimeout(() => { c.remove(); }, duration * 1000);
+    }
 }
 </script>
 
@@ -87,7 +189,7 @@ function reloadGame() {
 .end-screen {
     position: fixed;
     inset: 0;
-    z-index: 50;
+    z-index: 99999;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -107,6 +209,7 @@ function reloadGame() {
     text-align: center;
     display: flex;
     flex-direction: column;
+    align-items: center; /* keep everything centered */
     gap: 24px;
     position: relative;
     overflow: hidden;
@@ -122,11 +225,33 @@ function reloadGame() {
     opacity: 0.5;
 }
 
+.end-screen__burst-container {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: scale(0.5);
+    opacity: 0;
+    animation: burstIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.end-screen__burst-icon {
+    font-size: 80px;
+    filter: drop-shadow(0 0 20px currentColor);
+    animation: pulseIcon 2s infinite alternate;
+    margin-bottom: 8px;
+    z-index: 2;
+}
+
 .end-screen__title {
     font-size: 48px;
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: -0.025em;
+    margin: 0;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    z-index: 2;
 }
 
 .end-screen__title--winner {
@@ -225,22 +350,44 @@ function reloadGame() {
     font-size: 20px;
 }
 
-.end-screen__play-again {
+.end-screen__actions {
+    display: flex;
+    gap: 16px;
     margin-top: 16px;
-    padding: 12px 32px;
-    background: #d97706;
-    color: white;
+    width: 100%;
+}
+
+.end-screen__play-again,
+.end-screen__return-home {
+    flex: 1;
+    padding: 12px 24px;
     font-weight: 700;
     border-radius: 6px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
     cursor: pointer;
     border: none;
     transition: all 0.2s;
 }
 
+.end-screen__play-again {
+    background: #d97706;
+    color: white;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
 .end-screen__play-again:hover {
     background: #f59e0b;
     box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.3);
+    transform: translateY(-2px);
+}
+
+.end-screen__return-home {
+    background: #334155;
+    color: #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.end-screen__return-home:hover {
+    background: #475569;
     transform: translateY(-2px);
 }
 
@@ -261,8 +408,33 @@ function reloadGame() {
     color: #64748b;
 }
 
+:deep(.burst-particle) {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+:deep(.confetti-particle) {
+    position: absolute;
+    pointer-events: none;
+    z-index: 0;
+}
+
 @keyframes fadeIn {
     from { opacity: 0; transform: scale(0.95); }
     to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes burstIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulseIcon {
+    from { filter: drop-shadow(0 0 10px currentColor); transform: scale(0.95); }
+    to { filter: drop-shadow(0 0 30px currentColor); transform: scale(1.05); }
 }
 </style>
