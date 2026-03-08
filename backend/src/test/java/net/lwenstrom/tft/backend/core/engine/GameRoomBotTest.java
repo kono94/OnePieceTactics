@@ -38,12 +38,13 @@ class GameRoomBotTest {
             }
 
             @Override
-            public void registerTraitEffects(TraitManager traitManager) {
-            }
+            public void registerTraitEffects(TraitManager traitManager) {}
         };
 
         gameModeRegistry = new GameModeRegistry(List.of(provider), "onepiece");
-        dataLoader = new DataLoader(gameModeRegistry);
+        dataLoader = new DataLoader(
+                gameModeRegistry,
+                tools.jackson.databind.json.JsonMapper.builder().build());
         dataLoader.loadData();
 
         gameRoom = new GameRoom(
@@ -127,8 +128,7 @@ class GameRoomBotTest {
         for (var unit : bot.getBoardUnits()) {
             int cost = unit.getCost();
             assertTrue(
-                    cost >= 1 && cost <= 2,
-                    "Bot at round 0 (level 2) should only have 1-2 cost units, found: " + cost);
+                    cost >= 1 && cost <= 2, "Bot at round 0 (level 2) should only have 1-2 cost units, found: " + cost);
             System.out.println("Unit: " + unit.getName() + " (Cost: " + cost + ", Star: " + unit.getStarLevel() + ")");
         }
     }
@@ -149,17 +149,14 @@ class GameRoomBotTest {
         }
 
         for (var player : gameRoom.getPlayers()) {
-            if (!player.getName().startsWith("Bot-"))
-                continue;
+            if (!player.getName().startsWith("Bot-")) continue;
 
             for (var unit : player.getBoardUnits()) {
                 int starLevel = unit.getStarLevel();
                 assertTrue(starLevel >= 1 && starLevel <= 3, "Star level should be 1, 2, or 3");
 
-                if (starLevel == 2)
-                    found2Star = true;
-                if (starLevel == 3)
-                    found3Star = true;
+                if (starLevel == 2) found2Star = true;
+                if (starLevel == 3) found3Star = true;
             }
         }
 

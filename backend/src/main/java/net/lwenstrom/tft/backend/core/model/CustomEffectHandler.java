@@ -1,7 +1,7 @@
 package net.lwenstrom.tft.backend.core.model;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Interface for theme-specific trait effects that cannot be generalized.

@@ -236,7 +236,8 @@ public class GameRoom {
         log.info("Starting phase: {}", newPhase);
 
         if (phase == GamePhase.PLANNING) {
-            var alivePlayers = players.values().stream().filter(p -> p.getHealth() > 0).count();
+            var alivePlayers =
+                    players.values().stream().filter(p -> p.getHealth() > 0).count();
             if (alivePlayers <= 1) {
                 log.info("Game ending: only {} player(s) remaining", alivePlayers);
                 this.phase = GamePhase.END;
@@ -259,8 +260,8 @@ public class GameRoom {
                 // Navigator trait gold
                 int navGold = p.getBoardUnits().stream()
                         .filter(u -> u.getGoldBonusMax() > 0)
-                        .mapToInt(u -> (int) (u.getGoldBonusMin()
-                                + Math.random() * (u.getGoldBonusMax() - u.getGoldBonusMin() + 1)))
+                        .mapToInt(u -> (int)
+                                (u.getGoldBonusMin() + Math.random() * (u.getGoldBonusMax() - u.getGoldBonusMin() + 1)))
                         .sum();
                 if (navGold > 0) {
                     p.gainGold(navGold);
@@ -380,8 +381,8 @@ public class GameRoom {
             int x = randomProvider.nextInt(GameConstants.GRID_COLS);
             int y = randomProvider.nextInt(GameConstants.PLAYER_ROWS);
 
-            var type = randomProvider.nextInt(100) < GameConstants.ORB_GOLD_CHANCE_PERCENT ? LootType.GOLD
-                    : LootType.UNIT;
+            var type =
+                    randomProvider.nextInt(100) < GameConstants.ORB_GOLD_CHANCE_PERCENT ? LootType.GOLD : LootType.UNIT;
             var contentId = "";
             var amount = 0;
 
@@ -421,8 +422,7 @@ public class GameRoom {
         notifyCombatResult(outcome, result, participants);
     }
 
-    private record CombatOutcome(Player winner, Player loser, boolean isDraw) {
-    }
+    private record CombatOutcome(Player winner, Player loser, boolean isDraw) {}
 
     private CombatOutcome determineCombatOutcome(
             boolean isTimeout, CombatSystem.CombatResult result, List<Player> participants) {
@@ -468,8 +468,7 @@ public class GameRoom {
     }
 
     private void applyDamageToLoser(Player winner, Player loser) {
-        if (loser == null || winner == null)
-            return;
+        if (loser == null || winner == null) return;
 
         var damage = GameConstants.BASE_COMBAT_DAMAGE + winner.getBoardUnits().size() + (round / 3);
 
@@ -478,7 +477,8 @@ public class GameRoom {
             log.info("Combat ended: {} wins! {} takes {} damage", winner.getName(), loser.getName(), damage);
 
             if (loser.getHealth() <= 0) {
-                var aliveCount = (int) players.values().stream().filter(p -> p.getHealth() > 0).count();
+                var aliveCount = (int)
+                        players.values().stream().filter(p -> p.getHealth() > 0).count();
                 loser.setPlace(aliveCount + 1);
             }
         } else {
@@ -487,7 +487,8 @@ public class GameRoom {
     }
 
     private void checkAndTriggerGameEnd() {
-        var alivePlayers = players.values().stream().filter(p -> p.getHealth() > 0).toList();
+        var alivePlayers =
+                players.values().stream().filter(p -> p.getHealth() > 0).toList();
         if (alivePlayers.size() <= 1) {
             if (alivePlayers.size() == 1) {
                 alivePlayers.get(0).setPlace(1);
@@ -499,8 +500,7 @@ public class GameRoom {
 
     private void notifyCombatResult(
             CombatOutcome outcome, CombatSystem.CombatResult result, List<Player> participants) {
-        if (combatResultListener == null)
-            return;
+        if (combatResultListener == null) return;
 
         String winnerId = null;
         String loserId = null;

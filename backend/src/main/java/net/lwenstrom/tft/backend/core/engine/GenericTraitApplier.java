@@ -1,12 +1,12 @@
 package net.lwenstrom.tft.backend.core.engine;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import java.util.Map;
 import net.lwenstrom.tft.backend.core.model.CustomEffectHandler;
 import net.lwenstrom.tft.backend.core.model.EffectType;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 import net.lwenstrom.tft.backend.core.model.TraitEffect;
+import tools.jackson.databind.JsonNode;
 
 /**
  * A data-driven trait applier that reads effect values from trait definition

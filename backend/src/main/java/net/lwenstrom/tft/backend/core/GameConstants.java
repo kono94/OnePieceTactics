@@ -43,6 +43,5 @@ public final class GameConstants {
     public static final int MIN_ORB_GOLD = 3;
     public static final int MAX_ORB_GOLD = 8;
 
-    private GameConstants() {
-    }
+    private GameConstants() {}
 }

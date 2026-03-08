@@ -1,9 +1,6 @@
 package net.lwenstrom.tft.backend.core;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import jakarta.annotation.PostConstruct;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -13,6 +10,8 @@ import net.lwenstrom.tft.backend.core.engine.UnitDefinition;
 import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.TraitMetadata;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -20,7 +19,7 @@ import org.springframework.stereotype.Service;
 public class DataLoader {
 
     private final GameModeRegistry gameModeRegistry;
-    private final JsonMapper jsonMapper = JsonMapper.builder().build();
+    private final JsonMapper jsonMapper;
 
     private Map<String, UnitDefinition> unitRegistry;
     private List<TraitMetadata> traitMetadata;
@@ -43,7 +42,7 @@ public class DataLoader {
                 log.error("Could not find units at {}", path);
                 unitRegistry = Map.of();
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to load unit data: " + path, e);
         }
     }
@@ -58,7 +57,7 @@ public class DataLoader {
                 log.error("Could not find traits at {}", path);
                 traitMetadata = List.of();
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to load trait data: " + path, e);
         }
     }

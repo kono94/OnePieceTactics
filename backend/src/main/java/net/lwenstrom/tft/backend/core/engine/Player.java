@@ -40,8 +40,7 @@ public class Player {
     private boolean ghost = false;
     private final List<PendingUpgrade> pendingUpgrades = new ArrayList<>();
 
-    private record PendingUpgrade(String unitName, int starLevel) {
-    }
+    private record PendingUpgrade(String unitName, int starLevel) {}
 
     private final DataLoader dataLoader;
 
@@ -67,18 +66,14 @@ public class Player {
     }
 
     public void buyUnit(int shopIndex) {
-        if (shopIndex < 0 || shopIndex >= shop.size())
-            return;
+        if (shopIndex < 0 || shopIndex >= shop.size()) return;
         var def = shop.get(shopIndex);
 
-        if (def == null)
-            return;
-        if (gold < def.cost())
-            return;
+        if (def == null) return;
+        if (gold < def.cost()) return;
 
         var emptySlot = bench.findFirstEmptySlot();
-        if (emptySlot.isEmpty())
-            return;
+        if (emptySlot.isEmpty()) return;
 
         gold -= def.cost();
         var newUnit = new StandardGameUnit(def);
@@ -199,7 +194,8 @@ public class Player {
     }
 
     public void collectOrb(String orbId) {
-        var orb = lootOrbs.stream().filter(o -> o.id().equals(orbId)).findFirst().orElse(null);
+        var orb =
+                lootOrbs.stream().filter(o -> o.id().equals(orbId)).findFirst().orElse(null);
 
         if (orb != null) {
             lootOrbs.remove(orb);
@@ -275,10 +271,8 @@ public class Player {
     // ========== MOVE UNIT REFACTORED ==========
 
     public void moveUnit(String unitId, int x, int y) {
-        if (boardLocked)
-            return;
-        if (y >= 0 && !grid.isValid(x, y))
-            return;
+        if (boardLocked) return;
+        if (y >= 0 && !grid.isValid(x, y)) return;
 
         var benchEntry = bench.findUnit(unitId);
         if (benchEntry.isPresent()) {
@@ -298,8 +292,7 @@ public class Player {
     }
 
     private void handleBoardUnitMove(GameUnit unit, int x, int y) {
-        if (inCombat)
-            return;
+        if (inCombat) return;
 
         if (y < 0) {
             moveBoardToBench(unit, x);
@@ -309,8 +302,7 @@ public class Player {
     }
 
     private void moveBenchToBoard(Bench.BenchEntry entry, int x, int y) {
-        if (inCombat)
-            return;
+        if (inCombat) return;
 
         var benchUnit = entry.unit();
         var fromBenchIdx = entry.index();
@@ -327,8 +319,7 @@ public class Player {
             boardUnits.add(benchUnit);
         } else {
             // Empty cell - standard move
-            if (boardUnits.size() >= level)
-                return; // Cap
+            if (boardUnits.size() >= level) return; // Cap
 
             bench.clear(fromBenchIdx);
             grid.placeUnit(benchUnit, x, y);
@@ -348,8 +339,7 @@ public class Player {
             targetBenchIdx = bench.findFirstEmptySlot().orElse(-1);
         }
 
-        if (targetBenchIdx == -1)
-            return;
+        if (targetBenchIdx == -1) return;
 
         var targetBenchUnit = bench.getOrNull(targetBenchIdx);
         if (targetBenchUnit != null) {
@@ -408,8 +398,7 @@ public class Player {
     }
 
     public void addUnitToBoard(UnitDefinition def, int x, int y, int starLevel) {
-        if (boardUnits.size() >= level)
-            return;
+        if (boardUnits.size() >= level) return;
         var unit = new StandardGameUnit(def, starLevel);
         unit.setOwnerId(this.id);
         if (grid.isValid(x, y) && grid.isEmpty(x, y)) {

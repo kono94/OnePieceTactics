@@ -19,8 +19,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
 
     @Override
     public void castAbility(GameUnit source, List<GameUnit> allUnits, TargetSelector targetSelector) {
-        castAbility(source, allUnits, targetSelector, (id, name, tId, dmg) -> {
-        });
+        castAbility(source, allUnits, targetSelector, (id, name, tId, dmg) -> {});
     }
 
     @Override
@@ -72,7 +71,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
         int finalDamage = applyExecuteModifier(source, target, ability, scaledDamage);
 
         // Track total damage dealt for lifesteal
-        var totalDamageDealt = new int[] { 0 };
+        var totalDamageDealt = new int[] {0};
 
         applyToTargets(source, allUnits, target, ability, u -> {
             u.takeDamage(finalDamage);
@@ -143,7 +142,10 @@ public class DefaultAbilityCaster implements AbilityCaster {
     }
 
     private void castBuffAtkAbility(
-            GameUnit source, List<GameUnit> allUnits, AbilityDefinition ability, int buffPercent,
+            GameUnit source,
+            List<GameUnit> allUnits,
+            AbilityDefinition ability,
+            int buffPercent,
             DamageCallback callback) {
         // Buff all allies' ATK board-wide
         float multiplier = 1.0f + (buffPercent / 100.0f);
@@ -173,7 +175,10 @@ public class DefaultAbilityCaster implements AbilityCaster {
     }
 
     private void castBuffSpdAbility(
-            GameUnit source, List<GameUnit> allUnits, AbilityDefinition ability, int buffPercent,
+            GameUnit source,
+            List<GameUnit> allUnits,
+            AbilityDefinition ability,
+            int buffPercent,
             DamageCallback callback) {
         // Buff all allies' attack speed board-wide
         float multiplier = 1.0f + (buffPercent / 100.0f);
@@ -305,8 +310,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
     }
 
     private void applyStunAndKnockbackModifiers(GameUnit source, GameUnit target, AbilityDefinition ability) {
-        if (target == null)
-            return;
+        if (target == null) return;
         int starLevel = source.getStarLevel();
 
         for (var modifier : ability.modifiers()) {
@@ -321,8 +325,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
     }
 
     private void applyKnockback(GameUnit source, GameUnit target, int cells) {
-        if (target == null || cells <= 0)
-            return;
+        if (target == null || cells <= 0) return;
         int dx = Integer.compare(target.getX(), source.getX());
         int dy = Integer.compare(target.getY(), source.getY());
 

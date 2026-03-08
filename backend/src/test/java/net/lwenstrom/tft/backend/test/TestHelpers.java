@@ -53,7 +53,8 @@ public final class TestHelpers {
 
     public static DataLoader createMockDataLoader(List<UnitDefinition> units) {
         var registry = createMockRegistry();
-        return new DataLoader(registry) {
+        return new DataLoader(
+                registry, tools.jackson.databind.json.JsonMapper.builder().build()) {
             @Override
             public List<UnitDefinition> getAllUnits() {
                 return units;

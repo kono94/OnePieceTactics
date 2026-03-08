@@ -93,7 +93,8 @@ class CombatIntegrationTest {
                 .withHealth(100, 100)
                 .withAttackDamage(10);
         var deadUnit = MockUnit.create("dead", p2.getId()).withPosition(3, 4).withHealth(0, 100);
-        var targetUnit = MockUnit.create("target", p2.getId()).withPosition(4, 4).withHealth(50, 100);
+        var targetUnit =
+                MockUnit.create("target", p2.getId()).withPosition(4, 4).withHealth(50, 100);
 
         addUnitToPlayer(p1, aliveUnit);
         addUnitToPlayer(p2, deadUnit);
@@ -188,9 +189,7 @@ class CombatIntegrationTest {
                 .withRange(1);
         stunnedUnit.setStunSecondsRemaining(1.0f); // 1.0 second stun
 
-        var target = MockUnit.create("target", p2.getId())
-                .withPosition(3, 4)
-                .withHealth(100, 100);
+        var target = MockUnit.create("target", p2.getId()).withPosition(3, 4).withHealth(100, 100);
 
         addUnitToPlayer(p1, stunnedUnit);
         addUnitToPlayer(p2, target);

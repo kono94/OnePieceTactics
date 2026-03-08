@@ -1,12 +1,17 @@
 package net.lwenstrom.tft.backend.game.onepiece;
 
+import lombok.RequiredArgsConstructor;
 import net.lwenstrom.tft.backend.core.GameModeProvider;
 import net.lwenstrom.tft.backend.core.engine.TraitManager;
 import net.lwenstrom.tft.backend.core.model.GameMode;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.json.JsonMapper;
 
 @Component
+@RequiredArgsConstructor
 public class OnePieceGameModeProvider implements GameModeProvider {
+
+    private final JsonMapper jsonMapper;
 
     @Override
     public GameMode getMode() {
@@ -25,6 +30,6 @@ public class OnePieceGameModeProvider implements GameModeProvider {
 
     @Override
     public void registerTraitEffects(TraitManager traitManager) {
-        OnePieceTraitLoader.load(traitManager);
+        OnePieceTraitLoader.load(traitManager, jsonMapper);
     }
 }

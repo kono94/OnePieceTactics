@@ -17,33 +17,35 @@ public class SimulationTest {
     @Test
     public void testGameLoopSimulation() {
         // Mock GameModeRegistry and GameModeProvider
-        net.lwenstrom.tft.backend.core.GameModeProvider provider = new net.lwenstrom.tft.backend.core.GameModeProvider() {
-            @Override
-            public net.lwenstrom.tft.backend.core.model.GameMode getMode() {
-                return net.lwenstrom.tft.backend.core.model.GameMode.ONEPIECE;
-            }
+        net.lwenstrom.tft.backend.core.GameModeProvider provider =
+                new net.lwenstrom.tft.backend.core.GameModeProvider() {
+                    @Override
+                    public net.lwenstrom.tft.backend.core.model.GameMode getMode() {
+                        return net.lwenstrom.tft.backend.core.model.GameMode.ONEPIECE;
+                    }
 
-            @Override
-            public String getUnitsPath() {
-                return "/data/units_onepiece.json";
-            }
+                    @Override
+                    public String getUnitsPath() {
+                        return "/data/units_onepiece.json";
+                    }
 
-            @Override
-            public String getTraitsPath() {
-                return "/data/traits_onepiece.json";
-            }
+                    @Override
+                    public String getTraitsPath() {
+                        return "/data/traits_onepiece.json";
+                    }
 
-            @Override
-            public void registerTraitEffects(net.lwenstrom.tft.backend.core.engine.TraitManager traitManager) {
-                // No-op for test
-            }
-        };
+                    @Override
+                    public void registerTraitEffects(net.lwenstrom.tft.backend.core.engine.TraitManager traitManager) {
+                        // No-op for test
+                    }
+                };
 
-        net.lwenstrom.tft.backend.core.GameModeRegistry registry = new net.lwenstrom.tft.backend.core.GameModeRegistry(
-                List.of(provider), "onepiece");
+        net.lwenstrom.tft.backend.core.GameModeRegistry registry =
+                new net.lwenstrom.tft.backend.core.GameModeRegistry(List.of(provider), "onepiece");
 
         // Mock DataLoader
-        DataLoader dataLoader = new DataLoader(registry) {
+        DataLoader dataLoader = new DataLoader(
+                registry, tools.jackson.databind.json.JsonMapper.builder().build()) {
             @Override
             public List<UnitDefinition> getAllUnits() {
                 return List.of(new UnitDefinition(
@@ -116,30 +118,31 @@ public class SimulationTest {
     @Test
     public void testCombatInteraction() {
         // Similar mock setup for combat test
-        net.lwenstrom.tft.backend.core.GameModeProvider provider = new net.lwenstrom.tft.backend.core.GameModeProvider() {
-            @Override
-            public net.lwenstrom.tft.backend.core.model.GameMode getMode() {
-                return net.lwenstrom.tft.backend.core.model.GameMode.ONEPIECE;
-            }
+        net.lwenstrom.tft.backend.core.GameModeProvider provider =
+                new net.lwenstrom.tft.backend.core.GameModeProvider() {
+                    @Override
+                    public net.lwenstrom.tft.backend.core.model.GameMode getMode() {
+                        return net.lwenstrom.tft.backend.core.model.GameMode.ONEPIECE;
+                    }
 
-            @Override
-            public String getUnitsPath() {
-                return "";
-            }
+                    @Override
+                    public String getUnitsPath() {
+                        return "";
+                    }
 
-            @Override
-            public String getTraitsPath() {
-                return "";
-            }
+                    @Override
+                    public String getTraitsPath() {
+                        return "";
+                    }
 
-            @Override
-            public void registerTraitEffects(net.lwenstrom.tft.backend.core.engine.TraitManager traitManager) {
-            }
-        };
-        net.lwenstrom.tft.backend.core.GameModeRegistry registry = new net.lwenstrom.tft.backend.core.GameModeRegistry(
-                List.of(provider), "onepiece");
+                    @Override
+                    public void registerTraitEffects(net.lwenstrom.tft.backend.core.engine.TraitManager traitManager) {}
+                };
+        net.lwenstrom.tft.backend.core.GameModeRegistry registry =
+                new net.lwenstrom.tft.backend.core.GameModeRegistry(List.of(provider), "onepiece");
 
-        DataLoader dataLoader = new DataLoader(registry) {
+        DataLoader dataLoader = new DataLoader(
+                registry, tools.jackson.databind.json.JsonMapper.builder().build()) {
             @Override
             public List<UnitDefinition> getAllUnits() {
                 return List.of(new UnitDefinition(
@@ -208,8 +211,8 @@ public class SimulationTest {
             combatSystemField.setAccessible(true);
             Object combatSystem = combatSystemField.get(room);
 
-            java.lang.reflect.Method startCombatMethod = combatSystem.getClass().getDeclaredMethod("startCombat",
-                    Collection.class);
+            java.lang.reflect.Method startCombatMethod =
+                    combatSystem.getClass().getDeclaredMethod("startCombat", Collection.class);
             startCombatMethod.setAccessible(true);
             startCombatMethod.invoke(combatSystem, List.of(p1, p2));
 

@@ -13,6 +13,7 @@ import net.lwenstrom.tft.backend.core.model.GamePhase;
 import net.lwenstrom.tft.backend.test.TestClock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 public class PhaseDurationTest {
 
@@ -43,7 +44,7 @@ public class PhaseDurationTest {
         };
 
         GameModeRegistry registry = new GameModeRegistry(List.of(provider), "onepiece");
-        DataLoader dataLoader = new DataLoader(registry) {
+        DataLoader dataLoader = new DataLoader(registry, JsonMapper.builder().build()) {
             @Override
             public List<UnitDefinition> getAllUnits() {
                 return List.of(new UnitDefinition(

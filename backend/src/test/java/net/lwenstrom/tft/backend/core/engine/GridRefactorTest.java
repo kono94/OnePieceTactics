@@ -13,12 +13,13 @@ import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 import net.lwenstrom.tft.backend.core.model.TraitMetadata;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 class GridRefactorTest {
 
     static class MockDataLoader extends DataLoader {
         public MockDataLoader(GameModeRegistry registry) {
-            super(registry);
+            super(registry, JsonMapper.builder().build());
         }
 
         @Override
@@ -50,8 +51,7 @@ class GridRefactorTest {
             }
 
             @Override
-            public void registerTraitEffects(TraitManager traitManager) {
-            }
+            public void registerTraitEffects(TraitManager traitManager) {}
         };
         return new GameModeRegistry(List.of(provider), "onepiece");
     }

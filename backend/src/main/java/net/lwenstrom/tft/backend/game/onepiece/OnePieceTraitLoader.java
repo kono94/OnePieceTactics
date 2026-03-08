@@ -1,7 +1,5 @@
 package net.lwenstrom.tft.backend.game.onepiece;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +8,8 @@ import net.lwenstrom.tft.backend.core.engine.TraitManager;
 import net.lwenstrom.tft.backend.core.model.EffectType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 public class OnePieceTraitLoader {
     private static final Logger log = LoggerFactory.getLogger(OnePieceTraitLoader.class);
@@ -19,16 +19,15 @@ public class OnePieceTraitLoader {
      * TraitManager.
      * The traits_onepiece.json file is the single source of truth.
      */
-    public static void load(TraitManager traitManager) {
+    public static void load(TraitManager traitManager, JsonMapper jsonMapper) {
         try {
-            var objectMapper = new ObjectMapper();
             InputStream is = OnePieceTraitLoader.class.getResourceAsStream("/data/traits_onepiece.json");
             if (is == null) {
                 log.error("Could not find traits_onepiece.json");
                 return;
             }
 
-            JsonNode traitsArray = objectMapper.readTree(is);
+            JsonNode traitsArray = jsonMapper.readTree(is);
             for (JsonNode traitNode : traitsArray) {
                 var traitId = traitNode.get("id").asText();
                 var effectTypeStr = traitNode.has("effectType")

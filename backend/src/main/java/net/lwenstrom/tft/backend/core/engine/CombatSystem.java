@@ -27,8 +27,7 @@ public class CombatSystem {
     private Map<String, DamageEntry> damageLog = new HashMap<>();
     private List<GameState.CombatEvent> recentEvents = new ArrayList<>();
 
-    public record DamageEntry(String unitName, String definitionId, String ownerId, int damage) {
-    }
+    public record DamageEntry(String unitName, String definitionId, String ownerId, int damage) {}
 
     public CombatSystem(
             TraitManager traitManager,
@@ -151,7 +150,12 @@ public class CombatSystem {
                 abilityCaster.castAbility(unit, allUnits, targetSelector, (uId, uName, tId, dmg) -> {
                     accumulateDamage(uId, uName, unit.getDefinitionId(), unit.getOwnerId(), dmg);
                     recentEvents.add(new GameState.CombatEvent(
-                            currentTime, "SKILL", uId, tId, dmg, unit.getAbility().name()));
+                            currentTime,
+                            "SKILL",
+                            uId,
+                            tId,
+                            dmg,
+                            unit.getAbility().name()));
                 });
                 unit.setMana(0);
                 unit.setNextAttackTime(currentTime + GameConstants.ABILITY_COOLDOWN_MS);
@@ -168,8 +172,8 @@ public class CombatSystem {
 
                     // Apply Low HP Damage Bonus (Beast Pirates)
                     if (unit.getLowHpDamageBonus() > 0
-                            && (float) unit.getCurrentHealth() / unit.getMaxHealth() <= unit
-                                    .getLowHpDamageThreshold()) {
+                            && (float) unit.getCurrentHealth() / unit.getMaxHealth()
+                                    <= unit.getLowHpDamageThreshold()) {
                         multiplier += unit.getLowHpDamageBonus();
                     }
 
@@ -208,9 +212,8 @@ public class CombatSystem {
                         heal = (int) (heal * unit.getHealAmplification());
 
                         unit.setCurrentHealth(Math.min(unit.getMaxHealth(), unit.getCurrentHealth() + heal));
-                        recentEvents.add(
-                                new GameState.CombatEvent(currentTime, "HEAL", unit.getId(), unit.getId(), -heal,
-                                        null));
+                        recentEvents.add(new GameState.CombatEvent(
+                                currentTime, "HEAL", unit.getId(), unit.getId(), -heal, null));
                     }
 
                     // Mana Gain Multiplier (Mage)
@@ -273,6 +276,5 @@ public class CombatSystem {
     }
 
     public record CombatResult(
-            boolean ended, String winnerId, Map<String, DamageEntry> damageLog, List<GameState.CombatEvent> events) {
-    }
+            boolean ended, String winnerId, Map<String, DamageEntry> damageLog, List<GameState.CombatEvent> events) {}
 }
