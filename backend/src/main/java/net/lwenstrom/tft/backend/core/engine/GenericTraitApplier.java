@@ -80,7 +80,7 @@ public class GenericTraitApplier implements TraitEffect {
         if (!effect.has("customHandler")) {
             return;
         }
-        var handlerId = effect.get("customHandler").asText();
+        var handlerId = effect.get("customHandler").asString();
         var handler = customHandlers.get(handlerId);
         if (handler != null) {
             handler.apply(count, units, effect.get("values"));

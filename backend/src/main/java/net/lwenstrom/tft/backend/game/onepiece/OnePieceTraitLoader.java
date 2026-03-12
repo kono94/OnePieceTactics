@@ -29,9 +29,9 @@ public class OnePieceTraitLoader {
 
             JsonNode traitsArray = jsonMapper.readTree(is);
             for (JsonNode traitNode : traitsArray) {
-                var traitId = traitNode.get("id").asText();
+                var traitId = traitNode.get("id").asString();
                 var effectTypeStr = traitNode.has("effectType")
-                        ? traitNode.get("effectType").asText()
+                        ? traitNode.get("effectType").asString()
                         : "NONE";
                 var effectType = EffectType.valueOf(effectTypeStr);
 
