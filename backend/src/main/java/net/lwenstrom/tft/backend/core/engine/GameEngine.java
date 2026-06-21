@@ -26,7 +26,8 @@ public class GameEngine {
     }
 
     public GameRoom createRoom(String id) {
-        var room = new GameRoom(id, dataLoader, gameModeRegistry, clock, randomProvider);
+        var room =
+                new GameRoom(id, dataLoader, gameModeRegistry, clock, randomProvider, gameModeRegistry.getDefaultMode());
         rooms.put(room.getId(), room);
         return room;
     }

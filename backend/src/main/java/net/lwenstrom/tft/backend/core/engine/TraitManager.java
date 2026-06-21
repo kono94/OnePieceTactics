@@ -19,6 +19,10 @@ public class TraitManager {
         effects.put(normalizeTraitId(traitId), effect);
     }
 
+    public void clearEffects() {
+        effects.clear();
+    }
+
     public void applyTraits(List<GameUnit> units) {
         // Map Trait ID -> Count (Unique Units)
         var traitCounts = new HashMap<String, Set<String>>();

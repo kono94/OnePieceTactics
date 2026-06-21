@@ -7,6 +7,7 @@ import java.util.List;
 import net.lwenstrom.tft.backend.core.combat.CombatUtils;
 import net.lwenstrom.tft.backend.core.combat.NearestEnemyTargetSelector;
 import net.lwenstrom.tft.backend.core.combat.TargetSelector;
+import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 import net.lwenstrom.tft.backend.test.MockUnit;
 import net.lwenstrom.tft.backend.test.TestHelpers;
@@ -117,8 +118,10 @@ class CombatSystemUnitTest {
 
     @Test
     void testSimulateTick_UnitAttacksInRange() {
-        var p1 = new Player("P1", null, createSeededRandomProvider());
-        var p2 = new Player("P2", null, createSeededRandomProvider());
+        var p1 =
+                new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 =
+                new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
 
         var attacker = MockUnit.create("attacker", p1.getId())
                 .withPosition(3, 0)
@@ -145,8 +148,10 @@ class CombatSystemUnitTest {
 
     @Test
     void testSimulateTick_ManaGain_OnAttack() {
-        var p1 = new Player("P1", null, createSeededRandomProvider());
-        var p2 = new Player("P2", null, createSeededRandomProvider());
+        var p1 =
+                new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 =
+                new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
 
         var attacker = MockUnit.create("attacker", p1.getId())
                 .withPosition(3, 0)

@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps<{
   gameState: any
   currentPlayerName: string
+  availableModes: string[]
+  defaultMode: string
 }>()
 
-const emit = defineEmits(['start', 'leave'])
+const emit = defineEmits(['start', 'leave', 'mode-change'])
 
 const isHost = computed(() => {
     if (!props.gameState || !props.gameState.players) return false
@@ -19,10 +21,38 @@ const players = computed(() => {
     return Object.values(props.gameState.players)
 })
 
+const selectedMode = ref<string>(props.gameState?.gameMode ?? props.defaultMode ?? 'onepiece')
+
+watch(
+    () => props.gameState?.gameMode,
+    (mode) => {
+        if (mode && mode !== selectedMode.value) {
+            selectedMode.value = mode
+        }
+    }
+)
+
+const modeOptions = computed(() => {
+    return props.availableModes && props.availableModes.length > 0
+        ? props.availableModes
+        : ['onepiece', 'pokemon']
+})
+
+const modeLabel = (mode: string) => {
+    if (mode === 'pokemon') return 'Pokemon'
+    if (mode === 'onepiece') return 'One Piece'
+    return mode
+}
+
+const themeClass = computed(() => {
+    if (!props.gameState?.gameMode) return 'theme-generic'
+    return `theme-${props.gameState.gameMode}`
+})
+
 </script>
 
 <template>
-  <div class="waiting-room">
+  <div :class="['waiting-room', themeClass]">
     <div class="header">
         <h2>Lobby: {{ gameState.roomId }}</h2>
         <div class="host-info">
@@ -52,6 +82,23 @@ const players = computed(() => {
         </div>
     </div>
 
+    <div class="mode-panel">
+        <div class="mode-label">Theme</div>
+        <div v-if="isHost" class="mode-control">
+            <select
+                v-model="selectedMode"
+                @change="$emit('mode-change', selectedMode)"
+            >
+                <option v-for="mode in modeOptions" :key="mode" :value="mode">
+                    {{ modeLabel(mode) }}
+                </option>
+            </select>
+        </div>
+        <div v-else class="mode-display">
+            {{ modeLabel(selectedMode) }}
+        </div>
+    </div>
+
     <div class="actions">
         <button class="leave-btn" @click="$emit('leave')">Leave Lobby</button>
         <button v-if="isHost" class="start-btn" @click="() => { console.log('Start clicked in WaitingRoom'); $emit('start'); }">START GAME</button>
@@ -67,8 +114,9 @@ const players = computed(() => {
     align-items: center;
     padding: 50px;
     height: 100vh;
-    color: white;
-    background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+    color: var(--room-fg);
+    background: var(--room-bg);
+    transition: background 0.4s ease, color 0.4s ease;
 }
 
 .header {
@@ -79,7 +127,7 @@ const players = computed(() => {
 .header h2 {
     font-size: 2.5em;
     margin: 0;
-    color: #ffd700;
+    color: var(--room-accent);
 }
 
 .host-info {
@@ -96,7 +144,7 @@ const players = computed(() => {
 .player-list h3 {
     text-align: center;
     margin-bottom: 20px;
-    color: #e2e8f0;
+    color: var(--room-muted);
 }
 
 .players-grid {
@@ -130,7 +178,7 @@ const players = computed(() => {
 .avatar {
     width: 60px;
     height: 60px;
-    background: #3b82f6;
+    background: var(--room-avatar);
     border-radius: 50%;
     display: flex;
     justify-content: center;
@@ -156,12 +204,50 @@ const players = computed(() => {
     font-size: 0.7em;
     padding: 2px 6px;
     border-radius: 4px;
-    background: #ffd700;
-    color: black;
+    background: var(--room-accent);
+    color: var(--room-accent-contrast);
 }
 
 .me-badge {
     background: #4ade80;
+    color: #0f172a;
+}
+
+.mode-panel {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+}
+
+.mode-label {
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--room-muted);
+    font-size: 0.85em;
+}
+
+.mode-control select {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(0, 0, 0, 0.45);
+    color: white;
+    font-size: 1em;
+}
+
+.mode-display {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--room-fg);
 }
 
 .actions {

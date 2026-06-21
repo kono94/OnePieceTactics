@@ -9,6 +9,7 @@ import net.lwenstrom.tft.backend.core.DataLoader;
 import net.lwenstrom.tft.backend.core.engine.Player;
 import net.lwenstrom.tft.backend.core.engine.StandardGameUnit;
 import net.lwenstrom.tft.backend.core.engine.UnitDefinition;
+import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.LootOrb;
 import net.lwenstrom.tft.backend.core.model.LootType;
 import net.lwenstrom.tft.backend.core.random.RandomProvider;
@@ -25,7 +26,7 @@ public class LootOrbTest {
     void setUp() {
         dataLoader = mock(DataLoader.class);
         randomProvider = mock(RandomProvider.class);
-        player = new Player("TestPlayer", dataLoader, randomProvider);
+        player = new Player("TestPlayer", GameMode.ONEPIECE, dataLoader, randomProvider);
     }
 
     @Test
@@ -56,7 +57,7 @@ public class LootOrbTest {
                 List.of(1, 1, 1),
                 List.of(),
                 null);
-        when(dataLoader.getAllUnits()).thenReturn(List.of(unitDef));
+        when(dataLoader.getAllUnits(GameMode.ONEPIECE)).thenReturn(List.of(unitDef));
 
         var unitOrb = new LootOrb("orb-2", 0, 0, LootType.UNIT, "Luffy", 1);
         player.addLootOrb(unitOrb);
@@ -87,7 +88,7 @@ public class LootOrbTest {
                 List.of(1, 1, 1),
                 List.of(),
                 null);
-        when(dataLoader.getAllUnits()).thenReturn(List.of(unitDef));
+        when(dataLoader.getAllUnits(GameMode.ONEPIECE)).thenReturn(List.of(unitDef));
 
         // Fill bench using the new Bench API (9 slots)
         for (int i = 0; i < 9; i++) {

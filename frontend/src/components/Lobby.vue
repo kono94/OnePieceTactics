@@ -43,13 +43,15 @@ defineEmits(['create', 'join'])
     flex-direction: column;
     align-items: center;
     padding-top: 50px;
-    color: white;
+    color: var(--room-fg);
+    background: var(--room-bg);
+    min-height: 100vh;
 }
 
 .title h1 {
     font-size: 3em;
     margin-bottom: 10px;
-    background: linear-gradient(to right, #ffd700, #ff8c00);
+    background: linear-gradient(to right, var(--room-accent), #ff8c00);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -87,8 +89,8 @@ button {
     padding: 12px;
     border-radius: 6px;
     border: none;
-    background: #ffd700;
-    color: black;
+    background: var(--room-accent);
+    color: var(--room-accent-contrast);
     font-weight: bold;
     font-size: 16px;
     cursor: pointer;
@@ -106,6 +108,7 @@ button:disabled {
 
 button.secondary {
     background: #4ade80;
+    color: #0f172a;
 }
 
 .separator {

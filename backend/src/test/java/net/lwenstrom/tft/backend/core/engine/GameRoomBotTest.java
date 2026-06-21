@@ -48,7 +48,12 @@ class GameRoomBotTest {
         dataLoader.loadData();
 
         gameRoom = new GameRoom(
-                "bot-test-room", dataLoader, gameModeRegistry, createTestClock(), createSeededRandomProvider());
+                "bot-test-room",
+                dataLoader,
+                gameModeRegistry,
+                createTestClock(),
+                createSeededRandomProvider(),
+                GameMode.ONEPIECE);
     }
 
     @Test

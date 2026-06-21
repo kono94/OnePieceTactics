@@ -56,12 +56,12 @@ public final class TestHelpers {
         return new DataLoader(
                 registry, tools.jackson.databind.json.JsonMapper.builder().build()) {
             @Override
-            public List<UnitDefinition> getAllUnits() {
+            public List<UnitDefinition> getAllUnits(GameMode mode) {
                 return units;
             }
 
             @Override
-            public UnitDefinition getUnitDefinition(String id) {
+            public UnitDefinition getUnitDefinition(GameMode mode, String id) {
                 return units.stream()
                         .filter(u -> u.id().equals(id))
                         .findFirst()
@@ -69,12 +69,7 @@ public final class TestHelpers {
             }
 
             @Override
-            public GameMode getGameMode() {
-                return GameMode.ONEPIECE;
-            }
-
-            @Override
-            public List<TraitMetadata> getTraitMetadata() {
+            public List<TraitMetadata> getTraitMetadata(GameMode mode) {
                 return List.of();
             }
         };
@@ -129,11 +124,11 @@ public final class TestHelpers {
     }
 
     public static Player createTestPlayer(String name, DataLoader dataLoader) {
-        return new Player(name, dataLoader, createSeededRandomProvider());
+        return new Player(name, GameMode.ONEPIECE, dataLoader, createSeededRandomProvider());
     }
 
     public static Player createTestPlayer(String name, DataLoader dataLoader, RandomProvider randomProvider) {
-        return new Player(name, dataLoader, randomProvider);
+        return new Player(name, GameMode.ONEPIECE, dataLoader, randomProvider);
     }
 
     public static TestClock createTestClock() {
@@ -162,20 +157,20 @@ public final class TestHelpers {
         var dataLoader = createMockDataLoader();
         var clock = createTestClock();
         var randomProvider = createSeededRandomProvider();
-        return new GameRoom(roomId, dataLoader, registry, clock, randomProvider);
+        return new GameRoom(roomId, dataLoader, registry, clock, randomProvider, GameMode.ONEPIECE);
     }
 
     public static GameRoom createTestGameRoom(DataLoader dataLoader) {
         var registry = createMockRegistry();
         var clock = createTestClock();
         var randomProvider = createSeededRandomProvider();
-        return new GameRoom("test-room", dataLoader, registry, clock, randomProvider);
+        return new GameRoom("test-room", dataLoader, registry, clock, randomProvider, GameMode.ONEPIECE);
     }
 
     public static GameRoom createTestGameRoom(DataLoader dataLoader, Clock clock) {
         var registry = createMockRegistry();
         var randomProvider = createSeededRandomProvider();
-        return new GameRoom("test-room", dataLoader, registry, clock, randomProvider);
+        return new GameRoom("test-room", dataLoader, registry, clock, randomProvider, GameMode.ONEPIECE);
     }
 
     public static void fastForwardPhase(GameRoom room) {

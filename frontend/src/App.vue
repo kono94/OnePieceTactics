@@ -10,14 +10,17 @@ import DamageReport from './components/game/DamageReport.vue'
 import VersionDisplay from './components/VersionDisplay.vue'
 
 import { setTraitData } from './data/traitData'
-import type { GameState, GameAction, CombatResultPayload, GameEvent, DamageEntry } from './types'
+import type { GameState, GameAction, CombatResultPayload, DamageEntry, GameMode } from './types'
 
 const isConnected = ref(false)
 const gameState = ref<GameState | null>(null)
 const client = ref<Client | null>(null)
 const currentView = ref<'lobby' | 'game'>('lobby')
 const currentRoomId = ref('')
-const gameTitle = ref('OnePieceTactics')
+const gameTitle = ref('Tactics Arena')
+const availableModes = ref<GameMode[]>(['onepiece', 'pokemon'])
+const defaultMode = ref<GameMode>('onepiece')
+const activeTraitMode = ref<GameMode | null>(null)
 const roomSubscription = ref<StompSubscription | null>(null)
 const eventSubscription = ref<StompSubscription | null>(null)
 
@@ -25,34 +28,19 @@ const eventSubscription = ref<StompSubscription | null>(null)
 const PLAYER_NAME = "Player_" + Math.floor(Math.random() * 10000)
 
 onMounted(async () => {
-    // Fetch Global Config and Traits
+    document.title = 'Tactics Arena'
     try {
-        const [configRes, traitsRes] = await Promise.all([
-            fetch('/api/config'),
-            fetch('/api/traits')
-        ]);
+        const configRes = await fetch('/api/config');
 
         if (configRes.ok) {
             const data = await configRes.json();
-            const mode = data.gameMode;
-            console.log("Global Config Loaded:", mode);
-            
-            const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
-            if (mode === 'pokemon') {
-                gameTitle.value = 'Pokemon TFT';
-                document.title = 'Pokemon TFT';
-                if (link) link.href = '/pokeball.png';
-            } else {
-                gameTitle.value = 'OnePieceTactics';
-                document.title = 'OnePieceTactics';
-                if (link && !link.href.includes('favicon.svg')) link.href = '/favicon.svg';
+            const fallbackModes = Array.isArray(data.availableModes) ? data.availableModes : [];
+            if (fallbackModes.length > 0) {
+                availableModes.value = fallbackModes as GameMode[];
             }
-        }
-
-        if (traitsRes.ok) {
-            const traits = await traitsRes.json();
-            console.log("Traits Loaded:", traits);
-            setTraitData(traits);
+            if (data.defaultGameMode) {
+                defaultMode.value = data.defaultGameMode as GameMode;
+            }
         }
     } catch (e) {
         console.error("Failed to fetch initial data", e);
@@ -130,13 +118,11 @@ const subscribeToRoom = (roomId: string) => {
 
             // console.log("Received Game Mode:", mode);
             
-            const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
-            if (mode === 'pokemon') {
-                if (document.title !== 'Pokemon TFT') document.title = 'Pokemon TFT';
-                if (link && !link.href.includes('pokeball.png')) link.href = '/pokeball.png';
-            } else {
-                if (document.title !== 'OnePieceTactics') document.title = 'OnePieceTactics';
-                if (link && !link.href.includes('favicon.svg')) link.href = '/favicon.svg';
+            applyThemeMeta(mode);
+
+            if (activeTraitMode.value !== mode) {
+                activeTraitMode.value = mode;
+                fetchTraitsForMode(mode);
             }
 
         } catch (e) {
@@ -243,6 +229,26 @@ const handleStartGame = () => {
     })
 }
 
+const fetchTraitsForMode = async (mode: GameMode) => {
+    try {
+        const traitsRes = await fetch(`/api/traits?mode=${mode}`);
+        if (traitsRes.ok) {
+            const traits = await traitsRes.json();
+            setTraitData(traits);
+        }
+    } catch (e) {
+        console.error("Failed to fetch traits for mode", mode, e);
+    }
+}
+
+const handleModeChange = (mode: GameMode) => {
+    if (!client.value || !isConnected.value) return
+    client.value.publish({
+        destination: `/app/room/${currentRoomId.value}/mode`,
+        body: JSON.stringify({ playerName: PLAYER_NAME, gameMode: mode })
+    })
+}
+
 const handleLeaveLobby = () => {
     if (client.value && isConnected.value) {
         client.value.publish({
@@ -263,12 +269,37 @@ const handleLeaveLobby = () => {
     currentView.value = 'lobby'
     gameState.value = null
     currentRoomId.value = ''
+    activeTraitMode.value = null
+
+    applyThemeMeta(null);
+}
+
+const themeClass = computed(() => {
+    if (currentView.value === 'lobby' || !gameState.value) return 'theme-generic'
+    return `theme-${gameState.value.gameMode}`
+})
+
+const applyThemeMeta = (mode: GameMode | null) => {
+    const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+    if (!mode) {
+        document.title = 'Tactics Arena';
+        if (link && !link.href.includes('favicon.svg')) link.href = '/favicon.svg';
+        return;
+    }
+
+    if (mode === 'pokemon') {
+        if (document.title !== 'Pokemon TFT') document.title = 'Pokemon TFT';
+        if (link && !link.href.includes('pokeball.png')) link.href = '/pokeball.png';
+    } else {
+        if (document.title !== 'OnePieceTactics') document.title = 'OnePieceTactics';
+        if (link && !link.href.includes('favicon.svg')) link.href = '/favicon.svg';
+    }
 }
 
 </script>
 
 <template>
-  <div class="app-container">
+  <div :class="['app-container', themeClass]">
     <VersionDisplay :visible="showVersion" />
     <div v-if="!isConnected" class="loading-screen">
         Connecting to Server...
@@ -286,8 +317,11 @@ const handleLeaveLobby = () => {
                  <WaitingRoom v-if="gameState.phase === 'LOBBY'"
                               :game-state="gameState"
                               :current-player-name="PLAYER_NAME"
+                              :available-modes="availableModes"
+                              :default-mode="defaultMode"
                               @start="handleStartGame"
-                              @leave="handleLeaveLobby" />
+                              @leave="handleLeaveLobby"
+                              @mode-change="handleModeChange" />
                               
                  <!-- Otherwise show GameInterface -->
                  <template v-else>
@@ -317,22 +351,59 @@ const handleLeaveLobby = () => {
 <style>
 body {
     margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
     background-color: #0f172a;
-    color: white;
+    color: #f8fafc;
 }
 
 *, *::before, *::after {
     box-sizing: border-box;
 }
-</style>
 
-<style scoped>
 .app-container {
     width: 100%;
     height: 100vh;
     overflow: hidden;
+    background: var(--app-bg);
+    color: var(--app-fg);
+    transition: background 0.4s ease, color 0.4s ease;
 }
+
+.app-container.theme-generic {
+    --app-bg: radial-gradient(circle at top, #1f2937 0%, #0b1120 70%);
+    --app-fg: #f8fafc;
+    --room-bg: radial-gradient(circle at top, #1f2937 0%, #0b1120 70%);
+    --room-fg: #f8fafc;
+    --room-muted: #94a3b8;
+    --room-accent: #f59e0b;
+    --room-accent-contrast: #0f172a;
+    --room-avatar: #3b82f6;
+}
+
+.app-container.theme-onepiece {
+    --app-bg: radial-gradient(circle at 20% 10%, #233044 0%, #0b1120 65%);
+    --app-fg: #f8fafc;
+    --room-bg: radial-gradient(circle at 20% 10%, #233044 0%, #0b1120 65%);
+    --room-fg: #f8fafc;
+    --room-muted: #cbd5f5;
+    --room-accent: #fbbf24;
+    --room-accent-contrast: #0b1120;
+    --room-avatar: #22d3ee;
+}
+
+.app-container.theme-pokemon {
+    --app-bg: radial-gradient(circle at top, #1e3a8a 0%, #0f172a 60%);
+    --app-fg: #f8fafc;
+    --room-bg: radial-gradient(circle at top, #1e3a8a 0%, #0f172a 60%);
+    --room-fg: #f8fafc;
+    --room-muted: #c7d2fe;
+    --room-accent: #fcd34d;
+    --room-accent-contrast: #0b1120;
+    --room-avatar: #f97316;
+}
+</style>
+
+<style scoped>
 .loading-screen {
     height: 100vh;
     display: flex;

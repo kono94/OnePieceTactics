@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
+import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.test.MockUnit;
 import net.lwenstrom.tft.backend.test.TestHelpers;
 import org.junit.jupiter.api.Test;
@@ -15,8 +16,10 @@ class CombatIntegrationTest {
     void testCombat_TwoPlayers_WinnerDetermined() {
         var testClock = createTestClock();
         var combatSystem = createTestCombatSystem(testClock);
-        var p1 = new Player("P1", null, createSeededRandomProvider());
-        var p2 = new Player("P2", null, createSeededRandomProvider());
+        var p1 =
+                new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 =
+                new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
 
         // Units placed directly adjacent for reliable combat
         var strongUnit = MockUnit.create("strong", p1.getId())
@@ -51,8 +54,10 @@ class CombatIntegrationTest {
     void testCombat_UnitsRestoreAfterCombat() {
         // Test at CombatSystem level for reliable position restoration
         var combatSystem = createTestCombatSystem();
-        var p1 = new Player("P1", null, createSeededRandomProvider());
-        var p2 = new Player("P2", null, createSeededRandomProvider());
+        var p1 =
+                new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 =
+                new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
 
         var unit1 = MockUnit.create("unit1", p1.getId()).withPosition(3, 2).withHealth(100, 100);
         var unit2 = MockUnit.create("unit2", p2.getId()).withPosition(3, 2).withHealth(100, 100);
@@ -84,8 +89,10 @@ class CombatIntegrationTest {
     void testCombat_DeadUnitsIgnored() {
         var combatSystem = createTestCombatSystem();
 
-        var p1 = new Player("P1", null, createSeededRandomProvider());
-        var p2 = new Player("P2", null, createSeededRandomProvider());
+        var p1 =
+                new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 =
+                new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
 
         // Set up units already in combat positions (skip startCombat transformation)
         var aliveUnit = MockUnit.create("alive", p1.getId())
@@ -120,8 +127,10 @@ class CombatIntegrationTest {
                 java.util.List.of(50, 100, 200),
                 null);
         var combatSystem = createTestCombatSystem();
-        var p1 = new Player("P1", null, createSeededRandomProvider());
-        var p2 = new Player("P2", null, createSeededRandomProvider());
+        var p1 =
+                new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 =
+                new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
 
         // Set up units in combat positions (skip startCombat)
         var caster = MockUnit.create("caster", p1.getId())
@@ -151,8 +160,10 @@ class CombatIntegrationTest {
                 java.util.List.of(25, 50, 100),
                 null);
         var combatSystem = createTestCombatSystem();
-        var p1 = new Player("P1", null, createSeededRandomProvider());
-        var p2 = new Player("P2", null, createSeededRandomProvider());
+        var p1 =
+                new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 =
+                new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
 
         // Caster at center, enemies in surrounding tiles
         var caster = MockUnit.create("caster", p1.getId())
@@ -179,8 +190,10 @@ class CombatIntegrationTest {
     void testCombat_StunPersistence() {
         var testClock = createTestClock();
         var combatSystem = createTestCombatSystem(testClock);
-        var p1 = new Player("P1", null, createSeededRandomProvider());
-        var p2 = new Player("P2", null, createSeededRandomProvider());
+        var p1 =
+                new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 =
+                new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
 
         // Stunned unit should not attack
         var stunnedUnit = MockUnit.create("stunned", p1.getId())

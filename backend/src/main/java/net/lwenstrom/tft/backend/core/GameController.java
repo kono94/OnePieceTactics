@@ -20,6 +20,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @CrossOrigin(origins = "*")
@@ -42,13 +43,14 @@ public class GameController {
     }
 
     @GetMapping("/api/traits")
-    public List<TraitMetadata> getTraits() {
-        return dataLoader.getTraitMetadata();
+    public List<TraitMetadata> getTraits(@RequestParam(required = false) String mode) {
+        var resolvedMode = mode != null ? GameMode.fromString(mode) : gameModeRegistry.getDefaultMode();
+        return dataLoader.getTraitMetadata(resolvedMode);
     }
 
     @GetMapping("/api/mode")
     public GameMode getMode() {
-        return gameModeRegistry.getActiveMode();
+        return gameModeRegistry.getDefaultMode();
     }
 
     @MessageMapping("/create")
@@ -177,6 +179,24 @@ public class GameController {
         broadcastRoomState(room);
     }
 
+    @MessageMapping("/room/{id}/mode")
+    public void changeRoomMode(@DestinationVariable String id, @Payload ModeChangeRequest request) {
+        var room = gameEngine.getRoom(id);
+        if (room == null) return;
+
+        var player = findPlayerByName(room, request.playerName());
+        if (player == null) return;
+
+        if (!room.getState().hostId().equals(player.getId())) {
+            log.info("Player is not host. Mode change denied.");
+            return;
+        }
+
+        if (room.setGameMode(request.gameMode())) {
+            broadcastRoomState(room);
+        }
+    }
+
     private void processAction(GameRoom room, Player player, GameAction action) {
         switch (action.type()) {
             case BUY -> player.buyUnit(action.shopIndex());
@@ -213,4 +233,6 @@ public class GameController {
     }
 
     public record RoomRequest(String roomId, String playerName) {}
+
+    public record ModeChangeRequest(String playerName, GameMode gameMode) {}
 }

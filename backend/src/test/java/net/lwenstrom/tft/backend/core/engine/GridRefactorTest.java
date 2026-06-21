@@ -23,12 +23,12 @@ class GridRefactorTest {
         }
 
         @Override
-        public java.util.List<UnitDefinition> getAllUnits() {
+        public java.util.List<UnitDefinition> getAllUnits(GameMode mode) {
             return Collections.emptyList();
         }
 
         @Override
-        public List<TraitMetadata> getTraitMetadata() {
+        public List<TraitMetadata> getTraitMetadata(GameMode mode) {
             return List.of();
         }
     }
@@ -95,8 +95,10 @@ class GridRefactorTest {
     @Test
     void testCombatMerging() {
         var registry = createMockRegistry();
-        var p1 = new Player("P1", new MockDataLoader(registry), createSeededRandomProvider());
-        var p2 = new Player("P2", new MockDataLoader(registry), createSeededRandomProvider());
+        var p1 =
+                new Player("P1", GameMode.ONEPIECE, new MockDataLoader(registry), createSeededRandomProvider());
+        var p2 =
+                new Player("P2", GameMode.ONEPIECE, new MockDataLoader(registry), createSeededRandomProvider());
 
         var u1 = new StandardGameUnit(createDummyDef());
         u1.setOwnerId(p1.getId());

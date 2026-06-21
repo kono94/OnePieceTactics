@@ -46,6 +46,10 @@ public class Bench {
         set(slot, null);
     }
 
+    public void clearAll() {
+        Arrays.fill(slots, null);
+    }
+
     public void swap(int slotA, int slotB) {
         if (slotA < 0 || slotA >= GameConstants.MAX_BENCH_SIZE || slotB < 0 || slotB >= GameConstants.MAX_BENCH_SIZE) {
             return;

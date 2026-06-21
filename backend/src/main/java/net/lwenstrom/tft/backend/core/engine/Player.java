@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.lwenstrom.tft.backend.core.DataLoader;
 import net.lwenstrom.tft.backend.core.GameConstants;
+import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GameState.PlayerState;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 import net.lwenstrom.tft.backend.core.model.LootOrb;
@@ -43,10 +44,12 @@ public class Player {
     private record PendingUpgrade(String unitName, int starLevel) {}
 
     private final DataLoader dataLoader;
+    private GameMode gameMode;
 
-    public Player(String name, DataLoader dataLoader, RandomProvider randomProvider) {
+    public Player(String name, GameMode gameMode, DataLoader dataLoader, RandomProvider randomProvider) {
         this.id = UUID.randomUUID().toString();
         this.name = name;
+        this.gameMode = gameMode;
         this.dataLoader = dataLoader;
         this.randomProvider = randomProvider;
     }
@@ -57,12 +60,28 @@ public class Player {
         }
         gold -= GameConstants.REROLL_COST;
 
-        var allUnits = dataLoader.getAllUnits();
+        refreshShopFree();
+    }
+
+    public void refreshShopFree() {
+        var allUnits = dataLoader.getAllUnits(gameMode);
         shop = new ArrayList<>();
         for (var i = 0; i < GameConstants.SHOP_SIZE; i++) {
             var rolledUnit = ShopOdds.rollUnit(level, allUnits, randomProvider);
             shop.add(rolledUnit);
         }
+    }
+
+    public void resetForMode(GameMode mode) {
+        this.gameMode = mode;
+        this.shopLocked = false;
+        this.boardLocked = false;
+        this.inCombat = false;
+        this.pendingUpgrades.clear();
+        this.lootOrbs.clear();
+        bench.clearAll();
+        removeAllUnits();
+        refreshShopFree();
     }
 
     public void buyUnit(int shopIndex) {
@@ -117,7 +136,7 @@ public class Player {
             }
             boardUnits.removeAll(unitsToRemove);
 
-            var def = dataLoader.getAllUnits().stream()
+            var def = dataLoader.getAllUnits(gameMode).stream()
                     .filter(d -> d.name().equals(unitName))
                     .findFirst()
                     .orElse(null);
@@ -202,7 +221,7 @@ public class Player {
             if (orb.type() == LootType.GOLD) {
                 gainGold(orb.amount());
             } else if (orb.type() == LootType.UNIT) {
-                var units = dataLoader.getAllUnits();
+                var units = dataLoader.getAllUnits(gameMode);
                 var def = units.stream()
                         .filter(u -> u.name().equals(orb.contentId()))
                         .findFirst()
@@ -431,7 +450,7 @@ public class Player {
     }
 
     public Player createGhost() {
-        var ghostPlayer = new Player(this.name, this.dataLoader, this.randomProvider);
+        var ghostPlayer = new Player(this.name, this.gameMode, this.dataLoader, this.randomProvider);
         ghostPlayer.setGhost(true);
         ghostPlayer.setHealth(this.health);
         ghostPlayer.setLevel(this.level);

@@ -32,8 +32,8 @@ public class LobbyTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        when(gameModeRegistry.getActiveMode()).thenReturn(GameMode.ONEPIECE);
-        when(gameModeRegistry.getActiveProvider()).thenReturn(gameModeProvider);
+        when(gameModeRegistry.getDefaultMode()).thenReturn(GameMode.ONEPIECE);
+        when(gameModeRegistry.getProvider(GameMode.ONEPIECE)).thenReturn(gameModeProvider);
 
         UnitDefinition dummyUnit = new UnitDefinition(
                 "unit-1",
@@ -49,10 +49,16 @@ public class LobbyTest {
                 List.of(1, 1, 1),
                 List.of("Pirate"),
                 null);
-        when(dataLoader.getAllUnits()).thenReturn(List.of(dummyUnit));
+        when(dataLoader.getAllUnits(GameMode.ONEPIECE)).thenReturn(List.of(dummyUnit));
 
         gameRoom =
-                new GameRoom("room-1", dataLoader, gameModeRegistry, createTestClock(), createSeededRandomProvider());
+                new GameRoom(
+                        "room-1",
+                        dataLoader,
+                        gameModeRegistry,
+                        createTestClock(),
+                        createSeededRandomProvider(),
+                        GameMode.ONEPIECE);
     }
 
     @Test

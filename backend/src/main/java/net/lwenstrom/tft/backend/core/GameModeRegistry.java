@@ -11,22 +11,26 @@ import org.springframework.stereotype.Service;
 public class GameModeRegistry {
 
     private final Map<GameMode, GameModeProvider> providers;
-    private final GameMode activeMode;
+    private final GameMode defaultMode;
 
     public GameModeRegistry(List<GameModeProvider> providerList, @Value("${game.mode:onepiece}") String gameModeStr) {
         this.providers = providerList.stream().collect(Collectors.toMap(GameModeProvider::getMode, p -> p));
-        this.activeMode = GameMode.fromString(gameModeStr);
+        this.defaultMode = GameMode.fromString(gameModeStr);
     }
 
-    public GameModeProvider getActiveProvider() {
-        GameModeProvider provider = providers.get(activeMode);
+    public GameModeProvider getProvider(GameMode mode) {
+        GameModeProvider provider = providers.get(mode);
         if (provider == null) {
-            throw new IllegalStateException("No provider found for game mode: " + activeMode);
+            throw new IllegalStateException("No provider found for game mode: " + mode);
         }
         return provider;
     }
 
-    public GameMode getActiveMode() {
-        return activeMode;
+    public GameMode getDefaultMode() {
+        return defaultMode;
+    }
+
+    public List<GameMode> getAvailableModes() {
+        return providers.keySet().stream().sorted().toList();
     }
 }

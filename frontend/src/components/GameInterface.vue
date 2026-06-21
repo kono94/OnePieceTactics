@@ -59,6 +59,7 @@ const benchSlots = computed((): BenchSlot[] => {
     }))
 })
 
+
 function buyUnit(index: number) {
     if (!myPlayer.value) return
     emit('action', { type: 'BUY', shopIndex: index, playerId: myPlayer.value.playerId })
@@ -531,7 +532,7 @@ watch([() => props.state?.phase, isDead], ([newPhase, dead]) => {
     overflow: hidden;
     position: relative;
     color: white;
-    background: #0f172a;
+    background: var(--app-bg);
 }
 
 .top-bar {

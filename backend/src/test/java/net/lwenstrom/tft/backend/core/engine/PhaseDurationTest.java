@@ -46,7 +46,7 @@ public class PhaseDurationTest {
         GameModeRegistry registry = new GameModeRegistry(List.of(provider), "onepiece");
         DataLoader dataLoader = new DataLoader(registry, JsonMapper.builder().build()) {
             @Override
-            public List<UnitDefinition> getAllUnits() {
+            public List<UnitDefinition> getAllUnits(GameMode mode) {
                 return List.of(new UnitDefinition(
                         "u1",
                         "Unit",
@@ -64,18 +64,15 @@ public class PhaseDurationTest {
             }
 
             @Override
-            public UnitDefinition getUnitDefinition(String id) {
-                return getAllUnits().get(0);
-            }
-
-            @Override
-            public GameMode getGameMode() {
-                return GameMode.ONEPIECE;
+            public UnitDefinition getUnitDefinition(GameMode mode, String id) {
+                return getAllUnits(mode).get(0);
             }
         };
 
         testClock = createTestClock();
-        room = new GameRoom("test-room", dataLoader, registry, testClock, createSeededRandomProvider());
+        room =
+                new GameRoom(
+                        "test-room", dataLoader, registry, testClock, createSeededRandomProvider(), GameMode.ONEPIECE);
         room.addPlayer("P1");
     }
 

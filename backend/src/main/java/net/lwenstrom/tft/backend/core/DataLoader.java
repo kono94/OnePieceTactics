@@ -3,6 +3,7 @@ package net.lwenstrom.tft.backend.core;
 import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,60 +22,69 @@ public class DataLoader {
     private final GameModeRegistry gameModeRegistry;
     private final JsonMapper jsonMapper;
 
-    private Map<String, UnitDefinition> unitRegistry;
-    private List<TraitMetadata> traitMetadata;
+    private record ModeData(Map<String, UnitDefinition> unitRegistry, List<TraitMetadata> traitMetadata) {}
+
+    private final Map<GameMode, ModeData> modeDataCache = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void loadData() {
-        var provider = gameModeRegistry.getActiveProvider();
-        loadUnits(provider.getUnitsPath());
-        loadTraits(provider.getTraitsPath());
+        // Preload default mode for faster startup, other modes are lazy-loaded.
+        getModeData(gameModeRegistry.getDefaultMode());
     }
 
-    private void loadUnits(String path) {
+    private ModeData getModeData(GameMode mode) {
+        return modeDataCache.computeIfAbsent(mode, this::loadModeData);
+    }
+
+    private ModeData loadModeData(GameMode mode) {
+        var provider = gameModeRegistry.getProvider(mode);
+        var units = loadUnits(provider.getUnitsPath());
+        var traits = loadTraits(provider.getTraitsPath());
+        return new ModeData(units, traits);
+    }
+
+    private Map<String, UnitDefinition> loadUnits(String path) {
         try {
             var is = getClass().getResourceAsStream(path);
             if (is != null) {
                 List<UnitDefinition> units = jsonMapper.readValue(is, new TypeReference<>() {});
-                unitRegistry = units.stream().collect(Collectors.toMap(UnitDefinition::id, u -> u));
-                log.info("Loaded {} units from {}", unitRegistry.size(), path);
+                var registry = units.stream().collect(Collectors.toMap(UnitDefinition::id, u -> u));
+                log.info("Loaded {} units from {}", registry.size(), path);
+                return registry;
             } else {
                 log.error("Could not find units at {}", path);
-                unitRegistry = Map.of();
+                return Map.of();
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to load unit data: " + path, e);
         }
     }
 
-    private void loadTraits(String path) {
+    private List<TraitMetadata> loadTraits(String path) {
         try {
             var is = getClass().getResourceAsStream(path);
             if (is != null) {
-                traitMetadata = jsonMapper.readValue(is, new TypeReference<>() {});
-                log.info("Loaded {} traits from {}", traitMetadata.size(), path);
+                var metadata = jsonMapper.readValue(is, new TypeReference< List<TraitMetadata>>() {});
+                log.info("Loaded {} traits from {}", metadata.size(), path);
+                return metadata;
             } else {
                 log.error("Could not find traits at {}", path);
-                traitMetadata = List.of();
+                return List.of();
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to load trait data: " + path, e);
         }
     }
 
-    public UnitDefinition getUnitDefinition(String id) {
-        return unitRegistry.get(id);
+    public UnitDefinition getUnitDefinition(GameMode mode, String id) {
+        return getModeData(mode).unitRegistry().get(id);
     }
 
-    public List<UnitDefinition> getAllUnits() {
-        return List.copyOf(unitRegistry.values());
+    public List<UnitDefinition> getAllUnits(GameMode mode) {
+        return List.copyOf(getModeData(mode).unitRegistry().values());
     }
 
-    public GameMode getGameMode() {
-        return gameModeRegistry.getActiveMode();
-    }
-
-    public List<TraitMetadata> getTraitMetadata() {
-        return traitMetadata;
+    public List<TraitMetadata> getTraitMetadata(GameMode mode) {
+        return getModeData(mode).traitMetadata();
     }
 }

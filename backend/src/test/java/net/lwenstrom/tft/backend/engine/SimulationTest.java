@@ -9,6 +9,7 @@ import net.lwenstrom.tft.backend.core.DataLoader;
 import net.lwenstrom.tft.backend.core.engine.GameRoom;
 import net.lwenstrom.tft.backend.core.engine.Player;
 import net.lwenstrom.tft.backend.core.engine.UnitDefinition;
+import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GamePhase;
 import org.junit.jupiter.api.Test;
 
@@ -47,7 +48,7 @@ public class SimulationTest {
         DataLoader dataLoader = new DataLoader(
                 registry, tools.jackson.databind.json.JsonMapper.builder().build()) {
             @Override
-            public List<UnitDefinition> getAllUnits() {
+            public List<UnitDefinition> getAllUnits(GameMode mode) {
                 return List.of(new UnitDefinition(
                         "0",
                         "TestUnit",
@@ -65,18 +66,14 @@ public class SimulationTest {
             }
 
             @Override
-            public UnitDefinition getUnitDefinition(String id) {
-                return getAllUnits().get(0);
-            }
-
-            @Override
-            public net.lwenstrom.tft.backend.core.model.GameMode getGameMode() {
-                return net.lwenstrom.tft.backend.core.model.GameMode.ONEPIECE;
+            public UnitDefinition getUnitDefinition(GameMode mode, String id) {
+                return getAllUnits(mode).get(0);
             }
         };
 
         var testClock = createTestClock();
-        var room = new GameRoom("sim-room", dataLoader, registry, testClock, createSeededRandomProvider());
+        var room =
+                new GameRoom("sim-room", dataLoader, registry, testClock, createSeededRandomProvider(), GameMode.ONEPIECE);
         room.addPlayer("P1");
         room.addPlayer("P2");
 
@@ -144,7 +141,7 @@ public class SimulationTest {
         DataLoader dataLoader = new DataLoader(
                 registry, tools.jackson.databind.json.JsonMapper.builder().build()) {
             @Override
-            public List<UnitDefinition> getAllUnits() {
+            public List<UnitDefinition> getAllUnits(GameMode mode) {
                 return List.of(new UnitDefinition(
                         "0",
                         "TestUnit",
@@ -162,18 +159,15 @@ public class SimulationTest {
             }
 
             @Override
-            public UnitDefinition getUnitDefinition(String id) {
-                return getAllUnits().get(0);
-            }
-
-            @Override
-            public net.lwenstrom.tft.backend.core.model.GameMode getGameMode() {
-                return net.lwenstrom.tft.backend.core.model.GameMode.ONEPIECE;
+            public UnitDefinition getUnitDefinition(GameMode mode, String id) {
+                return getAllUnits(mode).get(0);
             }
         };
 
         var testClock = createTestClock();
-        var room = new GameRoom("combat-room", dataLoader, registry, testClock, createSeededRandomProvider());
+        var room =
+                new GameRoom(
+                        "combat-room", dataLoader, registry, testClock, createSeededRandomProvider(), GameMode.ONEPIECE);
         Player p1 = room.addPlayer("P1");
         Player p2 = room.addPlayer("P2");
         p1.setGold(100);
@@ -188,7 +182,7 @@ public class SimulationTest {
 
         // Let's cheat and manually position them AFTER startCombat
         // Setup units - manually add to board to avoid shop issues
-        UnitDefinition def = dataLoader.getAllUnits().get(0);
+        UnitDefinition def = dataLoader.getAllUnits(GameMode.ONEPIECE).get(0);
         p1.addUnitToBoard(def, 3, 2);
         var u1 = p1.getBoardUnits().get(0);
 

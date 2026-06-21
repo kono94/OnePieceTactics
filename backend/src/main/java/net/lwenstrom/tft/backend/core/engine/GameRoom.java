@@ -15,6 +15,7 @@ import net.lwenstrom.tft.backend.core.GameModeRegistry;
 import net.lwenstrom.tft.backend.core.combat.BfsUnitMover;
 import net.lwenstrom.tft.backend.core.combat.DefaultAbilityCaster;
 import net.lwenstrom.tft.backend.core.combat.NearestEnemyTargetSelector;
+import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GamePhase;
 import net.lwenstrom.tft.backend.core.model.GameState;
 import net.lwenstrom.tft.backend.core.model.GameState.PlayerState;
@@ -42,6 +43,7 @@ public class GameRoom {
     private long currentPhaseDuration;
 
     private final GameModeRegistry gameModeRegistry;
+    private GameMode gameMode;
     private final Clock clock;
     private final RandomProvider randomProvider;
     private final TraitManager traitManager;
@@ -70,15 +72,17 @@ public class GameRoom {
             DataLoader dataLoader,
             GameModeRegistry gameModeRegistry,
             Clock clock,
-            RandomProvider randomProvider) {
+            RandomProvider randomProvider,
+            GameMode gameMode) {
         this.id = id;
         this.dataLoader = dataLoader;
         this.gameModeRegistry = gameModeRegistry;
         this.clock = clock;
         this.randomProvider = randomProvider;
+        this.gameMode = gameMode;
 
         this.traitManager = new TraitManager();
-        gameModeRegistry.getActiveProvider().registerTraitEffects(this.traitManager);
+        gameModeRegistry.getProvider(this.gameMode).registerTraitEffects(this.traitManager);
         this.combatSystem = new CombatSystem(
                 traitManager,
                 clock,
@@ -99,7 +103,7 @@ public class GameRoom {
                 new HashMap<>(),
                 new ArrayList<>(),
                 new HashMap<>(),
-                gameModeRegistry.getActiveMode());
+                this.gameMode);
 
         // In LOBBY, no timer runs until startMatch is called
         this.phaseEndTime = Long.MAX_VALUE;
@@ -109,8 +113,24 @@ public class GameRoom {
         return id;
     }
 
+    public GameMode getGameMode() {
+        return gameMode;
+    }
+
     public GameState getState() {
         return currentState;
+    }
+
+    public boolean setGameMode(GameMode newMode) {
+        if (newMode == null || newMode == gameMode || phase != GamePhase.LOBBY) {
+            return false;
+        }
+        this.gameMode = newMode;
+        traitManager.clearEffects();
+        gameModeRegistry.getProvider(newMode).registerTraitEffects(traitManager);
+        players.values().forEach(p -> p.resetForMode(newMode));
+        updateGameState(0);
+        return true;
     }
 
     public boolean isEnded() {
@@ -118,7 +138,7 @@ public class GameRoom {
     }
 
     public Player addPlayer(String name) {
-        var player = new Player(name, dataLoader, randomProvider);
+        var player = new Player(name, gameMode, dataLoader, randomProvider);
         players.put(player.getId(), player);
 
         if (hostId == null) {
@@ -153,7 +173,7 @@ public class GameRoom {
 
     public void addBot() {
         var botId = "Bot-" + UUID.randomUUID().toString().substring(0, 4);
-        var bot = new Player(botId, dataLoader, randomProvider);
+        var bot = new Player(botId, gameMode, dataLoader, randomProvider);
         players.put(bot.getId(), bot);
         bot.refreshShop();
         refreshBotRoster(bot);
@@ -349,7 +369,7 @@ public class GameRoom {
         bot.setLevel(botLevel);
 
         var unitCount = Math.min(Math.min(round + 1, botLevel), GameConstants.BOT_MAX_UNITS_PER_ROW);
-        var available = dataLoader.getAllUnits();
+        var available = dataLoader.getAllUnits(gameMode);
         for (var i = 0; i < unitCount; i++) {
             var def = ShopOdds.rollUnit(botLevel, available, randomProvider);
 
@@ -389,7 +409,7 @@ public class GameRoom {
                 new HashMap<>(currentMatchups),
                 new ArrayList<>(lastTickEvents),
                 new HashMap<>(currentRoundDamageLog),
-                gameModeRegistry.getActiveMode());
+                gameMode);
     }
 
     private void spawnLootOrbsForPlayer(Player player) {
@@ -409,7 +429,7 @@ public class GameRoom {
                 amount = GameConstants.MIN_ORB_GOLD
                         + randomProvider.nextInt(GameConstants.MAX_ORB_GOLD - GameConstants.MIN_ORB_GOLD + 1);
             } else {
-                var units = dataLoader.getAllUnits();
+                var units = dataLoader.getAllUnits(gameMode);
                 // Use shop odds for player level + 1 to determine loot unit
                 var def = ShopOdds.rollUnit(player.getLevel() + 1, units, randomProvider);
                 contentId = def.name();
