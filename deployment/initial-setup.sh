@@ -120,6 +120,18 @@ docker compose -f docker-compose.acme.yml run --rm certbot certonly \
 docker compose -f docker-compose.acme.yml down
 
 # -----------------------------------------------------------------------------
+# Certificate Reload Cron
+# -----------------------------------------------------------------------------
+echo "Installing nginx certificate reload cron..."
+cat > /etc/cron.d/tft-nginx-cert-reload << 'EOF'
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+17 */6 * * * root docker exec tft-nginx nginx -s reload >/dev/null 2>&1 || true
+EOF
+chmod 0644 /etc/cron.d/tft-nginx-cert-reload
+echo "✓ nginx certificate reload cron installed"
+
+# -----------------------------------------------------------------------------
 # Done!
 # -----------------------------------------------------------------------------
 echo ""

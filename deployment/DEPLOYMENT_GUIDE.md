@@ -93,6 +93,29 @@ git push origin 1.0.0
 
 ---
 
+## Troubleshooting
+
+### GitHub deploy fails with `insufficient permission for adding an object`
+
+The forced deploy user must own the repository metadata under `/opt/tft/.git`. This
+can break if Git commands are run manually with `sudo`.
+
+```bash
+ssh -p 2222 deployer@<SERVER_IP> -i ~/.ssh/id_tft_admin
+sudo chown -R github-deployer:github-deployer /opt/tft/.git
+```
+
+### Browser sees an expired certificate after certbot renewed it
+
+Nginx needs to reload after certbot writes a renewed certificate.
+
+```bash
+ssh -p 2222 deployer@<SERVER_IP> -i ~/.ssh/id_tft_admin
+sudo docker exec tft-nginx nginx -s reload
+```
+
+---
+
 ## SSH Config (Recommended)
 
 Add to `~/.ssh/config`:

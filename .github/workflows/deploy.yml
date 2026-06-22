@@ -13,4 +13,4 @@ jobs:
           port: 2222
           username: github-deployer
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: "trigger-deploy" # This script value is actually ignored by the server due to ForceCommand, but required by the action
+          script: "trigger-deploy ${{ github.ref_name }}" # ForceCommand runs deploy-trigger; the requested tag is available via SSH_ORIGINAL_COMMAND

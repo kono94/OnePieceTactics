@@ -72,16 +72,39 @@ write_files:
       #!/bin/bash
       set -e
       PROJECT_DIR="/opt/tft"
-      REPO_URL="https://github.com/kono94/OnePieceTactics.git"
+      LOCK_FILE="/tmp/tft-deploy.lock"
 
       echo "[$(date)] GitOps Deploy Triggered"
+
+      exec 9>"$LOCK_FILE"
+      if ! flock -n 9; then
+        echo "Another deployment is already running."
+        exit 1
+      fi
       
       cd "$PROJECT_DIR"
+
+      if [ ! -w ".git/objects" ]; then
+        echo "Repository is not writable by $(whoami)."
+        echo "Repair with: sudo chown -R github-deployer:github-deployer $PROJECT_DIR/.git"
+        exit 1
+      fi
+
       git fetch --all --tags --force
+
+      REQUESTED_TAG=""
+      if [[ "${SSH_ORIGINAL_COMMAND:-}" =~ ^trigger-deploy[[:space:]]+([A-Za-z0-9._/-]+)$ ]]; then
+        REQUESTED_TAG="${BASH_REMATCH[1]}"
+      fi
       
-      LATEST_TAG=$(git describe --tags --abbrev=0 origin/main 2>/dev/null || echo "main")
-      echo "Deploying: $LATEST_TAG"
-      git checkout "$LATEST_TAG"
+      if [ -n "$REQUESTED_TAG" ] && git rev-parse -q --verify "refs/tags/$REQUESTED_TAG^{commit}" >/dev/null; then
+        DEPLOY_REF="tags/$REQUESTED_TAG"
+      else
+        DEPLOY_REF=$(git describe --tags --abbrev=0 origin/main 2>/dev/null || echo "origin/main")
+      fi
+
+      echo "Deploying: $DEPLOY_REF"
+      git -c advice.detachedHead=false checkout -f "$DEPLOY_REF"
 
       bash "$PROJECT_DIR/deployment/deploy.sh"
 
