@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { Client, type IMessage } from '@stomp/stompjs'
+import { Client } from '@stomp/stompjs'
 import type { StompSubscription } from '@stomp/stompjs'
 import Lobby from './components/Lobby.vue'
 import WaitingRoom from './components/WaitingRoom.vue'
 import GameInterface from './components/GameInterface.vue'
 import OutcomeOverlay from './components/game/OutcomeOverlay.vue'
 import DamageReport from './components/game/DamageReport.vue'
+import UltimateGallery from './components/game/UltimateGallery.vue'
 import VersionDisplay from './components/VersionDisplay.vue'
 
 import { setTraitData } from './data/traitData'
-import type { GameState, GameAction, CombatResultPayload, DamageEntry, GameMode } from './types'
+import type { GameState, GameAction, CombatResultPayload, GameMode } from './types'
 
 const isConnected = ref(false)
 const gameState = ref<GameState | null>(null)
@@ -23,11 +24,16 @@ const defaultMode = ref<GameMode>('onepiece')
 const activeTraitMode = ref<GameMode | null>(null)
 const roomSubscription = ref<StompSubscription | null>(null)
 const eventSubscription = ref<StompSubscription | null>(null)
+const isUltimateGallery = ref(false)
 
 // Random player name for now
 const PLAYER_NAME = "Player_" + Math.floor(Math.random() * 10000)
 
 onMounted(async () => {
+    updateStandaloneRoute()
+    window.addEventListener('hashchange', updateStandaloneRoute)
+    if (isUltimateGallery.value) return
+
     document.title = 'Tactics Arena'
     try {
         const configRes = await fetch('/api/config');
@@ -66,12 +72,12 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+    window.removeEventListener('hashchange', updateStandaloneRoute)
     client.value?.deactivate()
 })
 
 const encounterResult = ref<'WON' | 'LOST' | 'DRAW' | null>(null)
 let outcomeTimer: number | null = null
-const damageReport = ref<Record<string, DamageEntry> | null>(null)
 
 const myPlayerId = computed(() => {
     if (!gameState.value) return undefined;
@@ -89,6 +95,7 @@ const opponentName = computed(() => {
 });
 
 const showVersion = computed(() => {
+    if (isUltimateGallery.value) return false
     // Show version only on lobby view or during LOBBY phase in game view
     return currentView.value === 'lobby' || gameState.value?.phase === 'LOBBY';
 });
@@ -275,9 +282,14 @@ const handleLeaveLobby = () => {
 }
 
 const themeClass = computed(() => {
+    if (isUltimateGallery.value) return 'theme-onepiece'
     if (currentView.value === 'lobby' || !gameState.value) return 'theme-generic'
     return `theme-${gameState.value.gameMode}`
 })
+
+const updateStandaloneRoute = () => {
+    isUltimateGallery.value = window.location.hash.startsWith('#/ultimate-gallery')
+}
 
 const applyThemeMeta = (mode: GameMode | null) => {
     const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
@@ -301,7 +313,10 @@ const applyThemeMeta = (mode: GameMode | null) => {
 <template>
   <div :class="['app-container', themeClass]">
     <VersionDisplay :visible="showVersion" />
-    <div v-if="!isConnected" class="loading-screen">
+
+    <UltimateGallery v-if="isUltimateGallery" />
+
+    <div v-else-if="!isConnected" class="loading-screen">
         Connecting to Server...
     </div>
     

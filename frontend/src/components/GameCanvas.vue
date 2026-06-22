@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch, onUnmounted, onMounted } from 'vue'
-import UnitTooltip from './UnitTooltip.vue'
-import AttackAnimation from './game/AttackAnimation.vue'
-import { getAttackConfig, getAbilityConfig, type AttackType, type AbilityEffectStyle } from '../data/animationConfig'
-import type { GameState, GameUnit, GamePhase, RenderedUnit, RenderedOrb, PlayerState, DisplayedUnit } from '../types'
+import CombatEffectsCanvas from './game/CombatEffectsCanvas.vue'
+import { getAttackConfig, getAbilityConfig } from '../data/animationConfig'
+import type { GameState, GameUnit, GamePhase, RenderedUnit, RenderedOrb, PlayerState, DisplayedUnit, CombatEvent } from '../types'
+import type { NormalizedCombatVisualEvent } from '../types/combatEffects'
 import { getUnitIconPath } from '../utils/iconUtils'
 import { getRarityColor, TEAM_COLORS } from '../utils/colorUtils'
 
@@ -199,34 +199,6 @@ const opponentName = computed(() => {
      return p.isGhost ? `${p.name} (Ghost)` : p.name
 })
 
-const hoveredUnit = computed((): RenderedUnit | null | undefined => {
-    if (!hoveredUnitId.value) return null
-    // Disable hover tooltip if dragging (local or from parent)
-    if (isDragging.value || props.isDraggingProp) return null
-    return renderedUnits.value.find((u: RenderedUnit) => u.id === hoveredUnitId.value)
-})
-
-const getTooltipAnchorStyle = (unit: RenderedUnit) => {
-    return {
-        left: (unit.visualX * CELL_SIZE.value + GRID_GUTTER + 5) + 'px',
-        top: (unit.visualY * CELL_SIZE.value + GRID_GUTTER + 5) + 'px',
-        width: (CELL_SIZE.value - 10) + 'px',
-        height: (CELL_SIZE.value - 10) + 'px',
-        position: 'absolute' as const,
-        zIndex: 1000,
-        pointerEvents: 'none' as const
-    }
-}
-
-const getColor = (id: string) => {
-    let hash = 0;
-    for (let i = 0; i < id.length; i++) {
-        hash = id.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
-    return '#' + "00000".substring(0, 6 - c.length) + c;
-}
-
 const onDragStart = (evt: DragEvent, unit: RenderedUnit) => {
     if (unit.ownerId !== props.myPlayerId || props.state?.phase === 'COMBAT') {
         evt.preventDefault()
@@ -321,27 +293,15 @@ const onUnitMouseLeave = () => {
 
 // ========== ANIMATION SYSTEM ==========
 
-// Animation Types
-interface AttackAnimData {
-    id: number
-    type: 'attack' | 'ability'
-    attackType?: AttackType
-    effectStyle?: AbilityEffectStyle
-    pattern?: string
-    startX: number
-    startY: number
-    endX: number
-    endY: number
-    color: string
-    definitionId: string
-}
+const combatVisualEvents = ref<NormalizedCombatVisualEvent[]>([])
+let nextVisualEventId = 0
 
-const activeAnimations = ref<AttackAnimData[]>([])
-let nextAnimId = 0
+const hitFlashUnits = ref<Set<string>>(new Set())
+const attackingUnits = ref<Set<string>>(new Set())
+const castingUnits = ref<Set<string>>(new Set())
 
 // Track previous health to detect attacks
 const prevHealthMap = ref<Record<string, number>>({})
-const lastCastMap = ref<Record<string, string>>({})
 
 // ========== DEATH ANIMATION SYSTEM ==========
 // Track units that are dying (animating death)
@@ -404,39 +364,94 @@ const unitsById = computed(() => {
     return map
 })
 
+function lookupUnit(unitId: string): RenderedUnit | DisplayedUnit | undefined {
+    return unitsById.value.get(unitId) || dyingUnitData.value.get(unitId) || prevUnitsMap.value.get(unitId)
+}
+
+function pointForUnit(unit: RenderedUnit | DisplayedUnit) {
+    return {
+        x: unit.visualX * CELL_SIZE.value + CELL_SIZE.value / 2,
+        y: unit.visualY * CELL_SIZE.value + CELL_SIZE.value / 2
+    }
+}
+
+function addTimedFeedback(targetSet: typeof hitFlashUnits, unitId: string, duration: number) {
+    const next = new Set(targetSet.value)
+    next.add(unitId)
+    targetSet.value = next
+
+    const timer = window.setTimeout(() => {
+        const updated = new Set(targetSet.value)
+        updated.delete(unitId)
+        targetSet.value = updated
+    }, duration)
+    deathTimers.value.push(timer)
+}
+
+function normalizeCombatEvent(
+    event: CombatEvent,
+    source: RenderedUnit | DisplayedUnit,
+    target: RenderedUnit | DisplayedUnit,
+    batchSize: number
+): NormalizedCombatVisualEvent {
+    const isSkill = event.type === 'SKILL'
+    const attack = getAttackConfig(source.definitionId)
+    const ability = getAbilityConfig(source.definitionId)
+    const aliveUnits = renderedUnits.value.filter(unit => unit.currentHealth > 0).length
+
+    return {
+        id: nextVisualEventId++,
+        timestamp: event.timestamp,
+        type: event.type,
+        sourceId: event.sourceId,
+        targetId: event.targetId,
+        value: event.value,
+        skillName: event.skillName,
+        source: source as RenderedUnit,
+        target: target as RenderedUnit,
+        start: pointForUnit(source),
+        end: pointForUnit(target),
+        definitionId: source.definitionId,
+        attack,
+        ability,
+        pattern: source.ability?.pattern || 'SINGLE',
+        starLevel: source.starLevel || 1,
+        intensity: isSkill ? 'ultimate' : (event.type === 'DAMAGE' ? 'normal' : 'low'),
+        batchSize,
+        crowded: aliveUnits >= 12 || batchSize > 6
+    }
+}
+
+function isHealingCombatEvent(event: CombatEvent, source: RenderedUnit | DisplayedUnit): boolean {
+    return event.type === 'HEAL' || event.value < 0 || source.ability?.type === 'HEAL'
+}
+
 watch(() => props.state?.recentEvents, (newEvents) => {
     if (!newEvents || newEvents.length === 0) return
     
     // Deduplication based on timestamp
     let maxTime = lastProcessedEventTime.value
     
-    newEvents.forEach((event: any) => {
+    newEvents.forEach((event: CombatEvent) => {
         if (event.timestamp <= lastProcessedEventTime.value) return
         if (event.timestamp > maxTime) maxTime = event.timestamp
         
-        const source = unitsById.value.get(event.sourceId)
+        const targetFromEvent = lookupUnit(event.targetId)
+        const source = lookupUnit(event.sourceId) || targetFromEvent
         if (!source) return
 
         if (event.type === 'DAMAGE') {
-            const target = unitsById.value.get(event.targetId)
+            const target = targetFromEvent
             // Value can be positive (damage) or negative (heal)
-            if (event.value > 0 && target && activeAnimations.value.length < 15) {
-                const config = getAttackConfig(source.definitionId)
-                activeAnimations.value.push({
-                    id: nextAnimId++,
-                    type: 'attack',
-                    attackType: config.type,
-                    startX: source.visualX,
-                    startY: source.visualY,
-                    endX: target.visualX,
-                    endY: target.visualY,
-                    color: config.color,
-                    definitionId: source.definitionId
-                })
+            if (event.value > 0 && target) {
+                combatVisualEvents.value.push(normalizeCombatEvent(event, source, target, newEvents.length))
+                addTimedFeedback(attackingUnits, source.id, 360)
+                addTimedFeedback(hitFlashUnits, target.id, 420)
             } else if (event.value < 0) {
-                const target = unitsById.value.get(event.targetId) || source
+                const target = targetFromEvent || source
+                combatVisualEvents.value.push(normalizeCombatEvent(event, source, target, newEvents.length))
                 const healAmount = Math.abs(event.value)
-                const healId = nextAnimId++
+                const healId = nextVisualEventId++
                 floatingHeals.value.push({
                     id: healId,
                     x: target.visualX * CELL_SIZE.value + CELL_SIZE.value / 2,
@@ -448,56 +463,75 @@ watch(() => props.state?.recentEvents, (newEvents) => {
                 }, 1000)
             }
         } else if (event.type === 'SKILL') {
-            const config = getAbilityConfig(source.definitionId)
-            let targetX = source.visualX
-            let targetY = source.visualY
+            let target = targetFromEvent || source
+            const isHealingSkill = isHealingCombatEvent(event, source)
             
-            if (event.targetId) {
-                const target = unitsById.value.get(event.targetId)
-                if (target) {
-                    targetX = target.visualX
-                    targetY = target.visualY
-                }
-            } else {
+            if (!targetFromEvent && !isHealingSkill) {
                 const nearest = findNearestEnemy(source, renderedUnits.value)
                 if (nearest) {
-                    targetX = nearest.visualX
-                    targetY = nearest.visualY
+                    target = nearest
                 }
             }
 
-            if (activeAnimations.value.length < 15) {
-                activeAnimations.value.push({
-                    id: nextAnimId++,
-                    type: 'ability',
-                    effectStyle: config.effectStyle,
-                    pattern: source.ability?.pattern || 'SINGLE',
-                    startX: source.visualX,
-                    startY: source.visualY,
-                    endX: targetX,
-                    endY: targetY,
-                    color: config.color,
-                    definitionId: source.definitionId
-                })
-            }
+            combatVisualEvents.value.push(normalizeCombatEvent(event, source, target, newEvents.length))
+            addTimedFeedback(castingUnits, source.id, 900)
+            if (!isHealingSkill && target.id !== source.id) addTimedFeedback(hitFlashUnits, target.id, 520)
+            if (isHealingSkill) addTimedFeedback(hitFlashUnits, target.id, 420)
             
             // Floating text for skill
             castingAnimations.value.push({
-                id: nextAnimId++,
+                id: nextVisualEventId++,
                 x: source.visualX * CELL_SIZE.value + CELL_SIZE.value / 2,
                 y: source.visualY * CELL_SIZE.value,
-                text: event.skillName || source.activeAbility || (source.ability ? source.ability.name : 'Ability!')
+                text: event.skillName || getAbilityConfig(source.definitionId).signature || source.activeAbility || (source.ability ? source.ability.name : 'Ability!')
             })
             setTimeout(() => {
                 castingAnimations.value.shift()
             }, 1000)
+            if (isHealingSkill) {
+                const healAmount = Math.abs(event.value)
+                const healId = nextVisualEventId++
+                floatingHeals.value.push({
+                    id: healId,
+                    x: target.visualX * CELL_SIZE.value + CELL_SIZE.value / 2,
+                    y: target.visualY * CELL_SIZE.value + 10,
+                    text: `+${healAmount}`
+                })
+                setTimeout(() => {
+                    floatingHeals.value = floatingHeals.value.filter(h => h.id !== healId)
+                }, 1000)
+            }
+        } else if (event.type === 'HEAL') {
+            const target = targetFromEvent || source
+            combatVisualEvents.value.push(normalizeCombatEvent(event, source, target, newEvents.length))
+            const healAmount = Math.abs(event.value)
+            const healId = nextVisualEventId++
+            floatingHeals.value.push({
+                id: healId,
+                x: target.visualX * CELL_SIZE.value + CELL_SIZE.value / 2,
+                y: target.visualY * CELL_SIZE.value + 10,
+                text: `+${healAmount}`
+            })
+            setTimeout(() => {
+                floatingHeals.value = floatingHeals.value.filter(h => h.id !== healId)
+            }, 1000)
+        } else if (event.type === 'SHIELD') {
+            const target = targetFromEvent || source
+            combatVisualEvents.value.push(normalizeCombatEvent(event, source, target, newEvents.length))
+        } else if (event.type === 'DEATH') {
+            const target = targetFromEvent || source
+            combatVisualEvents.value.push(normalizeCombatEvent(event, source, target, newEvents.length))
+            addTimedFeedback(hitFlashUnits, target.id, 500)
         }
     })
     
+    if (combatVisualEvents.value.length > 120) {
+        combatVisualEvents.value = combatVisualEvents.value.slice(-80)
+    }
     lastProcessedEventTime.value = maxTime
 }, { deep: true })
 
-watch(() => renderedUnits.value, (newUnits, oldUnits) => {
+watch(() => renderedUnits.value, (newUnits) => {
     const currentPhase = props.state?.phase
     const isCombat = currentPhase === 'COMBAT'
     const wasInCombat = prevPhase.value === 'COMBAT'
@@ -512,11 +546,15 @@ watch(() => renderedUnits.value, (newUnits, oldUnits) => {
         // Clear dying units to stop any looping death animations
         dyingUnits.value.clear()
         dyingUnitData.value.clear()
+        combatVisualEvents.value = []
+        hitFlashUnits.value = new Set()
+        attackingUnits.value = new Set()
+        castingUnits.value = new Set()
         return
     }
     
     // Build map of current alive units
-    const newUnitIds = new Set(newUnits.map((u: any) => u.id))
+    const newUnitIds = new Set(newUnits.map((u: RenderedUnit) => u.id))
     
     // DEATH DETECTION: Only trigger if we were already in combat (not transitioning INTO combat)
     // This prevents false deaths when combat starts or ends
@@ -532,9 +570,7 @@ watch(() => renderedUnits.value, (newUnits, oldUnits) => {
     }
     
     // Check for health decreases (indicates unit was attacked)
-    newUnits.forEach((unit: any) => {
-        const prevHealth = prevHealthMap.value[unit.id]
-        
+    newUnits.forEach((unit: RenderedUnit) => {
         // Update health tracking
         prevHealthMap.value[unit.id] = unit.currentHealth
         
@@ -543,13 +579,8 @@ watch(() => renderedUnits.value, (newUnits, oldUnits) => {
     })
 })
 
-// Remove animation when complete
-function removeAnimation(id: number) {
-    activeAnimations.value = activeAnimations.value.filter(a => a.id !== id)
-}
-
 // Trigger death animation for a unit
-function triggerDeathAnimation(unit: any) {
+function triggerDeathAnimation(unit: RenderedUnit) {
     if (dyingUnits.value.has(unit.id)) return // Already dying
     
     dyingUnits.value.add(unit.id)
@@ -596,7 +627,7 @@ watch(() => props.state, (newState) => {
     // Check all units (board and bench) for star level changes
     const allMyUnits = [...(myPlayer.board || []), ...(myPlayer.bench || [])]
     
-    allMyUnits.forEach((unit: any) => {
+    allMyUnits.forEach((unit: GameUnit) => {
         if (!unit) return
         const prevStarLevel = prevStarLevelMap.value[unit.id]
         const currentStarLevel = unit.starLevel || 1
@@ -654,11 +685,28 @@ const onOrbClick = (orbId: string) => {
 
                 <!-- Absolute content overlay (aligned to grid cells) -->
                 <div class="grid-overlay" :style="{ inset: GRID_GUTTER + 'px' }">
+                    <CombatEffectsCanvas
+                        :events="combatVisualEvents"
+                        :units="displayedUnits"
+                        :cell-size="CELL_SIZE"
+                        :grid-rows="GRID_ROWS"
+                        :grid-cols="GRID_COLS"
+                        :phase="props.state?.phase"
+                    />
+
                     <!-- Render Units -->
                     <div v-for="unit in displayedUnits" :key="unit.id" 
                          class="unit" 
                          :style="getUnitStyle(unit)"
-                         :class="{ 'mine': unit.ownerId === myPlayerId, 'dying': unit.isDying, 'star-up': isStarringUp(unit.id) }"
+                         :class="{ 
+                            'mine': unit.ownerId === myPlayerId, 
+                            'dying': unit.isDying, 
+                            'star-up': isStarringUp(unit.id),
+                            'hit-flash': hitFlashUnits.has(unit.id),
+                            'attacking-lunge': attackingUnits.has(unit.id),
+                            'casting-glow': castingUnits.has(unit.id),
+                            'ultimate-caster': castingUnits.has(unit.id) && (unit.starLevel || 1) >= 3
+                         }"
                          :draggable="unit.ownerId === myPlayerId && !unit.isDying"
                          @dragstart="(e) => onDragStart(e, unit)"
                          @dragend="onDragEnd"
@@ -710,23 +758,6 @@ const onOrbClick = (orbId: string) => {
                         </div>
                     </div>
 
-                    <!-- Animations -->
-                    <AttackAnimation 
-                        v-for="anim in activeAnimations" 
-                        :key="anim.id"
-                        :type="anim.type"
-                        :attack-type="anim.attackType"
-                        :effect-style="anim.effectStyle"
-                        :pattern="anim.pattern"
-                        :start-x="anim.startX"
-                        :start-y="anim.startY"
-                        :end-x="anim.endX"
-                        :end-y="anim.endY"
-                        :color="anim.color"
-                        :definition-id="anim.definitionId"
-                        :cell-size="CELL_SIZE"
-                        @complete="removeAnimation(anim.id)"
-                    />
                 </div>
             </div>
         </div>
@@ -867,6 +898,83 @@ const onOrbClick = (orbId: string) => {
 }
 .unit.mine:active {
     cursor: grabbing;
+}
+
+.unit.hit-flash {
+    animation: unitHitFlash 0.42s ease-out;
+}
+
+.unit.attacking-lunge {
+    animation: unitAttackLunge 0.36s ease-out;
+}
+
+.unit.casting-glow {
+    animation: unitCastingGlow 0.9s ease-out;
+}
+
+.unit.ultimate-caster {
+    animation: unitUltimateCaster 0.9s ease-out;
+}
+
+@keyframes unitHitFlash {
+    0% {
+        filter: brightness(1);
+        transform: translate(0, 0) scale(1);
+    }
+    18% {
+        filter: brightness(2.8) saturate(0.7);
+        transform: translate(-2px, 1px) scale(1.08);
+        box-shadow: 0 0 22px rgba(255, 255, 255, 0.95);
+    }
+    44% {
+        transform: translate(2px, -1px) scale(0.98);
+    }
+    100% {
+        filter: brightness(1);
+        transform: translate(0, 0) scale(1);
+    }
+}
+
+@keyframes unitAttackLunge {
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+    45% {
+        transform: translate(5px, -5px) scale(1.08);
+        filter: brightness(1.35);
+    }
+    100% {
+        transform: translate(0, 0) scale(1);
+        filter: brightness(1);
+    }
+}
+
+@keyframes unitCastingGlow {
+    0% {
+        filter: brightness(1);
+        box-shadow: 0 0 10px var(--rarity-color);
+    }
+    24% {
+        filter: brightness(1.8) saturate(1.4);
+        box-shadow: 0 0 26px var(--rarity-color), 0 0 42px rgba(255, 255, 255, 0.36);
+    }
+    100% {
+        filter: brightness(1);
+        box-shadow: 0 0 10px var(--rarity-color);
+    }
+}
+
+@keyframes unitUltimateCaster {
+    0% {
+        transform: scale(1);
+    }
+    25% {
+        transform: scale(1.18);
+        filter: brightness(2);
+    }
+    100% {
+        transform: scale(1);
+    }
 }
 
 /* Cost Top Glow */
@@ -1283,5 +1391,3 @@ const onOrbClick = (orbId: string) => {
 
 
 </style>
-
-

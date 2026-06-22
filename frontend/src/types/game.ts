@@ -132,7 +132,7 @@ export interface PlayerState {
 
 export interface CombatEvent {
     timestamp: number
-    type: 'DAMAGE' | 'SKILL' | 'DEATH' | 'MOVE'
+    type: 'DAMAGE' | 'SKILL' | 'DEATH' | 'MOVE' | 'HEAL' | 'SHIELD'
     sourceId: string
     targetId: string
     value: number
@@ -217,4 +217,3 @@ export interface RenderedOrb extends LootOrb {
 export interface DisplayedUnit extends RenderedUnit {
     isDying?: boolean
 }
-
