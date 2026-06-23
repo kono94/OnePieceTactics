@@ -118,10 +118,8 @@ class CombatSystemUnitTest {
 
     @Test
     void testSimulateTick_UnitAttacksInRange() {
-        var p1 =
-                new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
-        var p2 =
-                new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p1 = new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 = new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
 
         var attacker = MockUnit.create("attacker", p1.getId())
                 .withPosition(3, 0)
@@ -148,10 +146,8 @@ class CombatSystemUnitTest {
 
     @Test
     void testSimulateTick_ManaGain_OnAttack() {
-        var p1 =
-                new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
-        var p2 =
-                new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p1 = new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 = new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
 
         var attacker = MockUnit.create("attacker", p1.getId())
                 .withPosition(3, 0)

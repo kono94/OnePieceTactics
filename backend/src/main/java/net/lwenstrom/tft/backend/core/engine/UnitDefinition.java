@@ -17,7 +17,49 @@ public record UnitDefinition(
         List<Float> attackSpeed,
         List<Integer> range,
         List<String> traits,
-        AbilityDefinition ability) {
+        AbilityDefinition ability,
+        String lineId,
+        List<UnitFormDefinition> forms) {
+
+    public UnitDefinition(
+            String id,
+            String name,
+            int cost,
+            List<Integer> maxHealth,
+            List<Integer> maxMana,
+            List<Integer> attackDamage,
+            List<Integer> abilityPower,
+            List<Integer> armor,
+            List<Integer> magicResist,
+            List<Float> attackSpeed,
+            List<Integer> range,
+            List<String> traits,
+            AbilityDefinition ability) {
+        this(
+                id,
+                name,
+                cost,
+                maxHealth,
+                maxMana,
+                attackDamage,
+                abilityPower,
+                armor,
+                magicResist,
+                attackSpeed,
+                range,
+                traits,
+                ability,
+                null,
+                null);
+    }
+
+    public String lineId() {
+        return lineId == null || lineId.isBlank() ? id : lineId;
+    }
+
+    public List<UnitFormDefinition> forms() {
+        return forms == null ? List.of() : forms;
+    }
 
     public int getMaxHealth(int level) {
         return getVal(maxHealth, level);
@@ -49,6 +91,41 @@ public record UnitDefinition(
 
     public int getRange(int level) {
         return getVal(range, level);
+    }
+
+    public String getDefinitionId(int level) {
+        var form = getForm(level);
+        return form != null && form.definitionId() != null ? form.definitionId() : id;
+    }
+
+    public String getName(int level) {
+        var form = getForm(level);
+        return form != null && form.name() != null ? form.name() : name;
+    }
+
+    public List<String> getTraits(int level) {
+        var form = getForm(level);
+        return form != null && form.traits() != null && !form.traits().isEmpty() ? form.traits() : traits;
+    }
+
+    public AbilityDefinition getAbility(int level) {
+        var form = getForm(level);
+        return form != null && form.ability() != null ? form.ability() : ability;
+    }
+
+    public int getActiveRange(int level) {
+        var form = getForm(level);
+        if (form != null && form.range() != null && !form.range().isEmpty()) {
+            return getVal(form.range(), level);
+        }
+        return getRange(level);
+    }
+
+    private UnitFormDefinition getForm(int level) {
+        return forms().stream()
+                .filter(form -> form.starLevel() == level)
+                .findFirst()
+                .orElse(null);
     }
 
     private <T> T getVal(List<T> list, int level) {
@@ -99,6 +176,7 @@ public record UnitDefinition(
 
     @JsonProperty("formattedAbilityDescription")
     public String formattedAbilityDescription() {
-        return ability != null ? ability.getFormattedDescription(1) : "";
+        var activeAbility = getAbility(1);
+        return activeAbility != null ? activeAbility.getFormattedDescription(1) : "";
     }
 }

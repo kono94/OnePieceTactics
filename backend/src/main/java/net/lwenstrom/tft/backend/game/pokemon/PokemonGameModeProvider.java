@@ -1,15 +1,16 @@
 package net.lwenstrom.tft.backend.game.pokemon;
 
+import lombok.RequiredArgsConstructor;
 import net.lwenstrom.tft.backend.core.GameModeProvider;
 import net.lwenstrom.tft.backend.core.engine.TraitManager;
 import net.lwenstrom.tft.backend.core.model.GameMode;
-import net.lwenstrom.tft.backend.game.pokemon.traits.FireTrait;
-import net.lwenstrom.tft.backend.game.pokemon.traits.GrassTrait;
-import net.lwenstrom.tft.backend.game.pokemon.traits.WaterTrait;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.json.JsonMapper;
 
 @Component
+@RequiredArgsConstructor
 public class PokemonGameModeProvider implements GameModeProvider {
+    private final JsonMapper jsonMapper;
 
     @Override
     public GameMode getMode() {
@@ -28,8 +29,6 @@ public class PokemonGameModeProvider implements GameModeProvider {
 
     @Override
     public void registerTraitEffects(TraitManager traitManager) {
-        traitManager.registerEffect("fire", new FireTrait());
-        traitManager.registerEffect("water", new WaterTrait());
-        traitManager.registerEffect("grass", new GrassTrait());
+        PokemonTraitLoader.load(traitManager, jsonMapper);
     }
 }

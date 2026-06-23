@@ -64,7 +64,7 @@ public class DataLoader {
         try {
             var is = getClass().getResourceAsStream(path);
             if (is != null) {
-                var metadata = jsonMapper.readValue(is, new TypeReference< List<TraitMetadata>>() {});
+                var metadata = jsonMapper.readValue(is, new TypeReference<List<TraitMetadata>>() {});
                 log.info("Loaded {} traits from {}", metadata.size(), path);
                 return metadata;
             } else {
@@ -78,6 +78,18 @@ public class DataLoader {
 
     public UnitDefinition getUnitDefinition(GameMode mode, String id) {
         return getModeData(mode).unitRegistry().get(id);
+    }
+
+    public UnitDefinition findUnitDefinition(GameMode mode, String idOrLineIdOrName) {
+        var direct = getUnitDefinition(mode, idOrLineIdOrName);
+        if (direct != null) {
+            return direct;
+        }
+        return getAllUnits(mode).stream()
+                .filter(def ->
+                        def.lineId().equals(idOrLineIdOrName) || def.name().equals(idOrLineIdOrName))
+                .findFirst()
+                .orElse(null);
     }
 
     public List<UnitDefinition> getAllUnits(GameMode mode) {

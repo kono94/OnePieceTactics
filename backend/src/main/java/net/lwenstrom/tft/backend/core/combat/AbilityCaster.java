@@ -8,6 +8,15 @@ public interface AbilityCaster {
 
     void castAbility(GameUnit source, List<GameUnit> allUnits, TargetSelector targetSelector, DamageCallback callback);
 
+    default void castAbility(
+            GameUnit source,
+            List<GameUnit> allUnits,
+            TargetSelector targetSelector,
+            DamageCallback callback,
+            long currentTime) {
+        castAbility(source, allUnits, targetSelector, callback);
+    }
+
     @FunctionalInterface
     interface DamageCallback {
         void onDamage(String unitId, String unitName, String targetId, int damage);

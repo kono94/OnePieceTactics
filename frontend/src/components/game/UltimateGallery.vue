@@ -58,6 +58,7 @@ function createRenderedUnit(unit: UltimateGalleryUnit, instanceId: string, x: nu
     return {
         id: instanceId,
         definitionId: unit.id,
+        lineId: unit.id,
         name: unit.name,
         cost: unit.cost,
         maxHealth: 1000,

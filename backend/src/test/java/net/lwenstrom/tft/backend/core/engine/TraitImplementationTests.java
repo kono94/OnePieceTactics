@@ -21,10 +21,8 @@ class TraitImplementationTests {
 
     @Test
     void testBeastPirates_LowHpDamageBonus() {
-        var p1 =
-                new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
-        var p2 =
-                new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p1 = new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 = new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
 
         var unit = MockUnit.create("beast", p1.getId())
                 .withName("Beast")
@@ -52,10 +50,8 @@ class TraitImplementationTests {
 
     @Test
     void testSniper_DistanceDamage() {
-        var p1 =
-                new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
-        var p2 =
-                new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p1 = new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 = new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
 
         var unit = MockUnit.create("sniper", p1.getId())
                 .withName("Sniper")
@@ -80,10 +76,8 @@ class TraitImplementationTests {
 
     @Test
     void testBigMomPirates_Revive() {
-        var p1 =
-                new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
-        var p2 =
-                new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p1 = new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 = new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
 
         var unit = MockUnit.create("bm", p1.getId())
                 .withName("BigMom")
@@ -116,10 +110,8 @@ class TraitImplementationTests {
 
     @Test
     void testMage_ManaGainMultiplier() {
-        var p1 =
-                new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
-        var p2 =
-                new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p1 = new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 = new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
 
         var unit = MockUnit.create("mage", p1.getId())
                 .withName("Mage")
@@ -144,10 +136,8 @@ class TraitImplementationTests {
 
     @Test
     void testBerserker_LowHpAsBonus() {
-        var p1 =
-                new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
-        var p2 =
-                new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p1 = new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 = new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
 
         var unit = MockUnit.create("berserker", p1.getId())
                 .withName("Berserker")

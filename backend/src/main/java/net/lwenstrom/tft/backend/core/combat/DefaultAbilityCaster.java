@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.lwenstrom.tft.backend.core.engine.AbstractGameUnit;
 import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
 import net.lwenstrom.tft.backend.core.model.ConditionalModifier;
+import net.lwenstrom.tft.backend.core.model.DotEffect;
+import net.lwenstrom.tft.backend.core.model.DotModifier;
 import net.lwenstrom.tft.backend.core.model.ExecuteModifier;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 import net.lwenstrom.tft.backend.core.model.KnockbackModifier;
@@ -19,12 +21,22 @@ public class DefaultAbilityCaster implements AbilityCaster {
 
     @Override
     public void castAbility(GameUnit source, List<GameUnit> allUnits, TargetSelector targetSelector) {
-        castAbility(source, allUnits, targetSelector, (id, name, tId, dmg) -> {});
+        castAbility(source, allUnits, targetSelector, (id, name, tId, dmg) -> {}, System.currentTimeMillis());
     }
 
     @Override
     public void castAbility(
             GameUnit source, List<GameUnit> allUnits, TargetSelector targetSelector, DamageCallback callback) {
+        castAbility(source, allUnits, targetSelector, callback, System.currentTimeMillis());
+    }
+
+    @Override
+    public void castAbility(
+            GameUnit source,
+            List<GameUnit> allUnits,
+            TargetSelector targetSelector,
+            DamageCallback callback,
+            long currentTime) {
         AbilityDefinition ability = source.getAbility();
         if (ability == null) {
             return;
@@ -36,11 +48,12 @@ public class DefaultAbilityCaster implements AbilityCaster {
         int value = ability.getValueForLevel(source.getStarLevel());
 
         switch (abilityType) {
-            case DAMAGE -> castDamageAbility(source, allUnits, targetSelector, ability, value, callback);
+            case DAMAGE -> castDamageAbility(source, allUnits, targetSelector, ability, value, callback, currentTime);
             case STUN -> castStunAbility(source, allUnits, targetSelector, ability, value, callback);
             case HEAL -> castHealAbility(source, allUnits, ability, value, callback);
             case BUFF_ATK -> castBuffAtkAbility(source, allUnits, ability, value, callback);
             case BUFF_SPD -> castBuffSpdAbility(source, allUnits, ability, value, callback);
+            case SHIELD -> castShieldAbility(source, allUnits, ability, value, callback);
         }
     }
 
@@ -50,7 +63,8 @@ public class DefaultAbilityCaster implements AbilityCaster {
             TargetSelector targetSelector,
             AbilityDefinition ability,
             int damage,
-            DamageCallback callback) {
+            DamageCallback callback,
+            long currentTime) {
         var target = targetSelector.findTarget(source, allUnits);
         if (target == null) {
             return;
@@ -77,6 +91,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
             u.takeDamage(finalDamage);
             // Apply secondary effects from modifiers (stun, knockback)
             applyStunAndKnockbackModifiers(source, u, ability);
+            applyDotModifiers(source, u, ability, currentTime);
             totalDamageDealt[0] += finalDamage;
             callback.onDamage(source.getId(), source.getName(), u.getId(), finalDamage);
         });
@@ -189,6 +204,28 @@ public class DefaultAbilityCaster implements AbilityCaster {
                     u.setSpdBuff(u.getSpdBuff() * multiplier);
                     callback.onDamage(source.getId(), source.getName(), u.getId(), 0);
                 });
+    }
+
+    private void castShieldAbility(
+            GameUnit source,
+            List<GameUnit> allUnits,
+            AbilityDefinition ability,
+            int shieldAmount,
+            DamageCallback callback) {
+        switch (ability.pattern()) {
+            case SINGLE -> {
+                source.setShield(source.getShield() + shieldAmount);
+                callback.onDamage(source.getId(), source.getName(), source.getId(), 0);
+            }
+            case SURROUND, LINE ->
+                allUnits.stream()
+                        .filter(u -> u.getCurrentHealth() > 0)
+                        .filter(u -> CombatUtils.isAlly(source, u))
+                        .forEach(u -> {
+                            u.setShield(u.getShield() + shieldAmount);
+                            callback.onDamage(source.getId(), source.getName(), u.getId(), 0);
+                        });
+        }
     }
 
     private void applyToTargets(
@@ -320,6 +357,32 @@ public class DefaultAbilityCaster implements AbilityCaster {
             } else if (modifier instanceof KnockbackModifier knockbackModifier) {
                 int cells = knockbackModifier.getCells(starLevel);
                 applyKnockback(source, target, cells);
+            }
+        }
+    }
+
+    private void applyDotModifiers(GameUnit source, GameUnit target, AbilityDefinition ability, long currentTime) {
+        if (target == null) return;
+        int starLevel = source.getStarLevel();
+
+        for (var modifier : ability.modifiers()) {
+            if (modifier instanceof DotModifier dotModifier) {
+                int damagePerTick = dotModifier.getDamagePerTick(starLevel);
+                int durationSeconds = dotModifier.getDurationSeconds(starLevel);
+                int tickIntervalMs = dotModifier.getTickIntervalMs(starLevel);
+                if (damagePerTick <= 0 || durationSeconds <= 0 || tickIntervalMs <= 0) {
+                    continue;
+                }
+                target.addDotEffect(new DotEffect(
+                        source.getId(),
+                        source.getName(),
+                        source.getDefinitionId(),
+                        source.getOwnerId(),
+                        damagePerTick,
+                        currentTime + tickIntervalMs,
+                        currentTime + durationSeconds * 1000L,
+                        tickIntervalMs,
+                        dotModifier.dotType().name()));
             }
         }
     }

@@ -41,7 +41,7 @@ public class Player {
     private boolean ghost = false;
     private final List<PendingUpgrade> pendingUpgrades = new ArrayList<>();
 
-    private record PendingUpgrade(String unitName, int starLevel) {}
+    private record PendingUpgrade(String lineId, int starLevel) {}
 
     private final DataLoader dataLoader;
     private GameMode gameMode;
@@ -101,19 +101,19 @@ public class Player {
         shop.set(shopIndex, null);
 
         if (inCombat) {
-            pendingUpgrades.add(new PendingUpgrade(def.name(), 1));
+            pendingUpgrades.add(new PendingUpgrade(def.lineId(), 1));
         } else {
-            checkUpgrade(def.name(), 1);
+            checkUpgrade(def.lineId(), 1);
         }
     }
 
-    private void checkUpgrade(String unitName, int starLevel) {
+    private void checkUpgrade(String lineId, int starLevel) {
         var candidates = new ArrayList<GameUnit>();
         candidates.addAll(bench.units()
-                .filter(u -> u.getName().equals(unitName) && u.getStarLevel() == starLevel)
+                .filter(u -> u.getLineId().equals(lineId) && u.getStarLevel() == starLevel)
                 .toList());
         candidates.addAll(boardUnits.stream()
-                .filter(u -> u.getName().equals(unitName) && u.getStarLevel() == starLevel)
+                .filter(u -> u.getLineId().equals(lineId) && u.getStarLevel() == starLevel)
                 .toList());
 
         if (candidates.size() >= 3) {
@@ -137,7 +137,7 @@ public class Player {
             boardUnits.removeAll(unitsToRemove);
 
             var def = dataLoader.getAllUnits(gameMode).stream()
-                    .filter(d -> d.name().equals(unitName))
+                    .filter(d -> d.lineId().equals(lineId))
                     .findFirst()
                     .orElse(null);
 
@@ -156,7 +156,7 @@ public class Player {
                     addToBench(upgraded);
                 }
 
-                checkUpgrade(unitName, starLevel + 1);
+                checkUpgrade(lineId, starLevel + 1);
             }
         }
     }
@@ -204,7 +204,7 @@ public class Player {
         var upgradesToProcess = new ArrayList<>(pendingUpgrades);
         pendingUpgrades.clear();
         for (var pending : upgradesToProcess) {
-            checkUpgrade(pending.unitName(), pending.starLevel());
+            checkUpgrade(pending.lineId(), pending.starLevel());
         }
     }
 
@@ -221,9 +221,10 @@ public class Player {
             if (orb.type() == LootType.GOLD) {
                 gainGold(orb.amount());
             } else if (orb.type() == LootType.UNIT) {
-                var units = dataLoader.getAllUnits(gameMode);
-                var def = units.stream()
-                        .filter(u -> u.name().equals(orb.contentId()))
+                var def = dataLoader.getAllUnits(gameMode).stream()
+                        .filter(unit -> unit.id().equals(orb.contentId())
+                                || unit.lineId().equals(orb.contentId())
+                                || unit.name().equals(orb.contentId()))
                         .findFirst()
                         .orElse(null);
                 if (def != null) {
@@ -239,7 +240,7 @@ public class Player {
         var emptySlot = bench.findFirstEmptySlot();
         if (emptySlot.isPresent()) {
             bench.set(emptySlot.get(), unit);
-            checkUpgrade(unit.getName(), unit.getStarLevel());
+            checkUpgrade(unit.getLineId(), unit.getStarLevel());
         } else {
             gainGold(refundAmount);
         }

@@ -22,6 +22,8 @@ public class InfoController {
                 "defaultGameMode",
                 gameModeRegistry.getDefaultMode().getValue(),
                 "availableModes",
-                gameModeRegistry.getAvailableModes().stream().map(m -> m.getValue()).toList());
+                gameModeRegistry.getAvailableModes().stream()
+                        .map(m -> m.getValue())
+                        .toList());
     }
 }

@@ -30,7 +30,7 @@ public class TraitManager {
         for (var unit : units) {
             for (var traitName : unit.getTraits()) {
                 var id = normalizeTraitId(traitName);
-                traitCounts.computeIfAbsent(id, k -> new HashSet<String>()).add(unit.getName());
+                traitCounts.computeIfAbsent(id, k -> new HashSet<String>()).add(unit.getLineId());
             }
         }
 

@@ -79,9 +79,7 @@ class PlayerAutoFillTest {
     @BeforeEach
     void setup() {
         var registry = createMockRegistry();
-        player =
-                new Player(
-                        "Player1", GameMode.ONEPIECE, new MockDataLoader(registry), createSeededRandomProvider());
+        player = new Player("Player1", GameMode.ONEPIECE, new MockDataLoader(registry), createSeededRandomProvider());
     }
 
     @Test

@@ -26,6 +26,16 @@ export interface AbilityDefinition {
     pattern: string // 'SINGLE' | 'LINE' | 'SURROUND'
     range: number[]
     values: number[]
+    modifiers?: Record<string, unknown>[]
+}
+
+export interface UnitFormDefinition {
+    starLevel: number
+    definitionId: string
+    name: string
+    traits?: string[]
+    range?: number[]
+    ability?: AbilityDefinition | null
 }
 
 export interface GameItem {
@@ -38,6 +48,7 @@ export interface GameItem {
 export interface GameUnit {
     id: string
     definitionId: string
+    lineId: string
     name: string
     cost: number
     maxHealth: number
@@ -66,6 +77,7 @@ export interface GameUnit {
 
 export interface UnitDefinition {
     id: string
+    lineId?: string
     name: string
     cost: number
     maxHealth: number
@@ -78,6 +90,7 @@ export interface UnitDefinition {
     range: number
     traits: string[]
     ability: AbilityDefinition | null
+    forms?: UnitFormDefinition[]
 }
 
 // ============================================================================

@@ -1,5 +1,6 @@
 package net.lwenstrom.tft.backend.core.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Set;
@@ -8,6 +9,10 @@ public interface GameUnit {
     String getId();
 
     String getDefinitionId();
+
+    default String getLineId() {
+        return getDefinitionId();
+    }
 
     String getName();
 
@@ -36,6 +41,13 @@ public interface GameUnit {
     Set<String> getTraits();
 
     List<GameItem> getItems();
+
+    @JsonIgnore
+    default List<DotEffect> getDotEffects() {
+        return List.of();
+    }
+
+    default void addDotEffect(DotEffect effect) {}
 
     // Position on grid (x, y)
     int getX();

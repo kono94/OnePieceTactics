@@ -72,8 +72,8 @@ public class SimulationTest {
         };
 
         var testClock = createTestClock();
-        var room =
-                new GameRoom("sim-room", dataLoader, registry, testClock, createSeededRandomProvider(), GameMode.ONEPIECE);
+        var room = new GameRoom(
+                "sim-room", dataLoader, registry, testClock, createSeededRandomProvider(), GameMode.ONEPIECE);
         room.addPlayer("P1");
         room.addPlayer("P2");
 
@@ -165,9 +165,8 @@ public class SimulationTest {
         };
 
         var testClock = createTestClock();
-        var room =
-                new GameRoom(
-                        "combat-room", dataLoader, registry, testClock, createSeededRandomProvider(), GameMode.ONEPIECE);
+        var room = new GameRoom(
+                "combat-room", dataLoader, registry, testClock, createSeededRandomProvider(), GameMode.ONEPIECE);
         Player p1 = room.addPlayer("P1");
         Player p2 = room.addPlayer("P2");
         p1.setGold(100);

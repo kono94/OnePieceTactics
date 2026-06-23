@@ -3,6 +3,7 @@ package net.lwenstrom.tft.backend.core.engine;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -122,6 +123,9 @@ public class CombatSystem {
         if (allUnits.isEmpty()) {
             log.warn("allUnits is empty in simulateTick");
         }
+
+        processDotEffects(allUnits, currentTime);
+
         var snapshot = List.copyOf(allUnits);
         for (var unit : snapshot) {
             if (unit.getCurrentHealth() <= 0) {
@@ -147,16 +151,21 @@ public class CombatSystem {
             unit.setActiveAbility(null);
 
             if (unit.getMaxMana() > 0 && unit.getMana() >= unit.getMaxMana()) {
-                abilityCaster.castAbility(unit, allUnits, targetSelector, (uId, uName, tId, dmg) -> {
-                    accumulateDamage(uId, uName, unit.getDefinitionId(), unit.getOwnerId(), dmg);
-                    recentEvents.add(new GameState.CombatEvent(
-                            currentTime,
-                            "SKILL",
-                            uId,
-                            tId,
-                            dmg,
-                            unit.getAbility().name()));
-                });
+                abilityCaster.castAbility(
+                        unit,
+                        allUnits,
+                        targetSelector,
+                        (uId, uName, tId, dmg) -> {
+                            accumulateDamage(uId, uName, unit.getDefinitionId(), unit.getOwnerId(), dmg);
+                            recentEvents.add(new GameState.CombatEvent(
+                                    currentTime,
+                                    "SKILL",
+                                    uId,
+                                    tId,
+                                    dmg,
+                                    unit.getAbility().name()));
+                        },
+                        currentTime);
                 unit.setMana(0);
                 unit.setNextAttackTime(currentTime + GameConstants.ABILITY_COOLDOWN_MS);
                 continue;
@@ -259,6 +268,62 @@ public class CombatSystem {
         }
 
         return new CombatResult(false, null, Map.of(), new ArrayList<>(recentEvents));
+    }
+
+    private void processDotEffects(List<GameUnit> allUnits, long currentTime) {
+        for (var target : allUnits) {
+            if (target.getCurrentHealth() <= 0 || target.getDotEffects().isEmpty()) {
+                continue;
+            }
+
+            Iterator<net.lwenstrom.tft.backend.core.model.DotEffect> iterator =
+                    target.getDotEffects().iterator();
+            var effectsToAdd = new ArrayList<net.lwenstrom.tft.backend.core.model.DotEffect>();
+            while (iterator.hasNext()) {
+                var effect = iterator.next();
+                if (currentTime >= effect.expiresAt()) {
+                    iterator.remove();
+                    continue;
+                }
+                if (currentTime < effect.nextTickTime()) {
+                    continue;
+                }
+
+                target.takeDamage(effect.damagePerTick());
+                accumulateDamage(
+                        effect.sourceId(),
+                        effect.sourceName(),
+                        effect.sourceDefinitionId(),
+                        effect.sourceOwnerId(),
+                        effect.damagePerTick());
+                recentEvents.add(new GameState.CombatEvent(
+                        currentTime,
+                        "DAMAGE",
+                        effect.sourceId(),
+                        target.getId(),
+                        effect.damagePerTick(),
+                        effect.skillName()));
+
+                iterator.remove();
+                if (target.getCurrentHealth() > 0 && currentTime + effect.tickIntervalMs() < effect.expiresAt()) {
+                    effectsToAdd.add(effect.withNextTickTime(currentTime + effect.tickIntervalMs()));
+                }
+
+                if (target.getCurrentHealth() <= 0) {
+                    if (target.hasRevive() && !target.isReviveUsed()) {
+                        target.setReviveUsed(true);
+                        target.setCurrentHealth((int) (target.getMaxHealth() * 0.4));
+                    } else {
+                        triggerShieldOnDeath(target, allUnits, currentTime);
+                        recentEvents.add(new GameState.CombatEvent(
+                                currentTime, "DEATH", effect.sourceId(), target.getId(), 0, null));
+                    }
+                    iterator.forEachRemaining(ignored -> {});
+                    break;
+                }
+            }
+            target.getDotEffects().addAll(effectsToAdd);
+        }
     }
 
     private void triggerShieldOnDeath(GameUnit deadUnit, List<GameUnit> allUnits, long currentTime) {

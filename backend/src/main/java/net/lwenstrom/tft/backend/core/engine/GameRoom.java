@@ -432,7 +432,7 @@ public class GameRoom {
                 var units = dataLoader.getAllUnits(gameMode);
                 // Use shop odds for player level + 1 to determine loot unit
                 var def = ShopOdds.rollUnit(player.getLevel() + 1, units, randomProvider);
-                contentId = def.name();
+                contentId = def.id();
             }
 
             var orb = new LootOrb(orbId, x, y, type, contentId, amount);

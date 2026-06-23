@@ -51,14 +51,13 @@ public class LobbyTest {
                 null);
         when(dataLoader.getAllUnits(GameMode.ONEPIECE)).thenReturn(List.of(dummyUnit));
 
-        gameRoom =
-                new GameRoom(
-                        "room-1",
-                        dataLoader,
-                        gameModeRegistry,
-                        createTestClock(),
-                        createSeededRandomProvider(),
-                        GameMode.ONEPIECE);
+        gameRoom = new GameRoom(
+                "room-1",
+                dataLoader,
+                gameModeRegistry,
+                createTestClock(),
+                createSeededRandomProvider(),
+                GameMode.ONEPIECE);
     }
 
     @Test

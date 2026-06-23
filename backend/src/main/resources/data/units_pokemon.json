@@ -1,103 +1,3335 @@
 [
     {
+        "id": "bulbasaur",
+        "lineId": "bulbasaur",
+        "name": "Bulbasaur",
+        "cost": 1,
+        "maxHealth": [560, 1008, 1814],
+        "maxMana": [55, 55, 55],
+        "attackDamage": [49, 88, 159],
+        "abilityPower": [0, 0, 0],
+        "armor": [20, 20, 20],
+        "magicResist": [20, 20, 20],
+        "attackSpeed": [0.62, 0.62, 0.62],
+        "range": [1, 1, 1],
+        "traits": ["Grass", "Poison", "Starter"],
+        "ability": {
+            "name": "Vine Whip",
+            "description": "Whips vines through allies, restoring $value health.",
+            "type": "HEAL",
+            "pattern": "SURROUND",
+            "values": [165, 371, 825],
+            "range": [1, 1, 1]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "bulbasaur",
+                "name": "Bulbasaur",
+                "traits": ["Grass", "Poison", "Starter"],
+                "ability": {
+                    "name": "Vine Whip",
+                    "description": "Whips vines through allies, restoring $value health.",
+                    "type": "HEAL",
+                    "pattern": "SURROUND",
+                    "values": [165, 371, 825],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "ivysaur",
+                "name": "Ivysaur",
+                "traits": ["Grass", "Poison", "Starter"],
+                "ability": {
+                    "name": "Razor Leaf",
+                    "description": "Cuts nearby enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "SURROUND",
+                    "values": [165, 371, 825],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [23, 52, 106],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "venusaur",
+                "name": "Venusaur",
+                "traits": ["Grass", "Poison", "Starter"],
+                "ability": {
+                    "name": "Solar Bloom",
+                    "description": "Blooms sunlight, healing allies for $value and seeding enemies.",
+                    "type": "HEAL",
+                    "pattern": "SURROUND",
+                    "values": [165, 371, 825],
+                    "range": [1, 1, 1]
+                }
+            }
+        ]
+    },
+    {
         "id": "charmander",
+        "lineId": "charmander",
         "name": "Charmander",
         "cost": 1,
-        "maxHealth": [500, 900, 1620],
-        "maxMana": [40, 40, 40],
-        "attackDamage": [50, 90, 162],
+        "maxHealth": [580, 1044, 1879],
+        "maxMana": [55, 55, 55],
+        "attackDamage": [61, 110, 198],
         "abilityPower": [0, 0, 0],
-        "armor": [15, 15, 15],
-        "magicResist": [15, 15, 15],
-        "attackSpeed": [0.65, 0.65, 0.65],
+        "armor": [20, 20, 20],
+        "magicResist": [20, 20, 20],
+        "attackSpeed": [0.64, 0.64, 0.64],
         "range": [1, 1, 1],
-        "traits": ["Fire", "Starter"],
+        "traits": ["Fire", "Starter", "Striker"],
         "ability": {
             "name": "Ember",
-            "description": "Shoots a small flame dealing $value damage. Burns low HP targets.",
+            "description": "Shoots a flame for $value damage and applies burn.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [150, 350, 800],
-            "range": [2, 2, 2],
+            "values": [165, 371, 825],
+            "range": [1, 1, 1],
             "modifiers": [
                 {
-                    "type": "EXECUTE",
-                    "hpThreshold": [0.25, 0.25, 0.25],
-                    "bonusDamageMultiplier": [0.4, 0.4, 0.4]
+                    "type": "DOT",
+                    "dotType": "BURN",
+                    "damagePerTick": [28, 60, 120],
+                    "durationSeconds": [3, 3, 4],
+                    "tickIntervalMs": [1000, 1000, 1000]
                 }
             ]
-        }
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "charmander",
+                "name": "Charmander",
+                "traits": ["Fire", "Starter", "Striker"],
+                "ability": {
+                    "name": "Ember",
+                    "description": "Shoots a flame for $value damage and applies burn.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [165, 371, 825],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "BURN",
+                            "damagePerTick": [28, 60, 120],
+                            "durationSeconds": [3, 3, 4],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "charmeleon",
+                "name": "Charmeleon",
+                "traits": ["Fire", "Starter", "Striker"],
+                "ability": {
+                    "name": "Flame Burst",
+                    "description": "Blasts a line for $value damage and applies burn.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [165, 371, 825],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "BURN",
+                            "damagePerTick": [28, 60, 120],
+                            "durationSeconds": [3, 3, 4],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "charizard",
+                "name": "Charizard",
+                "traits": ["Fire", "Flying", "Starter"],
+                "ability": {
+                    "name": "Flamethrower",
+                    "description": "Sweeps a blazing line for $value damage and applies burn.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [165, 371, 825],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "BURN",
+                            "damagePerTick": [28, 60, 120],
+                            "durationSeconds": [3, 3, 4],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            }
+        ]
     },
     {
         "id": "squirtle",
+        "lineId": "squirtle",
         "name": "Squirtle",
         "cost": 1,
-        "maxHealth": [550, 990, 1782],
-        "maxMana": [50, 50, 50],
-        "attackDamage": [45, 81, 145],
+        "maxHealth": [740, 1332, 2398],
+        "maxMana": [55, 55, 55],
+        "attackDamage": [41, 74, 133],
         "abilityPower": [0, 0, 0],
-        "armor": [25, 25, 25],
-        "magicResist": [25, 25, 25],
-        "attackSpeed": [0.6, 0.6, 0.6],
+        "armor": [36, 36, 36],
+        "magicResist": [30, 30, 30],
+        "attackSpeed": [0.59, 0.59, 0.59],
         "range": [1, 1, 1],
-        "traits": ["Water", "Starter"],
+        "traits": ["Water", "Starter", "Defender"],
         "ability": {
             "name": "Water Gun",
-            "description": "Fires a high-pressure jet of water dealing $value damage.",
+            "description": "Fires pressurized water for $value damage.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [120, 240, 480],
+            "values": [165, 371, 825],
+            "range": [1, 1, 1]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "squirtle",
+                "name": "Squirtle",
+                "traits": ["Water", "Starter", "Defender"],
+                "ability": {
+                    "name": "Water Gun",
+                    "description": "Fires pressurized water for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [165, 371, 825],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "wartortle",
+                "name": "Wartortle",
+                "traits": ["Water", "Starter", "Defender"],
+                "ability": {
+                    "name": "Shell Guard",
+                    "description": "Grants allies a $value shield.",
+                    "type": "SHIELD",
+                    "pattern": "SURROUND",
+                    "values": [165, 346, 758],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "blastoise",
+                "name": "Blastoise",
+                "traits": ["Water", "Starter", "Defender"],
+                "ability": {
+                    "name": "Hydro Cannon",
+                    "description": "Fires twin cannons for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [165, 371, 825],
+                    "range": [1, 1, 1]
+                }
+            }
+        ]
+    },
+    {
+        "id": "caterpie",
+        "lineId": "caterpie",
+        "name": "Caterpie",
+        "cost": 1,
+        "maxHealth": [570, 1026, 1847],
+        "maxMana": [75, 75, 75],
+        "attackDamage": [35, 63, 113],
+        "abilityPower": [0, 0, 0],
+        "armor": [18, 18, 18],
+        "magicResist": [28, 28, 28],
+        "attackSpeed": [0.62, 0.62, 0.62],
+        "range": [3, 3, 3],
+        "traits": ["Bug", "Support"],
+        "ability": {
+            "name": "Swarm Sting",
+            "description": "Strikes for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "SINGLE",
+            "values": [205, 461, 1025],
             "range": [3, 3, 3]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "caterpie",
+                "name": "Caterpie",
+                "traits": ["Bug", "Support"],
+                "ability": {
+                    "name": "Swarm Sting",
+                    "description": "Strikes for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [205, 461, 1025],
+                    "range": [3, 3, 3]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "metapod",
+                "name": "Metapod",
+                "traits": ["Bug", "Defender"],
+                "ability": {
+                    "name": "Swarm Sting",
+                    "description": "Strikes for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [165, 371, 825],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "butterfree",
+                "name": "Butterfree",
+                "traits": ["Bug", "Flying", "Caster"],
+                "ability": {
+                    "name": "Swarm Sting",
+                    "description": "Strikes for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [260, 585, 1300],
+                    "range": [3, 3, 3]
+                }
+            }
+        ]
+    },
+    {
+        "id": "weedle",
+        "lineId": "weedle",
+        "name": "Weedle",
+        "cost": 1,
+        "maxHealth": [450, 810, 1458],
+        "maxMana": [55, 55, 55],
+        "attackDamage": [53, 95, 172],
+        "abilityPower": [0, 0, 0],
+        "armor": [14, 14, 14],
+        "magicResist": [16, 16, 16],
+        "attackSpeed": [0.76, 0.76, 0.76],
+        "range": [1, 1, 1],
+        "traits": ["Bug", "Poison", "Speedster"],
+        "ability": {
+            "name": "Swarm Sting",
+            "description": "Strikes for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "SINGLE",
+            "values": [165, 371, 825],
+            "range": [1, 1, 1],
+            "modifiers": [
+                {
+                    "type": "DOT",
+                    "dotType": "POISON",
+                    "damagePerTick": [23, 52, 106],
+                    "durationSeconds": [4, 4, 5],
+                    "tickIntervalMs": [1000, 1000, 1000]
+                }
+            ]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "weedle",
+                "name": "Weedle",
+                "traits": ["Bug", "Poison", "Speedster"],
+                "ability": {
+                    "name": "Swarm Sting",
+                    "description": "Strikes for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [165, 371, 825],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [23, 52, 106],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "kakuna",
+                "name": "Kakuna",
+                "traits": ["Bug", "Poison", "Defender"],
+                "ability": {
+                    "name": "Swarm Sting",
+                    "description": "Strikes for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [165, 371, 825],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [23, 52, 106],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "beedrill",
+                "name": "Beedrill",
+                "traits": ["Bug", "Poison", "Speedster"],
+                "ability": {
+                    "name": "Swarm Sting",
+                    "description": "Strikes for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [165, 371, 825],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [23, 52, 106],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "id": "pidgey",
+        "lineId": "pidgey",
+        "name": "Pidgey",
+        "cost": 1,
+        "maxHealth": [475, 855, 1539],
+        "maxMana": [55, 55, 55],
+        "attackDamage": [51, 92, 165],
+        "abilityPower": [0, 0, 0],
+        "armor": [18, 18, 18],
+        "magicResist": [18, 18, 18],
+        "attackSpeed": [0.66, 0.66, 0.66],
+        "range": [4, 4, 4],
+        "traits": ["Normal", "Flying", "Ranger"],
+        "ability": {
+            "name": "Rally Cry",
+            "description": "Raises allied attack damage by $value%.",
+            "type": "BUFF_ATK",
+            "pattern": "SURROUND",
+            "values": [13, 23, 41],
+            "range": [4, 4, 4]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "pidgey",
+                "name": "Pidgey",
+                "traits": ["Normal", "Flying", "Ranger"],
+                "ability": {
+                    "name": "Rally Cry",
+                    "description": "Raises allied attack damage by $value%.",
+                    "type": "BUFF_ATK",
+                    "pattern": "SURROUND",
+                    "values": [13, 23, 41],
+                    "range": [4, 4, 4]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "pidgeotto",
+                "name": "Pidgeotto",
+                "traits": ["Normal", "Flying", "Ranger"],
+                "ability": {
+                    "name": "Rally Cry",
+                    "description": "Raises allied attack damage by $value%.",
+                    "type": "BUFF_ATK",
+                    "pattern": "SURROUND",
+                    "values": [13, 23, 41],
+                    "range": [4, 4, 4]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "pidgeot",
+                "name": "Pidgeot",
+                "traits": ["Normal", "Flying", "Ranger"],
+                "ability": {
+                    "name": "Rally Cry",
+                    "description": "Raises allied attack damage by $value%.",
+                    "type": "BUFF_ATK",
+                    "pattern": "SURROUND",
+                    "values": [13, 23, 41],
+                    "range": [4, 4, 4]
+                }
+            }
+        ]
+    },
+    {
+        "id": "rattata",
+        "lineId": "rattata",
+        "name": "Rattata",
+        "cost": 1,
+        "maxHealth": [450, 810, 1458],
+        "maxMana": [55, 55, 55],
+        "attackDamage": [53, 95, 172],
+        "abilityPower": [0, 0, 0],
+        "armor": [14, 14, 14],
+        "magicResist": [16, 16, 16],
+        "attackSpeed": [0.76, 0.76, 0.76],
+        "range": [1, 1, 1],
+        "traits": ["Normal", "Speedster"],
+        "ability": {
+            "name": "Rally Cry",
+            "description": "Raises allied attack damage by $value%.",
+            "type": "BUFF_ATK",
+            "pattern": "SURROUND",
+            "values": [13, 23, 41],
+            "range": [1, 1, 1]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "rattata",
+                "name": "Rattata",
+                "traits": ["Normal", "Speedster"],
+                "ability": {
+                    "name": "Rally Cry",
+                    "description": "Raises allied attack damage by $value%.",
+                    "type": "BUFF_ATK",
+                    "pattern": "SURROUND",
+                    "values": [13, 23, 41],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "raticate",
+                "name": "Raticate",
+                "traits": ["Normal", "Speedster"],
+                "ability": {
+                    "name": "Rally Cry",
+                    "description": "Raises allied attack damage by $value%.",
+                    "type": "BUFF_ATK",
+                    "pattern": "SURROUND",
+                    "values": [13, 23, 41],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "raticate",
+                "name": "Raticate",
+                "traits": ["Normal", "Speedster"],
+                "ability": {
+                    "name": "Rally Cry",
+                    "description": "Raises allied attack damage by $value%.",
+                    "type": "BUFF_ATK",
+                    "pattern": "SURROUND",
+                    "values": [13, 23, 41],
+                    "range": [1, 1, 1]
+                }
+            }
+        ]
+    },
+    {
+        "id": "spearow",
+        "lineId": "spearow",
+        "name": "Spearow",
+        "cost": 1,
+        "maxHealth": [475, 855, 1539],
+        "maxMana": [55, 55, 55],
+        "attackDamage": [51, 92, 165],
+        "abilityPower": [0, 0, 0],
+        "armor": [18, 18, 18],
+        "magicResist": [18, 18, 18],
+        "attackSpeed": [0.66, 0.66, 0.66],
+        "range": [4, 4, 4],
+        "traits": ["Normal", "Flying", "Ranger"],
+        "ability": {
+            "name": "Rally Cry",
+            "description": "Raises allied attack damage by $value%.",
+            "type": "BUFF_ATK",
+            "pattern": "SURROUND",
+            "values": [13, 23, 41],
+            "range": [4, 4, 4]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "spearow",
+                "name": "Spearow",
+                "traits": ["Normal", "Flying", "Ranger"],
+                "ability": {
+                    "name": "Rally Cry",
+                    "description": "Raises allied attack damage by $value%.",
+                    "type": "BUFF_ATK",
+                    "pattern": "SURROUND",
+                    "values": [13, 23, 41],
+                    "range": [4, 4, 4]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "fearow",
+                "name": "Fearow",
+                "traits": ["Normal", "Flying", "Ranger"],
+                "ability": {
+                    "name": "Rally Cry",
+                    "description": "Raises allied attack damage by $value%.",
+                    "type": "BUFF_ATK",
+                    "pattern": "SURROUND",
+                    "values": [13, 23, 41],
+                    "range": [4, 4, 4]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "fearow",
+                "name": "Fearow",
+                "traits": ["Normal", "Flying", "Ranger"],
+                "ability": {
+                    "name": "Rally Cry",
+                    "description": "Raises allied attack damage by $value%.",
+                    "type": "BUFF_ATK",
+                    "pattern": "SURROUND",
+                    "values": [13, 23, 41],
+                    "range": [4, 4, 4]
+                }
+            }
+        ]
+    },
+    {
+        "id": "nidoran_f",
+        "lineId": "nidoran_f",
+        "name": "Nidoran-F",
+        "cost": 1,
+        "maxHealth": [700, 1260, 2268],
+        "maxMana": [55, 55, 55],
+        "attackDamage": [37, 67, 120],
+        "abilityPower": [0, 0, 0],
+        "armor": [34, 34, 34],
+        "magicResist": [28, 28, 28],
+        "attackSpeed": [0.59, 0.59, 0.59],
+        "range": [1, 1, 1],
+        "traits": ["Poison", "Defender"],
+        "ability": {
+            "name": "Toxic Strike",
+            "description": "Hits for $value damage and applies poison.",
+            "type": "DAMAGE",
+            "pattern": "SINGLE",
+            "values": [165, 371, 825],
+            "range": [1, 1, 1],
+            "modifiers": [
+                {
+                    "type": "DOT",
+                    "dotType": "POISON",
+                    "damagePerTick": [23, 52, 106],
+                    "durationSeconds": [4, 4, 5],
+                    "tickIntervalMs": [1000, 1000, 1000]
+                }
+            ]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "nidoran_f",
+                "name": "Nidoran-F",
+                "traits": ["Poison", "Defender"],
+                "ability": {
+                    "name": "Toxic Strike",
+                    "description": "Hits for $value damage and applies poison.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [165, 371, 825],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [23, 52, 106],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "nidorina",
+                "name": "Nidorina",
+                "traits": ["Poison", "Defender"],
+                "ability": {
+                    "name": "Toxic Strike",
+                    "description": "Hits for $value damage and applies poison.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [165, 371, 825],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [23, 52, 106],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "nidoqueen",
+                "name": "Nidoqueen",
+                "traits": ["Poison", "Ground", "Defender"],
+                "ability": {
+                    "name": "Toxic Strike",
+                    "description": "Hits for $value damage and applies poison.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [165, 371, 825],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [23, 52, 106],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "id": "nidoran_m",
+        "lineId": "nidoran_m",
+        "name": "Nidoran-M",
+        "cost": 1,
+        "maxHealth": [540, 972, 1750],
+        "maxMana": [55, 55, 55],
+        "attackDamage": [57, 103, 185],
+        "abilityPower": [0, 0, 0],
+        "armor": [18, 18, 18],
+        "magicResist": [18, 18, 18],
+        "attackSpeed": [0.64, 0.64, 0.64],
+        "range": [1, 1, 1],
+        "traits": ["Poison", "Striker"],
+        "ability": {
+            "name": "Toxic Strike",
+            "description": "Hits for $value damage and applies poison.",
+            "type": "DAMAGE",
+            "pattern": "SINGLE",
+            "values": [165, 371, 825],
+            "range": [1, 1, 1],
+            "modifiers": [
+                {
+                    "type": "DOT",
+                    "dotType": "POISON",
+                    "damagePerTick": [23, 52, 106],
+                    "durationSeconds": [4, 4, 5],
+                    "tickIntervalMs": [1000, 1000, 1000]
+                }
+            ]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "nidoran_m",
+                "name": "Nidoran-M",
+                "traits": ["Poison", "Striker"],
+                "ability": {
+                    "name": "Toxic Strike",
+                    "description": "Hits for $value damage and applies poison.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [165, 371, 825],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [23, 52, 106],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "nidorino",
+                "name": "Nidorino",
+                "traits": ["Poison", "Striker"],
+                "ability": {
+                    "name": "Toxic Strike",
+                    "description": "Hits for $value damage and applies poison.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [165, 371, 825],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [23, 52, 106],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "nidoking",
+                "name": "Nidoking",
+                "traits": ["Poison", "Ground", "Striker"],
+                "ability": {
+                    "name": "Toxic Strike",
+                    "description": "Hits for $value damage and applies poison.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [165, 371, 825],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [23, 52, 106],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "id": "oddish",
+        "lineId": "oddish",
+        "name": "Oddish",
+        "cost": 1,
+        "maxHealth": [485, 873, 1571],
+        "maxMana": [75, 75, 75],
+        "attackDamage": [37, 67, 120],
+        "abilityPower": [0, 0, 0],
+        "armor": [18, 18, 18],
+        "magicResist": [28, 28, 28],
+        "attackSpeed": [0.62, 0.62, 0.62],
+        "range": [3, 3, 3],
+        "traits": ["Grass", "Poison", "Caster"],
+        "ability": {
+            "name": "Verdant Pulse",
+            "description": "Restores $value health to allies.",
+            "type": "HEAL",
+            "pattern": "SURROUND",
+            "values": [260, 585, 1300],
+            "range": [3, 3, 3]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "oddish",
+                "name": "Oddish",
+                "traits": ["Grass", "Poison", "Caster"],
+                "ability": {
+                    "name": "Verdant Pulse",
+                    "description": "Restores $value health to allies.",
+                    "type": "HEAL",
+                    "pattern": "SURROUND",
+                    "values": [260, 585, 1300],
+                    "range": [3, 3, 3]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "gloom",
+                "name": "Gloom",
+                "traits": ["Grass", "Poison", "Caster"],
+                "ability": {
+                    "name": "Verdant Pulse",
+                    "description": "Restores $value health to allies.",
+                    "type": "HEAL",
+                    "pattern": "SURROUND",
+                    "values": [260, 585, 1300],
+                    "range": [3, 3, 3]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "vileplume",
+                "name": "Vileplume",
+                "traits": ["Grass", "Poison", "Caster"],
+                "ability": {
+                    "name": "Verdant Pulse",
+                    "description": "Restores $value health to allies.",
+                    "type": "HEAL",
+                    "pattern": "SURROUND",
+                    "values": [260, 585, 1300],
+                    "range": [3, 3, 3]
+                }
+            }
+        ]
+    },
+    {
+        "id": "poliwag",
+        "lineId": "poliwag",
+        "name": "Poliwag",
+        "cost": 1,
+        "maxHealth": [450, 810, 1458],
+        "maxMana": [55, 55, 55],
+        "attackDamage": [53, 95, 172],
+        "abilityPower": [0, 0, 0],
+        "armor": [14, 14, 14],
+        "magicResist": [16, 16, 16],
+        "attackSpeed": [0.76, 0.76, 0.76],
+        "range": [1, 1, 1],
+        "traits": ["Water", "Speedster"],
+        "ability": {
+            "name": "Water Surge",
+            "description": "Blasts enemies for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "LINE",
+            "values": [165, 371, 825],
+            "range": [1, 1, 1]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "poliwag",
+                "name": "Poliwag",
+                "traits": ["Water", "Speedster"],
+                "ability": {
+                    "name": "Water Surge",
+                    "description": "Blasts enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [165, 371, 825],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "poliwhirl",
+                "name": "Poliwhirl",
+                "traits": ["Water", "Defender"],
+                "ability": {
+                    "name": "Water Surge",
+                    "description": "Blasts enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [165, 371, 825],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "poliwrath",
+                "name": "Poliwrath",
+                "traits": ["Water", "Fighting", "Defender"],
+                "ability": {
+                    "name": "Water Surge",
+                    "description": "Blasts enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [165, 371, 825],
+                    "range": [1, 1, 1]
+                }
+            }
+        ]
+    },
+    {
+        "id": "pikachu",
+        "lineId": "pikachu",
+        "name": "Pikachu",
+        "cost": 2,
+        "maxHealth": [560, 1008, 1814],
+        "maxMana": [60, 60, 60],
+        "attackDamage": [64, 115, 207],
+        "abilityPower": [0, 0, 0],
+        "armor": [20, 20, 20],
+        "magicResist": [22, 22, 22],
+        "attackSpeed": [0.79, 0.79, 0.79],
+        "range": [1, 1, 1],
+        "traits": ["Electric", "Speedster"],
+        "ability": {
+            "name": "Thunderbolt",
+            "description": "Shocks enemies for $value damage and briefly stuns.",
+            "type": "DAMAGE",
+            "pattern": "LINE",
+            "values": [235, 528, 1175],
+            "range": [1, 1, 1],
+            "modifiers": [
+                {
+                    "type": "STUN",
+                    "stunSeconds": [1, 1, 2]
+                }
+            ]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "pikachu",
+                "name": "Pikachu",
+                "traits": ["Electric", "Speedster"],
+                "ability": {
+                    "name": "Thunderbolt",
+                    "description": "Shocks enemies for $value damage and briefly stuns.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [235, 528, 1175],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "STUN",
+                            "stunSeconds": [1, 1, 2]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "raichu",
+                "name": "Raichu",
+                "traits": ["Electric", "Speedster"],
+                "ability": {
+                    "name": "Thunder Surge",
+                    "description": "Discharges lightning for $value damage and briefly stuns.",
+                    "type": "DAMAGE",
+                    "pattern": "SURROUND",
+                    "values": [235, 528, 1175],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "STUN",
+                            "stunSeconds": [1, 1, 2]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "raichu",
+                "name": "Raichu",
+                "traits": ["Electric", "Speedster"],
+                "ability": {
+                    "name": "Thunder Surge",
+                    "description": "Discharges lightning for $value damage and briefly stuns.",
+                    "type": "DAMAGE",
+                    "pattern": "SURROUND",
+                    "values": [235, 528, 1175],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "STUN",
+                            "stunSeconds": [1, 1, 2]
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "id": "sandshrew",
+        "lineId": "sandshrew",
+        "name": "Sandshrew",
+        "cost": 2,
+        "maxHealth": [810, 1458, 2624],
+        "maxMana": [60, 60, 60],
+        "attackDamage": [48, 86, 156],
+        "abilityPower": [0, 0, 0],
+        "armor": [40, 40, 40],
+        "magicResist": [34, 34, 34],
+        "attackSpeed": [0.62, 0.62, 0.62],
+        "range": [1, 1, 1],
+        "traits": ["Ground", "Defender"],
+        "ability": {
+            "name": "Earth Break",
+            "description": "Cracks the ground for $value damage around the caster.",
+            "type": "DAMAGE",
+            "pattern": "SURROUND",
+            "values": [235, 528, 1175],
+            "range": [1, 1, 1]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "sandshrew",
+                "name": "Sandshrew",
+                "traits": ["Ground", "Defender"],
+                "ability": {
+                    "name": "Earth Break",
+                    "description": "Cracks the ground for $value damage around the caster.",
+                    "type": "DAMAGE",
+                    "pattern": "SURROUND",
+                    "values": [235, 528, 1175],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "sandslash",
+                "name": "Sandslash",
+                "traits": ["Ground", "Defender"],
+                "ability": {
+                    "name": "Earth Break",
+                    "description": "Cracks the ground for $value damage around the caster.",
+                    "type": "DAMAGE",
+                    "pattern": "SURROUND",
+                    "values": [235, 528, 1175],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "sandslash",
+                "name": "Sandslash",
+                "traits": ["Ground", "Defender"],
+                "ability": {
+                    "name": "Earth Break",
+                    "description": "Cracks the ground for $value damage around the caster.",
+                    "type": "DAMAGE",
+                    "pattern": "SURROUND",
+                    "values": [235, 528, 1175],
+                    "range": [1, 1, 1]
+                }
+            }
+        ]
+    },
+    {
+        "id": "vulpix",
+        "lineId": "vulpix",
+        "name": "Vulpix",
+        "cost": 2,
+        "maxHealth": [595, 1071, 1928],
+        "maxMana": [80, 80, 80],
+        "attackDamage": [48, 86, 156],
+        "abilityPower": [0, 0, 0],
+        "armor": [24, 24, 24],
+        "magicResist": [34, 34, 34],
+        "attackSpeed": [0.65, 0.65, 0.65],
+        "range": [3, 3, 3],
+        "traits": ["Fire", "Caster"],
+        "ability": {
+            "name": "Flame Burst",
+            "description": "Scorches enemies for $value damage and applies burn.",
+            "type": "DAMAGE",
+            "pattern": "LINE",
+            "values": [330, 742, 1650],
+            "range": [3, 3, 3],
+            "modifiers": [
+                {
+                    "type": "DOT",
+                    "dotType": "BURN",
+                    "damagePerTick": [36, 75, 150],
+                    "durationSeconds": [3, 3, 4],
+                    "tickIntervalMs": [1000, 1000, 1000]
+                }
+            ]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "vulpix",
+                "name": "Vulpix",
+                "traits": ["Fire", "Caster"],
+                "ability": {
+                    "name": "Flame Burst",
+                    "description": "Scorches enemies for $value damage and applies burn.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [330, 742, 1650],
+                    "range": [3, 3, 3],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "BURN",
+                            "damagePerTick": [36, 75, 150],
+                            "durationSeconds": [3, 3, 4],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "ninetales",
+                "name": "Ninetales",
+                "traits": ["Fire", "Caster"],
+                "ability": {
+                    "name": "Flame Burst",
+                    "description": "Scorches enemies for $value damage and applies burn.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [330, 742, 1650],
+                    "range": [3, 3, 3],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "BURN",
+                            "damagePerTick": [36, 75, 150],
+                            "durationSeconds": [3, 3, 4],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "ninetales",
+                "name": "Ninetales",
+                "traits": ["Fire", "Caster"],
+                "ability": {
+                    "name": "Flame Burst",
+                    "description": "Scorches enemies for $value damage and applies burn.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [330, 742, 1650],
+                    "range": [3, 3, 3],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "BURN",
+                            "damagePerTick": [36, 75, 150],
+                            "durationSeconds": [3, 3, 4],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "id": "jigglypuff",
+        "lineId": "jigglypuff",
+        "name": "Jigglypuff",
+        "cost": 2,
+        "maxHealth": [680, 1224, 2203],
+        "maxMana": [80, 80, 80],
+        "attackDamage": [46, 83, 149],
+        "abilityPower": [0, 0, 0],
+        "armor": [24, 24, 24],
+        "magicResist": [34, 34, 34],
+        "attackSpeed": [0.65, 0.65, 0.65],
+        "range": [3, 3, 3],
+        "traits": ["Normal", "Support"],
+        "ability": {
+            "name": "Rally Cry",
+            "description": "Raises allied attack damage by $value%.",
+            "type": "BUFF_ATK",
+            "pattern": "SURROUND",
+            "values": [22, 39, 68],
+            "range": [3, 3, 3]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "jigglypuff",
+                "name": "Jigglypuff",
+                "traits": ["Normal", "Support"],
+                "ability": {
+                    "name": "Rally Cry",
+                    "description": "Raises allied attack damage by $value%.",
+                    "type": "BUFF_ATK",
+                    "pattern": "SURROUND",
+                    "values": [22, 39, 68],
+                    "range": [3, 3, 3]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "wigglytuff",
+                "name": "Wigglytuff",
+                "traits": ["Normal", "Support"],
+                "ability": {
+                    "name": "Rally Cry",
+                    "description": "Raises allied attack damage by $value%.",
+                    "type": "BUFF_ATK",
+                    "pattern": "SURROUND",
+                    "values": [22, 39, 68],
+                    "range": [3, 3, 3]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "wigglytuff",
+                "name": "Wigglytuff",
+                "traits": ["Normal", "Support"],
+                "ability": {
+                    "name": "Rally Cry",
+                    "description": "Raises allied attack damage by $value%.",
+                    "type": "BUFF_ATK",
+                    "pattern": "SURROUND",
+                    "values": [22, 39, 68],
+                    "range": [3, 3, 3]
+                }
+            }
+        ]
+    },
+    {
+        "id": "zubat",
+        "lineId": "zubat",
+        "name": "Zubat",
+        "cost": 2,
+        "maxHealth": [560, 1008, 1814],
+        "maxMana": [60, 60, 60],
+        "attackDamage": [64, 115, 207],
+        "abilityPower": [0, 0, 0],
+        "armor": [20, 20, 20],
+        "magicResist": [22, 22, 22],
+        "attackSpeed": [0.79, 0.79, 0.79],
+        "range": [1, 1, 1],
+        "traits": ["Poison", "Flying", "Speedster"],
+        "ability": {
+            "name": "Leech Bite",
+            "description": "Bites for $value damage and applies poison.",
+            "type": "DAMAGE",
+            "pattern": "SINGLE",
+            "values": [235, 528, 1175],
+            "range": [1, 1, 1],
+            "modifiers": [
+                {
+                    "type": "DOT",
+                    "dotType": "POISON",
+                    "damagePerTick": [30, 66, 132],
+                    "durationSeconds": [4, 4, 5],
+                    "tickIntervalMs": [1000, 1000, 1000]
+                }
+            ]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "zubat",
+                "name": "Zubat",
+                "traits": ["Poison", "Flying", "Speedster"],
+                "ability": {
+                    "name": "Leech Bite",
+                    "description": "Bites for $value damage and applies poison.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [235, 528, 1175],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [30, 66, 132],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "golbat",
+                "name": "Golbat",
+                "traits": ["Poison", "Flying", "Speedster"],
+                "ability": {
+                    "name": "Poison Fang",
+                    "description": "Bites nearby enemies for $value damage and applies poison.",
+                    "type": "DAMAGE",
+                    "pattern": "SURROUND",
+                    "values": [235, 528, 1175],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [30, 66, 132],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "crobat",
+                "name": "Crobat",
+                "traits": ["Poison", "Flying", "Speedster"],
+                "ability": {
+                    "name": "Cross Poison",
+                    "description": "Dashes through enemies for $value damage and applies poison.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [235, 528, 1175],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [30, 66, 132],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "id": "psyduck",
+        "lineId": "psyduck",
+        "name": "Psyduck",
+        "cost": 2,
+        "maxHealth": [595, 1071, 1928],
+        "maxMana": [80, 80, 80],
+        "attackDamage": [48, 86, 156],
+        "abilityPower": [0, 0, 0],
+        "armor": [24, 24, 24],
+        "magicResist": [34, 34, 34],
+        "attackSpeed": [0.65, 0.65, 0.65],
+        "range": [3, 3, 3],
+        "traits": ["Water", "Psychic", "Caster"],
+        "ability": {
+            "name": "Water Surge",
+            "description": "Blasts enemies for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "LINE",
+            "values": [330, 742, 1650],
+            "range": [3, 3, 3]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "psyduck",
+                "name": "Psyduck",
+                "traits": ["Water", "Psychic", "Caster"],
+                "ability": {
+                    "name": "Water Surge",
+                    "description": "Blasts enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [330, 742, 1650],
+                    "range": [3, 3, 3]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "golduck",
+                "name": "Golduck",
+                "traits": ["Water", "Psychic", "Caster"],
+                "ability": {
+                    "name": "Water Surge",
+                    "description": "Blasts enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [330, 742, 1650],
+                    "range": [3, 3, 3]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "golduck",
+                "name": "Golduck",
+                "traits": ["Water", "Psychic", "Caster"],
+                "ability": {
+                    "name": "Water Surge",
+                    "description": "Blasts enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [330, 742, 1650],
+                    "range": [3, 3, 3]
+                }
+            }
+        ]
+    },
+    {
+        "id": "mankey",
+        "lineId": "mankey",
+        "name": "Mankey",
+        "cost": 2,
+        "maxHealth": [650, 1170, 2106],
+        "maxMana": [60, 60, 60],
+        "attackDamage": [68, 122, 220],
+        "abilityPower": [0, 0, 0],
+        "armor": [24, 24, 24],
+        "magicResist": [24, 24, 24],
+        "attackSpeed": [0.67, 0.67, 0.67],
+        "range": [1, 1, 1],
+        "traits": ["Fighting", "Striker"],
+        "ability": {
+            "name": "Power Blow",
+            "description": "Smashes the target for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "SINGLE",
+            "values": [235, 528, 1175],
+            "range": [1, 1, 1]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "mankey",
+                "name": "Mankey",
+                "traits": ["Fighting", "Striker"],
+                "ability": {
+                    "name": "Power Blow",
+                    "description": "Smashes the target for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [235, 528, 1175],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "primeape",
+                "name": "Primeape",
+                "traits": ["Fighting", "Striker"],
+                "ability": {
+                    "name": "Power Blow",
+                    "description": "Smashes the target for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [235, 528, 1175],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "annihilape",
+                "name": "Annihilape",
+                "traits": ["Fighting", "Ghost", "Striker"],
+                "ability": {
+                    "name": "Power Blow",
+                    "description": "Smashes the target for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [235, 528, 1175],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "LIFESTEAL",
+                            "lifestealPercent": [0.2, 0.25, 0.3]
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "id": "growlithe",
+        "lineId": "growlithe",
+        "name": "Growlithe",
+        "cost": 2,
+        "maxHealth": [650, 1170, 2106],
+        "maxMana": [60, 60, 60],
+        "attackDamage": [68, 122, 220],
+        "abilityPower": [0, 0, 0],
+        "armor": [24, 24, 24],
+        "magicResist": [24, 24, 24],
+        "attackSpeed": [0.67, 0.67, 0.67],
+        "range": [1, 1, 1],
+        "traits": ["Fire", "Striker"],
+        "ability": {
+            "name": "Flame Burst",
+            "description": "Scorches enemies for $value damage and applies burn.",
+            "type": "DAMAGE",
+            "pattern": "LINE",
+            "values": [235, 528, 1175],
+            "range": [1, 1, 1],
+            "modifiers": [
+                {
+                    "type": "DOT",
+                    "dotType": "BURN",
+                    "damagePerTick": [36, 75, 150],
+                    "durationSeconds": [3, 3, 4],
+                    "tickIntervalMs": [1000, 1000, 1000]
+                }
+            ]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "growlithe",
+                "name": "Growlithe",
+                "traits": ["Fire", "Striker"],
+                "ability": {
+                    "name": "Flame Burst",
+                    "description": "Scorches enemies for $value damage and applies burn.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [235, 528, 1175],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "BURN",
+                            "damagePerTick": [36, 75, 150],
+                            "durationSeconds": [3, 3, 4],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "arcanine",
+                "name": "Arcanine",
+                "traits": ["Fire", "Striker"],
+                "ability": {
+                    "name": "Flame Burst",
+                    "description": "Scorches enemies for $value damage and applies burn.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [235, 528, 1175],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "BURN",
+                            "damagePerTick": [36, 75, 150],
+                            "durationSeconds": [3, 3, 4],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "arcanine",
+                "name": "Arcanine",
+                "traits": ["Fire", "Striker"],
+                "ability": {
+                    "name": "Flame Burst",
+                    "description": "Scorches enemies for $value damage and applies burn.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [235, 528, 1175],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "BURN",
+                            "damagePerTick": [36, 75, 150],
+                            "durationSeconds": [3, 3, 4],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "id": "tentacool",
+        "lineId": "tentacool",
+        "name": "Tentacool",
+        "cost": 2,
+        "maxHealth": [680, 1224, 2203],
+        "maxMana": [80, 80, 80],
+        "attackDamage": [46, 83, 149],
+        "abilityPower": [0, 0, 0],
+        "armor": [24, 24, 24],
+        "magicResist": [34, 34, 34],
+        "attackSpeed": [0.65, 0.65, 0.65],
+        "range": [3, 3, 3],
+        "traits": ["Water", "Poison", "Support"],
+        "ability": {
+            "name": "Water Surge",
+            "description": "Blasts enemies for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "LINE",
+            "values": [275, 618, 1375],
+            "range": [3, 3, 3],
+            "modifiers": [
+                {
+                    "type": "DOT",
+                    "dotType": "POISON",
+                    "damagePerTick": [30, 66, 132],
+                    "durationSeconds": [4, 4, 5],
+                    "tickIntervalMs": [1000, 1000, 1000]
+                }
+            ]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "tentacool",
+                "name": "Tentacool",
+                "traits": ["Water", "Poison", "Support"],
+                "ability": {
+                    "name": "Water Surge",
+                    "description": "Blasts enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [275, 618, 1375],
+                    "range": [3, 3, 3],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [30, 66, 132],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "tentacruel",
+                "name": "Tentacruel",
+                "traits": ["Water", "Poison", "Support"],
+                "ability": {
+                    "name": "Water Surge",
+                    "description": "Blasts enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [275, 618, 1375],
+                    "range": [3, 3, 3],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [30, 66, 132],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "tentacruel",
+                "name": "Tentacruel",
+                "traits": ["Water", "Poison", "Support"],
+                "ability": {
+                    "name": "Water Surge",
+                    "description": "Blasts enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [275, 618, 1375],
+                    "range": [3, 3, 3],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [30, 66, 132],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "id": "geodude",
+        "lineId": "geodude",
+        "name": "Geodude",
+        "cost": 2,
+        "maxHealth": [810, 1458, 2624],
+        "maxMana": [60, 60, 60],
+        "attackDamage": [48, 86, 156],
+        "abilityPower": [0, 0, 0],
+        "armor": [40, 40, 40],
+        "magicResist": [34, 34, 34],
+        "attackSpeed": [0.62, 0.62, 0.62],
+        "range": [1, 1, 1],
+        "traits": ["Rock", "Ground", "Defender"],
+        "ability": {
+            "name": "Stone Guard",
+            "description": "Grants allies a $value shield.",
+            "type": "SHIELD",
+            "pattern": "SURROUND",
+            "values": [235, 493, 1081],
+            "range": [1, 1, 1]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "geodude",
+                "name": "Geodude",
+                "traits": ["Rock", "Ground", "Defender"],
+                "ability": {
+                    "name": "Stone Guard",
+                    "description": "Grants allies a $value shield.",
+                    "type": "SHIELD",
+                    "pattern": "SURROUND",
+                    "values": [235, 493, 1081],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "graveler",
+                "name": "Graveler",
+                "traits": ["Rock", "Ground", "Defender"],
+                "ability": {
+                    "name": "Stone Guard",
+                    "description": "Grants allies a $value shield.",
+                    "type": "SHIELD",
+                    "pattern": "SURROUND",
+                    "values": [235, 493, 1081],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "golem",
+                "name": "Golem",
+                "traits": ["Rock", "Ground", "Defender"],
+                "ability": {
+                    "name": "Stone Guard",
+                    "description": "Grants allies a $value shield.",
+                    "type": "SHIELD",
+                    "pattern": "SURROUND",
+                    "values": [235, 493, 1081],
+                    "range": [1, 1, 1]
+                }
+            }
+        ]
+    },
+    {
+        "id": "ponyta",
+        "lineId": "ponyta",
+        "name": "Ponyta",
+        "cost": 2,
+        "maxHealth": [560, 1008, 1814],
+        "maxMana": [60, 60, 60],
+        "attackDamage": [64, 115, 207],
+        "abilityPower": [0, 0, 0],
+        "armor": [20, 20, 20],
+        "magicResist": [22, 22, 22],
+        "attackSpeed": [0.79, 0.79, 0.79],
+        "range": [1, 1, 1],
+        "traits": ["Fire", "Speedster"],
+        "ability": {
+            "name": "Flame Burst",
+            "description": "Scorches enemies for $value damage and applies burn.",
+            "type": "DAMAGE",
+            "pattern": "LINE",
+            "values": [235, 528, 1175],
+            "range": [1, 1, 1],
+            "modifiers": [
+                {
+                    "type": "DOT",
+                    "dotType": "BURN",
+                    "damagePerTick": [36, 75, 150],
+                    "durationSeconds": [3, 3, 4],
+                    "tickIntervalMs": [1000, 1000, 1000]
+                }
+            ]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "ponyta",
+                "name": "Ponyta",
+                "traits": ["Fire", "Speedster"],
+                "ability": {
+                    "name": "Flame Burst",
+                    "description": "Scorches enemies for $value damage and applies burn.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [235, 528, 1175],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "BURN",
+                            "damagePerTick": [36, 75, 150],
+                            "durationSeconds": [3, 3, 4],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "rapidash",
+                "name": "Rapidash",
+                "traits": ["Fire", "Speedster"],
+                "ability": {
+                    "name": "Flame Burst",
+                    "description": "Scorches enemies for $value damage and applies burn.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [235, 528, 1175],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "BURN",
+                            "damagePerTick": [36, 75, 150],
+                            "durationSeconds": [3, 3, 4],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "rapidash",
+                "name": "Rapidash",
+                "traits": ["Fire", "Speedster"],
+                "ability": {
+                    "name": "Flame Burst",
+                    "description": "Scorches enemies for $value damage and applies burn.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [235, 528, 1175],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "BURN",
+                            "damagePerTick": [36, 75, 150],
+                            "durationSeconds": [3, 3, 4],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "id": "slowpoke",
+        "lineId": "slowpoke",
+        "name": "Slowpoke",
+        "cost": 2,
+        "maxHealth": [810, 1458, 2624],
+        "maxMana": [60, 60, 60],
+        "attackDamage": [48, 86, 156],
+        "abilityPower": [0, 0, 0],
+        "armor": [40, 40, 40],
+        "magicResist": [34, 34, 34],
+        "attackSpeed": [0.62, 0.62, 0.62],
+        "range": [1, 1, 1],
+        "traits": ["Water", "Psychic", "Defender"],
+        "ability": {
+            "name": "Water Surge",
+            "description": "Blasts enemies for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "LINE",
+            "values": [235, 528, 1175],
+            "range": [1, 1, 1]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "slowpoke",
+                "name": "Slowpoke",
+                "traits": ["Water", "Psychic", "Defender"],
+                "ability": {
+                    "name": "Water Surge",
+                    "description": "Blasts enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [235, 528, 1175],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "slowbro",
+                "name": "Slowbro",
+                "traits": ["Water", "Psychic", "Defender"],
+                "ability": {
+                    "name": "Water Surge",
+                    "description": "Blasts enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [235, 528, 1175],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "slowbro",
+                "name": "Slowbro",
+                "traits": ["Water", "Psychic", "Defender"],
+                "ability": {
+                    "name": "Water Surge",
+                    "description": "Blasts enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [235, 528, 1175],
+                    "range": [1, 1, 1]
+                }
+            }
+        ]
+    },
+    {
+        "id": "magnemite",
+        "lineId": "magnemite",
+        "name": "Magnemite",
+        "cost": 2,
+        "maxHealth": [595, 1071, 1928],
+        "maxMana": [80, 80, 80],
+        "attackDamage": [48, 86, 156],
+        "abilityPower": [0, 0, 0],
+        "armor": [24, 24, 24],
+        "magicResist": [34, 34, 34],
+        "attackSpeed": [0.65, 0.65, 0.65],
+        "range": [3, 3, 3],
+        "traits": ["Electric", "Steel", "Caster"],
+        "ability": {
+            "name": "Spark",
+            "description": "Zaps enemies for $value damage and briefly stuns.",
+            "type": "DAMAGE",
+            "pattern": "LINE",
+            "values": [330, 742, 1650],
+            "range": [3, 3, 3],
+            "modifiers": [
+                {
+                    "type": "STUN",
+                    "stunSeconds": [1, 1, 2]
+                }
+            ]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "magnemite",
+                "name": "Magnemite",
+                "traits": ["Electric", "Steel", "Caster"],
+                "ability": {
+                    "name": "Spark",
+                    "description": "Zaps enemies for $value damage and briefly stuns.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [330, 742, 1650],
+                    "range": [3, 3, 3],
+                    "modifiers": [
+                        {
+                            "type": "STUN",
+                            "stunSeconds": [1, 1, 2]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "magneton",
+                "name": "Magneton",
+                "traits": ["Electric", "Steel", "Caster"],
+                "ability": {
+                    "name": "Tri Attack",
+                    "description": "Fires three charged beams for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [330, 742, 1650],
+                    "range": [3, 3, 3],
+                    "modifiers": [
+                        {
+                            "type": "STUN",
+                            "stunSeconds": [1, 1, 2]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "magnezone",
+                "name": "Magnezone",
+                "traits": ["Electric", "Steel", "Caster"],
+                "ability": {
+                    "name": "Magnetic Field",
+                    "description": "Projects a $value shield on allies.",
+                    "type": "SHIELD",
+                    "pattern": "SURROUND",
+                    "values": [330, 693, 1517],
+                    "range": [3, 3, 3]
+                }
+            }
+        ]
+    },
+    {
+        "id": "abra",
+        "lineId": "abra",
+        "name": "Abra",
+        "cost": 3,
+        "maxHealth": [745, 1341, 2414],
+        "maxMana": [90, 90, 90],
+        "attackDamage": [62, 112, 201],
+        "abilityPower": [0, 0, 0],
+        "armor": [30, 30, 30],
+        "magicResist": [40, 40, 40],
+        "attackSpeed": [0.68, 0.68, 0.68],
+        "range": [3, 3, 3],
+        "traits": ["Psychic", "Caster"],
+        "ability": {
+            "name": "Mind Lock",
+            "description": "Overwhelms the target, stunning for $value seconds.",
+            "type": "STUN",
+            "pattern": "SINGLE",
+            "values": [2, 3, 4],
+            "range": [3, 3, 3]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "abra",
+                "name": "Abra",
+                "traits": ["Psychic", "Caster"],
+                "ability": {
+                    "name": "Mind Lock",
+                    "description": "Overwhelms the target, stunning for $value seconds.",
+                    "type": "STUN",
+                    "pattern": "SINGLE",
+                    "values": [2, 3, 4],
+                    "range": [3, 3, 3]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "kadabra",
+                "name": "Kadabra",
+                "traits": ["Psychic", "Caster"],
+                "ability": {
+                    "name": "Mind Lock",
+                    "description": "Overwhelms the target, stunning for $value seconds.",
+                    "type": "STUN",
+                    "pattern": "SINGLE",
+                    "values": [2, 3, 4],
+                    "range": [3, 3, 3]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "alakazam",
+                "name": "Alakazam",
+                "traits": ["Psychic", "Caster"],
+                "ability": {
+                    "name": "Mind Lock",
+                    "description": "Overwhelms the target, stunning for $value seconds.",
+                    "type": "STUN",
+                    "pattern": "SINGLE",
+                    "values": [2, 3, 4],
+                    "range": [3, 3, 3]
+                }
+            }
+        ]
+    },
+    {
+        "id": "machop",
+        "lineId": "machop",
+        "name": "Machop",
+        "cost": 3,
+        "maxHealth": [800, 1440, 2592],
+        "maxMana": [70, 70, 70],
+        "attackDamage": [82, 148, 266],
+        "abilityPower": [0, 0, 0],
+        "armor": [30, 30, 30],
+        "magicResist": [30, 30, 30],
+        "attackSpeed": [0.7, 0.7, 0.7],
+        "range": [1, 1, 1],
+        "traits": ["Fighting", "Striker"],
+        "ability": {
+            "name": "Power Blow",
+            "description": "Smashes the target for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "SINGLE",
+            "values": [340, 765, 1700],
+            "range": [1, 1, 1]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "machop",
+                "name": "Machop",
+                "traits": ["Fighting", "Striker"],
+                "ability": {
+                    "name": "Power Blow",
+                    "description": "Smashes the target for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [340, 765, 1700],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "machoke",
+                "name": "Machoke",
+                "traits": ["Fighting", "Striker"],
+                "ability": {
+                    "name": "Power Blow",
+                    "description": "Smashes the target for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [340, 765, 1700],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "machamp",
+                "name": "Machamp",
+                "traits": ["Fighting", "Striker"],
+                "ability": {
+                    "name": "Power Blow",
+                    "description": "Smashes the target for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [340, 765, 1700],
+                    "range": [1, 1, 1]
+                }
+            }
+        ]
+    },
+    {
+        "id": "bellsprout",
+        "lineId": "bellsprout",
+        "name": "Bellsprout",
+        "cost": 3,
+        "maxHealth": [745, 1341, 2414],
+        "maxMana": [90, 90, 90],
+        "attackDamage": [62, 112, 201],
+        "abilityPower": [0, 0, 0],
+        "armor": [30, 30, 30],
+        "magicResist": [40, 40, 40],
+        "attackSpeed": [0.68, 0.68, 0.68],
+        "range": [3, 3, 3],
+        "traits": ["Grass", "Poison", "Caster"],
+        "ability": {
+            "name": "Verdant Pulse",
+            "description": "Restores $value health to allies.",
+            "type": "HEAL",
+            "pattern": "SURROUND",
+            "values": [435, 978, 2175],
+            "range": [3, 3, 3]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "bellsprout",
+                "name": "Bellsprout",
+                "traits": ["Grass", "Poison", "Caster"],
+                "ability": {
+                    "name": "Verdant Pulse",
+                    "description": "Restores $value health to allies.",
+                    "type": "HEAL",
+                    "pattern": "SURROUND",
+                    "values": [435, 978, 2175],
+                    "range": [3, 3, 3]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "weepinbell",
+                "name": "Weepinbell",
+                "traits": ["Grass", "Poison", "Caster"],
+                "ability": {
+                    "name": "Verdant Pulse",
+                    "description": "Restores $value health to allies.",
+                    "type": "HEAL",
+                    "pattern": "SURROUND",
+                    "values": [435, 978, 2175],
+                    "range": [3, 3, 3]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "victreebel",
+                "name": "Victreebel",
+                "traits": ["Grass", "Poison", "Caster"],
+                "ability": {
+                    "name": "Verdant Pulse",
+                    "description": "Restores $value health to allies.",
+                    "type": "HEAL",
+                    "pattern": "SURROUND",
+                    "values": [435, 978, 2175],
+                    "range": [3, 3, 3]
+                }
+            }
+        ]
+    },
+    {
+        "id": "doduo",
+        "lineId": "doduo",
+        "name": "Doduo",
+        "cost": 3,
+        "maxHealth": [710, 1278, 2300],
+        "maxMana": [70, 70, 70],
+        "attackDamage": [78, 140, 253],
+        "abilityPower": [0, 0, 0],
+        "armor": [26, 26, 26],
+        "magicResist": [28, 28, 28],
+        "attackSpeed": [0.82, 0.82, 0.82],
+        "range": [1, 1, 1],
+        "traits": ["Normal", "Flying", "Speedster"],
+        "ability": {
+            "name": "Rally Cry",
+            "description": "Raises allied attack damage by $value%.",
+            "type": "BUFF_ATK",
+            "pattern": "SURROUND",
+            "values": [28, 48, 85],
+            "range": [1, 1, 1]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "doduo",
+                "name": "Doduo",
+                "traits": ["Normal", "Flying", "Speedster"],
+                "ability": {
+                    "name": "Rally Cry",
+                    "description": "Raises allied attack damage by $value%.",
+                    "type": "BUFF_ATK",
+                    "pattern": "SURROUND",
+                    "values": [28, 48, 85],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "dodrio",
+                "name": "Dodrio",
+                "traits": ["Normal", "Flying", "Speedster"],
+                "ability": {
+                    "name": "Rally Cry",
+                    "description": "Raises allied attack damage by $value%.",
+                    "type": "BUFF_ATK",
+                    "pattern": "SURROUND",
+                    "values": [28, 48, 85],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "dodrio",
+                "name": "Dodrio",
+                "traits": ["Normal", "Flying", "Speedster"],
+                "ability": {
+                    "name": "Rally Cry",
+                    "description": "Raises allied attack damage by $value%.",
+                    "type": "BUFF_ATK",
+                    "pattern": "SURROUND",
+                    "values": [28, 48, 85],
+                    "range": [1, 1, 1]
+                }
+            }
+        ]
+    },
+    {
+        "id": "seel",
+        "lineId": "seel",
+        "name": "Seel",
+        "cost": 3,
+        "maxHealth": [830, 1494, 2689],
+        "maxMana": [90, 90, 90],
+        "attackDamage": [60, 108, 194],
+        "abilityPower": [0, 0, 0],
+        "armor": [30, 30, 30],
+        "magicResist": [40, 40, 40],
+        "attackSpeed": [0.68, 0.68, 0.68],
+        "range": [3, 3, 3],
+        "traits": ["Water", "Support"],
+        "ability": {
+            "name": "Water Surge",
+            "description": "Blasts enemies for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "LINE",
+            "values": [380, 855, 1900],
+            "range": [3, 3, 3]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "seel",
+                "name": "Seel",
+                "traits": ["Water", "Support"],
+                "ability": {
+                    "name": "Water Surge",
+                    "description": "Blasts enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [380, 855, 1900],
+                    "range": [3, 3, 3]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "dewgong",
+                "name": "Dewgong",
+                "traits": ["Water", "Ice", "Support"],
+                "ability": {
+                    "name": "Water Surge",
+                    "description": "Blasts enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [380, 855, 1900],
+                    "range": [3, 3, 3]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "dewgong",
+                "name": "Dewgong",
+                "traits": ["Water", "Ice", "Support"],
+                "ability": {
+                    "name": "Water Surge",
+                    "description": "Blasts enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [380, 855, 1900],
+                    "range": [3, 3, 3]
+                }
+            }
+        ]
+    },
+    {
+        "id": "grimer",
+        "lineId": "grimer",
+        "name": "Grimer",
+        "cost": 3,
+        "maxHealth": [960, 1728, 3110],
+        "maxMana": [70, 70, 70],
+        "attackDamage": [62, 112, 201],
+        "abilityPower": [0, 0, 0],
+        "armor": [46, 46, 46],
+        "magicResist": [40, 40, 40],
+        "attackSpeed": [0.65, 0.65, 0.65],
+        "range": [1, 1, 1],
+        "traits": ["Poison", "Defender"],
+        "ability": {
+            "name": "Toxic Strike",
+            "description": "Hits for $value damage and applies poison.",
+            "type": "DAMAGE",
+            "pattern": "SINGLE",
+            "values": [340, 765, 1700],
+            "range": [1, 1, 1],
+            "modifiers": [
+                {
+                    "type": "DOT",
+                    "dotType": "POISON",
+                    "damagePerTick": [37, 80, 158],
+                    "durationSeconds": [4, 4, 5],
+                    "tickIntervalMs": [1000, 1000, 1000]
+                }
+            ]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "grimer",
+                "name": "Grimer",
+                "traits": ["Poison", "Defender"],
+                "ability": {
+                    "name": "Toxic Strike",
+                    "description": "Hits for $value damage and applies poison.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [340, 765, 1700],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [37, 80, 158],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "muk",
+                "name": "Muk",
+                "traits": ["Poison", "Defender"],
+                "ability": {
+                    "name": "Toxic Strike",
+                    "description": "Hits for $value damage and applies poison.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [340, 765, 1700],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [37, 80, 158],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "muk",
+                "name": "Muk",
+                "traits": ["Poison", "Defender"],
+                "ability": {
+                    "name": "Toxic Strike",
+                    "description": "Hits for $value damage and applies poison.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [340, 765, 1700],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [37, 80, 158],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "id": "shellder",
+        "lineId": "shellder",
+        "name": "Shellder",
+        "cost": 3,
+        "maxHealth": [960, 1728, 3110],
+        "maxMana": [70, 70, 70],
+        "attackDamage": [62, 112, 201],
+        "abilityPower": [0, 0, 0],
+        "armor": [46, 46, 46],
+        "magicResist": [40, 40, 40],
+        "attackSpeed": [0.65, 0.65, 0.65],
+        "range": [1, 1, 1],
+        "traits": ["Water", "Defender"],
+        "ability": {
+            "name": "Water Surge",
+            "description": "Blasts enemies for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "LINE",
+            "values": [340, 765, 1700],
+            "range": [1, 1, 1]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "shellder",
+                "name": "Shellder",
+                "traits": ["Water", "Defender"],
+                "ability": {
+                    "name": "Water Surge",
+                    "description": "Blasts enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [340, 765, 1700],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "cloyster",
+                "name": "Cloyster",
+                "traits": ["Water", "Ice", "Defender"],
+                "ability": {
+                    "name": "Water Surge",
+                    "description": "Blasts enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [340, 765, 1700],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "cloyster",
+                "name": "Cloyster",
+                "traits": ["Water", "Ice", "Defender"],
+                "ability": {
+                    "name": "Water Surge",
+                    "description": "Blasts enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [340, 765, 1700],
+                    "range": [1, 1, 1]
+                }
+            }
+        ]
+    },
+    {
+        "id": "gastly",
+        "lineId": "gastly",
+        "name": "Gastly",
+        "cost": 3,
+        "maxHealth": [745, 1341, 2414],
+        "maxMana": [90, 90, 90],
+        "attackDamage": [62, 112, 201],
+        "abilityPower": [0, 0, 0],
+        "armor": [30, 30, 30],
+        "magicResist": [40, 40, 40],
+        "attackSpeed": [0.68, 0.68, 0.68],
+        "range": [3, 3, 3],
+        "traits": ["Ghost", "Poison", "Caster"],
+        "ability": {
+            "name": "Shadow Burst",
+            "description": "Drains enemies for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "SURROUND",
+            "values": [435, 978, 2175],
+            "range": [3, 3, 3],
+            "modifiers": [
+                {
+                    "type": "DOT",
+                    "dotType": "POISON",
+                    "damagePerTick": [37, 80, 158],
+                    "durationSeconds": [4, 4, 5],
+                    "tickIntervalMs": [1000, 1000, 1000]
+                },
+                {
+                    "type": "LIFESTEAL",
+                    "lifestealPercent": [0.2, 0.25, 0.3]
+                }
+            ]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "gastly",
+                "name": "Gastly",
+                "traits": ["Ghost", "Poison", "Caster"],
+                "ability": {
+                    "name": "Shadow Burst",
+                    "description": "Drains enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "SURROUND",
+                    "values": [435, 978, 2175],
+                    "range": [3, 3, 3],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [37, 80, 158],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        },
+                        {
+                            "type": "LIFESTEAL",
+                            "lifestealPercent": [0.2, 0.25, 0.3]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "haunter",
+                "name": "Haunter",
+                "traits": ["Ghost", "Poison", "Caster"],
+                "ability": {
+                    "name": "Shadow Burst",
+                    "description": "Drains enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "SURROUND",
+                    "values": [435, 978, 2175],
+                    "range": [3, 3, 3],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [37, 80, 158],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        },
+                        {
+                            "type": "LIFESTEAL",
+                            "lifestealPercent": [0.2, 0.25, 0.3]
+                        }
+                    ]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "gengar",
+                "name": "Gengar",
+                "traits": ["Ghost", "Poison", "Caster"],
+                "ability": {
+                    "name": "Shadow Burst",
+                    "description": "Drains enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "SURROUND",
+                    "values": [435, 978, 2175],
+                    "range": [3, 3, 3],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [37, 80, 158],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        },
+                        {
+                            "type": "LIFESTEAL",
+                            "lifestealPercent": [0.2, 0.25, 0.3]
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "id": "krabby",
+        "lineId": "krabby",
+        "name": "Krabby",
+        "cost": 3,
+        "maxHealth": [800, 1440, 2592],
+        "maxMana": [70, 70, 70],
+        "attackDamage": [82, 148, 266],
+        "abilityPower": [0, 0, 0],
+        "armor": [30, 30, 30],
+        "magicResist": [30, 30, 30],
+        "attackSpeed": [0.7, 0.7, 0.7],
+        "range": [1, 1, 1],
+        "traits": ["Water", "Striker"],
+        "ability": {
+            "name": "Water Surge",
+            "description": "Blasts enemies for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "LINE",
+            "values": [340, 765, 1700],
+            "range": [1, 1, 1]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "krabby",
+                "name": "Krabby",
+                "traits": ["Water", "Striker"],
+                "ability": {
+                    "name": "Water Surge",
+                    "description": "Blasts enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [340, 765, 1700],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "kingler",
+                "name": "Kingler",
+                "traits": ["Water", "Striker"],
+                "ability": {
+                    "name": "Water Surge",
+                    "description": "Blasts enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [340, 765, 1700],
+                    "range": [1, 1, 1]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "kingler",
+                "name": "Kingler",
+                "traits": ["Water", "Striker"],
+                "ability": {
+                    "name": "Water Surge",
+                    "description": "Blasts enemies for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [340, 765, 1700],
+                    "range": [1, 1, 1]
+                }
+            }
+        ]
+    },
+    {
+        "id": "horsea",
+        "lineId": "horsea",
+        "name": "Horsea",
+        "cost": 3,
+        "maxHealth": [735, 1323, 2381],
+        "maxMana": [70, 70, 70],
+        "attackDamage": [76, 137, 246],
+        "abilityPower": [0, 0, 0],
+        "armor": [30, 30, 30],
+        "magicResist": [30, 30, 30],
+        "attackSpeed": [0.72, 0.72, 0.72],
+        "range": [4, 4, 4],
+        "traits": ["Water", "Ranger"],
+        "ability": {
+            "name": "Bubble Beam",
+            "description": "Fires bubbles for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "LINE",
+            "values": [340, 765, 1700],
+            "range": [4, 4, 4]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "horsea",
+                "name": "Horsea",
+                "traits": ["Water", "Ranger"],
+                "ability": {
+                    "name": "Bubble Beam",
+                    "description": "Fires bubbles for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [340, 765, 1700],
+                    "range": [4, 4, 4]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "seadra",
+                "name": "Seadra",
+                "traits": ["Water", "Ranger"],
+                "ability": {
+                    "name": "Hydro Pump",
+                    "description": "Blasts water for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [340, 765, 1700],
+                    "range": [4, 4, 4]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "kingdra",
+                "name": "Kingdra",
+                "traits": ["Water", "Dragon", "Ranger"],
+                "ability": {
+                    "name": "Dragon Current",
+                    "description": "Combines water and dragon force for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [340, 765, 1700],
+                    "range": [4, 4, 4]
+                }
+            }
+        ]
+    },
+    {
+        "id": "dratini",
+        "lineId": "dratini",
+        "name": "Dratini",
+        "cost": 3,
+        "maxHealth": [735, 1323, 2381],
+        "maxMana": [70, 70, 70],
+        "attackDamage": [76, 137, 246],
+        "abilityPower": [0, 0, 0],
+        "armor": [30, 30, 30],
+        "magicResist": [30, 30, 30],
+        "attackSpeed": [0.72, 0.72, 0.72],
+        "range": [4, 4, 4],
+        "traits": ["Dragon", "Ranger"],
+        "ability": {
+            "name": "Dragon Breath",
+            "description": "Breathes dragon energy for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "SINGLE",
+            "values": [340, 765, 1700],
+            "range": [4, 4, 4]
+        },
+        "forms": [
+            {
+                "starLevel": 1,
+                "definitionId": "dratini",
+                "name": "Dratini",
+                "traits": ["Dragon", "Ranger"],
+                "ability": {
+                    "name": "Dragon Breath",
+                    "description": "Breathes dragon energy for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [340, 765, 1700],
+                    "range": [4, 4, 4]
+                }
+            },
+            {
+                "starLevel": 2,
+                "definitionId": "dragonair",
+                "name": "Dragonair",
+                "traits": ["Dragon", "Caster"],
+                "ability": {
+                    "name": "Aqua Tail",
+                    "description": "Sweeps mystical water for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [435, 978, 2175],
+                    "range": [3, 3, 3]
+                }
+            },
+            {
+                "starLevel": 3,
+                "definitionId": "dragonite",
+                "name": "Dragonite",
+                "traits": ["Dragon", "Flying", "Striker"],
+                "ability": {
+                    "name": "Hyper Beam",
+                    "description": "Fires a massive beam for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [340, 765, 1700],
+                    "range": [1, 1, 1]
+                }
+            }
+        ]
+    },
+    {
+        "id": "farfetchd",
+        "lineId": "farfetchd",
+        "name": "Farfetch'd",
+        "cost": 4,
+        "maxHealth": [935, 1683, 3029],
+        "maxMana": [75, 75, 75],
+        "attackDamage": [90, 162, 292],
+        "abilityPower": [0, 0, 0],
+        "armor": [38, 38, 38],
+        "magicResist": [38, 38, 38],
+        "attackSpeed": [0.74, 0.74, 0.74],
+        "range": [4, 4, 4],
+        "traits": ["Normal", "Flying", "Ranger"],
+        "ability": {
+            "name": "Rally Cry",
+            "description": "Raises allied attack damage by $value%.",
+            "type": "BUFF_ATK",
+            "pattern": "SURROUND",
+            "values": [40, 68, 120],
+            "range": [4, 4, 4]
         }
     },
     {
-        "id": "bulbasaur",
-        "name": "Bulbasaur",
-        "cost": 1,
-        "maxHealth": [650, 1170, 2106],
-        "maxMana": [60, 60, 60],
-        "attackDamage": [40, 72, 129],
+        "id": "hitmonlee",
+        "lineId": "hitmonlee",
+        "name": "Hitmonlee",
+        "cost": 4,
+        "maxHealth": [910, 1638, 2948],
+        "maxMana": [75, 75, 75],
+        "attackDamage": [92, 166, 298],
         "abilityPower": [0, 0, 0],
-        "armor": [20, 20, 20],
-        "magicResist": [30, 30, 30],
-        "attackSpeed": [0.55, 0.55, 0.55],
+        "armor": [34, 34, 34],
+        "magicResist": [36, 36, 36],
+        "attackSpeed": [0.84, 0.84, 0.84],
         "range": [1, 1, 1],
-        "traits": ["Grass", "Starter"],
+        "traits": ["Fighting", "Speedster"],
         "ability": {
-            "name": "Vine Whip",
-            "description": "Whips surrounding enemies with vines dealing $value damage.",
+            "name": "Power Blow",
+            "description": "Smashes the target for $value damage.",
             "type": "DAMAGE",
-            "pattern": "SURROUND",
-            "values": [100, 200, 400],
+            "pattern": "SINGLE",
+            "values": [480, 1080, 2400],
             "range": [1, 1, 1]
         }
     },
     {
-        "id": "pikachu",
-        "name": "Pikachu",
-        "cost": 2,
-        "maxHealth": [450, 810, 1458],
-        "maxMana": [50, 50, 50],
-        "attackDamage": [55, 99, 178],
+        "id": "hitmonchan",
+        "lineId": "hitmonchan",
+        "name": "Hitmonchan",
+        "cost": 4,
+        "maxHealth": [1000, 1800, 3240],
+        "maxMana": [75, 75, 75],
+        "attackDamage": [96, 173, 311],
         "abilityPower": [0, 0, 0],
-        "armor": [20, 20, 20],
-        "magicResist": [20, 20, 20],
-        "attackSpeed": [0.7, 0.7, 0.7],
-        "range": [2, 2, 2],
-        "traits": ["Electric", "Fast"],
+        "armor": [38, 38, 38],
+        "magicResist": [38, 38, 38],
+        "attackSpeed": [0.72, 0.72, 0.72],
+        "range": [1, 1, 1],
+        "traits": ["Fighting", "Striker"],
         "ability": {
-            "name": "Thunderbolt",
-            "description": "Shoots lightning dealing $value damage, healing Pikachu for 50% of damage dealt.",
+            "name": "Power Blow",
+            "description": "Smashes the target for $value damage.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [180, 450, 1125],
-            "range": [3, 3, 3],
+            "values": [480, 1080, 2400],
+            "range": [1, 1, 1]
+        }
+    },
+    {
+        "id": "kangaskhan",
+        "lineId": "kangaskhan",
+        "name": "Kangaskhan",
+        "cost": 4,
+        "maxHealth": [1160, 2088, 3758],
+        "maxMana": [75, 75, 75],
+        "attackDamage": [76, 137, 246],
+        "abilityPower": [0, 0, 0],
+        "armor": [54, 54, 54],
+        "magicResist": [48, 48, 48],
+        "attackSpeed": [0.67, 0.67, 0.67],
+        "range": [1, 1, 1],
+        "traits": ["Normal", "Defender"],
+        "ability": {
+            "name": "Rally Cry",
+            "description": "Raises allied attack damage by $value%.",
+            "type": "BUFF_ATK",
+            "pattern": "SURROUND",
+            "values": [40, 68, 120],
+            "range": [1, 1, 1]
+        }
+    },
+    {
+        "id": "mr_mime",
+        "lineId": "mr_mime",
+        "name": "Mr. Mime",
+        "cost": 4,
+        "maxHealth": [1030, 1854, 3337],
+        "maxMana": [95, 95, 95],
+        "attackDamage": [74, 133, 240],
+        "abilityPower": [0, 0, 0],
+        "armor": [38, 38, 38],
+        "magicResist": [48, 48, 48],
+        "attackSpeed": [0.7, 0.7, 0.7],
+        "range": [3, 3, 3],
+        "traits": ["Psychic", "Support"],
+        "ability": {
+            "name": "Mind Lock",
+            "description": "Overwhelms the target, stunning for $value seconds.",
+            "type": "STUN",
+            "pattern": "SINGLE",
+            "values": [2, 3, 4],
+            "range": [3, 3, 3]
+        }
+    },
+    {
+        "id": "pinsir",
+        "lineId": "pinsir",
+        "name": "Pinsir",
+        "cost": 4,
+        "maxHealth": [1000, 1800, 3240],
+        "maxMana": [75, 75, 75],
+        "attackDamage": [96, 173, 311],
+        "abilityPower": [0, 0, 0],
+        "armor": [38, 38, 38],
+        "magicResist": [38, 38, 38],
+        "attackSpeed": [0.72, 0.72, 0.72],
+        "range": [1, 1, 1],
+        "traits": ["Bug", "Striker"],
+        "ability": {
+            "name": "Swarm Sting",
+            "description": "Strikes for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "SINGLE",
+            "values": [480, 1080, 2400],
+            "range": [1, 1, 1]
+        }
+    },
+    {
+        "id": "lapras",
+        "lineId": "lapras",
+        "name": "Lapras",
+        "cost": 4,
+        "maxHealth": [1160, 2088, 3758],
+        "maxMana": [75, 75, 75],
+        "attackDamage": [76, 137, 246],
+        "abilityPower": [0, 0, 0],
+        "armor": [54, 54, 54],
+        "magicResist": [48, 48, 48],
+        "attackSpeed": [0.67, 0.67, 0.67],
+        "range": [1, 1, 1],
+        "traits": ["Water", "Ice", "Defender"],
+        "ability": {
+            "name": "Water Surge",
+            "description": "Blasts enemies for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "LINE",
+            "values": [480, 1080, 2400],
+            "range": [1, 1, 1]
+        }
+    },
+    {
+        "id": "tauros",
+        "lineId": "tauros",
+        "name": "Tauros",
+        "cost": 4,
+        "maxHealth": [910, 1638, 2948],
+        "maxMana": [75, 75, 75],
+        "attackDamage": [92, 166, 298],
+        "abilityPower": [0, 0, 0],
+        "armor": [34, 34, 34],
+        "magicResist": [36, 36, 36],
+        "attackSpeed": [0.84, 0.84, 0.84],
+        "range": [1, 1, 1],
+        "traits": ["Normal", "Speedster"],
+        "ability": {
+            "name": "Rally Cry",
+            "description": "Raises allied attack damage by $value%.",
+            "type": "BUFF_ATK",
+            "pattern": "SURROUND",
+            "values": [40, 68, 120],
+            "range": [1, 1, 1]
+        }
+    },
+    {
+        "id": "ditto",
+        "lineId": "ditto",
+        "name": "Ditto",
+        "cost": 4,
+        "maxHealth": [1030, 1854, 3337],
+        "maxMana": [95, 95, 95],
+        "attackDamage": [74, 133, 240],
+        "abilityPower": [0, 0, 0],
+        "armor": [38, 38, 38],
+        "magicResist": [48, 48, 48],
+        "attackSpeed": [0.7, 0.7, 0.7],
+        "range": [3, 3, 3],
+        "traits": ["Normal", "Support"],
+        "ability": {
+            "name": "Rally Cry",
+            "description": "Raises allied attack damage by $value%.",
+            "type": "BUFF_ATK",
+            "pattern": "SURROUND",
+            "values": [43, 74, 130],
+            "range": [3, 3, 3]
+        }
+    },
+    {
+        "id": "porygon",
+        "lineId": "porygon",
+        "name": "Porygon",
+        "cost": 4,
+        "maxHealth": [945, 1701, 3062],
+        "maxMana": [95, 95, 95],
+        "attackDamage": [76, 137, 246],
+        "abilityPower": [0, 0, 0],
+        "armor": [38, 38, 38],
+        "magicResist": [48, 48, 48],
+        "attackSpeed": [0.7, 0.7, 0.7],
+        "range": [3, 3, 3],
+        "traits": ["Normal", "Caster"],
+        "ability": {
+            "name": "Rally Cry",
+            "description": "Raises allied attack damage by $value%.",
+            "type": "BUFF_ATK",
+            "pattern": "SURROUND",
+            "values": [47, 82, 143],
+            "range": [3, 3, 3]
+        }
+    },
+    {
+        "id": "lickitung",
+        "lineId": "lickitung",
+        "name": "Lickitung",
+        "cost": 4,
+        "maxHealth": [1160, 2088, 3758],
+        "maxMana": [75, 75, 75],
+        "attackDamage": [76, 137, 246],
+        "abilityPower": [0, 0, 0],
+        "armor": [54, 54, 54],
+        "magicResist": [48, 48, 48],
+        "attackSpeed": [0.67, 0.67, 0.67],
+        "range": [1, 1, 1],
+        "traits": ["Normal", "Defender"],
+        "ability": {
+            "name": "Rally Cry",
+            "description": "Raises allied attack damage by $value%.",
+            "type": "BUFF_ATK",
+            "pattern": "SURROUND",
+            "values": [40, 68, 120],
+            "range": [1, 1, 1]
+        }
+    },
+    {
+        "id": "jynx",
+        "lineId": "jynx",
+        "name": "Jynx",
+        "cost": 4,
+        "maxHealth": [945, 1701, 3062],
+        "maxMana": [95, 95, 95],
+        "attackDamage": [76, 137, 246],
+        "abilityPower": [0, 0, 0],
+        "armor": [38, 38, 38],
+        "magicResist": [48, 48, 48],
+        "attackSpeed": [0.7, 0.7, 0.7],
+        "range": [3, 3, 3],
+        "traits": ["Ice", "Psychic", "Caster"],
+        "ability": {
+            "name": "Frost Field",
+            "description": "Freezes nearby enemies for $value seconds.",
+            "type": "STUN",
+            "pattern": "SURROUND",
+            "values": [2, 3, 4],
+            "range": [3, 3, 3]
+        }
+    },
+    {
+        "id": "snorlax",
+        "lineId": "snorlax",
+        "name": "Snorlax",
+        "cost": 5,
+        "maxHealth": [1430, 2574, 4633],
+        "maxMana": [85, 85, 85],
+        "attackDamage": [96, 173, 311],
+        "abilityPower": [0, 0, 0],
+        "armor": [64, 64, 64],
+        "magicResist": [58, 58, 58],
+        "attackSpeed": [0.72, 0.72, 0.72],
+        "range": [1, 1, 1],
+        "traits": ["Normal", "Defender"],
+        "ability": {
+            "name": "Resting Wall",
+            "description": "Grants allies a massive $value shield.",
+            "type": "SHIELD",
+            "pattern": "SURROUND",
+            "values": [700, 1470, 3219],
+            "range": [1, 1, 1]
+        }
+    },
+    {
+        "id": "aerodactyl",
+        "lineId": "aerodactyl",
+        "name": "Aerodactyl",
+        "cost": 5,
+        "maxHealth": [1180, 2124, 3823],
+        "maxMana": [85, 85, 85],
+        "attackDamage": [112, 202, 363],
+        "abilityPower": [0, 0, 0],
+        "armor": [44, 44, 44],
+        "magicResist": [46, 46, 46],
+        "attackSpeed": [0.89, 0.89, 0.89],
+        "range": [1, 1, 1],
+        "traits": ["Rock", "Flying", "Speedster"],
+        "ability": {
+            "name": "Ancient Dive",
+            "description": "Dives through enemies for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "LINE",
+            "values": [700, 1575, 3500],
+            "range": [1, 1, 1]
+        }
+    },
+    {
+        "id": "articuno",
+        "lineId": "articuno",
+        "name": "Articuno",
+        "cost": 5,
+        "maxHealth": [1430, 2574, 4633],
+        "maxMana": [85, 85, 85],
+        "attackDamage": [124, 223, 402],
+        "abilityPower": [0, 0, 0],
+        "armor": [58, 58, 58],
+        "magicResist": [58, 58, 58],
+        "attackSpeed": [0.8, 0.8, 0.8],
+        "range": [1, 1, 1],
+        "traits": ["Ice", "Flying", "Legendary"],
+        "ability": {
+            "name": "Blizzard",
+            "description": "Freezes enemies for $value seconds.",
+            "type": "STUN",
+            "pattern": "SURROUND",
+            "values": [3, 4, 5],
+            "range": [1, 1, 1]
+        }
+    },
+    {
+        "id": "zapdos",
+        "lineId": "zapdos",
+        "name": "Zapdos",
+        "cost": 5,
+        "maxHealth": [1430, 2574, 4633],
+        "maxMana": [85, 85, 85],
+        "attackDamage": [124, 223, 402],
+        "abilityPower": [0, 0, 0],
+        "armor": [58, 58, 58],
+        "magicResist": [58, 58, 58],
+        "attackSpeed": [0.8, 0.8, 0.8],
+        "range": [1, 1, 1],
+        "traits": ["Electric", "Flying", "Legendary"],
+        "ability": {
+            "name": "Thunderstorm",
+            "description": "Calls lightning for $value damage and briefly stuns.",
+            "type": "DAMAGE",
+            "pattern": "SURROUND",
+            "values": [880, 1980, 4400],
+            "range": [1, 1, 1],
             "modifiers": [
                 {
-                    "type": "LIFESTEAL",
-                    "lifestealPercent": [0.5, 0.5, 0.5]
+                    "type": "STUN",
+                    "stunSeconds": [1, 1, 2]
                 }
             ]
+        }
+    },
+    {
+        "id": "moltres",
+        "lineId": "moltres",
+        "name": "Moltres",
+        "cost": 5,
+        "maxHealth": [1430, 2574, 4633],
+        "maxMana": [85, 85, 85],
+        "attackDamage": [124, 223, 402],
+        "abilityPower": [0, 0, 0],
+        "armor": [58, 58, 58],
+        "magicResist": [58, 58, 58],
+        "attackSpeed": [0.8, 0.8, 0.8],
+        "range": [1, 1, 1],
+        "traits": ["Fire", "Flying", "Legendary"],
+        "ability": {
+            "name": "Inferno Wing",
+            "description": "Ignites enemies for $value damage and applies burn.",
+            "type": "DAMAGE",
+            "pattern": "SURROUND",
+            "values": [880, 1980, 4400],
+            "range": [1, 1, 1],
+            "modifiers": [
+                {
+                    "type": "DOT",
+                    "dotType": "BURN",
+                    "damagePerTick": [60, 120, 240],
+                    "durationSeconds": [3, 3, 4],
+                    "tickIntervalMs": [1000, 1000, 1000]
+                }
+            ]
+        }
+    },
+    {
+        "id": "mewtwo",
+        "lineId": "mewtwo",
+        "name": "Mewtwo",
+        "cost": 5,
+        "maxHealth": [1430, 2574, 4633],
+        "maxMana": [85, 85, 85],
+        "attackDamage": [124, 223, 402],
+        "abilityPower": [0, 0, 0],
+        "armor": [58, 58, 58],
+        "magicResist": [58, 58, 58],
+        "attackSpeed": [0.8, 0.8, 0.8],
+        "range": [1, 1, 1],
+        "traits": ["Psychic", "Legendary"],
+        "ability": {
+            "name": "Psystrike",
+            "description": "Crushes enemies with psychic force for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "LINE",
+            "values": [880, 1980, 4400],
+            "range": [1, 1, 1]
+        }
+    },
+    {
+        "id": "mew",
+        "lineId": "mew",
+        "name": "Mew",
+        "cost": 5,
+        "maxHealth": [1480, 2664, 4795],
+        "maxMana": [105, 105, 105],
+        "attackDamage": [114, 205, 369],
+        "abilityPower": [0, 0, 0],
+        "armor": [58, 58, 58],
+        "magicResist": [68, 68, 68],
+        "attackSpeed": [0.8, 0.8, 0.8],
+        "range": [3, 3, 3],
+        "traits": ["Psychic", "Support", "Legendary"],
+        "ability": {
+            "name": "Ancient Blessing",
+            "description": "Restores allies for $value health.",
+            "type": "HEAL",
+            "pattern": "SURROUND",
+            "values": [920, 2070, 4600],
+            "range": [3, 3, 3]
         }
     }
 ]

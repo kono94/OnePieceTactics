@@ -9,7 +9,14 @@ public class StandardGameUnit extends AbstractGameUnit {
     }
 
     public StandardGameUnit(UnitDefinition def, int starLevel) {
-        super(def.id(), def.name(), def.cost(), def.ability(), def.getRange(starLevel), new HashSet<>(def.traits()));
+        super(
+                def.getDefinitionId(starLevel),
+                def.lineId(),
+                def.getName(starLevel),
+                def.cost(),
+                def.getAbility(starLevel),
+                def.getActiveRange(starLevel),
+                new HashSet<>(def.getTraits(starLevel)));
         setStarLevel(starLevel);
         setMaxHealth(def.getMaxHealth(starLevel));
         setMaxMana(def.getMaxMana(starLevel));

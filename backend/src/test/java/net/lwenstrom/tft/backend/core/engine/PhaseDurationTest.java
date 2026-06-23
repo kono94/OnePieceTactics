@@ -70,9 +70,8 @@ public class PhaseDurationTest {
         };
 
         testClock = createTestClock();
-        room =
-                new GameRoom(
-                        "test-room", dataLoader, registry, testClock, createSeededRandomProvider(), GameMode.ONEPIECE);
+        room = new GameRoom(
+                "test-room", dataLoader, registry, testClock, createSeededRandomProvider(), GameMode.ONEPIECE);
         room.addPlayer("P1");
     }
 
