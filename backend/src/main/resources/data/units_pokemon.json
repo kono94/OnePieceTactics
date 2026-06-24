@@ -15,11 +15,11 @@
         "traits": ["Grass", "Poison", "Starter"],
         "ability": {
             "name": "Vine Whip",
-            "description": "Whips vines through allies, restoring $value health.",
-            "type": "HEAL",
-            "pattern": "SURROUND",
-            "values": [165, 371, 825],
-            "range": [1, 1, 1]
+            "description": "Whips enemies in a line for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "LINE",
+            "values": [143, 322, 692],
+            "range": [2, 2, 3]
         },
         "forms": [
             {
@@ -29,11 +29,11 @@
                 "traits": ["Grass", "Poison", "Starter"],
                 "ability": {
                     "name": "Vine Whip",
-                    "description": "Whips vines through allies, restoring $value health.",
-                    "type": "HEAL",
-                    "pattern": "SURROUND",
-                    "values": [165, 371, 825],
-                    "range": [1, 1, 1]
+                    "description": "Whips enemies in a line for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [143, 322, 692],
+                    "range": [2, 2, 3]
                 }
             },
             {
@@ -43,17 +43,17 @@
                 "traits": ["Grass", "Poison", "Starter"],
                 "ability": {
                     "name": "Razor Leaf",
-                    "description": "Cuts nearby enemies for $value damage.",
+                    "description": "Scatters sharp leaves for $value damage and poison.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [165, 371, 825],
-                    "range": [1, 1, 1],
+                    "values": [128, 287, 617],
+                    "range": [1, 1, 2],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [23, 52, 106],
-                            "durationSeconds": [4, 4, 5],
+                            "damagePerTick": [18, 38, 78],
+                            "durationSeconds": [3, 4, 4],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
                     ]
@@ -65,12 +65,12 @@
                 "name": "Venusaur",
                 "traits": ["Grass", "Poison", "Starter"],
                 "ability": {
-                    "name": "Solar Bloom",
-                    "description": "Blooms sunlight, healing allies for $value and seeding enemies.",
+                    "name": "Grassy Terrain",
+                    "description": "Covers the board in grass, healing allies for $value.",
                     "type": "HEAL",
                     "pattern": "SURROUND",
-                    "values": [165, 371, 825],
-                    "range": [1, 1, 1]
+                    "values": [156, 334, 710],
+                    "range": [3, 3, 3]
                 }
             }
         ]
@@ -91,16 +91,16 @@
         "traits": ["Fire", "Starter", "Striker"],
         "ability": {
             "name": "Ember",
-            "description": "Shoots a flame for $value damage and applies burn.",
+            "description": "Shoots a small flame for $value damage and burn.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [165, 371, 825],
-            "range": [1, 1, 1],
+            "values": [173, 387, 832],
+            "range": [2, 2, 3],
             "modifiers": [
                 {
                     "type": "DOT",
                     "dotType": "BURN",
-                    "damagePerTick": [28, 60, 120],
+                    "damagePerTick": [22, 48, 96],
                     "durationSeconds": [3, 3, 4],
                     "tickIntervalMs": [1000, 1000, 1000]
                 }
@@ -114,16 +114,16 @@
                 "traits": ["Fire", "Starter", "Striker"],
                 "ability": {
                     "name": "Ember",
-                    "description": "Shoots a flame for $value damage and applies burn.",
+                    "description": "Shoots a small flame for $value damage and burn.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [165, 371, 825],
-                    "range": [1, 1, 1],
+                    "values": [173, 387, 832],
+                    "range": [2, 2, 3],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [28, 60, 120],
+                            "damagePerTick": [22, 48, 96],
                             "durationSeconds": [3, 3, 4],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -136,19 +136,23 @@
                 "name": "Charmeleon",
                 "traits": ["Fire", "Starter", "Striker"],
                 "ability": {
-                    "name": "Flame Burst",
-                    "description": "Blasts a line for $value damage and applies burn.",
+                    "name": "Fire Fang",
+                    "description": "Bites with flame for $value damage and briefly stuns.",
                     "type": "DAMAGE",
-                    "pattern": "LINE",
-                    "values": [165, 371, 825],
+                    "pattern": "SINGLE",
+                    "values": [173, 387, 832],
                     "range": [1, 1, 1],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [28, 60, 120],
+                            "damagePerTick": [22, 48, 96],
                             "durationSeconds": [3, 3, 4],
                             "tickIntervalMs": [1000, 1000, 1000]
+                        },
+                        {
+                            "type": "STUN",
+                            "stunSeconds": [1, 1, 2]
                         }
                     ]
                 }
@@ -160,17 +164,17 @@
                 "traits": ["Fire", "Flying", "Starter"],
                 "ability": {
                     "name": "Flamethrower",
-                    "description": "Sweeps a blazing line for $value damage and applies burn.",
+                    "description": "Sweeps a blazing line for $value damage and burn.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [165, 371, 825],
-                    "range": [1, 1, 1],
+                    "values": [143, 322, 692],
+                    "range": [3, 4, 5],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [28, 60, 120],
-                            "durationSeconds": [3, 3, 4],
+                            "damagePerTick": [28, 58, 118],
+                            "durationSeconds": [3, 4, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
                     ]
@@ -197,8 +201,8 @@
             "description": "Fires pressurized water for $value damage.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [165, 371, 825],
-            "range": [1, 1, 1]
+            "values": [143, 322, 692],
+            "range": [3, 3, 4]
         },
         "forms": [
             {
@@ -211,8 +215,8 @@
                     "description": "Fires pressurized water for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [165, 371, 825],
-                    "range": [1, 1, 1]
+                    "values": [143, 322, 692],
+                    "range": [3, 3, 4]
                 }
             },
             {
@@ -222,11 +226,11 @@
                 "traits": ["Water", "Starter", "Defender"],
                 "ability": {
                     "name": "Shell Guard",
-                    "description": "Grants allies a $value shield.",
+                    "description": "Raises shell defenses, shielding allies for $value.",
                     "type": "SHIELD",
                     "pattern": "SURROUND",
-                    "values": [165, 346, 758],
-                    "range": [1, 1, 1]
+                    "values": [164, 350, 732],
+                    "range": [3, 3, 3]
                 }
             },
             {
@@ -236,11 +240,17 @@
                 "traits": ["Water", "Starter", "Defender"],
                 "ability": {
                     "name": "Hydro Cannon",
-                    "description": "Fires twin cannons for $value damage.",
+                    "description": "Launches a cannon blast for $value damage and knockback.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [165, 371, 825],
-                    "range": [1, 1, 1]
+                    "values": [143, 322, 692],
+                    "range": [4, 5, 6],
+                    "modifiers": [
+                        {
+                            "type": "KNOCKBACK",
+                            "cells": [1, 1, 2]
+                        }
+                    ]
                 }
             }
         ]
@@ -260,12 +270,12 @@
         "range": [3, 3, 3],
         "traits": ["Bug", "Support"],
         "ability": {
-            "name": "Swarm Sting",
-            "description": "Strikes for $value damage.",
-            "type": "DAMAGE",
+            "name": "String Shot",
+            "description": "Pins the target in silk for $value seconds.",
+            "type": "STUN",
             "pattern": "SINGLE",
-            "values": [205, 461, 1025],
-            "range": [3, 3, 3]
+            "values": [1, 1, 2],
+            "range": [3, 3, 4]
         },
         "forms": [
             {
@@ -274,12 +284,12 @@
                 "name": "Caterpie",
                 "traits": ["Bug", "Support"],
                 "ability": {
-                    "name": "Swarm Sting",
-                    "description": "Strikes for $value damage.",
-                    "type": "DAMAGE",
+                    "name": "String Shot",
+                    "description": "Pins the target in silk for $value seconds.",
+                    "type": "STUN",
                     "pattern": "SINGLE",
-                    "values": [205, 461, 1025],
-                    "range": [3, 3, 3]
+                    "values": [1, 1, 2],
+                    "range": [3, 3, 4]
                 }
             },
             {
@@ -288,11 +298,11 @@
                 "name": "Metapod",
                 "traits": ["Bug", "Defender"],
                 "ability": {
-                    "name": "Swarm Sting",
-                    "description": "Strikes for $value damage.",
-                    "type": "DAMAGE",
+                    "name": "Harden",
+                    "description": "Hardens its shell, gaining $value shield.",
+                    "type": "SHIELD",
                     "pattern": "SINGLE",
-                    "values": [165, 371, 825],
+                    "values": [164, 350, 732],
                     "range": [1, 1, 1]
                 }
             },
@@ -302,12 +312,12 @@
                 "name": "Butterfree",
                 "traits": ["Bug", "Flying", "Caster"],
                 "ability": {
-                    "name": "Swarm Sting",
-                    "description": "Strikes for $value damage.",
-                    "type": "DAMAGE",
-                    "pattern": "SINGLE",
-                    "values": [260, 585, 1300],
-                    "range": [3, 3, 3]
+                    "name": "Sleep Powder",
+                    "description": "Dusts nearby enemies, stunning them for $value seconds.",
+                    "type": "STUN",
+                    "pattern": "SURROUND",
+                    "values": [1, 1, 2],
+                    "range": [2, 3, 3]
                 }
             }
         ]
@@ -327,18 +337,18 @@
         "range": [1, 1, 1],
         "traits": ["Bug", "Poison", "Speedster"],
         "ability": {
-            "name": "Swarm Sting",
-            "description": "Strikes for $value damage.",
+            "name": "Poison Sting",
+            "description": "Stings for $value damage and poison.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [165, 371, 825],
-            "range": [1, 1, 1],
+            "values": [173, 387, 832],
+            "range": [2, 2, 3],
             "modifiers": [
                 {
                     "type": "DOT",
                     "dotType": "POISON",
-                    "damagePerTick": [23, 52, 106],
-                    "durationSeconds": [4, 4, 5],
+                    "damagePerTick": [20, 44, 88],
+                    "durationSeconds": [3, 3, 4],
                     "tickIntervalMs": [1000, 1000, 1000]
                 }
             ]
@@ -350,18 +360,18 @@
                 "name": "Weedle",
                 "traits": ["Bug", "Poison", "Speedster"],
                 "ability": {
-                    "name": "Swarm Sting",
-                    "description": "Strikes for $value damage.",
+                    "name": "Poison Sting",
+                    "description": "Stings for $value damage and poison.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [165, 371, 825],
-                    "range": [1, 1, 1],
+                    "values": [173, 387, 832],
+                    "range": [2, 2, 3],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [23, 52, 106],
-                            "durationSeconds": [4, 4, 5],
+                            "damagePerTick": [20, 44, 88],
+                            "durationSeconds": [3, 3, 4],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
                     ]
@@ -373,21 +383,12 @@
                 "name": "Kakuna",
                 "traits": ["Bug", "Poison", "Defender"],
                 "ability": {
-                    "name": "Swarm Sting",
-                    "description": "Strikes for $value damage.",
-                    "type": "DAMAGE",
+                    "name": "Iron Defense",
+                    "description": "Fortifies its shell, gaining $value shield.",
+                    "type": "SHIELD",
                     "pattern": "SINGLE",
-                    "values": [165, 371, 825],
-                    "range": [1, 1, 1],
-                    "modifiers": [
-                        {
-                            "type": "DOT",
-                            "dotType": "POISON",
-                            "damagePerTick": [23, 52, 106],
-                            "durationSeconds": [4, 4, 5],
-                            "tickIntervalMs": [1000, 1000, 1000]
-                        }
-                    ]
+                    "values": [164, 350, 732],
+                    "range": [1, 1, 1]
                 }
             },
             {
@@ -396,19 +397,17 @@
                 "name": "Beedrill",
                 "traits": ["Bug", "Poison", "Speedster"],
                 "ability": {
-                    "name": "Swarm Sting",
-                    "description": "Strikes for $value damage.",
+                    "name": "Fell Stinger",
+                    "description": "Pierces for $value damage, executing wounded targets.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [165, 371, 825],
-                    "range": [1, 1, 1],
+                    "values": [173, 387, 832],
+                    "range": [1, 1, 2],
                     "modifiers": [
                         {
-                            "type": "DOT",
-                            "dotType": "POISON",
-                            "damagePerTick": [23, 52, 106],
-                            "durationSeconds": [4, 4, 5],
-                            "tickIntervalMs": [1000, 1000, 1000]
+                            "type": "EXECUTE",
+                            "hpThreshold": [0.25, 0.3, 0.35],
+                            "bonusDamageMultiplier": [0.25, 0.35, 0.5]
                         }
                     ]
                 }
@@ -430,12 +429,12 @@
         "range": [4, 4, 4],
         "traits": ["Normal", "Flying", "Ranger"],
         "ability": {
-            "name": "Rally Cry",
-            "description": "Raises allied attack damage by $value%.",
-            "type": "BUFF_ATK",
-            "pattern": "SURROUND",
-            "values": [13, 23, 41],
-            "range": [4, 4, 4]
+            "name": "Gust",
+            "description": "Cuts a wind line for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "LINE",
+            "values": [143, 322, 692],
+            "range": [3, 3, 4]
         },
         "forms": [
             {
@@ -444,12 +443,12 @@
                 "name": "Pidgey",
                 "traits": ["Normal", "Flying", "Ranger"],
                 "ability": {
-                    "name": "Rally Cry",
-                    "description": "Raises allied attack damage by $value%.",
-                    "type": "BUFF_ATK",
-                    "pattern": "SURROUND",
-                    "values": [13, 23, 41],
-                    "range": [4, 4, 4]
+                    "name": "Gust",
+                    "description": "Cuts a wind line for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [143, 322, 692],
+                    "range": [3, 3, 4]
                 }
             },
             {
@@ -458,12 +457,19 @@
                 "name": "Pidgeotto",
                 "traits": ["Normal", "Flying", "Ranger"],
                 "ability": {
-                    "name": "Rally Cry",
-                    "description": "Raises allied attack damage by $value%.",
-                    "type": "BUFF_ATK",
-                    "pattern": "SURROUND",
-                    "values": [13, 23, 41],
-                    "range": [4, 4, 4]
+                    "name": "Air Cutter",
+                    "description": "Throws slicing air for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [143, 322, 692],
+                    "range": [4, 4, 5],
+                    "modifiers": [
+                        {
+                            "type": "EXECUTE",
+                            "hpThreshold": [0.2, 0.25, 0.3],
+                            "bonusDamageMultiplier": [0.18, 0.24, 0.32]
+                        }
+                    ]
                 }
             },
             {
@@ -472,11 +478,11 @@
                 "name": "Pidgeot",
                 "traits": ["Normal", "Flying", "Ranger"],
                 "ability": {
-                    "name": "Rally Cry",
-                    "description": "Raises allied attack damage by $value%.",
-                    "type": "BUFF_ATK",
+                    "name": "Tailwind",
+                    "description": "Creates tailwind, increasing allied attack speed by $value%.",
+                    "type": "BUFF_SPD",
                     "pattern": "SURROUND",
-                    "values": [13, 23, 41],
+                    "values": [14, 21, 32],
                     "range": [4, 4, 4]
                 }
             }
@@ -497,12 +503,19 @@
         "range": [1, 1, 1],
         "traits": ["Normal", "Speedster"],
         "ability": {
-            "name": "Rally Cry",
-            "description": "Raises allied attack damage by $value%.",
-            "type": "BUFF_ATK",
-            "pattern": "SURROUND",
-            "values": [13, 23, 41],
-            "range": [1, 1, 1]
+            "name": "Quick Attack",
+            "description": "Darts in for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "SINGLE",
+            "values": [173, 387, 832],
+            "range": [1, 1, 2],
+            "modifiers": [
+                {
+                    "type": "EXECUTE",
+                    "hpThreshold": [0.3, 0.34, 0.4],
+                    "bonusDamageMultiplier": [0.2, 0.28, 0.4]
+                }
+            ]
         },
         "forms": [
             {
@@ -511,12 +524,19 @@
                 "name": "Rattata",
                 "traits": ["Normal", "Speedster"],
                 "ability": {
-                    "name": "Rally Cry",
-                    "description": "Raises allied attack damage by $value%.",
-                    "type": "BUFF_ATK",
-                    "pattern": "SURROUND",
-                    "values": [13, 23, 41],
-                    "range": [1, 1, 1]
+                    "name": "Quick Attack",
+                    "description": "Darts in for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [173, 387, 832],
+                    "range": [1, 1, 2],
+                    "modifiers": [
+                        {
+                            "type": "EXECUTE",
+                            "hpThreshold": [0.3, 0.34, 0.4],
+                            "bonusDamageMultiplier": [0.2, 0.28, 0.4]
+                        }
+                    ]
                 }
             },
             {
@@ -525,12 +545,18 @@
                 "name": "Raticate",
                 "traits": ["Normal", "Speedster"],
                 "ability": {
-                    "name": "Rally Cry",
-                    "description": "Raises allied attack damage by $value%.",
-                    "type": "BUFF_ATK",
-                    "pattern": "SURROUND",
-                    "values": [13, 23, 41],
-                    "range": [1, 1, 1]
+                    "name": "Hyper Fang",
+                    "description": "Bites hard for $value damage and a short stun.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [173, 387, 832],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "STUN",
+                            "stunSeconds": [1, 1, 2]
+                        }
+                    ]
                 }
             },
             {
@@ -539,12 +565,19 @@
                 "name": "Raticate",
                 "traits": ["Normal", "Speedster"],
                 "ability": {
-                    "name": "Rally Cry",
-                    "description": "Raises allied attack damage by $value%.",
-                    "type": "BUFF_ATK",
-                    "pattern": "SURROUND",
-                    "values": [13, 23, 41],
-                    "range": [1, 1, 1]
+                    "name": "Super Fang",
+                    "description": "Rips into a target for $value damage, scaling with max health.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [173, 387, 832],
+                    "range": [1, 1, 2],
+                    "modifiers": [
+                        {
+                            "type": "SCALING",
+                            "scalingType": "TARGET_MAX_HP_PERCENT",
+                            "factor": [0.025, 0.035, 0.05]
+                        }
+                    ]
                 }
             }
         ]
@@ -564,12 +597,12 @@
         "range": [4, 4, 4],
         "traits": ["Normal", "Flying", "Ranger"],
         "ability": {
-            "name": "Rally Cry",
-            "description": "Raises allied attack damage by $value%.",
-            "type": "BUFF_ATK",
-            "pattern": "SURROUND",
-            "values": [13, 23, 41],
-            "range": [4, 4, 4]
+            "name": "Peck",
+            "description": "Pecks the target for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "SINGLE",
+            "values": [173, 387, 832],
+            "range": [2, 2, 3]
         },
         "forms": [
             {
@@ -578,12 +611,12 @@
                 "name": "Spearow",
                 "traits": ["Normal", "Flying", "Ranger"],
                 "ability": {
-                    "name": "Rally Cry",
-                    "description": "Raises allied attack damage by $value%.",
-                    "type": "BUFF_ATK",
-                    "pattern": "SURROUND",
-                    "values": [13, 23, 41],
-                    "range": [4, 4, 4]
+                    "name": "Peck",
+                    "description": "Pecks the target for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [173, 387, 832],
+                    "range": [2, 2, 3]
                 }
             },
             {
@@ -592,12 +625,19 @@
                 "name": "Fearow",
                 "traits": ["Normal", "Flying", "Ranger"],
                 "ability": {
-                    "name": "Rally Cry",
-                    "description": "Raises allied attack damage by $value%.",
-                    "type": "BUFF_ATK",
-                    "pattern": "SURROUND",
-                    "values": [13, 23, 41],
-                    "range": [4, 4, 4]
+                    "name": "Drill Peck",
+                    "description": "Drills through a line for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [143, 322, 692],
+                    "range": [3, 4, 5],
+                    "modifiers": [
+                        {
+                            "type": "EXECUTE",
+                            "hpThreshold": [0.22, 0.28, 0.34],
+                            "bonusDamageMultiplier": [0.2, 0.3, 0.42]
+                        }
+                    ]
                 }
             },
             {
@@ -606,12 +646,18 @@
                 "name": "Fearow",
                 "traits": ["Normal", "Flying", "Ranger"],
                 "ability": {
-                    "name": "Rally Cry",
-                    "description": "Raises allied attack damage by $value%.",
-                    "type": "BUFF_ATK",
-                    "pattern": "SURROUND",
-                    "values": [13, 23, 41],
-                    "range": [4, 4, 4]
+                    "name": "Drill Run",
+                    "description": "Drills across the row for $value damage and knockback.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [143, 322, 692],
+                    "range": [3, 4, 5],
+                    "modifiers": [
+                        {
+                            "type": "KNOCKBACK",
+                            "cells": [1, 1, 2]
+                        }
+                    ]
                 }
             }
         ]
@@ -631,18 +677,18 @@
         "range": [1, 1, 1],
         "traits": ["Poison", "Defender"],
         "ability": {
-            "name": "Toxic Strike",
-            "description": "Hits for $value damage and applies poison.",
+            "name": "Venom Drench",
+            "description": "Splashes venom for $value damage and poison.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [165, 371, 825],
-            "range": [1, 1, 1],
+            "values": [173, 387, 832],
+            "range": [2, 2, 3],
             "modifiers": [
                 {
                     "type": "DOT",
                     "dotType": "POISON",
-                    "damagePerTick": [23, 52, 106],
-                    "durationSeconds": [4, 4, 5],
+                    "damagePerTick": [20, 44, 88],
+                    "durationSeconds": [3, 3, 4],
                     "tickIntervalMs": [1000, 1000, 1000]
                 }
             ]
@@ -654,18 +700,18 @@
                 "name": "Nidoran-F",
                 "traits": ["Poison", "Defender"],
                 "ability": {
-                    "name": "Toxic Strike",
-                    "description": "Hits for $value damage and applies poison.",
+                    "name": "Venom Drench",
+                    "description": "Splashes venom for $value damage and poison.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [165, 371, 825],
-                    "range": [1, 1, 1],
+                    "values": [173, 387, 832],
+                    "range": [2, 2, 3],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [23, 52, 106],
-                            "durationSeconds": [4, 4, 5],
+                            "damagePerTick": [20, 44, 88],
+                            "durationSeconds": [3, 3, 4],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
                     ]
@@ -677,17 +723,17 @@
                 "name": "Nidorina",
                 "traits": ["Poison", "Defender"],
                 "ability": {
-                    "name": "Toxic Strike",
-                    "description": "Hits for $value damage and applies poison.",
+                    "name": "Toxic Spikes",
+                    "description": "Spreads toxic spikes for $value damage and poison.",
                     "type": "DAMAGE",
-                    "pattern": "SINGLE",
-                    "values": [165, 371, 825],
-                    "range": [1, 1, 1],
+                    "pattern": "SURROUND",
+                    "values": [128, 287, 617],
+                    "range": [1, 2, 2],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [23, 52, 106],
+                            "damagePerTick": [18, 40, 84],
                             "durationSeconds": [4, 4, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -700,19 +746,16 @@
                 "name": "Nidoqueen",
                 "traits": ["Poison", "Ground", "Defender"],
                 "ability": {
-                    "name": "Toxic Strike",
-                    "description": "Hits for $value damage and applies poison.",
+                    "name": "Earth Power",
+                    "description": "Breaks the ground for $value damage and knockback.",
                     "type": "DAMAGE",
-                    "pattern": "SINGLE",
-                    "values": [165, 371, 825],
-                    "range": [1, 1, 1],
+                    "pattern": "SURROUND",
+                    "values": [128, 287, 617],
+                    "range": [2, 2, 3],
                     "modifiers": [
                         {
-                            "type": "DOT",
-                            "dotType": "POISON",
-                            "damagePerTick": [23, 52, 106],
-                            "durationSeconds": [4, 4, 5],
-                            "tickIntervalMs": [1000, 1000, 1000]
+                            "type": "KNOCKBACK",
+                            "cells": [1, 1, 2]
                         }
                     ]
                 }
@@ -734,21 +777,12 @@
         "range": [1, 1, 1],
         "traits": ["Poison", "Striker"],
         "ability": {
-            "name": "Toxic Strike",
-            "description": "Hits for $value damage and applies poison.",
+            "name": "Horn Attack",
+            "description": "Charges with its horn for $value damage.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [165, 371, 825],
-            "range": [1, 1, 1],
-            "modifiers": [
-                {
-                    "type": "DOT",
-                    "dotType": "POISON",
-                    "damagePerTick": [23, 52, 106],
-                    "durationSeconds": [4, 4, 5],
-                    "tickIntervalMs": [1000, 1000, 1000]
-                }
-            ]
+            "values": [173, 387, 832],
+            "range": [1, 1, 2]
         },
         "forms": [
             {
@@ -757,21 +791,12 @@
                 "name": "Nidoran-M",
                 "traits": ["Poison", "Striker"],
                 "ability": {
-                    "name": "Toxic Strike",
-                    "description": "Hits for $value damage and applies poison.",
+                    "name": "Horn Attack",
+                    "description": "Charges with its horn for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [165, 371, 825],
-                    "range": [1, 1, 1],
-                    "modifiers": [
-                        {
-                            "type": "DOT",
-                            "dotType": "POISON",
-                            "damagePerTick": [23, 52, 106],
-                            "durationSeconds": [4, 4, 5],
-                            "tickIntervalMs": [1000, 1000, 1000]
-                        }
-                    ]
+                    "values": [173, 387, 832],
+                    "range": [1, 1, 2]
                 }
             },
             {
@@ -780,18 +805,18 @@
                 "name": "Nidorino",
                 "traits": ["Poison", "Striker"],
                 "ability": {
-                    "name": "Toxic Strike",
-                    "description": "Hits for $value damage and applies poison.",
+                    "name": "Poison Jab",
+                    "description": "Jabs for $value damage and poison.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [165, 371, 825],
-                    "range": [1, 1, 1],
+                    "values": [173, 387, 832],
+                    "range": [1, 1, 2],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [23, 52, 106],
-                            "durationSeconds": [4, 4, 5],
+                            "damagePerTick": [24, 50, 102],
+                            "durationSeconds": [3, 3, 4],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
                     ]
@@ -803,19 +828,17 @@
                 "name": "Nidoking",
                 "traits": ["Poison", "Ground", "Striker"],
                 "ability": {
-                    "name": "Toxic Strike",
-                    "description": "Hits for $value damage and applies poison.",
+                    "name": "Megahorn",
+                    "description": "Skewers enemies in a line for $value damage.",
                     "type": "DAMAGE",
-                    "pattern": "SINGLE",
-                    "values": [165, 371, 825],
-                    "range": [1, 1, 1],
+                    "pattern": "LINE",
+                    "values": [143, 322, 692],
+                    "range": [2, 3, 3],
                     "modifiers": [
                         {
-                            "type": "DOT",
-                            "dotType": "POISON",
-                            "damagePerTick": [23, 52, 106],
-                            "durationSeconds": [4, 4, 5],
-                            "tickIntervalMs": [1000, 1000, 1000]
+                            "type": "EXECUTE",
+                            "hpThreshold": [0.25, 0.3, 0.35],
+                            "bonusDamageMultiplier": [0.25, 0.35, 0.5]
                         }
                     ]
                 }
@@ -837,12 +860,18 @@
         "range": [3, 3, 3],
         "traits": ["Grass", "Poison", "Caster"],
         "ability": {
-            "name": "Verdant Pulse",
-            "description": "Restores $value health to allies.",
-            "type": "HEAL",
-            "pattern": "SURROUND",
-            "values": [260, 585, 1300],
-            "range": [3, 3, 3]
+            "name": "Absorb",
+            "description": "Drains $value damage and heals itself.",
+            "type": "DAMAGE",
+            "pattern": "SINGLE",
+            "values": [173, 387, 832],
+            "range": [3, 3, 4],
+            "modifiers": [
+                {
+                    "type": "LIFESTEAL",
+                    "lifestealPercent": [0.3, 0.38, 0.48]
+                }
+            ]
         },
         "forms": [
             {
@@ -851,12 +880,18 @@
                 "name": "Oddish",
                 "traits": ["Grass", "Poison", "Caster"],
                 "ability": {
-                    "name": "Verdant Pulse",
-                    "description": "Restores $value health to allies.",
-                    "type": "HEAL",
-                    "pattern": "SURROUND",
-                    "values": [260, 585, 1300],
-                    "range": [3, 3, 3]
+                    "name": "Absorb",
+                    "description": "Drains $value damage and heals itself.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [173, 387, 832],
+                    "range": [3, 3, 4],
+                    "modifiers": [
+                        {
+                            "type": "LIFESTEAL",
+                            "lifestealPercent": [0.3, 0.38, 0.48]
+                        }
+                    ]
                 }
             },
             {
@@ -865,12 +900,12 @@
                 "name": "Gloom",
                 "traits": ["Grass", "Poison", "Caster"],
                 "ability": {
-                    "name": "Verdant Pulse",
-                    "description": "Restores $value health to allies.",
-                    "type": "HEAL",
+                    "name": "Stun Spore",
+                    "description": "Releases spores, stunning enemies for $value seconds.",
+                    "type": "STUN",
                     "pattern": "SURROUND",
-                    "values": [260, 585, 1300],
-                    "range": [3, 3, 3]
+                    "values": [1, 1, 2],
+                    "range": [2, 2, 3]
                 }
             },
             {
@@ -879,12 +914,21 @@
                 "name": "Vileplume",
                 "traits": ["Grass", "Poison", "Caster"],
                 "ability": {
-                    "name": "Verdant Pulse",
-                    "description": "Restores $value health to allies.",
-                    "type": "HEAL",
+                    "name": "Petal Dance",
+                    "description": "Spins petals for $value damage and poison.",
+                    "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [260, 585, 1300],
-                    "range": [3, 3, 3]
+                    "values": [128, 287, 617],
+                    "range": [2, 3, 3],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [20, 46, 92],
+                            "durationSeconds": [4, 4, 5],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
                 }
             }
         ]
@@ -904,12 +948,18 @@
         "range": [1, 1, 1],
         "traits": ["Water", "Speedster"],
         "ability": {
-            "name": "Water Surge",
-            "description": "Blasts enemies for $value damage.",
+            "name": "Bubble Beam",
+            "description": "Streams bubbles for $value damage and slows with a stun.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [165, 371, 825],
-            "range": [1, 1, 1]
+            "values": [143, 322, 692],
+            "range": [3, 3, 4],
+            "modifiers": [
+                {
+                    "type": "STUN",
+                    "stunSeconds": [1, 1, 1]
+                }
+            ]
         },
         "forms": [
             {
@@ -918,12 +968,18 @@
                 "name": "Poliwag",
                 "traits": ["Water", "Speedster"],
                 "ability": {
-                    "name": "Water Surge",
-                    "description": "Blasts enemies for $value damage.",
+                    "name": "Bubble Beam",
+                    "description": "Streams bubbles for $value damage and slows with a stun.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [165, 371, 825],
-                    "range": [1, 1, 1]
+                    "values": [143, 322, 692],
+                    "range": [3, 3, 4],
+                    "modifiers": [
+                        {
+                            "type": "STUN",
+                            "stunSeconds": [1, 1, 1]
+                        }
+                    ]
                 }
             },
             {
@@ -932,12 +988,12 @@
                 "name": "Poliwhirl",
                 "traits": ["Water", "Defender"],
                 "ability": {
-                    "name": "Water Surge",
-                    "description": "Blasts enemies for $value damage.",
-                    "type": "DAMAGE",
-                    "pattern": "LINE",
-                    "values": [165, 371, 825],
-                    "range": [1, 1, 1]
+                    "name": "Hypnosis",
+                    "description": "Hypnotizes a target for $value seconds.",
+                    "type": "STUN",
+                    "pattern": "SINGLE",
+                    "values": [1, 1, 2],
+                    "range": [2, 3, 3]
                 }
             },
             {
@@ -946,12 +1002,18 @@
                 "name": "Poliwrath",
                 "traits": ["Water", "Fighting", "Defender"],
                 "ability": {
-                    "name": "Water Surge",
-                    "description": "Blasts enemies for $value damage.",
+                    "name": "Dynamic Punch",
+                    "description": "Punches for $value damage and stuns.",
                     "type": "DAMAGE",
-                    "pattern": "LINE",
-                    "values": [165, 371, 825],
-                    "range": [1, 1, 1]
+                    "pattern": "SINGLE",
+                    "values": [173, 387, 832],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "STUN",
+                            "stunSeconds": [1, 2, 2]
+                        }
+                    ]
                 }
             }
         ]
@@ -971,16 +1033,17 @@
         "range": [1, 1, 1],
         "traits": ["Electric", "Speedster"],
         "ability": {
-            "name": "Thunderbolt",
-            "description": "Shocks enemies for $value damage and briefly stuns.",
+            "name": "Electro Ball",
+            "description": "Throws a charged orb for $value damage, stronger on wounded targets.",
             "type": "DAMAGE",
-            "pattern": "LINE",
-            "values": [235, 528, 1175],
-            "range": [1, 1, 1],
+            "pattern": "SINGLE",
+            "values": [191, 429, 914],
+            "range": [3, 4, 4],
             "modifiers": [
                 {
-                    "type": "STUN",
-                    "stunSeconds": [1, 1, 2]
+                    "type": "SCALING",
+                    "scalingType": "TARGET_MISSING_HP",
+                    "factor": [0.35, 0.45, 0.6]
                 }
             ]
         },
@@ -991,16 +1054,17 @@
                 "name": "Pikachu",
                 "traits": ["Electric", "Speedster"],
                 "ability": {
-                    "name": "Thunderbolt",
-                    "description": "Shocks enemies for $value damage and briefly stuns.",
+                    "name": "Electro Ball",
+                    "description": "Throws a charged orb for $value damage, stronger on wounded targets.",
                     "type": "DAMAGE",
-                    "pattern": "LINE",
-                    "values": [235, 528, 1175],
-                    "range": [1, 1, 1],
+                    "pattern": "SINGLE",
+                    "values": [191, 429, 914],
+                    "range": [3, 4, 4],
                     "modifiers": [
                         {
-                            "type": "STUN",
-                            "stunSeconds": [1, 1, 2]
+                            "type": "SCALING",
+                            "scalingType": "TARGET_MISSING_HP",
+                            "factor": [0.35, 0.45, 0.6]
                         }
                     ]
                 }
@@ -1011,12 +1075,12 @@
                 "name": "Raichu",
                 "traits": ["Electric", "Speedster"],
                 "ability": {
-                    "name": "Thunder Surge",
-                    "description": "Discharges lightning for $value damage and briefly stuns.",
+                    "name": "Thunder",
+                    "description": "Calls thunder for $value damage and a short stun.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [235, 528, 1175],
-                    "range": [1, 1, 1],
+                    "values": [146, 329, 699],
+                    "range": [2, 2, 3],
                     "modifiers": [
                         {
                             "type": "STUN",
@@ -1031,12 +1095,12 @@
                 "name": "Raichu",
                 "traits": ["Electric", "Speedster"],
                 "ability": {
-                    "name": "Thunder Surge",
-                    "description": "Discharges lightning for $value damage and briefly stuns.",
+                    "name": "Thunder",
+                    "description": "Calls a focused thunder burst for $value damage and stun.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [235, 528, 1175],
-                    "range": [1, 1, 1],
+                    "values": [146, 329, 699],
+                    "range": [2, 3, 3],
                     "modifiers": [
                         {
                             "type": "STUN",
@@ -1062,12 +1126,18 @@
         "range": [1, 1, 1],
         "traits": ["Ground", "Defender"],
         "ability": {
-            "name": "Earth Break",
-            "description": "Cracks the ground for $value damage around the caster.",
+            "name": "Dig",
+            "description": "Burrows under the target for $value damage and knockback.",
             "type": "DAMAGE",
-            "pattern": "SURROUND",
-            "values": [235, 528, 1175],
-            "range": [1, 1, 1]
+            "pattern": "SINGLE",
+            "values": [191, 429, 914],
+            "range": [1, 1, 2],
+            "modifiers": [
+                {
+                    "type": "KNOCKBACK",
+                    "cells": [1, 1, 1]
+                }
+            ]
         },
         "forms": [
             {
@@ -1076,12 +1146,18 @@
                 "name": "Sandshrew",
                 "traits": ["Ground", "Defender"],
                 "ability": {
-                    "name": "Earth Break",
-                    "description": "Cracks the ground for $value damage around the caster.",
+                    "name": "Dig",
+                    "description": "Burrows under the target for $value damage and knockback.",
                     "type": "DAMAGE",
-                    "pattern": "SURROUND",
-                    "values": [235, 528, 1175],
-                    "range": [1, 1, 1]
+                    "pattern": "SINGLE",
+                    "values": [191, 429, 914],
+                    "range": [1, 1, 2],
+                    "modifiers": [
+                        {
+                            "type": "KNOCKBACK",
+                            "cells": [1, 1, 1]
+                        }
+                    ]
                 }
             },
             {
@@ -1090,12 +1166,18 @@
                 "name": "Sandslash",
                 "traits": ["Ground", "Defender"],
                 "ability": {
-                    "name": "Earth Break",
-                    "description": "Cracks the ground for $value damage around the caster.",
+                    "name": "Earthquake",
+                    "description": "Shakes the board for $value damage and knockback.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [235, 528, 1175],
-                    "range": [1, 1, 1]
+                    "values": [146, 329, 699],
+                    "range": [2, 2, 3],
+                    "modifiers": [
+                        {
+                            "type": "KNOCKBACK",
+                            "cells": [1, 1, 2]
+                        }
+                    ]
                 }
             },
             {
@@ -1104,12 +1186,18 @@
                 "name": "Sandslash",
                 "traits": ["Ground", "Defender"],
                 "ability": {
-                    "name": "Earth Break",
-                    "description": "Cracks the ground for $value damage around the caster.",
+                    "name": "Earthquake",
+                    "description": "Shakes the board for $value damage and knockback.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [235, 528, 1175],
-                    "range": [1, 1, 1]
+                    "values": [146, 329, 699],
+                    "range": [2, 2, 3],
+                    "modifiers": [
+                        {
+                            "type": "KNOCKBACK",
+                            "cells": [1, 1, 2]
+                        }
+                    ]
                 }
             }
         ]
@@ -1129,18 +1217,18 @@
         "range": [3, 3, 3],
         "traits": ["Fire", "Caster"],
         "ability": {
-            "name": "Flame Burst",
-            "description": "Scorches enemies for $value damage and applies burn.",
+            "name": "Will-O-Wisp",
+            "description": "Sends ghostly flames for $value damage and burn.",
             "type": "DAMAGE",
-            "pattern": "LINE",
-            "values": [330, 742, 1650],
-            "range": [3, 3, 3],
+            "pattern": "SURROUND",
+            "values": [146, 329, 699],
+            "range": [2, 2, 3],
             "modifiers": [
                 {
                     "type": "DOT",
                     "dotType": "BURN",
-                    "damagePerTick": [36, 75, 150],
-                    "durationSeconds": [3, 3, 4],
+                    "damagePerTick": [24, 52, 106],
+                    "durationSeconds": [4, 4, 5],
                     "tickIntervalMs": [1000, 1000, 1000]
                 }
             ]
@@ -1152,18 +1240,18 @@
                 "name": "Vulpix",
                 "traits": ["Fire", "Caster"],
                 "ability": {
-                    "name": "Flame Burst",
-                    "description": "Scorches enemies for $value damage and applies burn.",
+                    "name": "Will-O-Wisp",
+                    "description": "Sends ghostly flames for $value damage and burn.",
                     "type": "DAMAGE",
-                    "pattern": "LINE",
-                    "values": [330, 742, 1650],
-                    "range": [3, 3, 3],
+                    "pattern": "SURROUND",
+                    "values": [146, 329, 699],
+                    "range": [2, 2, 3],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [36, 75, 150],
-                            "durationSeconds": [3, 3, 4],
+                            "damagePerTick": [24, 52, 106],
+                            "durationSeconds": [4, 4, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
                     ]
@@ -1175,18 +1263,18 @@
                 "name": "Ninetales",
                 "traits": ["Fire", "Caster"],
                 "ability": {
-                    "name": "Flame Burst",
-                    "description": "Scorches enemies for $value damage and applies burn.",
+                    "name": "Fire Spin",
+                    "description": "Traps enemies in spinning fire for $value damage and burn.",
                     "type": "DAMAGE",
-                    "pattern": "LINE",
-                    "values": [330, 742, 1650],
-                    "range": [3, 3, 3],
+                    "pattern": "SURROUND",
+                    "values": [146, 329, 699],
+                    "range": [2, 2, 3],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [36, 75, 150],
-                            "durationSeconds": [3, 3, 4],
+                            "damagePerTick": [28, 60, 120],
+                            "durationSeconds": [4, 5, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
                     ]
@@ -1198,18 +1286,18 @@
                 "name": "Ninetales",
                 "traits": ["Fire", "Caster"],
                 "ability": {
-                    "name": "Flame Burst",
-                    "description": "Scorches enemies for $value damage and applies burn.",
+                    "name": "Mystical Fire",
+                    "description": "Unleashes mystic fire for $value damage and burn.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [330, 742, 1650],
-                    "range": [3, 3, 3],
+                    "values": [161, 364, 774],
+                    "range": [4, 4, 5],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [36, 75, 150],
-                            "durationSeconds": [3, 3, 4],
+                            "damagePerTick": [28, 60, 122],
+                            "durationSeconds": [4, 5, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
                     ]
@@ -1232,12 +1320,12 @@
         "range": [3, 3, 3],
         "traits": ["Normal", "Support"],
         "ability": {
-            "name": "Rally Cry",
-            "description": "Raises allied attack damage by $value%.",
-            "type": "BUFF_ATK",
+            "name": "Sing",
+            "description": "Sings enemies to sleep for $value seconds.",
+            "type": "STUN",
             "pattern": "SURROUND",
-            "values": [22, 39, 68],
-            "range": [3, 3, 3]
+            "values": [1, 1, 2],
+            "range": [2, 2, 3]
         },
         "forms": [
             {
@@ -1246,12 +1334,12 @@
                 "name": "Jigglypuff",
                 "traits": ["Normal", "Support"],
                 "ability": {
-                    "name": "Rally Cry",
-                    "description": "Raises allied attack damage by $value%.",
-                    "type": "BUFF_ATK",
+                    "name": "Sing",
+                    "description": "Sings enemies to sleep for $value seconds.",
+                    "type": "STUN",
                     "pattern": "SURROUND",
-                    "values": [22, 39, 68],
-                    "range": [3, 3, 3]
+                    "values": [1, 1, 2],
+                    "range": [2, 2, 3]
                 }
             },
             {
@@ -1260,11 +1348,11 @@
                 "name": "Wigglytuff",
                 "traits": ["Normal", "Support"],
                 "ability": {
-                    "name": "Rally Cry",
-                    "description": "Raises allied attack damage by $value%.",
+                    "name": "Helping Hand",
+                    "description": "Cheers allies, increasing attack by $value%.",
                     "type": "BUFF_ATK",
                     "pattern": "SURROUND",
-                    "values": [22, 39, 68],
+                    "values": [16, 24, 36],
                     "range": [3, 3, 3]
                 }
             },
@@ -1274,12 +1362,18 @@
                 "name": "Wigglytuff",
                 "traits": ["Normal", "Support"],
                 "ability": {
-                    "name": "Rally Cry",
-                    "description": "Raises allied attack damage by $value%.",
-                    "type": "BUFF_ATK",
-                    "pattern": "SURROUND",
-                    "values": [22, 39, 68],
-                    "range": [3, 3, 3]
+                    "name": "Play Rough",
+                    "description": "Slams a target for $value damage and stun.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [191, 429, 914],
+                    "range": [1, 1, 2],
+                    "modifiers": [
+                        {
+                            "type": "STUN",
+                            "stunSeconds": [1, 1, 2]
+                        }
+                    ]
                 }
             }
         ]
@@ -1299,19 +1393,16 @@
         "range": [1, 1, 1],
         "traits": ["Poison", "Flying", "Speedster"],
         "ability": {
-            "name": "Leech Bite",
-            "description": "Bites for $value damage and applies poison.",
+            "name": "Leech Life",
+            "description": "Bites for $value damage and heals itself.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [235, 528, 1175],
-            "range": [1, 1, 1],
+            "values": [191, 429, 914],
+            "range": [1, 1, 2],
             "modifiers": [
                 {
-                    "type": "DOT",
-                    "dotType": "POISON",
-                    "damagePerTick": [30, 66, 132],
-                    "durationSeconds": [4, 4, 5],
-                    "tickIntervalMs": [1000, 1000, 1000]
+                    "type": "LIFESTEAL",
+                    "lifestealPercent": [0.35, 0.42, 0.52]
                 }
             ]
         },
@@ -1322,19 +1413,16 @@
                 "name": "Zubat",
                 "traits": ["Poison", "Flying", "Speedster"],
                 "ability": {
-                    "name": "Leech Bite",
-                    "description": "Bites for $value damage and applies poison.",
+                    "name": "Leech Life",
+                    "description": "Bites for $value damage and heals itself.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [235, 528, 1175],
-                    "range": [1, 1, 1],
+                    "values": [191, 429, 914],
+                    "range": [1, 1, 2],
                     "modifiers": [
                         {
-                            "type": "DOT",
-                            "dotType": "POISON",
-                            "damagePerTick": [30, 66, 132],
-                            "durationSeconds": [4, 4, 5],
-                            "tickIntervalMs": [1000, 1000, 1000]
+                            "type": "LIFESTEAL",
+                            "lifestealPercent": [0.35, 0.42, 0.52]
                         }
                     ]
                 }
@@ -1346,16 +1434,16 @@
                 "traits": ["Poison", "Flying", "Speedster"],
                 "ability": {
                     "name": "Poison Fang",
-                    "description": "Bites nearby enemies for $value damage and applies poison.",
+                    "description": "Bites for $value damage and poison.",
                     "type": "DAMAGE",
-                    "pattern": "SURROUND",
-                    "values": [235, 528, 1175],
-                    "range": [1, 1, 1],
+                    "pattern": "SINGLE",
+                    "values": [191, 429, 914],
+                    "range": [1, 1, 2],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [30, 66, 132],
+                            "damagePerTick": [28, 60, 120],
                             "durationSeconds": [4, 4, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -1369,18 +1457,23 @@
                 "traits": ["Poison", "Flying", "Speedster"],
                 "ability": {
                     "name": "Cross Poison",
-                    "description": "Dashes through enemies for $value damage and applies poison.",
+                    "description": "Cross-slashes for $value damage and poison.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [235, 528, 1175],
-                    "range": [1, 1, 1],
+                    "values": [161, 364, 774],
+                    "range": [3, 4, 5],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [30, 66, 132],
-                            "durationSeconds": [4, 4, 5],
+                            "damagePerTick": [30, 64, 128],
+                            "durationSeconds": [4, 5, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
+                        },
+                        {
+                            "type": "EXECUTE",
+                            "hpThreshold": [0.25, 0.3, 0.35],
+                            "bonusDamageMultiplier": [0.25, 0.35, 0.5]
                         }
                     ]
                 }
@@ -1402,12 +1495,12 @@
         "range": [3, 3, 3],
         "traits": ["Water", "Psychic", "Caster"],
         "ability": {
-            "name": "Water Surge",
-            "description": "Blasts enemies for $value damage.",
-            "type": "DAMAGE",
-            "pattern": "LINE",
-            "values": [330, 742, 1650],
-            "range": [3, 3, 3]
+            "name": "Confusion",
+            "description": "Scrambles a target for $value seconds.",
+            "type": "STUN",
+            "pattern": "SINGLE",
+            "values": [1, 1, 2],
+            "range": [3, 3, 4]
         },
         "forms": [
             {
@@ -1416,12 +1509,12 @@
                 "name": "Psyduck",
                 "traits": ["Water", "Psychic", "Caster"],
                 "ability": {
-                    "name": "Water Surge",
-                    "description": "Blasts enemies for $value damage.",
-                    "type": "DAMAGE",
-                    "pattern": "LINE",
-                    "values": [330, 742, 1650],
-                    "range": [3, 3, 3]
+                    "name": "Confusion",
+                    "description": "Scrambles a target for $value seconds.",
+                    "type": "STUN",
+                    "pattern": "SINGLE",
+                    "values": [1, 1, 2],
+                    "range": [3, 3, 4]
                 }
             },
             {
@@ -1430,12 +1523,12 @@
                 "name": "Golduck",
                 "traits": ["Water", "Psychic", "Caster"],
                 "ability": {
-                    "name": "Water Surge",
-                    "description": "Blasts enemies for $value damage.",
+                    "name": "Aqua Jet",
+                    "description": "Surges forward for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [330, 742, 1650],
-                    "range": [3, 3, 3]
+                    "values": [161, 364, 774],
+                    "range": [3, 4, 4]
                 }
             },
             {
@@ -1444,12 +1537,18 @@
                 "name": "Golduck",
                 "traits": ["Water", "Psychic", "Caster"],
                 "ability": {
-                    "name": "Water Surge",
-                    "description": "Blasts enemies for $value damage.",
+                    "name": "Psychic",
+                    "description": "Crushes nearby enemies for $value psychic damage.",
                     "type": "DAMAGE",
-                    "pattern": "LINE",
-                    "values": [330, 742, 1650],
-                    "range": [3, 3, 3]
+                    "pattern": "SURROUND",
+                    "values": [146, 329, 699],
+                    "range": [2, 2, 3],
+                    "modifiers": [
+                        {
+                            "type": "STUN",
+                            "stunSeconds": [1, 1, 1]
+                        }
+                    ]
                 }
             }
         ]
@@ -1469,12 +1568,19 @@
         "range": [1, 1, 1],
         "traits": ["Fighting", "Striker"],
         "ability": {
-            "name": "Power Blow",
-            "description": "Smashes the target for $value damage.",
+            "name": "Karate Chop",
+            "description": "Chops for $value damage with execute pressure.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [235, 528, 1175],
-            "range": [1, 1, 1]
+            "values": [191, 429, 914],
+            "range": [1, 1, 1],
+            "modifiers": [
+                {
+                    "type": "EXECUTE",
+                    "hpThreshold": [0.25, 0.32, 0.4],
+                    "bonusDamageMultiplier": [0.22, 0.32, 0.48]
+                }
+            ]
         },
         "forms": [
             {
@@ -1483,12 +1589,19 @@
                 "name": "Mankey",
                 "traits": ["Fighting", "Striker"],
                 "ability": {
-                    "name": "Power Blow",
-                    "description": "Smashes the target for $value damage.",
+                    "name": "Karate Chop",
+                    "description": "Chops for $value damage with execute pressure.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [235, 528, 1175],
-                    "range": [1, 1, 1]
+                    "values": [191, 429, 914],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "EXECUTE",
+                            "hpThreshold": [0.25, 0.32, 0.4],
+                            "bonusDamageMultiplier": [0.22, 0.32, 0.48]
+                        }
+                    ]
                 }
             },
             {
@@ -1497,12 +1610,19 @@
                 "name": "Primeape",
                 "traits": ["Fighting", "Striker"],
                 "ability": {
-                    "name": "Power Blow",
-                    "description": "Smashes the target for $value damage.",
+                    "name": "Rage Fist",
+                    "description": "Strikes for $value damage, scaling with missing health.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [235, 528, 1175],
-                    "range": [1, 1, 1]
+                    "values": [191, 429, 914],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "SCALING",
+                            "scalingType": "CASTER_MISSING_HP",
+                            "factor": [0.55, 0.75, 1]
+                        }
+                    ]
                 }
             },
             {
@@ -1511,16 +1631,21 @@
                 "name": "Annihilape",
                 "traits": ["Fighting", "Ghost", "Striker"],
                 "ability": {
-                    "name": "Power Blow",
-                    "description": "Smashes the target for $value damage.",
+                    "name": "Shadow Rage Fist",
+                    "description": "Unleashes ghostly rage for $value damage and lifesteal.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [235, 528, 1175],
-                    "range": [1, 1, 1],
+                    "values": [191, 429, 914],
+                    "range": [1, 1, 2],
                     "modifiers": [
                         {
+                            "type": "SCALING",
+                            "scalingType": "CASTER_MISSING_HP",
+                            "factor": [0.7, 0.95, 1.25]
+                        },
+                        {
                             "type": "LIFESTEAL",
-                            "lifestealPercent": [0.2, 0.25, 0.3]
+                            "lifestealPercent": [0.18, 0.24, 0.32]
                         }
                     ]
                 }
@@ -1542,17 +1667,17 @@
         "range": [1, 1, 1],
         "traits": ["Fire", "Striker"],
         "ability": {
-            "name": "Flame Burst",
-            "description": "Scorches enemies for $value damage and applies burn.",
+            "name": "Flame Wheel",
+            "description": "Rolls fire through enemies for $value damage and burn.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [235, 528, 1175],
-            "range": [1, 1, 1],
+            "values": [161, 364, 774],
+            "range": [2, 3, 3],
             "modifiers": [
                 {
                     "type": "DOT",
                     "dotType": "BURN",
-                    "damagePerTick": [36, 75, 150],
+                    "damagePerTick": [26, 56, 112],
                     "durationSeconds": [3, 3, 4],
                     "tickIntervalMs": [1000, 1000, 1000]
                 }
@@ -1565,17 +1690,17 @@
                 "name": "Growlithe",
                 "traits": ["Fire", "Striker"],
                 "ability": {
-                    "name": "Flame Burst",
-                    "description": "Scorches enemies for $value damage and applies burn.",
+                    "name": "Flame Wheel",
+                    "description": "Rolls fire through enemies for $value damage and burn.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [235, 528, 1175],
-                    "range": [1, 1, 1],
+                    "values": [161, 364, 774],
+                    "range": [2, 3, 3],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [36, 75, 150],
+                            "damagePerTick": [26, 56, 112],
                             "durationSeconds": [3, 3, 4],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -1588,19 +1713,17 @@
                 "name": "Arcanine",
                 "traits": ["Fire", "Striker"],
                 "ability": {
-                    "name": "Flame Burst",
-                    "description": "Scorches enemies for $value damage and applies burn.",
+                    "name": "Extreme Speed",
+                    "description": "Blurs through enemies for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [235, 528, 1175],
-                    "range": [1, 1, 1],
+                    "values": [161, 364, 774],
+                    "range": [3, 4, 5],
                     "modifiers": [
                         {
-                            "type": "DOT",
-                            "dotType": "BURN",
-                            "damagePerTick": [36, 75, 150],
-                            "durationSeconds": [3, 3, 4],
-                            "tickIntervalMs": [1000, 1000, 1000]
+                            "type": "EXECUTE",
+                            "hpThreshold": [0.25, 0.32, 0.4],
+                            "bonusDamageMultiplier": [0.2, 0.3, 0.45]
                         }
                     ]
                 }
@@ -1611,19 +1734,23 @@
                 "name": "Arcanine",
                 "traits": ["Fire", "Striker"],
                 "ability": {
-                    "name": "Flame Burst",
-                    "description": "Scorches enemies for $value damage and applies burn.",
+                    "name": "Flare Blitz",
+                    "description": "Blitzes through a line for $value damage, burn, and knockback.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [235, 528, 1175],
-                    "range": [1, 1, 1],
+                    "values": [161, 364, 774],
+                    "range": [4, 4, 5],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [36, 75, 150],
-                            "durationSeconds": [3, 3, 4],
+                            "damagePerTick": [30, 64, 130],
+                            "durationSeconds": [3, 4, 4],
                             "tickIntervalMs": [1000, 1000, 1000]
+                        },
+                        {
+                            "type": "KNOCKBACK",
+                            "cells": [1, 1, 2]
                         }
                     ]
                 }
@@ -1645,18 +1772,18 @@
         "range": [3, 3, 3],
         "traits": ["Water", "Poison", "Support"],
         "ability": {
-            "name": "Water Surge",
-            "description": "Blasts enemies for $value damage.",
+            "name": "Acid Spray",
+            "description": "Sprays acid for $value damage and poison.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [275, 618, 1375],
-            "range": [3, 3, 3],
+            "values": [161, 364, 774],
+            "range": [3, 3, 4],
             "modifiers": [
                 {
                     "type": "DOT",
                     "dotType": "POISON",
-                    "damagePerTick": [30, 66, 132],
-                    "durationSeconds": [4, 4, 5],
+                    "damagePerTick": [24, 52, 106],
+                    "durationSeconds": [3, 3, 4],
                     "tickIntervalMs": [1000, 1000, 1000]
                 }
             ]
@@ -1668,18 +1795,18 @@
                 "name": "Tentacool",
                 "traits": ["Water", "Poison", "Support"],
                 "ability": {
-                    "name": "Water Surge",
-                    "description": "Blasts enemies for $value damage.",
+                    "name": "Acid Spray",
+                    "description": "Sprays acid for $value damage and poison.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [275, 618, 1375],
-                    "range": [3, 3, 3],
+                    "values": [161, 364, 774],
+                    "range": [3, 3, 4],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [30, 66, 132],
-                            "durationSeconds": [4, 4, 5],
+                            "damagePerTick": [24, 52, 106],
+                            "durationSeconds": [3, 3, 4],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
                     ]
@@ -1691,18 +1818,18 @@
                 "name": "Tentacruel",
                 "traits": ["Water", "Poison", "Support"],
                 "ability": {
-                    "name": "Water Surge",
-                    "description": "Blasts enemies for $value damage.",
+                    "name": "Sludge Wave",
+                    "description": "Floods the area with sludge for $value damage and poison.",
                     "type": "DAMAGE",
-                    "pattern": "LINE",
-                    "values": [275, 618, 1375],
-                    "range": [3, 3, 3],
+                    "pattern": "SURROUND",
+                    "values": [146, 329, 699],
+                    "range": [2, 3, 3],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [30, 66, 132],
-                            "durationSeconds": [4, 4, 5],
+                            "damagePerTick": [28, 60, 122],
+                            "durationSeconds": [4, 5, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
                     ]
@@ -1714,18 +1841,18 @@
                 "name": "Tentacruel",
                 "traits": ["Water", "Poison", "Support"],
                 "ability": {
-                    "name": "Water Surge",
-                    "description": "Blasts enemies for $value damage.",
+                    "name": "Sludge Wave",
+                    "description": "Floods the area with sludge for $value damage and poison.",
                     "type": "DAMAGE",
-                    "pattern": "LINE",
-                    "values": [275, 618, 1375],
-                    "range": [3, 3, 3],
+                    "pattern": "SURROUND",
+                    "values": [146, 329, 699],
+                    "range": [2, 3, 3],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [30, 66, 132],
-                            "durationSeconds": [4, 4, 5],
+                            "damagePerTick": [28, 60, 122],
+                            "durationSeconds": [4, 5, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
                     ]
@@ -1748,12 +1875,18 @@
         "range": [1, 1, 1],
         "traits": ["Rock", "Ground", "Defender"],
         "ability": {
-            "name": "Stone Guard",
-            "description": "Grants allies a $value shield.",
-            "type": "SHIELD",
-            "pattern": "SURROUND",
-            "values": [235, 493, 1081],
-            "range": [1, 1, 1]
+            "name": "Rock Throw",
+            "description": "Throws a rock for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "SINGLE",
+            "values": [191, 429, 914],
+            "range": [2, 2, 3],
+            "modifiers": [
+                {
+                    "type": "KNOCKBACK",
+                    "cells": [1, 1, 1]
+                }
+            ]
         },
         "forms": [
             {
@@ -1762,12 +1895,18 @@
                 "name": "Geodude",
                 "traits": ["Rock", "Ground", "Defender"],
                 "ability": {
-                    "name": "Stone Guard",
-                    "description": "Grants allies a $value shield.",
-                    "type": "SHIELD",
-                    "pattern": "SURROUND",
-                    "values": [235, 493, 1081],
-                    "range": [1, 1, 1]
+                    "name": "Rock Throw",
+                    "description": "Throws a rock for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [191, 429, 914],
+                    "range": [2, 2, 3],
+                    "modifiers": [
+                        {
+                            "type": "KNOCKBACK",
+                            "cells": [1, 1, 1]
+                        }
+                    ]
                 }
             },
             {
@@ -1776,12 +1915,18 @@
                 "name": "Graveler",
                 "traits": ["Rock", "Ground", "Defender"],
                 "ability": {
-                    "name": "Stone Guard",
-                    "description": "Grants allies a $value shield.",
-                    "type": "SHIELD",
-                    "pattern": "SURROUND",
-                    "values": [235, 493, 1081],
-                    "range": [1, 1, 1]
+                    "name": "Rollout",
+                    "description": "Rolls through enemies for $value damage and knockback.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [161, 364, 774],
+                    "range": [2, 3, 4],
+                    "modifiers": [
+                        {
+                            "type": "KNOCKBACK",
+                            "cells": [1, 1, 2]
+                        }
+                    ]
                 }
             },
             {
@@ -1790,12 +1935,19 @@
                 "name": "Golem",
                 "traits": ["Rock", "Ground", "Defender"],
                 "ability": {
-                    "name": "Stone Guard",
-                    "description": "Grants allies a $value shield.",
-                    "type": "SHIELD",
+                    "name": "Stealth Rock",
+                    "description": "Raises jagged stones for $value damage.",
+                    "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [235, 493, 1081],
-                    "range": [1, 1, 1]
+                    "values": [146, 329, 699],
+                    "range": [2, 2, 3],
+                    "modifiers": [
+                        {
+                            "type": "EXECUTE",
+                            "hpThreshold": [0.25, 0.3, 0.35],
+                            "bonusDamageMultiplier": [0.2, 0.28, 0.4]
+                        }
+                    ]
                 }
             }
         ]
@@ -1815,21 +1967,12 @@
         "range": [1, 1, 1],
         "traits": ["Fire", "Speedster"],
         "ability": {
-            "name": "Flame Burst",
-            "description": "Scorches enemies for $value damage and applies burn.",
-            "type": "DAMAGE",
-            "pattern": "LINE",
-            "values": [235, 528, 1175],
-            "range": [1, 1, 1],
-            "modifiers": [
-                {
-                    "type": "DOT",
-                    "dotType": "BURN",
-                    "damagePerTick": [36, 75, 150],
-                    "durationSeconds": [3, 3, 4],
-                    "tickIntervalMs": [1000, 1000, 1000]
-                }
-            ]
+            "name": "Flame Charge",
+            "description": "Ignites momentum, increasing allied attack speed by $value%.",
+            "type": "BUFF_SPD",
+            "pattern": "SURROUND",
+            "values": [16, 24, 36],
+            "range": [3, 3, 3]
         },
         "forms": [
             {
@@ -1838,21 +1981,12 @@
                 "name": "Ponyta",
                 "traits": ["Fire", "Speedster"],
                 "ability": {
-                    "name": "Flame Burst",
-                    "description": "Scorches enemies for $value damage and applies burn.",
-                    "type": "DAMAGE",
-                    "pattern": "LINE",
-                    "values": [235, 528, 1175],
-                    "range": [1, 1, 1],
-                    "modifiers": [
-                        {
-                            "type": "DOT",
-                            "dotType": "BURN",
-                            "damagePerTick": [36, 75, 150],
-                            "durationSeconds": [3, 3, 4],
-                            "tickIntervalMs": [1000, 1000, 1000]
-                        }
-                    ]
+                    "name": "Flame Charge",
+                    "description": "Ignites momentum, increasing allied attack speed by $value%.",
+                    "type": "BUFF_SPD",
+                    "pattern": "SURROUND",
+                    "values": [16, 24, 36],
+                    "range": [3, 3, 3]
                 }
             },
             {
@@ -1861,18 +1995,18 @@
                 "name": "Rapidash",
                 "traits": ["Fire", "Speedster"],
                 "ability": {
-                    "name": "Flame Burst",
-                    "description": "Scorches enemies for $value damage and applies burn.",
+                    "name": "Fire Spin",
+                    "description": "Rings enemies with fire for $value damage and burn.",
                     "type": "DAMAGE",
-                    "pattern": "LINE",
-                    "values": [235, 528, 1175],
-                    "range": [1, 1, 1],
+                    "pattern": "SURROUND",
+                    "values": [146, 329, 699],
+                    "range": [2, 2, 3],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [36, 75, 150],
-                            "durationSeconds": [3, 3, 4],
+                            "damagePerTick": [28, 60, 120],
+                            "durationSeconds": [4, 5, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
                     ]
@@ -1884,19 +2018,17 @@
                 "name": "Rapidash",
                 "traits": ["Fire", "Speedster"],
                 "ability": {
-                    "name": "Flame Burst",
-                    "description": "Scorches enemies for $value damage and applies burn.",
+                    "name": "Megahorn",
+                    "description": "Charges with its horn for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [235, 528, 1175],
-                    "range": [1, 1, 1],
+                    "values": [161, 364, 774],
+                    "range": [3, 4, 5],
                     "modifiers": [
                         {
-                            "type": "DOT",
-                            "dotType": "BURN",
-                            "damagePerTick": [36, 75, 150],
-                            "durationSeconds": [3, 3, 4],
-                            "tickIntervalMs": [1000, 1000, 1000]
+                            "type": "EXECUTE",
+                            "hpThreshold": [0.25, 0.3, 0.35],
+                            "bonusDamageMultiplier": [0.25, 0.35, 0.5]
                         }
                     ]
                 }
@@ -1918,12 +2050,12 @@
         "range": [1, 1, 1],
         "traits": ["Water", "Psychic", "Defender"],
         "ability": {
-            "name": "Water Surge",
-            "description": "Blasts enemies for $value damage.",
-            "type": "DAMAGE",
-            "pattern": "LINE",
-            "values": [235, 528, 1175],
-            "range": [1, 1, 1]
+            "name": "Yawn",
+            "description": "Makes the target drowsy for $value seconds.",
+            "type": "STUN",
+            "pattern": "SINGLE",
+            "values": [1, 1, 2],
+            "range": [2, 3, 3]
         },
         "forms": [
             {
@@ -1932,12 +2064,12 @@
                 "name": "Slowpoke",
                 "traits": ["Water", "Psychic", "Defender"],
                 "ability": {
-                    "name": "Water Surge",
-                    "description": "Blasts enemies for $value damage.",
-                    "type": "DAMAGE",
-                    "pattern": "LINE",
-                    "values": [235, 528, 1175],
-                    "range": [1, 1, 1]
+                    "name": "Yawn",
+                    "description": "Makes the target drowsy for $value seconds.",
+                    "type": "STUN",
+                    "pattern": "SINGLE",
+                    "values": [1, 1, 2],
+                    "range": [2, 3, 3]
                 }
             },
             {
@@ -1946,11 +2078,11 @@
                 "name": "Slowbro",
                 "traits": ["Water", "Psychic", "Defender"],
                 "ability": {
-                    "name": "Water Surge",
-                    "description": "Blasts enemies for $value damage.",
-                    "type": "DAMAGE",
-                    "pattern": "LINE",
-                    "values": [235, 528, 1175],
+                    "name": "Slack Off",
+                    "description": "Recovers the lowest-health ally for $value health.",
+                    "type": "HEAL",
+                    "pattern": "SINGLE",
+                    "values": [192, 408, 860],
                     "range": [1, 1, 1]
                 }
             },
@@ -1960,12 +2092,12 @@
                 "name": "Slowbro",
                 "traits": ["Water", "Psychic", "Defender"],
                 "ability": {
-                    "name": "Water Surge",
-                    "description": "Blasts enemies for $value damage.",
-                    "type": "DAMAGE",
-                    "pattern": "LINE",
-                    "values": [235, 528, 1175],
-                    "range": [1, 1, 1]
+                    "name": "Psychic Terrain",
+                    "description": "Creates psychic terrain, shielding allies for $value.",
+                    "type": "SHIELD",
+                    "pattern": "SURROUND",
+                    "values": [198, 420, 874],
+                    "range": [3, 3, 3]
                 }
             }
         ]
@@ -1985,16 +2117,16 @@
         "range": [3, 3, 3],
         "traits": ["Electric", "Steel", "Caster"],
         "ability": {
-            "name": "Spark",
-            "description": "Zaps enemies for $value damage and briefly stuns.",
+            "name": "Thunder Shock",
+            "description": "Shocks a line for $value damage.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [330, 742, 1650],
-            "range": [3, 3, 3],
+            "values": [161, 364, 774],
+            "range": [3, 3, 4],
             "modifiers": [
                 {
                     "type": "STUN",
-                    "stunSeconds": [1, 1, 2]
+                    "stunSeconds": [1, 1, 1]
                 }
             ]
         },
@@ -2005,16 +2137,16 @@
                 "name": "Magnemite",
                 "traits": ["Electric", "Steel", "Caster"],
                 "ability": {
-                    "name": "Spark",
-                    "description": "Zaps enemies for $value damage and briefly stuns.",
+                    "name": "Thunder Shock",
+                    "description": "Shocks a line for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [330, 742, 1650],
-                    "range": [3, 3, 3],
+                    "values": [161, 364, 774],
+                    "range": [3, 3, 4],
                     "modifiers": [
                         {
                             "type": "STUN",
-                            "stunSeconds": [1, 1, 2]
+                            "stunSeconds": [1, 1, 1]
                         }
                     ]
                 }
@@ -2026,15 +2158,22 @@
                 "traits": ["Electric", "Steel", "Caster"],
                 "ability": {
                     "name": "Tri Attack",
-                    "description": "Fires three charged beams for $value damage.",
+                    "description": "Fires three beams for $value damage with burn and stun.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [330, 742, 1650],
-                    "range": [3, 3, 3],
+                    "values": [161, 364, 774],
+                    "range": [4, 4, 5],
                     "modifiers": [
                         {
+                            "type": "DOT",
+                            "dotType": "BURN",
+                            "damagePerTick": [20, 46, 92],
+                            "durationSeconds": [3, 3, 4],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        },
+                        {
                             "type": "STUN",
-                            "stunSeconds": [1, 1, 2]
+                            "stunSeconds": [1, 1, 1]
                         }
                     ]
                 }
@@ -2046,10 +2185,10 @@
                 "traits": ["Electric", "Steel", "Caster"],
                 "ability": {
                     "name": "Magnetic Field",
-                    "description": "Projects a $value shield on allies.",
+                    "description": "Projects a field, shielding allies for $value.",
                     "type": "SHIELD",
                     "pattern": "SURROUND",
-                    "values": [330, 693, 1517],
+                    "values": [198, 420, 874],
                     "range": [3, 3, 3]
                 }
             }
@@ -2070,12 +2209,12 @@
         "range": [3, 3, 3],
         "traits": ["Psychic", "Caster"],
         "ability": {
-            "name": "Mind Lock",
-            "description": "Overwhelms the target, stunning for $value seconds.",
+            "name": "Kinesis",
+            "description": "Bends focus, stunning a target for $value seconds.",
             "type": "STUN",
             "pattern": "SINGLE",
-            "values": [2, 3, 4],
-            "range": [3, 3, 3]
+            "values": [1, 2, 2],
+            "range": [3, 3, 4]
         },
         "forms": [
             {
@@ -2084,12 +2223,12 @@
                 "name": "Abra",
                 "traits": ["Psychic", "Caster"],
                 "ability": {
-                    "name": "Mind Lock",
-                    "description": "Overwhelms the target, stunning for $value seconds.",
+                    "name": "Kinesis",
+                    "description": "Bends focus, stunning a target for $value seconds.",
                     "type": "STUN",
                     "pattern": "SINGLE",
-                    "values": [2, 3, 4],
-                    "range": [3, 3, 3]
+                    "values": [1, 2, 2],
+                    "range": [3, 3, 4]
                 }
             },
             {
@@ -2098,12 +2237,18 @@
                 "name": "Kadabra",
                 "traits": ["Psychic", "Caster"],
                 "ability": {
-                    "name": "Mind Lock",
-                    "description": "Overwhelms the target, stunning for $value seconds.",
-                    "type": "STUN",
-                    "pattern": "SINGLE",
-                    "values": [2, 3, 4],
-                    "range": [3, 3, 3]
+                    "name": "Psybeam",
+                    "description": "Fires a psychic beam for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [179, 406, 856],
+                    "range": [4, 4, 5],
+                    "modifiers": [
+                        {
+                            "type": "STUN",
+                            "stunSeconds": [1, 1, 1]
+                        }
+                    ]
                 }
             },
             {
@@ -2112,12 +2257,18 @@
                 "name": "Alakazam",
                 "traits": ["Psychic", "Caster"],
                 "ability": {
-                    "name": "Mind Lock",
-                    "description": "Overwhelms the target, stunning for $value seconds.",
-                    "type": "STUN",
-                    "pattern": "SINGLE",
-                    "values": [2, 3, 4],
-                    "range": [3, 3, 3]
+                    "name": "Future Sight",
+                    "description": "Warps space for $value damage and a brief stun.",
+                    "type": "DAMAGE",
+                    "pattern": "SURROUND",
+                    "values": [164, 371, 781],
+                    "range": [2, 3, 3],
+                    "modifiers": [
+                        {
+                            "type": "STUN",
+                            "stunSeconds": [1, 1, 2]
+                        }
+                    ]
                 }
             }
         ]
@@ -2137,12 +2288,18 @@
         "range": [1, 1, 1],
         "traits": ["Fighting", "Striker"],
         "ability": {
-            "name": "Power Blow",
-            "description": "Smashes the target for $value damage.",
+            "name": "Low Sweep",
+            "description": "Sweeps the target for $value damage and knockback.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [340, 765, 1700],
-            "range": [1, 1, 1]
+            "values": [209, 471, 996],
+            "range": [1, 1, 1],
+            "modifiers": [
+                {
+                    "type": "KNOCKBACK",
+                    "cells": [1, 1, 1]
+                }
+            ]
         },
         "forms": [
             {
@@ -2151,12 +2308,18 @@
                 "name": "Machop",
                 "traits": ["Fighting", "Striker"],
                 "ability": {
-                    "name": "Power Blow",
-                    "description": "Smashes the target for $value damage.",
+                    "name": "Low Sweep",
+                    "description": "Sweeps the target for $value damage and knockback.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [340, 765, 1700],
-                    "range": [1, 1, 1]
+                    "values": [209, 471, 996],
+                    "range": [1, 1, 1],
+                    "modifiers": [
+                        {
+                            "type": "KNOCKBACK",
+                            "cells": [1, 1, 1]
+                        }
+                    ]
                 }
             },
             {
@@ -2165,12 +2328,12 @@
                 "name": "Machoke",
                 "traits": ["Fighting", "Striker"],
                 "ability": {
-                    "name": "Power Blow",
-                    "description": "Smashes the target for $value damage.",
-                    "type": "DAMAGE",
-                    "pattern": "SINGLE",
-                    "values": [340, 765, 1700],
-                    "range": [1, 1, 1]
+                    "name": "Bulk Up",
+                    "description": "Flexes power, increasing allied attack by $value%.",
+                    "type": "BUFF_ATK",
+                    "pattern": "SURROUND",
+                    "values": [18, 27, 40],
+                    "range": [3, 3, 3]
                 }
             },
             {
@@ -2179,12 +2342,18 @@
                 "name": "Machamp",
                 "traits": ["Fighting", "Striker"],
                 "ability": {
-                    "name": "Power Blow",
-                    "description": "Smashes the target for $value damage.",
+                    "name": "Dynamic Punch",
+                    "description": "Throws a flurry for $value damage and stun.",
                     "type": "DAMAGE",
-                    "pattern": "SINGLE",
-                    "values": [340, 765, 1700],
-                    "range": [1, 1, 1]
+                    "pattern": "SURROUND",
+                    "values": [164, 371, 781],
+                    "range": [1, 2, 2],
+                    "modifiers": [
+                        {
+                            "type": "STUN",
+                            "stunSeconds": [1, 1, 2]
+                        }
+                    ]
                 }
             }
         ]
@@ -2204,12 +2373,18 @@
         "range": [3, 3, 3],
         "traits": ["Grass", "Poison", "Caster"],
         "ability": {
-            "name": "Verdant Pulse",
-            "description": "Restores $value health to allies.",
-            "type": "HEAL",
-            "pattern": "SURROUND",
-            "values": [435, 978, 2175],
-            "range": [3, 3, 3]
+            "name": "Vine Whip",
+            "description": "Whips a line for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "LINE",
+            "values": [179, 406, 856],
+            "range": [3, 3, 4],
+            "modifiers": [
+                {
+                    "type": "LIFESTEAL",
+                    "lifestealPercent": [0.16, 0.2, 0.26]
+                }
+            ]
         },
         "forms": [
             {
@@ -2218,12 +2393,18 @@
                 "name": "Bellsprout",
                 "traits": ["Grass", "Poison", "Caster"],
                 "ability": {
-                    "name": "Verdant Pulse",
-                    "description": "Restores $value health to allies.",
-                    "type": "HEAL",
-                    "pattern": "SURROUND",
-                    "values": [435, 978, 2175],
-                    "range": [3, 3, 3]
+                    "name": "Vine Whip",
+                    "description": "Whips a line for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [179, 406, 856],
+                    "range": [3, 3, 4],
+                    "modifiers": [
+                        {
+                            "type": "LIFESTEAL",
+                            "lifestealPercent": [0.16, 0.2, 0.26]
+                        }
+                    ]
                 }
             },
             {
@@ -2232,12 +2413,21 @@
                 "name": "Weepinbell",
                 "traits": ["Grass", "Poison", "Caster"],
                 "ability": {
-                    "name": "Verdant Pulse",
-                    "description": "Restores $value health to allies.",
-                    "type": "HEAL",
-                    "pattern": "SURROUND",
-                    "values": [435, 978, 2175],
-                    "range": [3, 3, 3]
+                    "name": "Acid",
+                    "description": "Spits acid for $value damage and poison.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [179, 406, 856],
+                    "range": [3, 4, 4],
+                    "modifiers": [
+                        {
+                            "type": "DOT",
+                            "dotType": "POISON",
+                            "damagePerTick": [30, 64, 128],
+                            "durationSeconds": [3, 3, 4],
+                            "tickIntervalMs": [1000, 1000, 1000]
+                        }
+                    ]
                 }
             },
             {
@@ -2246,12 +2436,19 @@
                 "name": "Victreebel",
                 "traits": ["Grass", "Poison", "Caster"],
                 "ability": {
-                    "name": "Verdant Pulse",
-                    "description": "Restores $value health to allies.",
-                    "type": "HEAL",
-                    "pattern": "SURROUND",
-                    "values": [435, 978, 2175],
-                    "range": [3, 3, 3]
+                    "name": "Power Whip",
+                    "description": "Cracks a vine for $value damage, executing wounded targets.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [209, 471, 996],
+                    "range": [2, 2, 3],
+                    "modifiers": [
+                        {
+                            "type": "EXECUTE",
+                            "hpThreshold": [0.3, 0.35, 0.45],
+                            "bonusDamageMultiplier": [0.28, 0.4, 0.58]
+                        }
+                    ]
                 }
             }
         ]
@@ -2271,12 +2468,12 @@
         "range": [1, 1, 1],
         "traits": ["Normal", "Flying", "Speedster"],
         "ability": {
-            "name": "Rally Cry",
-            "description": "Raises allied attack damage by $value%.",
-            "type": "BUFF_ATK",
-            "pattern": "SURROUND",
-            "values": [28, 48, 85],
-            "range": [1, 1, 1]
+            "name": "Double Hit",
+            "description": "Hits twice for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "SINGLE",
+            "values": [209, 471, 996],
+            "range": [1, 1, 2]
         },
         "forms": [
             {
@@ -2285,12 +2482,12 @@
                 "name": "Doduo",
                 "traits": ["Normal", "Flying", "Speedster"],
                 "ability": {
-                    "name": "Rally Cry",
-                    "description": "Raises allied attack damage by $value%.",
-                    "type": "BUFF_ATK",
-                    "pattern": "SURROUND",
-                    "values": [28, 48, 85],
-                    "range": [1, 1, 1]
+                    "name": "Double Hit",
+                    "description": "Hits twice for $value damage.",
+                    "type": "DAMAGE",
+                    "pattern": "SINGLE",
+                    "values": [209, 471, 996],
+                    "range": [1, 1, 2]
                 }
             },
             {
@@ -2299,12 +2496,18 @@
                 "name": "Dodrio",
                 "traits": ["Normal", "Flying", "Speedster"],
                 "ability": {
-                    "name": "Rally Cry",
-                    "description": "Raises allied attack damage by $value%.",
-                    "type": "BUFF_ATK",
-                    "pattern": "SURROUND",
-                    "values": [28, 48, 85],
-                    "range": [1, 1, 1]
+                    "name": "Tri Attack",
+                    "description": "Strikes with three heads for $value damage and stun.",
+                    "type": "DAMAGE",
+                    "pattern": "LINE",
+                    "values": [179, 406, 856],
+                    "range": [3, 4, 5],
+                    "modifiers": [
+                        {
+                            "type": "STUN",
+                            "stunSeconds": [1, 1, 1]
+                        }
+                    ]
                 }
             },
             {
@@ -2313,12 +2516,12 @@
                 "name": "Dodrio",
                 "traits": ["Normal", "Flying", "Speedster"],
                 "ability": {
-                    "name": "Rally Cry",
-                    "description": "Raises allied attack damage by $value%.",
-                    "type": "BUFF_ATK",
+                    "name": "Agility",
+                    "description": "Accelerates allies, increasing attack speed by $value%.",
+                    "type": "BUFF_SPD",
                     "pattern": "SURROUND",
-                    "values": [28, 48, 85],
-                    "range": [1, 1, 1]
+                    "values": [18, 27, 40],
+                    "range": [3, 3, 3]
                 }
             }
         ]
@@ -2338,11 +2541,11 @@
         "range": [3, 3, 3],
         "traits": ["Water", "Support"],
         "ability": {
-            "name": "Water Surge",
-            "description": "Blasts enemies for $value damage.",
-            "type": "DAMAGE",
-            "pattern": "LINE",
-            "values": [380, 855, 1900],
+            "name": "Aqua Ring",
+            "description": "Wraps an ally in water, healing $value health.",
+            "type": "HEAL",
+            "pattern": "SINGLE",
+            "values": [228, 482, 1010],
             "range": [3, 3, 3]
         },
         "forms": [
@@ -2352,11 +2555,11 @@
                 "name": "Seel",
                 "traits": ["Water", "Support"],
                 "ability": {
-                    "name": "Water Surge",
-                    "description": "Blasts enemies for $value damage.",
-                    "type": "DAMAGE",
-                    "pattern": "LINE",
-                    "values": [380, 855, 1900],
+                    "name": "Aqua Ring",
+                    "description": "Wraps an ally in water, healing $value health.",
+                    "type": "HEAL",
+                    "pattern": "SINGLE",
+                    "values": [228, 482, 1010],
                     "range": [3, 3, 3]
                 }
             },
@@ -2366,12 +2569,12 @@
                 "name": "Dewgong",
                 "traits": ["Water", "Ice", "Support"],
                 "ability": {
-                    "name": "Water Surge",
-                    "description": "Blasts enemies for $value damage.",
-                    "type": "DAMAGE",
+                    "name": "Aurora Beam",
+                    "description": "Freezes a line for $value seconds.",
+                    "type": "STUN",
                     "pattern": "LINE",
-                    "values": [380, 855, 1900],
-                    "range": [3, 3, 3]
+                    "values": [1, 2, 2],
+                    "range": [3, 4, 5]
                 }
             },
             {
@@ -2380,12 +2583,12 @@
                 "name": "Dewgong",
                 "traits": ["Water", "Ice", "Support"],
                 "ability": {
-                    "name": "Water Surge",
-                    "description": "Blasts enemies for $value damage.",
-                    "type": "DAMAGE",
-                    "pattern": "LINE",
-                    "values": [380, 855, 1900],
-                    "range": [3, 3, 3]
+                    "name": "Perish Song",
+                    "description": "Sings an icy dirge, stunning enemies for $value seconds.",
+                    "type": "STUN",
+                    "pattern": "SURROUND",
+                    "values": [1, 2, 2],
+                    "range": [2, 3, 3]
                 }
             }
         ]
@@ -2405,18 +2608,18 @@
         "range": [1, 1, 1],
         "traits": ["Poison", "Defender"],
         "ability": {
-            "name": "Toxic Strike",
-            "description": "Hits for $value damage and applies poison.",
+            "name": "Sludge",
+            "description": "Hurls sludge for $value damage and poison.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [340, 765, 1700],
-            "range": [1, 1, 1],
+            "values": [209, 471, 996],
+            "range": [2, 2, 3],
             "modifiers": [
                 {
                     "type": "DOT",
                     "dotType": "POISON",
-                    "damagePerTick": [37, 80, 158],
-                    "durationSeconds": [4, 4, 5],
+                    "damagePerTick": [32, 68, 136],
+                    "durationSeconds": [3, 3, 4],
                     "tickIntervalMs": [1000, 1000, 1000]
                 }
             ]
@@ -2428,18 +2631,18 @@
                 "name": "Grimer",
                 "traits": ["Poison", "Defender"],
                 "ability": {
-                    "name": "Toxic Strike",
-                    "description": "Hits for $value damage and applies poison.",
+                    "name": "Sludge",
+                    "description": "Hurls sludge for $value damage and poison.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [340, 765, 1700],
-                    "range": [1, 1, 1],
+                    "values": [209, 471, 996],
+                    "range": [2, 2, 3],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [37, 80, 158],
-                            "durationSeconds": [4, 4, 5],
+                            "damagePerTick": [32, 68, 136],
+                            "durationSeconds": [3, 3, 4],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
                     ]
@@ -2451,21 +2654,12 @@
                 "name": "Muk",
                 "traits": ["Poison", "Defender"],
                 "ability": {
-                    "name": "Toxic Strike",
-                    "description": "Hits for $value damage and applies poison.",
-                    "type": "DAMAGE",
-                    "pattern": "SINGLE",
-                    "values": [340, 765, 1700],
-                    "range": [1, 1, 1],
-                    "modifiers": [
-                        {
-                            "type": "DOT",
-                            "dotType": "POISON",
-                            "damagePerTick": [37, 80, 158],
-                            "durationSeconds": [4, 4, 5],
-                            "tickIntervalMs": [1000, 1000, 1000]
-                        }
-                    ]
+                    "name": "Acid Armor",
+                    "description": "Melts into armor, shielding allies for $value.",
+                    "type": "SHIELD",
+                    "pattern": "SURROUND",
+                    "values": [232, 490, 1016],
+                    "range": [3, 3, 3]
                 }
             },
             {
@@ -2474,18 +2668,18 @@
                 "name": "Muk",
                 "traits": ["Poison", "Defender"],
                 "ability": {
-                    "name": "Toxic Strike",
-                    "description": "Hits for $value damage and applies poison.",
+                    "name": "Gunk Shot",
+                    "description": "Launches filth for $value damage and heavy poison.",
                     "type": "DAMAGE",
-                    "pattern": "SINGLE",
-                    "values": [340, 765, 1700],
-                    "range": [1, 1, 1],
+                    "pattern": "LINE",
+                    "values": [179, 406, 856],
+                    "range": [3, 4, 5],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [37, 80, 158],
-                            "durationSeconds": [4, 4, 5],
+                            "damagePerTick": [36, 76, 152],
+                            "durationSeconds": [4, 5, 6],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
                     ]
@@ -2508,12 +2702,18 @@
         "range": [1, 1, 1],
         "traits": ["Water", "Defender"],
         "ability": {
-            "name": "Water Surge",
-            "description": "Blasts enemies for $value damage.",
+            "name": "Icicle Spear",
+            "description": "Fires icicles for $value damage.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [340, 765, 1700],
-            "range": [1, 1, 1]
+            "values": [179, 406, 856],
+            "range": [3, 3, 4],
+            "modifiers": [
+                {
+                    "type": "STUN",
+                    "stunSeconds": [1, 1, 1]
+                }
+            ]
         },
         "forms": [
             {
@@ -2522,12 +2722,18 @@
                 "name": "Shellder",
                 "traits": ["Water", "Defender"],
                 "ability": {
-                    "name": "Water Surge",
-                    "description": "Blasts enemies for $value damage.",
+                    "name": "Icicle Spear",
+                    "description": "Fires icicles for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [340, 765, 1700],
-                    "range": [1, 1, 1]
+                    "values": [179, 406, 856],
+                    "range": [3, 3, 4],
+                    "modifiers": [
+                        {
+                            "type": "STUN",
+                            "stunSeconds": [1, 1, 1]
+                        }
+                    ]
                 }
             },
             {
@@ -2536,12 +2742,19 @@
                 "name": "Cloyster",
                 "traits": ["Water", "Ice", "Defender"],
                 "ability": {
-                    "name": "Water Surge",
-                    "description": "Blasts enemies for $value damage.",
+                    "name": "Spike Cannon",
+                    "description": "Launches shell spikes for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [340, 765, 1700],
-                    "range": [1, 1, 1]
+                    "values": [179, 406, 856],
+                    "range": [3, 4, 5],
+                    "modifiers": [
+                        {
+                            "type": "EXECUTE",
+                            "hpThreshold": [0.22, 0.28, 0.36],
+                            "bonusDamageMultiplier": [0.2, 0.3, 0.45]
+                        }
+                    ]
                 }
             },
             {
@@ -2550,12 +2763,12 @@
                 "name": "Cloyster",
                 "traits": ["Water", "Ice", "Defender"],
                 "ability": {
-                    "name": "Water Surge",
-                    "description": "Blasts enemies for $value damage.",
-                    "type": "DAMAGE",
-                    "pattern": "LINE",
-                    "values": [340, 765, 1700],
-                    "range": [1, 1, 1]
+                    "name": "Shell Smash",
+                    "description": "Breaks its shell open, increasing allied attack by $value%.",
+                    "type": "BUFF_ATK",
+                    "pattern": "SURROUND",
+                    "values": [18, 27, 40],
+                    "range": [3, 3, 3]
                 }
             }
         ]
@@ -2575,23 +2788,16 @@
         "range": [3, 3, 3],
         "traits": ["Ghost", "Poison", "Caster"],
         "ability": {
-            "name": "Shadow Burst",
-            "description": "Drains enemies for $value damage.",
+            "name": "Hex",
+            "description": "Curses a target for $value damage and lifesteal.",
             "type": "DAMAGE",
-            "pattern": "SURROUND",
-            "values": [435, 978, 2175],
-            "range": [3, 3, 3],
+            "pattern": "SINGLE",
+            "values": [209, 471, 996],
+            "range": [3, 3, 4],
             "modifiers": [
                 {
-                    "type": "DOT",
-                    "dotType": "POISON",
-                    "damagePerTick": [37, 80, 158],
-                    "durationSeconds": [4, 4, 5],
-                    "tickIntervalMs": [1000, 1000, 1000]
-                },
-                {
                     "type": "LIFESTEAL",
-                    "lifestealPercent": [0.2, 0.25, 0.3]
+                    "lifestealPercent": [0.2, 0.26, 0.34]
                 }
             ]
         },
@@ -2602,23 +2808,16 @@
                 "name": "Gastly",
                 "traits": ["Ghost", "Poison", "Caster"],
                 "ability": {
-                    "name": "Shadow Burst",
-                    "description": "Drains enemies for $value damage.",
+                    "name": "Hex",
+                    "description": "Curses a target for $value damage and lifesteal.",
                     "type": "DAMAGE",
-                    "pattern": "SURROUND",
-                    "values": [435, 978, 2175],
-                    "range": [3, 3, 3],
+                    "pattern": "SINGLE",
+                    "values": [209, 471, 996],
+                    "range": [3, 3, 4],
                     "modifiers": [
                         {
-                            "type": "DOT",
-                            "dotType": "POISON",
-                            "damagePerTick": [37, 80, 158],
-                            "durationSeconds": [4, 4, 5],
-                            "tickIntervalMs": [1000, 1000, 1000]
-                        },
-                        {
                             "type": "LIFESTEAL",
-                            "lifestealPercent": [0.2, 0.25, 0.3]
+                            "lifestealPercent": [0.2, 0.26, 0.34]
                         }
                     ]
                 }
@@ -2629,25 +2828,12 @@
                 "name": "Haunter",
                 "traits": ["Ghost", "Poison", "Caster"],
                 "ability": {
-                    "name": "Shadow Burst",
-                    "description": "Drains enemies for $value damage.",
-                    "type": "DAMAGE",
-                    "pattern": "SURROUND",
-                    "values": [435, 978, 2175],
-                    "range": [3, 3, 3],
-                    "modifiers": [
-                        {
-                            "type": "DOT",
-                            "dotType": "POISON",
-                            "damagePerTick": [37, 80, 158],
-                            "durationSeconds": [4, 4, 5],
-                            "tickIntervalMs": [1000, 1000, 1000]
-                        },
-                        {
-                            "type": "LIFESTEAL",
-                            "lifestealPercent": [0.2, 0.25, 0.3]
-                        }
-                    ]
+                    "name": "Nightmare",
+                    "description": "Traps the target in a nightmare for $value seconds.",
+                    "type": "STUN",
+                    "pattern": "SINGLE",
+                    "values": [1, 2, 2],
+                    "range": [3, 3, 4]
                 }
             },
             {
@@ -2656,23 +2842,20 @@
                 "name": "Gengar",
                 "traits": ["Ghost", "Poison", "Caster"],
                 "ability": {
-                    "name": "Shadow Burst",
-                    "description": "Drains enemies for $value damage.",
+                    "name": "Dream Eater",
+                    "description": "Consumes a dream for $value damage and healing.",
                     "type": "DAMAGE",
-                    "pattern": "SURROUND",
-                    "values": [435, 978, 2175],
-                    "range": [3, 3, 3],
+                    "pattern": "SINGLE",
+                    "values": [209, 471, 996],
+                    "range": [3, 4, 4],
                     "modifiers": [
                         {
-                            "type": "DOT",
-                            "dotType": "POISON",
-                            "damagePerTick": [37, 80, 158],
-                            "durationSeconds": [4, 4, 5],
-                            "tickIntervalMs": [1000, 1000, 1000]
+                            "type": "STUN",
+                            "stunSeconds": [1, 1, 1]
                         },
                         {
                             "type": "LIFESTEAL",
-                            "lifestealPercent": [0.2, 0.25, 0.3]
+                            "lifestealPercent": [0.35, 0.45, 0.6]
                         }
                     ]
                 }
@@ -2694,12 +2877,19 @@
         "range": [1, 1, 1],
         "traits": ["Water", "Striker"],
         "ability": {
-            "name": "Water Surge",
-            "description": "Blasts enemies for $value damage.",
+            "name": "Crabhammer",
+            "description": "Smashes the target for $value damage.",
             "type": "DAMAGE",
-            "pattern": "LINE",
-            "values": [340, 765, 1700],
-            "range": [1, 1, 1]
+            "pattern": "SINGLE",
+            "values": [209, 471, 996],
+            "range": [1, 1, 2],
+            "modifiers": [
+                {
+                    "type": "EXECUTE",
+                    "hpThreshold": [0.28, 0.34, 0.42],
+                    "bonusDamageMultiplier": [0.22, 0.34, 0.5]
+                }
+            ]
         },
         "forms": [
             {
@@ -2708,12 +2898,19 @@
                 "name": "Krabby",
                 "traits": ["Water", "Striker"],
                 "ability": {
-                    "name": "Water Surge",
-                    "description": "Blasts enemies for $value damage.",
+                    "name": "Crabhammer",
+                    "description": "Smashes the target for $value damage.",
                     "type": "DAMAGE",
-                    "pattern": "LINE",
-                    "values": [340, 765, 1700],
-                    "range": [1, 1, 1]
+                    "pattern": "SINGLE",
+                    "values": [209, 471, 996],
+                    "range": [1, 1, 2],
+                    "modifiers": [
+                        {
+                            "type": "EXECUTE",
+                            "hpThreshold": [0.28, 0.34, 0.42],
+                            "bonusDamageMultiplier": [0.22, 0.34, 0.5]
+                        }
+                    ]
                 }
             },
             {
@@ -2722,12 +2919,18 @@
                 "name": "Kingler",
                 "traits": ["Water", "Striker"],
                 "ability": {
-                    "name": "Water Surge",
-                    "description": "Blasts enemies for $value damage.",
+                    "name": "Razor Shell",
+                    "description": "Cuts with shell force for $value damage and knockback.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [340, 765, 1700],
-                    "range": [1, 1, 1]
+                    "values": [179, 406, 856],
+                    "range": [2, 3, 4],
+                    "modifiers": [
+                        {
+                            "type": "KNOCKBACK",
+                            "cells": [1, 1, 2]
+                        }
+                    ]
                 }
             },
             {
@@ -2736,12 +2939,19 @@
                 "name": "Kingler",
                 "traits": ["Water", "Striker"],
                 "ability": {
-                    "name": "Water Surge",
-                    "description": "Blasts enemies for $value damage.",
+                    "name": "Guillotine",
+                    "description": "Snaps for $value damage, executing wounded targets.",
                     "type": "DAMAGE",
-                    "pattern": "LINE",
-                    "values": [340, 765, 1700],
-                    "range": [1, 1, 1]
+                    "pattern": "SINGLE",
+                    "values": [209, 471, 996],
+                    "range": [1, 1, 2],
+                    "modifiers": [
+                        {
+                            "type": "EXECUTE",
+                            "hpThreshold": [0.32, 0.38, 0.48],
+                            "bonusDamageMultiplier": [0.35, 0.5, 0.75]
+                        }
+                    ]
                 }
             }
         ]
@@ -2762,11 +2972,17 @@
         "traits": ["Water", "Ranger"],
         "ability": {
             "name": "Bubble Beam",
-            "description": "Fires bubbles for $value damage.",
+            "description": "Streams bubbles for $value damage and a short stun.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [340, 765, 1700],
-            "range": [4, 4, 4]
+            "values": [179, 406, 856],
+            "range": [4, 4, 5],
+            "modifiers": [
+                {
+                    "type": "STUN",
+                    "stunSeconds": [1, 1, 1]
+                }
+            ]
         },
         "forms": [
             {
@@ -2776,11 +2992,17 @@
                 "traits": ["Water", "Ranger"],
                 "ability": {
                     "name": "Bubble Beam",
-                    "description": "Fires bubbles for $value damage.",
+                    "description": "Streams bubbles for $value damage and a short stun.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [340, 765, 1700],
-                    "range": [4, 4, 4]
+                    "values": [179, 406, 856],
+                    "range": [4, 4, 5],
+                    "modifiers": [
+                        {
+                            "type": "STUN",
+                            "stunSeconds": [1, 1, 1]
+                        }
+                    ]
                 }
             },
             {
@@ -2790,11 +3012,17 @@
                 "traits": ["Water", "Ranger"],
                 "ability": {
                     "name": "Hydro Pump",
-                    "description": "Blasts water for $value damage.",
+                    "description": "Pumps water for $value damage and knockback.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [340, 765, 1700],
-                    "range": [4, 4, 4]
+                    "values": [179, 406, 856],
+                    "range": [4, 5, 6],
+                    "modifiers": [
+                        {
+                            "type": "KNOCKBACK",
+                            "cells": [1, 1, 2]
+                        }
+                    ]
                 }
             },
             {
@@ -2803,12 +3031,18 @@
                 "name": "Kingdra",
                 "traits": ["Water", "Dragon", "Ranger"],
                 "ability": {
-                    "name": "Dragon Current",
-                    "description": "Combines water and dragon force for $value damage.",
+                    "name": "Draco Meteor",
+                    "description": "Drops dragon meteors for $value damage.",
                     "type": "DAMAGE",
-                    "pattern": "LINE",
-                    "values": [340, 765, 1700],
-                    "range": [4, 4, 4]
+                    "pattern": "SURROUND",
+                    "values": [164, 371, 781],
+                    "range": [2, 3, 3],
+                    "modifiers": [
+                        {
+                            "type": "STUN",
+                            "stunSeconds": [1, 1, 1]
+                        }
+                    ]
                 }
             }
         ]
@@ -2831,9 +3065,9 @@
             "name": "Dragon Breath",
             "description": "Breathes dragon energy for $value damage.",
             "type": "DAMAGE",
-            "pattern": "SINGLE",
-            "values": [340, 765, 1700],
-            "range": [4, 4, 4]
+            "pattern": "LINE",
+            "values": [179, 406, 856],
+            "range": [4, 4, 5]
         },
         "forms": [
             {
@@ -2845,9 +3079,9 @@
                     "name": "Dragon Breath",
                     "description": "Breathes dragon energy for $value damage.",
                     "type": "DAMAGE",
-                    "pattern": "SINGLE",
-                    "values": [340, 765, 1700],
-                    "range": [4, 4, 4]
+                    "pattern": "LINE",
+                    "values": [179, 406, 856],
+                    "range": [4, 4, 5]
                 }
             },
             {
@@ -2857,11 +3091,17 @@
                 "traits": ["Dragon", "Caster"],
                 "ability": {
                     "name": "Aqua Tail",
-                    "description": "Sweeps mystical water for $value damage.",
+                    "description": "Sweeps a water tail for $value damage and knockback.",
                     "type": "DAMAGE",
-                    "pattern": "LINE",
-                    "values": [435, 978, 2175],
-                    "range": [3, 3, 3]
+                    "pattern": "SURROUND",
+                    "values": [164, 371, 781],
+                    "range": [2, 2, 3],
+                    "modifiers": [
+                        {
+                            "type": "KNOCKBACK",
+                            "cells": [1, 1, 1]
+                        }
+                    ]
                 }
             },
             {
@@ -2871,11 +3111,18 @@
                 "traits": ["Dragon", "Flying", "Striker"],
                 "ability": {
                     "name": "Hyper Beam",
-                    "description": "Fires a massive beam for $value damage.",
+                    "description": "Fires a huge beam for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [340, 765, 1700],
-                    "range": [1, 1, 1]
+                    "values": [179, 406, 856],
+                    "range": [5, 6, 7],
+                    "modifiers": [
+                        {
+                            "type": "SCALING",
+                            "scalingType": "TARGET_MAX_HP_PERCENT",
+                            "factor": [0.03, 0.04, 0.055]
+                        }
+                    ]
                 }
             }
         ]
@@ -2895,12 +3142,19 @@
         "range": [4, 4, 4],
         "traits": ["Normal", "Flying", "Ranger"],
         "ability": {
-            "name": "Rally Cry",
-            "description": "Raises allied attack damage by $value%.",
-            "type": "BUFF_ATK",
-            "pattern": "SURROUND",
-            "values": [40, 68, 120],
-            "range": [4, 4, 4]
+            "name": "Leaf Blade",
+            "description": "Slashes with a leek blade for $value damage.",
+            "type": "DAMAGE",
+            "pattern": "LINE",
+            "values": [197, 448, 938],
+            "range": [4, 4, 5],
+            "modifiers": [
+                {
+                    "type": "EXECUTE",
+                    "hpThreshold": [0.25, 0.3, 0.35],
+                    "bonusDamageMultiplier": [0.25, 0.35, 0.5]
+                }
+            ]
         }
     },
     {
@@ -2918,12 +3172,18 @@
         "range": [1, 1, 1],
         "traits": ["Fighting", "Speedster"],
         "ability": {
-            "name": "Power Blow",
-            "description": "Smashes the target for $value damage.",
+            "name": "High Jump Kick",
+            "description": "Leaps in for $value damage and knockback.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [480, 1080, 2400],
-            "range": [1, 1, 1]
+            "values": [227, 513, 1078],
+            "range": [1, 1, 1],
+            "modifiers": [
+                {
+                    "type": "KNOCKBACK",
+                    "cells": [1, 2, 2]
+                }
+            ]
         }
     },
     {
@@ -2941,12 +3201,25 @@
         "range": [1, 1, 1],
         "traits": ["Fighting", "Striker"],
         "ability": {
-            "name": "Power Blow",
-            "description": "Smashes the target for $value damage.",
+            "name": "Elemental Punches",
+            "description": "Throws elemental punches for $value damage, burn, and stun.",
             "type": "DAMAGE",
-            "pattern": "SINGLE",
-            "values": [480, 1080, 2400],
-            "range": [1, 1, 1]
+            "pattern": "SURROUND",
+            "values": [182, 413, 863],
+            "range": [1, 2, 2],
+            "modifiers": [
+                {
+                    "type": "DOT",
+                    "dotType": "BURN",
+                    "damagePerTick": [34, 72, 144],
+                    "durationSeconds": [3, 3, 4],
+                    "tickIntervalMs": [1000, 1000, 1000]
+                },
+                {
+                    "type": "STUN",
+                    "stunSeconds": [1, 1, 1]
+                }
+            ]
         }
     },
     {
@@ -2964,12 +3237,18 @@
         "range": [1, 1, 1],
         "traits": ["Normal", "Defender"],
         "ability": {
-            "name": "Rally Cry",
-            "description": "Raises allied attack damage by $value%.",
-            "type": "BUFF_ATK",
-            "pattern": "SURROUND",
-            "values": [40, 68, 120],
-            "range": [1, 1, 1]
+            "name": "Dizzy Punch",
+            "description": "Punches for $value damage and stuns.",
+            "type": "DAMAGE",
+            "pattern": "SINGLE",
+            "values": [227, 513, 1078],
+            "range": [1, 1, 2],
+            "modifiers": [
+                {
+                    "type": "STUN",
+                    "stunSeconds": [1, 2, 2]
+                }
+            ]
         }
     },
     {
@@ -2987,12 +3266,12 @@
         "range": [3, 3, 3],
         "traits": ["Psychic", "Support"],
         "ability": {
-            "name": "Mind Lock",
-            "description": "Overwhelms the target, stunning for $value seconds.",
-            "type": "STUN",
-            "pattern": "SINGLE",
-            "values": [2, 3, 4],
-            "range": [3, 3, 3]
+            "name": "Reflect",
+            "description": "Sets reflective walls, shielding allies for $value.",
+            "type": "SHIELD",
+            "pattern": "SURROUND",
+            "values": [266, 560, 1158],
+            "range": [4, 4, 4]
         }
     },
     {
@@ -3010,12 +3289,19 @@
         "range": [1, 1, 1],
         "traits": ["Bug", "Striker"],
         "ability": {
-            "name": "Swarm Sting",
-            "description": "Strikes for $value damage.",
+            "name": "X-Scissor",
+            "description": "Cross-cuts enemies for $value damage.",
             "type": "DAMAGE",
-            "pattern": "SINGLE",
-            "values": [480, 1080, 2400],
-            "range": [1, 1, 1]
+            "pattern": "LINE",
+            "values": [197, 448, 938],
+            "range": [2, 3, 3],
+            "modifiers": [
+                {
+                    "type": "EXECUTE",
+                    "hpThreshold": [0.3, 0.36, 0.45],
+                    "bonusDamageMultiplier": [0.28, 0.42, 0.62]
+                }
+            ]
         }
     },
     {
@@ -3033,12 +3319,12 @@
         "range": [1, 1, 1],
         "traits": ["Water", "Ice", "Defender"],
         "ability": {
-            "name": "Water Surge",
-            "description": "Blasts enemies for $value damage.",
-            "type": "DAMAGE",
-            "pattern": "LINE",
-            "values": [480, 1080, 2400],
-            "range": [1, 1, 1]
+            "name": "Perish Song",
+            "description": "Sings an icy dirge, stunning enemies for $value seconds.",
+            "type": "STUN",
+            "pattern": "SURROUND",
+            "values": [1, 2, 2],
+            "range": [2, 3, 3]
         }
     },
     {
@@ -3056,12 +3342,18 @@
         "range": [1, 1, 1],
         "traits": ["Normal", "Speedster"],
         "ability": {
-            "name": "Rally Cry",
-            "description": "Raises allied attack damage by $value%.",
-            "type": "BUFF_ATK",
-            "pattern": "SURROUND",
-            "values": [40, 68, 120],
-            "range": [1, 1, 1]
+            "name": "Head Charge",
+            "description": "Charges through enemies for $value damage and knockback.",
+            "type": "DAMAGE",
+            "pattern": "LINE",
+            "values": [197, 448, 938],
+            "range": [3, 4, 5],
+            "modifiers": [
+                {
+                    "type": "KNOCKBACK",
+                    "cells": [1, 2, 2]
+                }
+            ]
         }
     },
     {
@@ -3079,12 +3371,12 @@
         "range": [3, 3, 3],
         "traits": ["Normal", "Support"],
         "ability": {
-            "name": "Rally Cry",
-            "description": "Raises allied attack damage by $value%.",
+            "name": "Transform",
+            "description": "Copies battle rhythm, increasing allied attack by $value%.",
             "type": "BUFF_ATK",
             "pattern": "SURROUND",
-            "values": [43, 74, 130],
-            "range": [3, 3, 3]
+            "values": [20, 30, 44],
+            "range": [4, 4, 4]
         }
     },
     {
@@ -3102,12 +3394,12 @@
         "range": [3, 3, 3],
         "traits": ["Normal", "Caster"],
         "ability": {
-            "name": "Rally Cry",
-            "description": "Raises allied attack damage by $value%.",
-            "type": "BUFF_ATK",
+            "name": "Conversion",
+            "description": "Rewrites code, increasing allied attack speed by $value%.",
+            "type": "BUFF_SPD",
             "pattern": "SURROUND",
-            "values": [47, 82, 143],
-            "range": [3, 3, 3]
+            "values": [20, 30, 44],
+            "range": [4, 4, 4]
         }
     },
     {
@@ -3125,12 +3417,12 @@
         "range": [1, 1, 1],
         "traits": ["Normal", "Defender"],
         "ability": {
-            "name": "Rally Cry",
-            "description": "Raises allied attack damage by $value%.",
-            "type": "BUFF_ATK",
-            "pattern": "SURROUND",
-            "values": [40, 68, 120],
-            "range": [1, 1, 1]
+            "name": "Wrap",
+            "description": "Wraps the target for $value seconds.",
+            "type": "STUN",
+            "pattern": "SINGLE",
+            "values": [1, 2, 2],
+            "range": [1, 1, 2]
         }
     },
     {
@@ -3148,12 +3440,12 @@
         "range": [3, 3, 3],
         "traits": ["Ice", "Psychic", "Caster"],
         "ability": {
-            "name": "Frost Field",
-            "description": "Freezes nearby enemies for $value seconds.",
+            "name": "Lovely Kiss",
+            "description": "Charms nearby enemies for $value seconds.",
             "type": "STUN",
             "pattern": "SURROUND",
-            "values": [2, 3, 4],
-            "range": [3, 3, 3]
+            "values": [1, 2, 2],
+            "range": [3, 3, 4]
         }
     },
     {
@@ -3171,12 +3463,18 @@
         "range": [1, 1, 1],
         "traits": ["Normal", "Defender"],
         "ability": {
-            "name": "Resting Wall",
-            "description": "Grants allies a massive $value shield.",
-            "type": "SHIELD",
+            "name": "Heavy Slam",
+            "description": "Crashes down for $value damage and knockback.",
+            "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [700, 1470, 3219],
-            "range": [1, 1, 1]
+            "values": [200, 455, 945],
+            "range": [1, 2, 2],
+            "modifiers": [
+                {
+                    "type": "KNOCKBACK",
+                    "cells": [1, 2, 2]
+                }
+            ]
         }
     },
     {
@@ -3194,12 +3492,19 @@
         "range": [1, 1, 1],
         "traits": ["Rock", "Flying", "Speedster"],
         "ability": {
-            "name": "Ancient Dive",
-            "description": "Dives through enemies for $value damage.",
+            "name": "Stone Edge",
+            "description": "Rakes stone edges for $value damage and execute pressure.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [700, 1575, 3500],
-            "range": [1, 1, 1]
+            "values": [215, 490, 1020],
+            "range": [4, 5, 6],
+            "modifiers": [
+                {
+                    "type": "EXECUTE",
+                    "hpThreshold": [0.28, 0.35, 0.45],
+                    "bonusDamageMultiplier": [0.35, 0.5, 0.75]
+                }
+            ]
         }
     },
     {
@@ -3218,11 +3523,11 @@
         "traits": ["Ice", "Flying", "Legendary"],
         "ability": {
             "name": "Blizzard",
-            "description": "Freezes enemies for $value seconds.",
+            "description": "Summons a freezing storm for $value seconds.",
             "type": "STUN",
             "pattern": "SURROUND",
-            "values": [3, 4, 5],
-            "range": [1, 1, 1]
+            "values": [1, 2, 3],
+            "range": [3, 4, 4]
         }
     },
     {
@@ -3241,15 +3546,15 @@
         "traits": ["Electric", "Flying", "Legendary"],
         "ability": {
             "name": "Thunderstorm",
-            "description": "Calls lightning for $value damage and briefly stuns.",
+            "description": "Turns the board into a thunderstorm for $value damage and stun.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [880, 1980, 4400],
-            "range": [1, 1, 1],
+            "values": [200, 455, 945],
+            "range": [3, 4, 4],
             "modifiers": [
                 {
                     "type": "STUN",
-                    "stunSeconds": [1, 1, 2]
+                    "stunSeconds": [1, 2, 2]
                 }
             ]
         }
@@ -3270,17 +3575,17 @@
         "traits": ["Fire", "Flying", "Legendary"],
         "ability": {
             "name": "Inferno Wing",
-            "description": "Ignites enemies for $value damage and applies burn.",
+            "description": "Unfurls burning wings for $value damage and burn.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [880, 1980, 4400],
-            "range": [1, 1, 1],
+            "values": [200, 455, 945],
+            "range": [3, 3, 4],
             "modifiers": [
                 {
                     "type": "DOT",
                     "dotType": "BURN",
-                    "damagePerTick": [60, 120, 240],
-                    "durationSeconds": [3, 3, 4],
+                    "damagePerTick": [42, 90, 180],
+                    "durationSeconds": [4, 5, 6],
                     "tickIntervalMs": [1000, 1000, 1000]
                 }
             ]
@@ -3302,11 +3607,18 @@
         "traits": ["Psychic", "Legendary"],
         "ability": {
             "name": "Psystrike",
-            "description": "Crushes enemies with psychic force for $value damage.",
+            "description": "Tears through minds for $value damage, scaling with max health.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [880, 1980, 4400],
-            "range": [1, 1, 1]
+            "values": [215, 490, 1020],
+            "range": [5, 6, 7],
+            "modifiers": [
+                {
+                    "type": "SCALING",
+                    "scalingType": "TARGET_MAX_HP_PERCENT",
+                    "factor": [0.04, 0.055, 0.075]
+                }
+            ]
         }
     },
     {
@@ -3324,12 +3636,12 @@
         "range": [3, 3, 3],
         "traits": ["Psychic", "Support", "Legendary"],
         "ability": {
-            "name": "Ancient Blessing",
-            "description": "Restores allies for $value health.",
+            "name": "Life Dew",
+            "description": "Blesses allies with life dew, healing $value health.",
             "type": "HEAL",
             "pattern": "SURROUND",
-            "values": [920, 2070, 4600],
-            "range": [3, 3, 3]
+            "values": [300, 630, 1310],
+            "range": [4, 4, 4]
         }
     }
 ]

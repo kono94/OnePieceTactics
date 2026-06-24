@@ -237,7 +237,49 @@ function drawAttack(effect: EffectInstance) {
   ctx.globalCompositeOperation = 'lighter'
   ctx.lineCap = 'round'
 
-  if (type === 'rubberPunch') {
+  if (type === 'leafCut') {
+    drawLeafTrail(start, p, color, secondary, t, 0.75)
+    drawSlash(p.x, p.y, angle - 0.22, 46, secondary, 0.68 * (1 - t * 0.1))
+  } else if (type === 'flameBurst') {
+    drawTracer(start, p, color, secondary, 13, 0.74)
+    drawFlameTongue(p.x, p.y, angle, 38 + 22 * t, color, secondary, 0.72 * (1 - t * 0.18))
+  } else if (type === 'aquaJet') {
+    drawTracer(start, p, color, secondary, 12, 0.6)
+    drawArcWave(p.x, p.y, 14 + 20 * t, secondary, 0.48 * (1 - t * 0.2))
+  } else if (type === 'thunderJolt') {
+    drawLightning(start, p, color, secondary, 0.86)
+    glowCircle(p.x, p.y, 10 + 10 * t, secondary, 0.55)
+  } else if (type === 'psyPulse') {
+    drawTracer(start, p, color, secondary, 8, 0.48)
+    drawImpactRing(p.x, p.y, 12 + 18 * t, secondary, 0.7 * (1 - t * 0.2))
+    glowCircle(p.x, p.y, 18, color, 0.28)
+  } else if (type === 'poisonSting') {
+    drawTracer(start, p, color, secondary, 7, 0.62)
+    drawFangMark(p.x, p.y, 22, secondary, 0.62 * (1 - t * 0.12))
+  } else if (type === 'windGust') {
+    drawGustLine(start, p, color, secondary, t, 0.74)
+  } else if (type === 'stoneToss') {
+    drawTracer(start, p, color, secondary, 10, 0.42)
+    drawRockShard(p.x, p.y, angle, 18, secondary, 0.82)
+  } else if (type === 'iceShard') {
+    drawTracer(start, p, color, secondary, 7, 0.56)
+    drawIceShard(p.x, p.y, angle, 28, secondary, 0.86)
+  } else if (type === 'shadowOrb') {
+    drawTracer(start, p, color, secondary, 11, 0.58)
+    drawSoulFlame(p.x, p.y, secondary, 0.72 * (1 - t * 0.16), 1.2)
+  } else if (type === 'bugBite') {
+    drawTracer(start, p, color, secondary, 6, 0.5)
+    for (let i = -1; i <= 1; i += 1) drawSlash(p.x + i * 7, p.y, angle + i * 0.36, 26, i === 0 ? secondary : color, 0.54)
+  } else if (type === 'forcePalm') {
+    drawTracer(start, p, color, secondary, 11, 0.5)
+    drawImpactRing(p.x, p.y, 14 + 20 * t, secondary, 0.74 * (1 - t * 0.2))
+  } else if (type === 'dragonSpark') {
+    drawTracer(start, p, color, secondary, 11, 0.68)
+    drawDragonClaw(p.x, p.y, angle, 32, secondary, color, 0.72)
+  } else if (type === 'metalSpark') {
+    drawTracer(start, p, color, secondary, 7, 0.62)
+    drawDiamondGuard(p.x, p.y, color, secondary, t, 0.34)
+  } else if (type === 'rubberPunch') {
     ctx.strokeStyle = withAlpha(color, 0.55 * (1 - t))
     ctx.lineWidth = 10
     ctx.beginPath()
@@ -293,6 +335,8 @@ function drawUltimate(effect: EffectInstance) {
 
   if (drawNamedUltimate(effect, t, starScale)) {
     // Character-specific renderer handled it.
+  } else if (style.startsWith('POKEMON_')) {
+    drawPokemonUltimate(effect, t, starScale)
   } else if (style === 'WHITEBEARD_QUAKE') {
     drawWhitebeardQuake(effect, t, starScale)
   } else if (style === 'GARP_FIST_METEOR') {
@@ -411,7 +455,13 @@ function processEvent(event: NormalizedCombatVisualEvent) {
 
   if (effects.length >= MAX_ACTIVE_EFFECTS) effects.splice(0, effects.length - MAX_ACTIVE_EFFECTS + 1)
 
-  if (isHealingEvent(event)) {
+  if (event.type === 'SKILL') {
+    const premiumDuration = event.source.cost >= 5 ? 360 : event.source.cost >= 4 ? 220 : 0
+    addEffect('ultimate', 'over-unit', event, 900 + Math.min(2, event.starLevel) * 130 + premiumDuration, crowded)
+    spawnUltimateParticles(event, crowded)
+    const costShake = event.source.cost >= 5 ? 1.35 : event.source.cost >= 4 ? 1.15 : 1
+    shake((event.ability?.screenShake ?? 4) * costShake, event.starLevel >= 3 ? 620 : 420, crowded)
+  } else if (isHealingEvent(event)) {
     const majorHeal = isMajorHealingEvent(event)
     addEffect('heal', 'over-unit', event, majorHeal ? 860 : 360, false)
     if (majorHeal) spawnHealingParticles(event, crowded)
@@ -419,12 +469,6 @@ function processEvent(event: NormalizedCombatVisualEvent) {
     addEffect('attack', 'trail', event, simplified ? 360 : 520, simplified)
     addEffect('impact', 'impact', event, 420, simplified)
     spawnAttackParticles(event, simplified)
-  } else if (event.type === 'SKILL') {
-    const premiumDuration = event.source.cost >= 5 ? 360 : event.source.cost >= 4 ? 220 : 0
-    addEffect('ultimate', 'over-unit', event, 900 + Math.min(2, event.starLevel) * 130 + premiumDuration, crowded)
-    spawnUltimateParticles(event, crowded)
-    const costShake = event.source.cost >= 5 ? 1.35 : event.source.cost >= 4 ? 1.15 : 1
-    shake((event.ability?.screenShake ?? 4) * costShake, event.starLevel >= 3 ? 620 : 420, crowded)
   } else if (event.type === 'SHIELD') {
     addEffect('shield', 'impact', event, 720, false)
     spawnBurst(event.end.x, event.end.y, '#38bdf8', '#e0f2fe', 16, 'impact', 0.55)
@@ -1380,6 +1424,417 @@ function drawMinorHeal(x: number, y: number, t: number) {
   drawPlus(x, y - 8 * t, 5, '#bbf7d0', 0.6 * alpha)
 }
 
+function drawPokemonUltimate(effect: EffectInstance, t: number, scale: number) {
+  const style = effect.event.ability?.effectStyle
+  const move = effect.event.skillName ?? effect.event.source.ability?.name ?? ''
+  if (matchesMove(move, ['Thunderstorm'])) {
+    drawPokemonThunderstorm(effect, t, scale)
+    return
+  }
+  if (matchesMove(move, ['Sing', 'Sleep Powder', 'Lovely Kiss', 'Yawn', 'Hypnosis', 'Stun Spore', 'Perish Song', 'Nightmare'])) {
+    drawPokemonSleepWave(effect, t, scale)
+    return
+  }
+  if (matchesMove(move, ['Harden', 'Iron Defense', 'Shell Guard', 'Reflect', 'Magnetic Field', 'Acid Armor', 'Psychic Terrain'])) {
+    drawPokemonBarrier(effect, t, scale)
+    return
+  }
+  if (matchesMove(move, ['Toxic Spikes', 'Sludge Wave', 'Gunk Shot', 'Acid Spray', 'Acid', 'Sludge', 'Poison Sting', 'Poison Jab', 'Venom Drench'])) {
+    drawPokemonToxicPool(effect, t, scale)
+    return
+  }
+  if (matchesMove(move, ['Fire Spin', 'Will-O-Wisp', 'Inferno Wing'])) {
+    drawPokemonFireVortex(effect, t, scale)
+    return
+  }
+  if (matchesMove(move, ['Bubble Beam', 'Aqua Ring'])) {
+    drawPokemonBubbleField(effect, t, scale)
+    return
+  }
+  if (matchesMove(move, ['Hyper Beam', 'Psystrike', 'Future Sight'])) {
+    drawPokemonBeamFinisher(effect, t, scale)
+    return
+  }
+  if (matchesMove(move, ['Tailwind', 'Agility', 'Flame Charge', 'Conversion', 'Transform', 'Helping Hand', 'Bulk Up'])) {
+    drawPokemonSupportSurge(effect, t, scale)
+    return
+  }
+  if (matchesMove(move, ['Quick Attack', 'Hyper Fang', 'Super Fang', 'Double Hit', 'Play Rough', 'Dizzy Punch', 'Head Charge', 'Wrap', 'Heavy Slam'])) {
+    drawPokemonImpactRush(effect, t, scale)
+    return
+  }
+
+  switch (style) {
+    case 'POKEMON_GRASS_BLOOM':
+      drawPokemonGrass(effect, t, scale)
+      break
+    case 'POKEMON_FIRE_STREAM':
+      drawPokemonFire(effect, t, scale)
+      break
+    case 'POKEMON_WATER_CANNON':
+      drawPokemonWater(effect, t, scale)
+      break
+    case 'POKEMON_ELECTRIC_STORM':
+      drawPokemonElectric(effect, t, scale)
+      break
+    case 'POKEMON_PSYCHIC_WAVE':
+      drawPokemonPsychic(effect, t, scale)
+      break
+    case 'POKEMON_POISON_BURST':
+      drawPokemonPoison(effect, t, scale)
+      break
+    case 'POKEMON_EARTH_SPIKES':
+      drawPokemonEarth(effect, t, scale)
+      break
+    case 'POKEMON_ICE_CRYSTAL':
+      drawPokemonIce(effect, t, scale)
+      break
+    case 'POKEMON_DRAGON_BEAM':
+      drawPokemonDragon(effect, t, scale)
+      break
+    case 'POKEMON_GHOST_NIGHTMARE':
+      drawPokemonGhost(effect, t, scale)
+      break
+    case 'POKEMON_BUG_SWARM':
+      drawPokemonBug(effect, t, scale)
+      break
+    case 'POKEMON_FIGHTING_COMBO':
+      drawPokemonFighting(effect, t, scale)
+      break
+    case 'POKEMON_FLYING_GUST':
+      drawPokemonFlying(effect, t, scale)
+      break
+    case 'POKEMON_STEEL_FIELD':
+      drawPokemonSteel(effect, t, scale)
+      break
+    case 'POKEMON_NORMAL_RALLY':
+    default:
+      drawPokemonNormal(effect, t, scale)
+      break
+  }
+}
+
+function matchesMove(move: string, names: string[]) {
+  return names.some(name => move.toLowerCase().includes(name.toLowerCase()))
+}
+
+function drawPokemonThunderstorm(effect: EffectInstance, t: number, scale: number) {
+  const { start, end, ability } = effect.event
+  const color = ability?.color ?? '#facc15'
+  const secondary = ability?.secondaryColor ?? '#fef08a'
+  const center = pointOnLine(start, end, 0.62)
+  glowCircle(center.x, center.y, (84 + 80 * Math.sin(t * Math.PI)) * scale, color, 0.28)
+  drawStorm(center.x, center.y, color, secondary, t, scale * 1.2)
+  for (let i = 0; i < 9; i += 1) {
+    const offset = (i - 4) * props.cellSize * 0.34 * scale
+    const target = {
+      x: end.x + offset,
+      y: end.y + Math.sin(i * 1.7) * props.cellSize * 0.32 * scale
+    }
+    const source = {
+      x: target.x + Math.sin(t * 10 + i) * 18 * scale,
+      y: -props.cellSize * (0.45 + (i % 3) * 0.16)
+    }
+    drawLightning(source, target, color, '#ffffff', 0.82 * (1 - t * 0.12))
+    if (t > 0.34) drawImpactFlash(target.x, target.y, 22 * scale, color, secondary, 0.72 * (1 - t * 0.45))
+  }
+  drawImpactRing(end.x, end.y, (38 + 150 * t) * scale, secondary, 0.8 * (1 - t))
+}
+
+function drawPokemonSleepWave(effect: EffectInstance, t: number, scale: number) {
+  const { start, end, ability } = effect.event
+  const color = ability?.color ?? '#f0abfc'
+  const secondary = ability?.secondaryColor ?? '#fef3c7'
+  drawDottedLink(start, end, secondary, 0.34 * (1 - t * 0.2), scale)
+  glowCircle(end.x, end.y, (48 + 54 * Math.sin(t * Math.PI)) * scale, color, 0.24)
+  for (let i = 0; i < 8; i += 1) {
+    const angle = (Math.PI * 2 * i) / 8 + t * Math.PI * 0.8
+    const radius = (30 + 58 * t + (i % 2) * 12) * scale
+    drawMusicalNote(end.x + Math.cos(angle) * radius, end.y + Math.sin(angle) * radius * 0.68, 14 * scale, i % 2 ? secondary : color, 0.72 * (1 - t * 0.24))
+  }
+  drawImpactRing(end.x, end.y, (28 + 102 * t) * scale, secondary, 0.62 * (1 - t))
+}
+
+function drawPokemonBarrier(effect: EffectInstance, t: number, scale: number) {
+  const { start, end, ability } = effect.event
+  const color = ability?.color ?? '#38bdf8'
+  const secondary = ability?.secondaryColor ?? '#e0f2fe'
+  const target = effect.event.source.ability?.type === 'SHIELD' ? start : end
+  drawDottedLink(start, target, secondary, 0.28 * (1 - t * 0.2), scale)
+  glowCircle(target.x, target.y, (48 + 38 * Math.sin(t * Math.PI)) * scale, color, 0.2)
+  drawDiamondGuard(target.x, target.y, color, secondary, t, scale * 1.05)
+  for (let i = 0; i < 6; i += 1) {
+    const a = (Math.PI * 2 * i) / 6 + t * 0.8
+    drawHexShard(target.x + Math.cos(a) * 54 * scale, target.y + Math.sin(a) * 38 * scale, a, 18 * scale, secondary, 0.62 * (1 - t * 0.18))
+  }
+}
+
+function drawPokemonToxicPool(effect: EffectInstance, t: number, scale: number) {
+  const { start, end, ability } = effect.event
+  const color = ability?.color ?? '#7c3aed'
+  const secondary = ability?.secondaryColor ?? '#c4b5fd'
+  drawTracer(start, end, color, secondary, 10 * scale, 0.38)
+  glowCircle(end.x, end.y, (54 + 66 * t) * scale, color, 0.34 * (1 - t * 0.08))
+  for (let i = 0; i < 18; i += 1) {
+    const a = (Math.PI * 2 * i) / 18 + t * 1.4
+    const r = (16 + (i % 6) * 9 + 62 * t) * scale
+    glowCircle(end.x + Math.cos(a) * r, end.y + Math.sin(a) * r * 0.64, (7 + (i % 3) * 3) * scale, i % 2 ? secondary : color, 0.36 * (1 - t * 0.7))
+  }
+  drawImpactRing(end.x, end.y, (34 + 116 * t) * scale, secondary, 0.46 * (1 - t))
+}
+
+function drawPokemonFireVortex(effect: EffectInstance, t: number, scale: number) {
+  const { start, end, ability } = effect.event
+  const color = ability?.color ?? '#f97316'
+  const secondary = ability?.secondaryColor ?? '#fef3c7'
+  drawTracer(start, end, color, secondary, 11 * scale, 0.42)
+  glowCircle(end.x, end.y, (52 + 46 * Math.sin(t * Math.PI)) * scale, color, 0.28)
+  for (let i = 0; i < 10; i += 1) {
+    const a = t * Math.PI * 3.4 + i * 0.62
+    const r = (22 + i * 5 + 42 * t) * scale
+    drawFlameTongue(end.x + Math.cos(a) * r, end.y + Math.sin(a) * r * 0.68, a + Math.PI / 2, 34 * scale, color, secondary, 0.64 * (1 - t * 0.28))
+  }
+}
+
+function drawPokemonBubbleField(effect: EffectInstance, t: number, scale: number) {
+  const { start, end, ability } = effect.event
+  const color = ability?.color ?? '#2563eb'
+  const secondary = ability?.secondaryColor ?? '#67e8f9'
+  drawTracer(start, end, color, secondary, 9 * scale, 0.4)
+  for (let i = 0; i < 13; i += 1) {
+    const local = ((t * 1.25 + i / 13) % 1)
+    const p = pointOnLine(start, end, local)
+    const wave = Math.sin(local * Math.PI * 2 + i) * 24 * scale
+    drawBubble(p.x, p.y + wave, (7 + (i % 4) * 3) * scale, i % 2 ? secondary : color, 0.62 * (1 - t * 0.2))
+  }
+  drawArcWave(end.x, end.y, (36 + 70 * t) * scale, secondary, 0.44 * (1 - t))
+}
+
+function drawPokemonBeamFinisher(effect: EffectInstance, t: number, scale: number) {
+  const { start, end, ability } = effect.event
+  const color = ability?.color ?? '#a855f7'
+  const secondary = ability?.secondaryColor ?? '#ffffff'
+  const charge = Math.min(1, t / 0.32)
+  glowCircle(start.x, start.y, (34 + 34 * charge) * scale, secondary, 0.35)
+  if (t > 0.18) {
+    const fireT = Math.min(1, (t - 0.18) / 0.82)
+    const p = pointOnLine(start, end, easeInOutCubic(fireT))
+    drawBeam(start, p, color, secondary, (20 + 16 * Math.sin(t * Math.PI)) * scale)
+    drawImpactFlash(end.x, end.y, 70 * scale, color, secondary, 1 - t * 0.55)
+  }
+}
+
+function drawPokemonSupportSurge(effect: EffectInstance, t: number, scale: number) {
+  const color = effect.event.ability?.color ?? '#a8a29e'
+  const secondary = effect.event.ability?.secondaryColor ?? '#fafaf9'
+  drawSupportPulse(effect, t, scale, color, secondary, effect.event.source.ability?.type === 'BUFF_SPD' ? 'speed' : 'rally')
+  for (let i = 0; i < 5; i += 1) {
+    const a = -Math.PI / 2 + (i - 2) * 0.28
+    drawChevron(effect.event.start.x + Math.cos(a) * 48 * scale, effect.event.start.y + Math.sin(a) * 48 * scale, 10 * scale, secondary, 0.5 * (1 - t * 0.35))
+  }
+}
+
+function drawPokemonImpactRush(effect: EffectInstance, t: number, scale: number) {
+  const { start, end, ability } = effect.event
+  const color = ability?.color ?? '#a8a29e'
+  const secondary = ability?.secondaryColor ?? '#fafaf9'
+  const p = pointOnLine(start, end, easeInOutCubic(Math.min(1, t * 1.22)))
+  drawTracer(start, p, color, secondary, 15 * scale, 0.52)
+  glowCircle(p.x, p.y, (18 + 18 * Math.sin(t * Math.PI)) * scale, secondary, 0.26)
+  if (t > 0.38) {
+    const hit = (t - 0.38) / 0.62
+    drawImpactFlash(end.x, end.y, 52 * scale, color, secondary, 1 - hit * 0.55)
+    drawImpactRing(end.x, end.y, (26 + 94 * hit) * scale, secondary, 0.55 * (1 - hit))
+  }
+  for (let i = -1; i <= 1; i += 1) {
+    drawChevron(p.x - i * 12 * scale, p.y + i * 8 * scale, 8 * scale, i === 0 ? secondary : color, 0.48 * (1 - t * 0.25))
+  }
+}
+
+function drawPokemonGrass(effect: EffectInstance, t: number, scale: number) {
+  const { start, end, ability } = effect.event
+  const color = ability?.color ?? '#22c55e'
+  const secondary = ability?.secondaryColor ?? '#bbf7d0'
+  drawLeafTrail(start, end, color, secondary, t, scale)
+  glowCircle(end.x, end.y, (42 + 52 * Math.sin(t * Math.PI)) * scale, color, 0.3)
+  for (let i = 0; i < 12; i += 1) {
+    const angle = (Math.PI * 2 * i) / 12 + t * Math.PI
+    const radius = (28 + 50 * t + (i % 3) * 8) * scale
+    drawLeaf(end.x + Math.cos(angle) * radius, end.y + Math.sin(angle) * radius * 0.72, angle, 18 * scale, i % 2 ? secondary : color, 0.74 * (1 - t * 0.28))
+  }
+  if (effect.event.source.ability?.type === 'HEAL') drawHealingBloom(end.x, end.y, color, secondary, t, scale * 0.75)
+}
+
+function drawPokemonFire(effect: EffectInstance, t: number, scale: number) {
+  const { start, end, ability } = effect.event
+  const color = ability?.color ?? '#f97316'
+  const secondary = ability?.secondaryColor ?? '#fef3c7'
+  const p = pointOnLine(start, end, easeOutCubic(Math.min(1, t * 1.14)))
+  const angle = Math.atan2(end.y - start.y, end.x - start.x)
+  drawTracer(start, p, color, secondary, 20 * scale, 0.72)
+  for (let i = 0; i < 7; i += 1) {
+    drawFlameTongue(p.x - i * Math.cos(angle) * 12 * scale, p.y - i * Math.sin(angle) * 12 * scale, angle + (i - 3) * 0.08, (48 - i * 3) * scale, color, secondary, 0.58 * (1 - t * 0.22))
+  }
+  if (t > 0.46) drawExplosion(end.x, end.y, color, secondary, (t - 0.46) / 0.54, scale * 1.26)
+}
+
+function drawPokemonWater(effect: EffectInstance, t: number, scale: number) {
+  const { start, end, ability } = effect.event
+  const color = ability?.color ?? '#2563eb'
+  const secondary = ability?.secondaryColor ?? '#67e8f9'
+  const p = pointOnLine(start, end, easeInOutCubic(Math.min(1, t * 1.08)))
+  drawBeam(start, p, color, secondary, 17 * scale)
+  for (let i = 0; i < 5; i += 1) drawArcWave(end.x, end.y, (24 + i * 17 + 64 * t) * scale, i % 2 ? secondary : color, 0.5 * (1 - t * 0.42))
+  glowCircle(end.x, end.y, (30 + 34 * Math.sin(t * Math.PI)) * scale, secondary, 0.24)
+}
+
+function drawPokemonElectric(effect: EffectInstance, t: number, scale: number) {
+  const { start, end, ability } = effect.event
+  const color = ability?.color ?? '#facc15'
+  const secondary = ability?.secondaryColor ?? '#fef08a'
+  drawLightning(start, end, color, secondary, 0.9)
+  for (let i = -2; i <= 2; i += 1) {
+    const x = end.x + i * 24 * scale
+    drawLightning({ x, y: -props.cellSize * 0.35 }, { x: end.x - i * 10 * scale, y: end.y }, color, '#ffffff', 0.62 * (1 - t * 0.12))
+  }
+  glowCircle(end.x, end.y, (40 + 44 * Math.sin(t * Math.PI)) * scale, secondary, 0.38)
+  drawImpactRing(end.x, end.y, (26 + 116 * t) * scale, secondary, 0.72 * (1 - t))
+}
+
+function drawPokemonPsychic(effect: EffectInstance, t: number, scale: number) {
+  const { start, end, ability } = effect.event
+  const color = ability?.color ?? '#a855f7'
+  const secondary = ability?.secondaryColor ?? '#f0abfc'
+  drawDottedLink(start, end, secondary, 0.52 * (1 - t * 0.24), scale)
+  for (let i = 0; i < 4; i += 1) {
+    drawImpactRing(end.x, end.y, (24 + i * 20 + 60 * Math.sin(t * Math.PI)) * scale, i % 2 ? secondary : color, 0.55 * (1 - t * 0.24))
+  }
+  glowCircle(end.x, end.y, (50 + 32 * Math.sin(t * Math.PI)) * scale, color, 0.28)
+  drawStar(end.x, end.y - 46 * scale, secondary, 0.75 * (1 - t * 0.2))
+}
+
+function drawPokemonPoison(effect: EffectInstance, t: number, scale: number) {
+  const { start, end, ability } = effect.event
+  const color = ability?.color ?? '#7c3aed'
+  const secondary = ability?.secondaryColor ?? '#c4b5fd'
+  drawTracer(start, end, color, secondary, 13 * scale, 0.48)
+  glowCircle(end.x, end.y, (48 + 54 * t) * scale, color, 0.32 * (1 - t * 0.1))
+  for (let i = 0; i < 12; i += 1) {
+    const a = (Math.PI * 2 * i) / 12 + t * 1.2
+    const r = (18 + 64 * t + (i % 4) * 7) * scale
+    glowCircle(end.x + Math.cos(a) * r, end.y + Math.sin(a) * r * 0.75, 12 * scale, i % 2 ? secondary : color, 0.34 * (1 - t))
+  }
+}
+
+function drawPokemonEarth(effect: EffectInstance, t: number, scale: number) {
+  const { end, ability } = effect.event
+  const color = ability?.color ?? '#78716c'
+  const secondary = ability?.secondaryColor ?? '#e7e5e4'
+  drawQuake(end.x, end.y, color, secondary, t, scale * 0.92)
+  for (let i = -3; i <= 3; i += 1) {
+    const local = Math.max(0, Math.min(1, t * 1.5 - Math.abs(i) * 0.08))
+    const x = end.x + i * 25 * scale
+    drawRockShard(x, end.y + 38 * scale * (1 - local), -Math.PI / 2, (24 + 28 * local) * scale, i % 2 ? secondary : color, 0.82 * local * (1 - t * 0.25))
+  }
+}
+
+function drawPokemonIce(effect: EffectInstance, t: number, scale: number) {
+  const { start, end, ability } = effect.event
+  const color = ability?.color ?? '#67e8f9'
+  const secondary = ability?.secondaryColor ?? '#f0f9ff'
+  drawTracer(start, end, color, secondary, 12 * scale, 0.46)
+  glowCircle(end.x, end.y, (42 + 42 * Math.sin(t * Math.PI)) * scale, color, 0.28)
+  for (let i = 0; i < 10; i += 1) {
+    const angle = (Math.PI * 2 * i) / 10
+    drawIceShard(end.x, end.y, angle, (44 + 44 * t + (i % 2) * 10) * scale, i % 2 ? secondary : color, 0.78 * (1 - t * 0.2))
+  }
+}
+
+function drawPokemonDragon(effect: EffectInstance, t: number, scale: number) {
+  const { start, end, ability } = effect.event
+  const color = ability?.color ?? '#6366f1'
+  const secondary = ability?.secondaryColor ?? '#c7d2fe'
+  drawBeam(start, end, color, secondary, (18 + 14 * Math.sin(t * Math.PI)) * scale)
+  for (let i = -1; i <= 1; i += 1) {
+    drawDragonClaw(end.x + i * 20 * scale, end.y - i * 8 * scale, -0.35 + i * 0.32, 58 * scale, secondary, color, 0.82 * (1 - t * 0.18))
+  }
+  if (t > 0.5) drawImpactFlash(end.x, end.y, 64 * scale, color, secondary, 1 - (t - 0.5) / 0.5)
+}
+
+function drawPokemonGhost(effect: EffectInstance, t: number, scale: number) {
+  const { start, end, ability } = effect.event
+  const color = ability?.color ?? '#4c1d95'
+  const secondary = ability?.secondaryColor ?? '#c4b5fd'
+  drawTracer(end, start, color, secondary, 18 * scale, 0.5)
+  glowCircle(end.x, end.y, (50 + 52 * t) * scale, color, 0.38 * (1 - t * 0.1))
+  for (let i = 0; i < 7; i += 1) {
+    const a = (Math.PI * 2 * i) / 7 + t * Math.PI * 1.6
+    drawSoulFlame(end.x + Math.cos(a) * 44 * scale, end.y + Math.sin(a) * 30 * scale, i % 2 ? secondary : color, 0.78 * (1 - t * 0.28), scale * 1.25)
+  }
+}
+
+function drawPokemonBug(effect: EffectInstance, t: number, scale: number) {
+  const { start, end, ability } = effect.event
+  const color = ability?.color ?? '#84cc16'
+  const secondary = ability?.secondaryColor ?? '#d9f99d'
+  for (let i = 0; i < 9; i += 1) {
+    const lane = (i - 4) * 11 * scale
+    const to = { x: end.x + lane, y: end.y + Math.sin(i) * 16 * scale }
+    const p = pointOnLine(start, to, easeOutCubic(Math.min(1, t * 1.18)))
+    drawTracer(start, p, color, secondary, 3.8 * scale, 0.44)
+    drawChevron(p.x, p.y, 6 * scale, i % 2 ? secondary : color, 0.7 * (1 - t * 0.2))
+  }
+  drawImpactFlash(end.x, end.y, 46 * scale, color, secondary, 1 - t * 0.5)
+}
+
+function drawPokemonFighting(effect: EffectInstance, t: number, scale: number) {
+  const { start, end, ability } = effect.event
+  const color = ability?.color ?? '#dc2626'
+  const secondary = ability?.secondaryColor ?? '#fecaca'
+  for (let i = 0; i < 6; i += 1) {
+    const local = Math.max(0, Math.min(1, (t - i * 0.055) / 0.5))
+    if (local <= 0) continue
+    const lane = (i - 2.5) * 12 * scale
+    const target = { x: end.x + lane, y: end.y + Math.sin(i) * 10 * scale }
+    const p = pointOnLine(start, target, easeOutCubic(local))
+    drawTracer(start, p, color, secondary, 8 * scale, 0.48)
+    drawImpactRing(p.x, p.y, (10 + 22 * local) * scale, secondary, 0.7 * (1 - local * 0.3))
+  }
+  if (t > 0.58) drawImpactFlash(end.x, end.y, 58 * scale, color, secondary, 1 - (t - 0.58) / 0.42)
+}
+
+function drawPokemonFlying(effect: EffectInstance, t: number, scale: number) {
+  const { start, end, ability } = effect.event
+  const color = ability?.color ?? '#94a3b8'
+  const secondary = ability?.secondaryColor ?? '#f8fafc'
+  drawGustLine(start, end, color, secondary, t, scale)
+  drawStorm(end.x, end.y, color, secondary, t, scale * 0.9)
+  for (let i = 0; i < 6; i += 1) {
+    const a = -0.9 + i * 0.28 + t * 0.65
+    drawArcWave(end.x, end.y, (32 + i * 12 + 46 * t) * scale, i % 2 ? secondary : color, 0.35 * (1 - t))
+    drawFeather(end.x + Math.cos(a) * 58 * scale, end.y + Math.sin(a) * 36 * scale, a, 16 * scale, secondary, 0.56 * (1 - t * 0.2))
+  }
+}
+
+function drawPokemonSteel(effect: EffectInstance, t: number, scale: number) {
+  const { start, end, ability } = effect.event
+  const color = ability?.color ?? '#94a3b8'
+  const secondary = ability?.secondaryColor ?? '#e2e8f0'
+  drawBeam(start, end, color, secondary, 10 * scale)
+  drawDiamondGuard(end.x, end.y, color, secondary, t, scale)
+  for (let i = 0; i < 6; i += 1) {
+    const angle = (Math.PI * 2 * i) / 6 + t
+    drawRockShard(end.x + Math.cos(angle) * 50 * scale, end.y + Math.sin(angle) * 34 * scale, angle, 20 * scale, i % 2 ? secondary : color, 0.68 * (1 - t * 0.2))
+  }
+}
+
+function drawPokemonNormal(effect: EffectInstance, t: number, scale: number) {
+  const color = effect.event.ability?.color ?? '#a8a29e'
+  const secondary = effect.event.ability?.secondaryColor ?? '#fafaf9'
+  drawSupportPulse(effect, t, scale, color, secondary, 'rally')
+  drawImpactRing(effect.event.start.x, effect.event.start.y, (34 + 80 * t) * scale, secondary, 0.55 * (1 - t))
+}
+
 function drawSoulFlame(x: number, y: number, color: string, alpha: number, scale: number) {
   glowCircle(x, y, 13 * scale, color, 0.45 * alpha)
   drawPlus(x, y - 4 * scale, 3.5 * scale, '#ffffff', 0.3 * alpha)
@@ -1656,6 +2111,154 @@ function drawPetal(x: number, y: number, angle: number, size: number, color: str
   ctx.fill()
   ctx.strokeStyle = withAlpha('#ffffff', alpha * 0.32)
   ctx.lineWidth = 1.2
+  ctx.stroke()
+  ctx.restore()
+}
+
+function drawLeafTrail(start: { x: number; y: number }, end: { x: number; y: number }, color: string, secondary: string, t: number, scale: number) {
+  drawTracer(start, end, color, secondary, 7 * scale, 0.36)
+  const angle = Math.atan2(end.y - start.y, end.x - start.x)
+  for (let i = 0; i < 7; i += 1) {
+    const local = ((t * 1.2 + i / 7) % 1)
+    const p = pointOnLine(start, end, local)
+    const wave = Math.sin(local * Math.PI * 2 + i) * 18 * scale
+    drawLeaf(p.x, p.y + wave, angle + wave * 0.02, 10 * scale, i % 2 ? secondary : color, 0.62 * (1 - t * 0.2))
+  }
+}
+
+function drawLeaf(x: number, y: number, angle: number, size: number, color: string, alpha: number) {
+  if (!ctx) return
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.rotate(angle)
+  ctx.globalCompositeOperation = 'lighter'
+  ctx.fillStyle = withAlpha(color, alpha * 0.58)
+  ctx.beginPath()
+  ctx.moveTo(-size * 0.15, 0)
+  ctx.quadraticCurveTo(size * 0.25, -size * 0.78, size, 0)
+  ctx.quadraticCurveTo(size * 0.25, size * 0.78, -size * 0.15, 0)
+  ctx.fill()
+  ctx.strokeStyle = withAlpha('#ffffff', alpha * 0.26)
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.moveTo(-size * 0.05, 0)
+  ctx.lineTo(size * 0.76, 0)
+  ctx.stroke()
+  ctx.restore()
+}
+
+function drawGustLine(start: { x: number; y: number }, end: { x: number; y: number }, color: string, secondary: string, t: number, scale: number) {
+  if (!ctx) return
+  const angle = Math.atan2(end.y - start.y, end.x - start.x)
+  const normal = { x: Math.cos(angle + Math.PI / 2), y: Math.sin(angle + Math.PI / 2) }
+  ctx.save()
+  ctx.globalCompositeOperation = 'lighter'
+  ctx.lineCap = 'round'
+  for (let i = -2; i <= 2; i += 1) {
+    const offset = i * 10 * scale
+    const wobble = Math.sin(t * Math.PI * 3 + i) * 12 * scale
+    const a = { x: start.x + normal.x * (offset + wobble), y: start.y + normal.y * (offset + wobble) }
+    const b = { x: end.x + normal.x * (offset - wobble), y: end.y + normal.y * (offset - wobble) }
+    ctx.strokeStyle = withAlpha(i % 2 ? secondary : color, 0.38 * (1 - t * 0.18))
+    ctx.lineWidth = (2.5 + Math.abs(i)) * scale
+    ctx.beginPath()
+    ctx.moveTo(a.x, a.y)
+    ctx.quadraticCurveTo((a.x + b.x) / 2 + normal.x * 32 * scale, (a.y + b.y) / 2 + normal.y * 32 * scale, b.x, b.y)
+    ctx.stroke()
+  }
+  ctx.restore()
+}
+
+function drawRockShard(x: number, y: number, angle: number, size: number, color: string, alpha: number) {
+  if (!ctx) return
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.rotate(angle)
+  ctx.globalCompositeOperation = 'lighter'
+  ctx.fillStyle = withAlpha(color, alpha * 0.58)
+  ctx.strokeStyle = withAlpha('#ffffff', alpha * 0.3)
+  ctx.lineWidth = 1.4
+  ctx.beginPath()
+  ctx.moveTo(size * 0.65, 0)
+  ctx.lineTo(-size * 0.25, -size * 0.45)
+  ctx.lineTo(-size * 0.55, size * 0.1)
+  ctx.lineTo(-size * 0.1, size * 0.5)
+  ctx.closePath()
+  ctx.fill()
+  ctx.stroke()
+  ctx.restore()
+}
+
+function drawFeather(x: number, y: number, angle: number, size: number, color: string, alpha: number) {
+  if (!ctx) return
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.rotate(angle)
+  ctx.globalCompositeOperation = 'lighter'
+  ctx.strokeStyle = withAlpha(color, alpha)
+  ctx.lineWidth = 1.8
+  ctx.beginPath()
+  ctx.moveTo(-size * 0.6, 0)
+  ctx.quadraticCurveTo(size * 0.2, -size * 0.65, size * 0.8, 0)
+  ctx.quadraticCurveTo(size * 0.15, size * 0.36, -size * 0.6, 0)
+  ctx.moveTo(-size * 0.45, 0)
+  ctx.lineTo(size * 0.58, 0)
+  ctx.stroke()
+  ctx.restore()
+}
+
+function drawMusicalNote(x: number, y: number, size: number, color: string, alpha: number) {
+  if (!ctx) return
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.globalCompositeOperation = 'lighter'
+  ctx.strokeStyle = withAlpha(color, alpha)
+  ctx.fillStyle = withAlpha(color, alpha * 0.56)
+  ctx.lineWidth = Math.max(1.5, size * 0.14)
+  ctx.beginPath()
+  ctx.moveTo(0, -size)
+  ctx.lineTo(0, size * 0.35)
+  ctx.lineTo(size * 0.55, size * 0.12)
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.ellipse(-size * 0.2, size * 0.48, size * 0.34, size * 0.24, -0.35, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.restore()
+}
+
+function drawHexShard(x: number, y: number, angle: number, size: number, color: string, alpha: number) {
+  if (!ctx) return
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.rotate(angle)
+  ctx.globalCompositeOperation = 'lighter'
+  ctx.strokeStyle = withAlpha(color, alpha)
+  ctx.lineWidth = 2
+  ctx.beginPath()
+  for (let i = 0; i < 6; i += 1) {
+    const a = (Math.PI * 2 * i) / 6
+    const px = Math.cos(a) * size
+    const py = Math.sin(a) * size
+    if (i === 0) ctx.moveTo(px, py)
+    else ctx.lineTo(px, py)
+  }
+  ctx.closePath()
+  ctx.stroke()
+  ctx.restore()
+}
+
+function drawBubble(x: number, y: number, radius: number, color: string, alpha: number) {
+  if (!ctx) return
+  glowCircle(x, y, radius * 2, color, 0.12 * alpha)
+  ctx.save()
+  ctx.globalCompositeOperation = 'lighter'
+  ctx.strokeStyle = withAlpha(color, alpha)
+  ctx.lineWidth = Math.max(1, radius * 0.18)
+  ctx.beginPath()
+  ctx.arc(x, y, radius, 0, Math.PI * 2)
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.arc(x - radius * 0.28, y - radius * 0.28, radius * 0.18, 0, Math.PI * 2)
   ctx.stroke()
   ctx.restore()
 }

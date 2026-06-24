@@ -25,6 +25,7 @@ const activeTraitMode = ref<GameMode | null>(null)
 const roomSubscription = ref<StompSubscription | null>(null)
 const eventSubscription = ref<StompSubscription | null>(null)
 const isUltimateGallery = ref(false)
+const ultimateGalleryMode = ref<GameMode>('onepiece')
 
 // Random player name for now
 const PLAYER_NAME = "Player_" + Math.floor(Math.random() * 10000)
@@ -282,13 +283,18 @@ const handleLeaveLobby = () => {
 }
 
 const themeClass = computed(() => {
-    if (isUltimateGallery.value) return 'theme-onepiece'
+    if (isUltimateGallery.value) return `theme-${ultimateGalleryMode.value}`
     if (currentView.value === 'lobby' || !gameState.value) return 'theme-generic'
     return `theme-${gameState.value.gameMode}`
 })
 
 const updateStandaloneRoute = () => {
-    isUltimateGallery.value = window.location.hash.startsWith('#/ultimate-gallery')
+    const isGallery = window.location.hash.startsWith('#/ultimate-gallery')
+    isUltimateGallery.value = isGallery
+    if (isGallery) {
+        ultimateGalleryMode.value = window.location.hash.includes('/pokemon') ? 'pokemon' : 'onepiece'
+        applyThemeMeta(ultimateGalleryMode.value)
+    }
 }
 
 const applyThemeMeta = (mode: GameMode | null) => {
@@ -314,7 +320,7 @@ const applyThemeMeta = (mode: GameMode | null) => {
   <div :class="['app-container', themeClass]">
     <VersionDisplay :visible="showVersion" />
 
-    <UltimateGallery v-if="isUltimateGallery" />
+    <UltimateGallery v-if="isUltimateGallery" :mode="ultimateGalleryMode" />
 
     <div v-else-if="!isConnected" class="loading-screen">
         Connecting to Server...

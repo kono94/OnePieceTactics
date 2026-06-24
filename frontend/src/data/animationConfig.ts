@@ -14,6 +14,20 @@ export type AttackType =
     | 'waterShock'
     | 'lightning'
     | 'fireKick'
+    | 'leafCut'
+    | 'flameBurst'
+    | 'aquaJet'
+    | 'thunderJolt'
+    | 'psyPulse'
+    | 'poisonSting'
+    | 'windGust'
+    | 'stoneToss'
+    | 'iceShard'
+    | 'shadowOrb'
+    | 'bugBite'
+    | 'forcePalm'
+    | 'dragonSpark'
+    | 'metalSpark'
 
 export interface AttackAnimationConfig {
     type: AttackType
@@ -75,6 +89,21 @@ export type AbilityEffectStyle =
     | 'CANDY_TRAP'
     | 'LOVE_BURST'
     | 'WIND_STORM'
+    | 'POKEMON_GRASS_BLOOM'
+    | 'POKEMON_FIRE_STREAM'
+    | 'POKEMON_WATER_CANNON'
+    | 'POKEMON_ELECTRIC_STORM'
+    | 'POKEMON_PSYCHIC_WAVE'
+    | 'POKEMON_POISON_BURST'
+    | 'POKEMON_EARTH_SPIKES'
+    | 'POKEMON_ICE_CRYSTAL'
+    | 'POKEMON_DRAGON_BEAM'
+    | 'POKEMON_GHOST_NIGHTMARE'
+    | 'POKEMON_NORMAL_RALLY'
+    | 'POKEMON_BUG_SWARM'
+    | 'POKEMON_FIGHTING_COMBO'
+    | 'POKEMON_FLYING_GUST'
+    | 'POKEMON_STEEL_FIELD'
 
 export interface AbilityAnimationConfig {
     color: string
@@ -461,12 +490,90 @@ export const ABILITY_ANIMATIONS: Record<string, AbilityAnimationConfig> = {
     '_default': { color: '#fbbf24' }
 }
 
+const POKEMON_ATTACK_BY_STYLE: Record<string, AttackAnimationConfig> = {
+    grass: { type: 'leafCut', color: '#22c55e', secondaryColor: '#bbf7d0', particles: 18 },
+    fire: { type: 'flameBurst', color: '#f97316', secondaryColor: '#fef3c7', particles: 20 },
+    water: { type: 'aquaJet', color: '#2563eb', secondaryColor: '#67e8f9', particles: 20 },
+    electric: { type: 'thunderJolt', color: '#facc15', secondaryColor: '#fef08a', particles: 22 },
+    psychic: { type: 'psyPulse', color: '#a855f7', secondaryColor: '#f0abfc', particles: 20 },
+    poison: { type: 'poisonSting', color: '#7c3aed', secondaryColor: '#c4b5fd', particles: 18 },
+    ground: { type: 'stoneToss', color: '#a16207', secondaryColor: '#fde68a', particles: 16 },
+    rock: { type: 'stoneToss', color: '#78716c', secondaryColor: '#e7e5e4', particles: 18 },
+    flying: { type: 'windGust', color: '#94a3b8', secondaryColor: '#f8fafc', particles: 18 },
+    ice: { type: 'iceShard', color: '#67e8f9', secondaryColor: '#f0f9ff', particles: 20 },
+    ghost: { type: 'shadowOrb', color: '#4c1d95', secondaryColor: '#c4b5fd', particles: 20 },
+    bug: { type: 'bugBite', color: '#84cc16', secondaryColor: '#d9f99d', particles: 18 },
+    fighting: { type: 'forcePalm', color: '#dc2626', secondaryColor: '#fecaca', particles: 20 },
+    dragon: { type: 'dragonSpark', color: '#6366f1', secondaryColor: '#c7d2fe', particles: 22 },
+    steel: { type: 'metalSpark', color: '#94a3b8', secondaryColor: '#e2e8f0', particles: 18 },
+    normal: { type: 'punch', color: '#a8a29e', secondaryColor: '#fafaf9', particles: 16 }
+}
+
+const POKEMON_STYLE_BY_ID: Record<string, keyof typeof POKEMON_ATTACK_BY_STYLE> = {
+    bulbasaur: 'grass', ivysaur: 'grass', venusaur: 'grass', oddish: 'grass', gloom: 'grass', vileplume: 'grass', bellsprout: 'grass', weepinbell: 'grass', victreebel: 'grass',
+    charmander: 'fire', charmeleon: 'fire', charizard: 'fire', vulpix: 'fire', ninetales: 'fire', growlithe: 'fire', arcanine: 'fire', ponyta: 'fire', rapidash: 'fire', moltres: 'fire',
+    squirtle: 'water', wartortle: 'water', blastoise: 'water', poliwag: 'water', poliwhirl: 'water', poliwrath: 'water', psyduck: 'water', golduck: 'water', tentacool: 'water', tentacruel: 'water', seel: 'water', dewgong: 'water', shellder: 'water', cloyster: 'water', krabby: 'water', kingler: 'water', horsea: 'water', seadra: 'water', kingdra: 'water', lapras: 'water', slowpoke: 'water', slowbro: 'water',
+    pikachu: 'electric', raichu: 'electric', magnemite: 'electric', magneton: 'electric', magnezone: 'electric', zapdos: 'electric',
+    abra: 'psychic', kadabra: 'psychic', alakazam: 'psychic', mr_mime: 'psychic', mewtwo: 'psychic', mew: 'psychic',
+    nidoran_f: 'poison', nidorina: 'poison', nidoqueen: 'poison', nidoran_m: 'poison', nidorino: 'poison', nidoking: 'poison', zubat: 'poison', golbat: 'poison', crobat: 'poison', grimer: 'poison', muk: 'poison',
+    sandshrew: 'ground', sandslash: 'ground',
+    geodude: 'rock', graveler: 'rock', golem: 'rock', aerodactyl: 'rock',
+    pidgey: 'flying', pidgeotto: 'flying', pidgeot: 'flying', spearow: 'flying', fearow: 'flying', doduo: 'flying', dodrio: 'flying', farfetchd: 'flying',
+    jynx: 'ice', articuno: 'ice',
+    gastly: 'ghost', haunter: 'ghost', gengar: 'ghost',
+    caterpie: 'bug', metapod: 'bug', butterfree: 'bug', weedle: 'bug', kakuna: 'bug', beedrill: 'bug', pinsir: 'bug',
+    mankey: 'fighting', primeape: 'fighting', annihilape: 'fighting', machop: 'fighting', machoke: 'fighting', machamp: 'fighting', hitmonlee: 'fighting', hitmonchan: 'fighting',
+    dratini: 'dragon', dragonair: 'dragon', dragonite: 'dragon',
+    porygon: 'steel',
+    rattata: 'normal', raticate: 'normal', jigglypuff: 'normal', wigglytuff: 'normal', kangaskhan: 'normal', tauros: 'normal', ditto: 'normal', lickitung: 'normal', snorlax: 'normal'
+}
+
+const POKEMON_ULTIMATE_STYLE_BY_ATTACK_STYLE: Record<keyof typeof POKEMON_ATTACK_BY_STYLE, AbilityEffectStyle> = {
+    grass: 'POKEMON_GRASS_BLOOM',
+    fire: 'POKEMON_FIRE_STREAM',
+    water: 'POKEMON_WATER_CANNON',
+    electric: 'POKEMON_ELECTRIC_STORM',
+    psychic: 'POKEMON_PSYCHIC_WAVE',
+    poison: 'POKEMON_POISON_BURST',
+    ground: 'POKEMON_EARTH_SPIKES',
+    rock: 'POKEMON_EARTH_SPIKES',
+    flying: 'POKEMON_FLYING_GUST',
+    ice: 'POKEMON_ICE_CRYSTAL',
+    ghost: 'POKEMON_GHOST_NIGHTMARE',
+    bug: 'POKEMON_BUG_SWARM',
+    fighting: 'POKEMON_FIGHTING_COMBO',
+    dragon: 'POKEMON_DRAGON_BEAM',
+    steel: 'POKEMON_STEEL_FIELD',
+    normal: 'POKEMON_NORMAL_RALLY'
+}
+
+function getPokemonAttackStyle(definitionId: string): keyof typeof POKEMON_ATTACK_BY_STYLE | undefined {
+    return POKEMON_STYLE_BY_ID[definitionId]
+}
+
 // Helper to get attack animation config for a unit
 export function getAttackConfig(definitionId: string): AttackAnimationConfig {
+    const pokemonStyle = getPokemonAttackStyle(definitionId)
+    if (pokemonStyle) return POKEMON_ATTACK_BY_STYLE[pokemonStyle]
     return ATTACK_ANIMATIONS[definitionId] ?? ATTACK_ANIMATIONS['_default']
 }
 
 // Helper to get ability animation config for a unit
 export function getAbilityConfig(definitionId: string): AbilityAnimationConfig {
-    return ABILITY_ANIMATIONS[definitionId] ?? ABILITY_ANIMATIONS['_default']
+    const baseConfig = ABILITY_ANIMATIONS[definitionId] ?? ABILITY_ANIMATIONS['_default']
+    const pokemonStyle = getPokemonAttackStyle(definitionId)
+    if (!pokemonStyle) return baseConfig
+
+    const style = POKEMON_ULTIMATE_STYLE_BY_ATTACK_STYLE[pokemonStyle]
+    const emphasis = ['charizard', 'blastoise', 'venusaur', 'dragonite', 'articuno', 'zapdos', 'moltres', 'mewtwo', 'mew', 'snorlax', 'gengar', 'alakazam'].includes(definitionId)
+        ? 1.22
+        : 1.08
+
+    return {
+        ...baseConfig,
+        signature: undefined,
+        effectStyle: style,
+        screenShake: Math.max(baseConfig.screenShake ?? 0, pokemonStyle === 'normal' || pokemonStyle === 'psychic' ? 2 : 4),
+        particleScale: (baseConfig.particleScale ?? 1) * emphasis
+    }
 }

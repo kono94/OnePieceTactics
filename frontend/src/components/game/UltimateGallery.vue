@@ -2,8 +2,10 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import CombatEffectsCanvas from './CombatEffectsCanvas.vue'
 import { ULTIMATE_GALLERY_ROSTER, type UltimateGalleryUnit } from '../../data/ultimateGalleryRoster'
+import { POKEMON_ULTIMATE_GALLERY_ROSTER } from '../../data/pokemonUltimateGalleryRoster'
 import { getAbilityConfig, getAttackConfig } from '../../data/animationConfig'
 import type { AbilityDefinition, RenderedUnit } from '../../types'
+import type { GameMode } from '../../types'
 import type { NormalizedCombatVisualEvent } from '../../types/combatEffects'
 import { getUnitIconPath } from '../../utils/iconUtils'
 
@@ -11,28 +13,45 @@ const GRID_COLS = 9
 const GRID_ROWS = 6
 const CELL_SIZE = 78
 
-const selectedId = ref('whitebeard_v1')
+const props = defineProps<{
+    mode?: GameMode
+}>()
+
+const galleryMode = computed<GameMode>(() => props.mode ?? 'onepiece')
+const roster = computed(() => galleryMode.value === 'pokemon' ? POKEMON_ULTIMATE_GALLERY_ROSTER : ULTIMATE_GALLERY_ROSTER)
+const defaultSelectedKey = computed(() => galleryKey(roster.value.find(unit => unit.id === (galleryMode.value === 'pokemon' ? 'pikachu' : 'whitebeard_v1')) ?? roster.value[0]))
+
+const selectedKey = ref(defaultSelectedKey.value)
 const starLevel = ref(3)
 const autoReplay = ref(true)
+const previewType = ref<'ultimate' | 'attack'>('ultimate')
 const events = ref<NormalizedCombatVisualEvent[]>([])
 
 let nextEventId = 1
 let replayTimer: number | null = null
 
-const selectedUnit = computed(() => ULTIMATE_GALLERY_ROSTER.find(unit => unit.id === selectedId.value) ?? ULTIMATE_GALLERY_ROSTER[0])
+const selectedUnit = computed(() => roster.value.find(unit => galleryKey(unit) === selectedKey.value) ?? roster.value[0])
 const selectedAbilityConfig = computed(() => getAbilityConfig(selectedUnit.value.id))
 const selectedTargetIsAlly = computed(() => isSupportAbility(selectedUnit.value.abilityType))
+const pageTitle = computed(() => galleryMode.value === 'pokemon' ? 'Pokemon Animation Lab' : 'Ultimate Gallery')
+const modeLabel = computed(() => galleryMode.value === 'pokemon' ? 'Pokemon' : 'One Piece')
+const sourcePortraitMode = computed(() => galleryMode.value)
 
 const sourceUnit = computed(() => createRenderedUnit(selectedUnit.value, 'gallery-source', 2, 4, 'PLAYER', true))
-const enemyUnit = computed(() => createRenderedUnit(createDummyUnit('Training Target', 'target_dummy_v1', 3), 'gallery-target', 6, 1, 'ENEMY', false))
-const allyUnit = computed(() => createRenderedUnit(createDummyUnit('Ally Preview', 'luffy_v1', 3), 'gallery-ally', 5, 4, 'PLAYER', true))
+const enemyUnit = computed(() => createRenderedUnit(createDummyUnit('Training Target', galleryMode.value === 'pokemon' ? 'snorlax' : 'kaido_v1', 3), 'gallery-target', 6, 1, 'ENEMY', false))
+const allyUnit = computed(() => createRenderedUnit(createDummyUnit('Ally Preview', galleryMode.value === 'pokemon' ? 'bulbasaur' : 'luffy_v1', 3), 'gallery-ally', 5, 4, 'PLAYER', true))
 const targetUnit = computed(() => selectedTargetIsAlly.value ? allyUnit.value : enemyUnit.value)
 const renderedUnits = computed(() => selectedTargetIsAlly.value
     ? [sourceUnit.value, allyUnit.value]
     : [sourceUnit.value, enemyUnit.value]
 )
 
-const filteredRoster = computed(() => ULTIMATE_GALLERY_ROSTER)
+const filteredRoster = computed(() => roster.value)
+
+function galleryKey(unit: UltimateGalleryUnit | undefined) {
+    if (!unit) return ''
+    return `${unit.id}:${unit.abilityName}`
+}
 
 function createDummyUnit(name: string, id: string, cost: number): UltimateGalleryUnit {
     return {
@@ -85,7 +104,7 @@ function createRenderedUnit(unit: UltimateGalleryUnit, instanceId: string, x: nu
         atkBuff: unit.abilityType === 'BUFF_ATK' ? 1.2 : 1,
         spdBuff: unit.abilityType === 'BUFF_SPD' ? 1.2 : 1,
         isMine,
-        image: getUnitIconPath(unit.id, 'onepiece')
+        image: getUnitIconPath(unit.id, sourcePortraitMode.value)
     }
 }
 
@@ -105,17 +124,18 @@ function replayUltimate() {
     const target = targetUnit.value
     const abilityConfig = getAbilityConfig(source.definitionId)
     const value = source.ability?.type === 'HEAL' ? -180 : (source.ability?.type.startsWith('BUFF') ? 0 : 240)
+    const isUltimate = previewType.value === 'ultimate'
 
     events.value = [
         ...events.value.slice(-4),
         {
             id: nextEventId++,
             timestamp: performance.now(),
-            type: 'SKILL',
+            type: isUltimate ? 'SKILL' : 'DAMAGE',
             sourceId: source.id,
             targetId: target.id,
-            value,
-            skillName: abilityConfig.signature ?? source.ability?.name,
+            value: isUltimate ? value : 80,
+            skillName: isUltimate ? abilityConfig.signature ?? source.ability?.name : undefined,
             source,
             target,
             start: pointFor(source),
@@ -125,15 +145,15 @@ function replayUltimate() {
             ability: abilityConfig,
             pattern: source.ability?.pattern ?? 'SINGLE',
             starLevel: starLevel.value,
-            intensity: 'ultimate',
+            intensity: isUltimate ? 'ultimate' : 'normal',
             batchSize: 1,
             crowded: false
         }
     ]
 }
 
-function selectUnit(id: string) {
-    selectedId.value = id
+function selectUnit(unit: UltimateGalleryUnit) {
+    selectedKey.value = galleryKey(unit)
     window.setTimeout(replayUltimate, 80)
 }
 
@@ -147,14 +167,22 @@ function scheduleReplay() {
     }
 }
 
-watch([selectedId, starLevel], () => {
+watch([selectedKey, starLevel, galleryMode, previewType], () => {
+    if (!roster.value.some(unit => galleryKey(unit) === selectedKey.value)) {
+        selectedKey.value = defaultSelectedKey.value
+        return
+    }
     window.setTimeout(replayUltimate, 80)
 })
 
 watch(autoReplay, scheduleReplay)
 
+watch(pageTitle, (title) => {
+    document.title = title
+})
+
 onMounted(() => {
-    document.title = 'Ultimate Gallery'
+    document.title = pageTitle.value
     replayUltimate()
     scheduleReplay()
 })
@@ -165,13 +193,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <main class="ultimate-gallery">
+  <main class="ultimate-gallery" :class="`mode-${galleryMode}`">
     <section class="gallery-preview">
       <div class="preview-header">
         <div>
           <a href="#" class="back-link">Back to game</a>
-          <h1>Ultimate Gallery</h1>
-          <p>{{ selectedUnit.name }} - {{ selectedAbilityConfig.signature || selectedUnit.abilityName }}</p>
+          <h1>{{ pageTitle }}</h1>
+          <p>{{ modeLabel }} · {{ selectedUnit.name }} · {{ selectedAbilityConfig.signature || selectedUnit.abilityName }}</p>
         </div>
         <div class="preview-controls">
           <button
@@ -184,6 +212,22 @@ onUnmounted(() => {
           >
             {{ level }} Star
           </button>
+          <div class="segmented-control" aria-label="Animation type">
+            <button
+              type="button"
+              :class="{ active: previewType === 'ultimate' }"
+              @click="previewType = 'ultimate'"
+            >
+              Ultimate
+            </button>
+            <button
+              type="button"
+              :class="{ active: previewType === 'attack' }"
+              @click="previewType = 'attack'"
+            >
+              Auto
+            </button>
+          </div>
           <button type="button" class="replay-button" @click="replayUltimate">Replay</button>
           <label class="auto-toggle">
             <input v-model="autoReplay" type="checkbox">
@@ -239,13 +283,13 @@ onUnmounted(() => {
     <section class="roster-panel" aria-label="Ultimate roster">
       <button
         v-for="unit in filteredRoster"
-        :key="unit.id"
+        :key="galleryKey(unit)"
         type="button"
         class="roster-card"
-        :class="{ active: selectedId === unit.id }"
-        @click="selectUnit(unit.id)"
+        :class="{ active: selectedKey === galleryKey(unit) }"
+        @click="selectUnit(unit)"
       >
-        <img :src="getUnitIconPath(unit.id, 'onepiece')" :alt="unit.name" draggable="false">
+        <img :src="getUnitIconPath(unit.id, galleryMode)" :alt="unit.name" draggable="false">
         <span class="roster-name">{{ unit.name }}</span>
         <span class="roster-meta">{{ getAbilityConfig(unit.id).signature || unit.abilityName }} · {{ unit.cost }}g</span>
       </button>
@@ -311,7 +355,8 @@ p {
 }
 
 .star-button,
-.replay-button {
+.replay-button,
+.segmented-control button {
     min-height: 38px;
     border: 1px solid #334155;
     border-radius: 8px;
@@ -326,10 +371,27 @@ p {
 }
 
 .star-button.active,
-.replay-button {
+.replay-button,
+.segmented-control button.active {
     border-color: #fbbf24;
     background: #1d4ed8;
     color: #ffffff;
+}
+
+.segmented-control {
+    display: inline-grid;
+    grid-template-columns: repeat(2, minmax(64px, 1fr));
+    gap: 3px;
+    padding: 3px;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    background: #020617;
+}
+
+.segmented-control button {
+    min-height: 32px;
+    border-color: transparent;
+    border-radius: 6px;
 }
 
 .auto-toggle {
@@ -364,6 +426,24 @@ p {
     border-radius: 8px;
     background: linear-gradient(180deg, rgba(53, 39, 55, 0.56) 0 50%, rgba(15, 23, 42, 0.88) 50% 100%);
     overflow: hidden;
+}
+
+.mode-pokemon .gallery-board {
+    border-color: #2f5f58;
+    background:
+        radial-gradient(circle at 28% 72%, rgba(34, 197, 94, 0.16), transparent 28%),
+        radial-gradient(circle at 74% 28%, rgba(248, 113, 113, 0.12), transparent 24%),
+        linear-gradient(180deg, rgba(34, 72, 66, 0.7) 0 50%, rgba(32, 43, 58, 0.94) 50% 100%);
+}
+
+.mode-pokemon .board-shell {
+    border-color: #24554d;
+    box-shadow: inset 0 0 42px rgba(45, 212, 191, 0.14);
+}
+
+.mode-pokemon .roster-card.active {
+    border-color: #facc15;
+    background: #14532d;
 }
 
 .gallery-cell {
