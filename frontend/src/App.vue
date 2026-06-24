@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, shallowRef } from 'vue'
+import type { Component } from 'vue'
 import { Client } from '@stomp/stompjs'
 import type { StompSubscription } from '@stomp/stompjs'
 import Lobby from './components/Lobby.vue'
@@ -7,7 +8,6 @@ import WaitingRoom from './components/WaitingRoom.vue'
 import GameInterface from './components/GameInterface.vue'
 import OutcomeOverlay from './components/game/OutcomeOverlay.vue'
 import DamageReport from './components/game/DamageReport.vue'
-import UltimateGallery from './components/game/UltimateGallery.vue'
 import VersionDisplay from './components/VersionDisplay.vue'
 
 import { setTraitData } from './data/traitData'
@@ -26,6 +26,7 @@ const roomSubscription = ref<StompSubscription | null>(null)
 const eventSubscription = ref<StompSubscription | null>(null)
 const isUltimateGallery = ref(false)
 const ultimateGalleryMode = ref<GameMode>('onepiece')
+const UltimateGallery = shallowRef<Component | null>(null)
 
 // Random player name for now
 const PLAYER_NAME = "Player_" + Math.floor(Math.random() * 10000)
@@ -288,12 +289,21 @@ const themeClass = computed(() => {
     return `theme-${gameState.value.gameMode}`
 })
 
+const loadUltimateGallery = async () => {
+    if (!import.meta.env.DEV || UltimateGallery.value) return
+
+    const galleryPath = './components/game/UltimateGallery.vue'
+    const galleryModule = await import(/* @vite-ignore */ galleryPath)
+    UltimateGallery.value = galleryModule.default
+}
+
 const updateStandaloneRoute = () => {
-    const isGallery = window.location.hash.startsWith('#/ultimate-gallery')
+    const isGallery = import.meta.env.DEV && window.location.hash.startsWith('#/ultimate-gallery')
     isUltimateGallery.value = isGallery
     if (isGallery) {
         ultimateGalleryMode.value = window.location.hash.includes('/pokemon') ? 'pokemon' : 'onepiece'
         applyThemeMeta(ultimateGalleryMode.value)
+        void loadUltimateGallery()
     }
 }
 
@@ -320,7 +330,7 @@ const applyThemeMeta = (mode: GameMode | null) => {
   <div :class="['app-container', themeClass]">
     <VersionDisplay :visible="showVersion" />
 
-    <UltimateGallery v-if="isUltimateGallery" :mode="ultimateGalleryMode" />
+    <component :is="UltimateGallery" v-if="isUltimateGallery && UltimateGallery" :mode="ultimateGalleryMode" />
 
     <div v-else-if="!isConnected" class="loading-screen">
         Connecting to Server...

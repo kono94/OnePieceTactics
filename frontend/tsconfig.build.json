@@ -1,0 +1,8 @@
+{
+    "extends": "./tsconfig.json",
+    "exclude": [
+        "src/components/game/UltimateGallery.vue",
+        "src/data/pokemonUltimateGalleryRoster.ts",
+        "src/data/ultimateGalleryRoster.ts"
+    ]
+}
