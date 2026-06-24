@@ -1,7 +1,8 @@
 # Frontend Context — OnePieceTactics Vue.js Implementation
 
-> **Last Updated:** 2026-02-10  
+> **Last Updated:** 2026-06-24
 > **Purpose:** Comprehensive architectural blueprint and source of truth for AI developers working on the Vue.js 3 frontend.
+> **Recent Scope:** Adapted for the last 10 commits through `6b00ddb` (`Apply Pokemon type effectiveness to damage`).
 
 ---
 
@@ -23,17 +24,20 @@ Deliver a responsive, visually rich UI that reflects backend-authoritative game 
 | **Vite** | 5.0+ | Build tool and dev server with HMR |
 | **Pinia** | 2.1+ | **NOT USED** — State is managed via reactive `ref()` in `App.vue` |
 | **@stomp/stompjs** | 7.0+ | WebSocket client for STOMP protocol |
-| **No Router** | N/A | Single-page app with view switching managed by reactive state |
+| **No Router** | N/A | Single-page app with reactive view switching; hash-only standalone route for animation gallery |
 | **No UI Framework** | N/A | Vanilla CSS with scoped styles (no Tailwind) |
+| **ESLint** | 9.x | Vue/TypeScript linting via `eslint.config.ts` |
 
 **Build Configuration:**
 - Strict TypeScript mode enabled (`strict: true`)
 - Path alias `@/*` maps to `./src/*`
 - Proxy configuration for `/ws` (WebSocket) and `/api` (REST) to `localhost:8080`
+- `VITE_WS_URL` can override the derived WebSocket URL
+- `VITE_GIT_TAG`, `VITE_GIT_COMMIT`, and `VITE_BUILD_TIME` are injected for `VersionDisplay.vue`
 
 ---
 
-## 3. Directory Structure
+## 3. Directory Structure (`folder-structure.md`)
 
 ```
 frontend/
@@ -41,13 +45,14 @@ frontend/
 │   ├── assets/
 │   │   └── units/              # Unit character icons organized by theme
 │   │       ├── onepiece/       # One Piece character portraits
-│   │       └── pokemon/        # Pokemon character portraits
+│   │       └── pokemon/        # Pokemon character portraits + generation prompt
+│   │           └── _generated_batches/  # Ignored scratch output for batch icon work
 │   ├── favicon.svg             # Default favicon (One Piece theme)
 │   └── pokeball.png            # Pokemon theme favicon
 │
 ├── src/
 │   ├── main.ts                 # App entry point (minimal - mounts App.vue)
-│   ├── App.vue                 # 🔴 ROOT COMPONENT - WebSocket, routing, event orchestration
+│   ├── App.vue                 # 🔴 ROOT COMPONENT - WebSocket, route-like view switching, theme/meta orchestration
 │   ├── style.css               # Global styles (font, background, box-sizing)
 │   │
 │   ├── components/             # Vue SFCs (Single File Components)
@@ -62,12 +67,15 @@ frontend/
 │   │   ├── EndScreen.vue       # Game-over leaderboard
 │   │   ├── VersionDisplay.vue  # Git version tag display (lobby only)
 │   │   └── game/               # Sub-components for combat features
-│   │       ├── AttackAnimation.vue    # Attack/ability visual effects
+│   │       ├── CombatEffectsCanvas.vue # 🔴 CANVAS VFX - attacks, ultimates, heal/shield/death effects
+│   │       ├── UltimateGallery.vue    # Standalone hash route previewing attacks/ultimates
+│   │       ├── AttackAnimation.vue    # Legacy/older DOM attack effect component; current board uses canvas
 │   │       ├── DamageReport.vue       # Post-combat damage breakdown
 │   │       └── OutcomeOverlay.vue     # Combat result (WON/LOST/DRAW)
 │   │
 │   ├── types/                  # TypeScript type definitions
 │   │   ├── game.ts             # 🔴 CORE TYPES - GameState, GameUnit, GameAction, etc.
+│   │   ├── combatEffects.ts    # Normalized event contract consumed by CombatEffectsCanvas
 │   │   └── index.ts            # Re-exports types for convenience
 │   │
 │   ├── utils/                  # Utility functions
@@ -77,10 +85,13 @@ frontend/
 │   └── data/                   # Static/semi-static data and configs
 │       ├── traitData.ts        # Trait definitions fetched from backend
 │       ├── shopOdds.ts         # Shop probability tables (by level)
-│       └── animationConfig.ts  # Animation styles for abilities/attacks
+│       ├── animationConfig.ts  # Animation styles for One Piece and Pokemon attacks/abilities
+│       ├── ultimateGalleryRoster.ts        # One Piece gallery roster
+│       └── pokemonUltimateGalleryRoster.ts # Pokemon gallery roster derived from backend units JSON
 │
 ├── vite.config.ts              # Vite build config + proxy rules
 ├── tsconfig.json               # TypeScript compiler options
+├── eslint.config.ts            # ESLint flat config for Vue/TypeScript
 ├── package.json                # Dependencies and scripts
 └── Dockerfile                  # Production build container
 ```
@@ -102,14 +113,18 @@ const gameState = ref<GameState | null>(null)  // Backend-authoritative game sta
 const isConnected = ref(false)                 // WebSocket connection status
 const currentView = ref<'lobby' | 'game'>('lobby')  // View router
 const encounterResult = ref<'WON' | 'LOST' | 'DRAW' | null>(null)  // Combat outcome
+const availableModes = ref<GameMode[]>(['onepiece', 'pokemon'])
+const activeTraitMode = ref<GameMode | null>(null)
 ```
 
 **State Flow:**
 1. `App.vue` establishes WebSocket connection on mount
-2. Subscribes to `/topic/room/{roomId}` for `GameState` updates
-3. `GameState` is passed down via props to child components (`GameInterface`, `GameCanvas`)
-4. Components derive computed properties from `GameState` (e.g., `myPlayer`, `renderedUnits`)
-5. User actions emit events upward, which `App.vue` publishes to backend via WebSocket
+2. It fetches `/api/config` for available/default game modes, then connects to STOMP
+3. Subscribes to `/topic/room/{roomId}` for full `GameState` updates
+4. When `gameState.gameMode` changes, `App.vue` updates document metadata and fetches `/api/traits?mode={mode}`
+5. `GameState` is passed down via props to child components (`GameInterface`, `GameCanvas`)
+6. Components derive computed properties from `GameState` (e.g., `myPlayer`, `renderedUnits`)
+7. User actions emit events upward, which `App.vue` publishes to backend via WebSocket
 
 **Why This Approach?**
 - **Backend Authority:** All game logic lives on the server; frontend is a "dumb renderer"
@@ -123,8 +138,8 @@ const encounterResult = ref<'WON' | 'LOST' | 'DRAW' | null>(null)  // Combat out
 
 | Type | Components | Responsibilities |
 |------|-----------|------------------|
-| **Smart** (Container) | `App.vue`, `GameInterface.vue`, `GameCanvas.vue` | WebSocket communication, state derivation, event handling |
-| **Dumb** (Presentational) | `UnitTooltip.vue`, `PhaseAnnouncement.vue`, `TraitSidebar.vue`, `PlayerList.vue` | Pure rendering based on props, no business logic |
+| **Smart** (Container) | `App.vue`, `GameInterface.vue`, `GameCanvas.vue`, `UltimateGallery.vue` | WebSocket communication, state derivation, event handling, gallery preview state |
+| **Dumb** (Presentational) | `UnitTooltip.vue`, `PhaseAnnouncement.vue`, `TraitSidebar.vue`, `PlayerList.vue`, `OutcomeOverlay.vue` | Rendering based on props/computed data, minimal side effects |
 
 **Composition API Pattern:**
 
@@ -154,7 +169,7 @@ Despite Composition API usage, the project **does not use custom composables** (
 ```typescript
 // App.vue - Connection Setup
 const client = new Client({
-  brokerURL: wsUrl,  // ws://localhost/ws or wss://production.com/ws
+  brokerURL: wsUrl,  // VITE_WS_URL or ws(s)://{host}/ws
   onConnect: () => { isConnected.value = true },
   onDisconnect: () => { isConnected.value = false }
 })
@@ -171,6 +186,13 @@ client.activate()
 | **Publish** | `/app/join` | `{ roomId, playerName }` | Join existing room |
 | **Publish** | `/app/start` | `{ roomId, playerName }` | Start game (host only) |
 | **Publish** | `/app/room/{id}/action` | `GameAction` | Player actions (BUY, MOVE, SELL, etc.) |
+| **Publish** | `/app/room/{id}/mode` | `{ playerName, gameMode }` | Host changes waiting-room game mode |
+| **Publish** | `/app/leave` | `{ roomId, playerName }` | Leave room and clear local subscriptions |
+
+**REST Bootstrap:**
+- `GET /api/config` returns `availableModes` and `defaultGameMode` for the waiting room.
+- `GET /api/traits?mode={onepiece|pokemon}` hydrates `TRAIT_DATA` for the active mode.
+- The Vite dev server rewrites `/ws` to backend `/tft-websocket` and proxies `/api` unchanged.
 
 **GameAction Structure:**
 ```typescript
@@ -178,8 +200,8 @@ interface GameAction {
   type: 'BUY' | 'SELL' | 'MOVE' | 'REROLL' | 'EXP' | 'LOCK' | 'COLLECT_ORB'
   playerId: string
   unitId?: string       // For MOVE, SELL
-  targetX?: number      // For MOVE (0-6)
-  targetY?: number      // For MOVE (-1 = bench, 0-7 = board)
+  targetX?: number      // For MOVE (0-8)
+  targetY?: number      // For MOVE (-1 = bench, 0-2 = backend board row)
   shopIndex?: number    // For BUY (0-4)
   orbId?: string        // For COLLECT_ORB
 }
@@ -189,9 +211,9 @@ interface GameAction {
 ### 4.4 Drag-and-Drop System
 
 **Grid-Based Positioning:**
-- 7×8 grid (7 columns, 8 rows)
-- Rows 0-3: Enemy board (top half)
-- Rows 4-7: Player board (bottom half)
+- 9×6 grid (`GRID_COLS = 9`, `GRID_ROWS = 6`)
+- Rows 0-2: Enemy half
+- Rows 3-5: Player half (`PLAYER_ROWS = 3`)
 - Bench: Virtual row -1 (9 slots)
 
 **Drag Sources:**
@@ -211,27 +233,30 @@ evt.dataTransfer.setDragImage(img, 25, 25)  // Use unit portrait
 
 **Coordinate Translation:**
 ```typescript
-// Visual Y (0-7) → Backend Y (0-3) during Planning Phase
-const backendY = visualY - PLAYER_ROWS  // PLAYER_ROWS = 4
+// Visual Y (3-5) → Backend Y (0-2) during Planning Phase
+const backendY = visualY - PLAYER_ROWS  // PLAYER_ROWS = 3
 emit('move', { unitId, x, y: backendY })
 ```
 
 
 ### 4.5 Animation System
 
-**Attack/Ability Animations:**
+**Combat Visual Pipeline:**
 
-Powered by `AttackAnimation.vue` component that renders different effect styles:
+The current board and standalone gallery use `CombatEffectsCanvas.vue` for layered canvas effects. `AttackAnimation.vue` still exists under `components/game`, but there are no live imports of it in `src`; treat it as legacy unless intentionally reintroduced.
 
-1. **Event-Driven:** Triggered by `GameEvent` messages from backend (`DAMAGE`, `SKILL`)
-2. **Animation Queue:** `activeAnimations` ref stores pending animations
-3. **Auto-Remove:** Each animation emits `@complete` after duration
-4. **Cap:** Maximum 15 concurrent animations to prevent lag
+1. Backend sends `GameState.recentEvents` with `CombatEvent` entries (`DAMAGE`, `SKILL`, `DEATH`, `MOVE`, `HEAL`, `SHIELD`).
+2. `GameCanvas.vue` watches `recentEvents`, deduplicates by timestamp, resolves source/target units from current, dying, or previous unit maps, and normalizes each event into `NormalizedCombatVisualEvent`.
+3. Normalization attaches grid pixel points, source/target render data, attack config, ability config, ability pattern, star level, intensity, batch size, and crowded-board flags.
+4. `CombatEffectsCanvas.vue` consumes normalized events and renders layered effects (`ground`, `trail`, `impact`, `over-unit`) with requestAnimationFrame.
+5. `GameCanvas.vue` still owns DOM unit feedback: hit flash, caster glow, attacking lunge, floating skill names, floating heals, death fade, and star-up celebrations.
 
-**Animation Types:**
-- **Attack Animations:** `slash`, `pierce`, `projectile` (from `animationConfig.ts`)
-- **Ability Animations:** `beam`, `blast`, `wave`, `heal_pulse` (from `animationConfig.ts`)
-- **Floating Text:** Ability names, heal amounts
+**Canvas Effect Behavior:**
+- Auto-attacks use `getAttackConfig(definitionId)` from `animationConfig.ts`; Pokemon attacks fall back through type/style maps such as grass, fire, water, electric, psychic, poison, ground, ice, ghost, bug, fighting, dragon, steel, normal.
+- Ultimates use `getAbilityConfig(definitionId)`, including One Piece signature styles and Pokemon `POKEMON_*` ability effect styles.
+- Expensive effects scale by unit cost and star level, with particle and active-effect caps (`MAX_PARTICLES`, `MAX_ACTIVE_EFFECTS`) plus simplified rendering on crowded boards.
+- Healing, shield, and death are first-class canvas events, not just floating text.
+- Screen shake is driven by ability config and dampened when the board is crowded.
 
 **Death Animations:**
 ```typescript
@@ -263,19 +288,12 @@ const STAR_UP_ANIMATION_DURATION = 1200  // ms
 
 **Theme Switching Mechanism:**
 
-The application dynamically adapts to the backend's configured `gameMode`:
+The application dynamically adapts to backend `gameMode`, waiting-room mode choices, and the standalone gallery hash route:
 
 ```typescript
-// App.vue - Theme Detection
-if (gameState.value.gameMode === 'pokemon') {
-  gameTitle.value = 'Pokemon TFT'
-  document.title = 'Pokemon TFT'
-  link.href = '/pokeball.png'
-} else {
-  gameTitle.value = 'OnePieceTactics'
-  document.title = 'OnePieceTactics'
-  link.href = '/favicon.svg'
-}
+// App.vue - Metadata and theme class
+applyThemeMeta(gameState.value.gameMode)
+const themeClass = computed(() => `theme-${gameState.value?.gameMode ?? 'generic'}`)
 ```
 
 **Icon Resolution:**
@@ -290,10 +308,18 @@ export function getUnitIconPath(definitionId: string, gameMode?: string): string
 **Trait Data Loading:**
 ```typescript
 // App.vue - Trait Fetching
-const traitsRes = await fetch('/api/traits')
+const traitsRes = await fetch(`/api/traits?mode=${mode}`)
 const traits = await traitsRes.json()
 setTraitData(traits)  // Populates global TRAIT_DATA object
 ```
+
+**Mode-Specific Mechanics:**
+- `WaitingRoom.vue` receives `availableModes` and `defaultMode` from `/api/config`; mode changes publish to `/app/room/{id}/mode`.
+- `theme-generic`, `theme-onepiece`, and `theme-pokemon` CSS custom properties live in `App.vue`.
+- `GameMode` is a strict union: `'onepiece' | 'pokemon'`.
+- Pokemon traits use `TraitDefinition.type = 'type'` in addition to One Piece-style `origin` and `class`; `targetScope` and `effectType` are available for richer tooltip/metadata display.
+- `TraitSidebar.vue` counts unique unit lines using `lineId || definitionId || name`, so evolved Pokemon forms do not over-count the same evolution line.
+- `pokemonUltimateGalleryRoster.ts` imports `backend/src/main/resources/data/units_pokemon.json` and expands both base units and `forms` into gallery entries.
 
 
 ### 4.7 Styling Approach
@@ -350,15 +376,18 @@ export const TEAM_COLORS = {
 
 | File | Lines | Responsibilities |
 |------|-------|-----------------|
-| [GameInterface.vue](src/components/GameInterface.vue) | 1237 | Shop UI, bench management, drag-and-drop, player stats, buy/sell/reroll actions |
-| [GameCanvas.vue](src/components/GameCanvas.vue) | 1130 | Combat board rendering, unit positioning, animations, loot orbs, tooltips |
-| [AttackAnimation.vue](src/components/game/AttackAnimation.vue) | ~200 | Renders attack/ability visual effects (slash, projectile, beam, etc.) |
+| [GameInterface.vue](src/components/GameInterface.vue) | ~1200 | Shop UI, bench management, drag-and-drop, player stats, buy/sell/reroll actions |
+| [GameCanvas.vue](src/components/GameCanvas.vue) | ~1100 | 9×6 board rendering, unit positioning, event normalization, DOM feedback, loot orbs, tooltips |
+| [CombatEffectsCanvas.vue](src/components/game/CombatEffectsCanvas.vue) | ~2000 | Canvas renderer for attack, ultimate, heal, shield, death, particle, and shake effects |
+| [UltimateGallery.vue](src/components/game/UltimateGallery.vue) | ~600 | Standalone hash route for previewing One Piece/Pokemon attacks and ultimates |
+| [AttackAnimation.vue](src/components/game/AttackAnimation.vue) | legacy | Older DOM attack/ability effect component; currently not imported by the live board |
 
 ### 5.3 Type Definitions
 
 | File | Key Exports |
 |------|------------|
 | [types/game.ts](src/types/game.ts) | `GameState`, `GameUnit`, `PlayerState`, `GameAction`, `GameEvent`, `UnitDefinition`, `ActiveTrait`, `LootOrb` |
+| [types/combatEffects.ts](src/types/combatEffects.ts) | `NormalizedCombatVisualEvent`, `EffectIntensity`, `RenderLayer`, canvas point contracts |
 
 **Type Sync:**  
 TypeScript types mirror Java backend models (`GameState.java`, `GameUnit.java`) to ensure compile-time correctness of WebSocket payloads.
@@ -369,6 +398,7 @@ TypeScript types mirror Java backend models (`GameState.java`, `GameUnit.java`) 
 |------|---------|
 | [vite.config.ts](vite.config.ts) | Dev server proxy, build options |
 | [tsconfig.json](tsconfig.json) | TypeScript strict mode, path aliases |
+| [eslint.config.ts](eslint.config.ts) | ESLint flat config |
 | [package.json](package.json) | Dependencies, build scripts |
 | [Dockerfile](Dockerfile) | Production build with version injection |
 
@@ -456,9 +486,11 @@ python3 scripts/quadrant_cutter.py <generated_image_path> <output_directory>
 public/assets/units/
 ├── onepiece/           # One Piece theme icons
 │   ├── luffy_v1.png
-│   ├── zoro.png
-│   └── nami.png
+│   ├── zoro_v1.png
+│   └── nami_v1.png
 └── pokemon/            # Pokemon theme icons
+    ├── ICON_GENERATION_PROMPT.md
+    ├── _generated_batches/  # ignored scratch output
     ├── pikachu.png
     ├── charizard.png
     └── mewtwo.png
@@ -482,7 +514,8 @@ export function getUnitIconPath(definitionId: string, gameMode?: string): string
 > 3. Use `scripts/quadrant_cutter.py` to split the generated image
 > 4. Rename `_qN.png` files to match `definitionId` from `units_{theme}.json`
 > 5. Move to `public/assets/units/{theme}/{definitionId}.png`
-> 6. Verify consistency: background color, pixel art style, centering
+> 6. Compress large PNGs before committing
+> 7. Verify consistency: background color, pixel art style, centering
 
 ---
 
@@ -498,8 +531,8 @@ sequenceDiagram
     participant Backend
 
     User->>App.vue: Mount app
-    App.vue->>Backend: GET /api/config (theme)
-    App.vue->>Backend: GET /api/traits
+    App.vue->>Backend: GET /api/config (modes)
+    App.vue->>Backend: GET /api/traits?mode={mode}
     App.vue->>WebSocket: Connect (STOMP)
     WebSocket-->>App.vue: onConnect
     
@@ -519,9 +552,9 @@ sequenceDiagram
 
 ---
 
-## 7. Common Development Patterns
+## 8. Common Development Patterns
 
-### 7.1 Accessing Current Player Data
+### 8.1 Accessing Current Player Data
 
 ```typescript
 // In any component receiving `state` prop
@@ -533,7 +566,7 @@ const myPlayer = computed((): PlayerState | null => {
 })
 ```
 
-### 7.2 Emitting Player Actions
+### 8.2 Emitting Player Actions
 
 ```typescript
 // Component emits to parent
@@ -552,7 +585,7 @@ client.value.publish({
 })
 ```
 
-### 7.3 Conditional Rendering by Phase
+### 8.3 Conditional Rendering by Phase
 
 ```typescript
 // Show different UI based on game phase
@@ -564,7 +597,7 @@ client.value.publish({
 </template>
 ```
 
-### 7.4 Computing Derived State
+### 8.4 Computing Derived State
 
 ```typescript
 // Render units with coordinate transformation for combat
@@ -583,7 +616,7 @@ const renderedUnits = computed((): RenderedUnit[] => {
 
 ---
 
-## 8. Build and Deployment
+## 9. Build and Deployment
 
 ### Development Server
 
@@ -640,7 +673,7 @@ The project currently has **no unit tests, integration tests, or E2E tests**.
 3. **Drag-and-Drop:** Move units between bench/board, ensure backend sync
 4. **Shop Actions:** Buy units, reroll, verify gold deduction
 5. **Combat Animations:** Check attack/ability effects render correctly
-6. **Theme Switching:** Backend `GAME_MODE` env var changes UI assets
+6. **Theme Switching:** Waiting-room mode change updates title, favicon, traits, icons, and CSS variables
 7. **Multi-Player:** Test with 2+ players, verify matchups and ghost copies
 
 ---
@@ -651,7 +684,7 @@ The project currently has **no unit tests, integration tests, or E2E tests**.
 1. **No State Persistence:** Refreshing the page disconnects and loses room state
 2. **No Reconnection Logic:** Dropped WebSocket connections require page reload
 3. **No Input Validation:** Frontend sends all actions; backend rejects invalid ones
-4. **Performance:** 15+ concurrent animations may cause frame drops
+4. **Performance:** Crowded boards rely on canvas particle/effect caps and simplified auto-attack rendering
 5. **No Accessibility:** Missing ARIA labels, keyboard navigation
 
 ### Planned Enhancements
@@ -697,7 +730,7 @@ watch(() => props.state?.recentEvents, (events) => {
 |-------|-------|----------|
 | Units not appearing | WebSocket not subscribed | Check browser console for connection errors |
 | Drag-and-drop not working | Phase is COMBAT | Verify `props.state?.phase === 'PLANNING'` |
-| Animations stuck | Animation removal failed | Clear `activeAnimations` on phase change |
+| Canvas effects missing | Event was not normalized or source/target lookup failed | Inspect `recentEvents`, `lookupUnit()`, and `combatVisualEvents` |
 | Tooltip not showing | `isDragging` state stuck | Reset drag state on `dragend` |
 
 ---
@@ -809,7 +842,7 @@ const wsUrl = envWsUrl || `${protocol}//${window.location.host}/ws`
 2. **Maintain WebSocket Contract:** Changes to `GameAction` require backend sync
 3. **Update Types:** Modify `types/game.ts` if backend models change
 4. **Test Drag-and-Drop:** Verify bench ↔ board ↔ sell zone interactions
-5. **Check Animation Limits:** Ensure animation queue doesn't exceed 15 items
+5. **Check Animation Limits:** Preserve canvas effect and particle budgets in `CombatEffectsCanvas.vue`
 
 ### When Adding Features
 

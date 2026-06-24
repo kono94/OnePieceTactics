@@ -1,6 +1,6 @@
 # One Piece Tactics
 
-A browser-based **auto-battler game** inspired by Teamfight Tactics, featuring a theme-swappable engine with One Piece (default) and Pokemon themes. This project showcases a clean, production-grade architecture with real-time multiplayer via WebSockets.
+A browser-based **auto-battler game** inspired by Teamfight Tactics, featuring a theme-swappable engine with lobby-selectable One Piece (default) and Pokemon modes. This project showcases a clean, production-grade architecture with real-time multiplayer via WebSockets.
 
 ![Java 25](https://img.shields.io/badge/Java-25-orange) ![Spring Boot 4](https://img.shields.io/badge/Spring%20Boot-4.0.1-green) ![Vue 3](https://img.shields.io/badge/Vue.js-3.4-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.2-blue)
 
@@ -25,10 +25,10 @@ For detailed architectural information, refer to the context documents:
 ### Core Gameplay
 - **Up to 8 players** per game room (human + AI bots with adaptive shop odds)
 - **Real-time state sync** via STOMP WebSockets (100ms tick rate)
-- **Theme-agnostic core engine** — swap between One Piece and Pokemon themes via config
+- **Theme-agnostic core engine** — hosts choose One Piece or Pokemon per room in the lobby; config controls the default
 - **Auto-battler mechanics**: Shop, XP, Gold (with interest), Trait Synergies, Unit Combinations
 - **Grid-based combat** with BFS pathfinding, ability casting, and directional attack animations
-- **Star-level progression** — combine 3 identical units to upgrade (1★ → 2★ → 3★) with explicit 3-value stat scaling
+- **Star-level progression** — combine 3 identical units to upgrade (1★ → 2★ → 3★), including Pokemon evolution forms
 - **Advanced ability system** — Damage, Stun, Shield, Heal, Buff with modifiers (Lifesteal, Execute, Scaling, Conditional, Knockback)
 - **Data-driven trait system** — All trait effects loaded from JSON configuration (no hardcoded logic)
 - **TFT-style shop odds** — Level-based probability distribution for unit costs (1★-5★)
@@ -38,6 +38,7 @@ For detailed architectural information, refer to the context documents:
 - **Ghost/clone matchmaking** — Odd player count creates AI clones for balanced combat
 - **Player elimination** — Ranked placement system with game-ending logic
 - **Loot orbs** — Gold and unit rewards spawn after combat rounds
+- **Pokemon type effectiveness** — Pokemon auto attacks and damage abilities apply type matchup modifiers
 - **Tabbed damage report** — Post-combat tracking for your units vs opponent with visual damage bars
 - **Per-unit attack animations** — Punch, slash, projectile with directional orientation
 - **Ability patterns** — Single-target, line, and AoE effects with range-based targeting
@@ -125,11 +126,11 @@ For detailed architectural information, refer to the context documents:
 ```bash
 cd backend
 
-# Default theme: One Piece
+# Default lobby mode: One Piece
 mvn spring-boot:run
 
-# Or run with Pokemon theme
-export GAME_MODE=pokemon && mvn spring-boot:run
+# Or make Pokemon the default lobby mode
+GAME_MODE=pokemon mvn spring-boot:run
 ```
 Backend runs on `http://localhost:8080`
 
@@ -150,12 +151,14 @@ docker-compose up
 
 ## 🎮 Game Modes
 
+Rooms start with the configured default mode, then the host can switch modes in the lobby before starting the match. Changing the room mode swaps the unit set, traits, visuals, and mode-specific combat rules for that room.
+
 | Mode | Property Value | Data Files |
 |------|----------------|------------|
 | One Piece | `game.mode=onepiece` | `units_onepiece.json`, `traits_onepiece.json` |
 | Pokemon | `game.mode=pokemon` | `units_pokemon.json`, `traits_pokemon.json` |
 
-To add a new theme, implement `GameModeProvider` and add corresponding JSON data files. See [Backend Context](backend/BACKEND_CONTEXT.md#8-game-mode-system) for details.
+Use `GAME_MODE` or `game.mode` to choose the default lobby selection. To add a new theme, implement `GameModeProvider` and add corresponding JSON data files. See [Backend Context](backend/BACKEND_CONTEXT.md#8-game-mode-system) for details.
 
 ---
 
@@ -167,6 +170,7 @@ To add a new theme, implement `GameModeProvider` and add corresponding JSON data
 | `/app/create` | Client → Server | Create a new game room |
 | `/app/join` | Client → Server | Join an existing room |
 | `/app/start` | Client → Server | Host starts the match |
+| `/app/room/{id}/mode` | Client → Server | Host changes the room game mode during lobby |
 | `/app/room/{id}/action` | Client → Server | Player action (BUY, MOVE, REROLL, EXP, SELL, LOCK, COLLECT_ORB) |
 | `/topic/room/{id}` | Server → Client | Game state broadcast (100ms) |
 | `/topic/room/{id}/event` | Server → Client | Combat result events (winner, loser, damageLog) |
@@ -174,8 +178,9 @@ To add a new theme, implement `GameModeProvider` and add corresponding JSON data
 ### REST Endpoints
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/config` | GET | Current game mode configuration |
-| `/api/traits` | GET | Trait definitions for UI |
+| `/api/config` | GET | Default game mode and available lobby modes |
+| `/api/mode` | GET | Default game mode |
+| `/api/traits?mode={mode}` | GET | Trait definitions for the selected mode |
 
 ---
 
@@ -204,4 +209,4 @@ This project is for educational purposes.
 
 ---
 
-*Last updated: 2026-02-07*
+*Last updated: 2026-06-24*
