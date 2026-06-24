@@ -88,12 +88,13 @@ public class DefaultAbilityCaster implements AbilityCaster {
         var totalDamageDealt = new int[] {0};
 
         applyToTargets(source, allUnits, target, ability, u -> {
-            u.takeDamage(finalDamage);
+            int effectiveDamage = PokemonTypeEffectiveness.apply(source, u, finalDamage);
+            u.takeDamage(effectiveDamage);
             // Apply secondary effects from modifiers (stun, knockback)
             applyStunAndKnockbackModifiers(source, u, ability);
             applyDotModifiers(source, u, ability, currentTime);
-            totalDamageDealt[0] += finalDamage;
-            callback.onDamage(source.getId(), source.getName(), u.getId(), finalDamage);
+            totalDamageDealt[0] += effectiveDamage;
+            callback.onDamage(source.getId(), source.getName(), u.getId(), effectiveDamage);
         });
 
         // Apply lifesteal modifier

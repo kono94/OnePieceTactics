@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.lwenstrom.tft.backend.core.GameConstants;
 import net.lwenstrom.tft.backend.core.combat.AbilityCaster;
 import net.lwenstrom.tft.backend.core.combat.CombatUtils;
+import net.lwenstrom.tft.backend.core.combat.PokemonTypeEffectiveness;
 import net.lwenstrom.tft.backend.core.combat.TargetSelector;
 import net.lwenstrom.tft.backend.core.combat.UnitMover;
 import net.lwenstrom.tft.backend.core.model.DotEffect;
@@ -193,6 +194,7 @@ public class CombatSystem {
                     }
 
                     int effectiveDamage = (int) (baseDamage * multiplier);
+                    effectiveDamage = PokemonTypeEffectiveness.apply(unit, target, effectiveDamage);
                     log.debug("{} attacks {} for {}", unit.getName(), target.getName(), effectiveDamage);
 
                     // Handle Revive (Big Mom Pirates)
