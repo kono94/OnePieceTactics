@@ -12,6 +12,7 @@ import net.lwenstrom.tft.backend.core.combat.AbilityCaster;
 import net.lwenstrom.tft.backend.core.combat.CombatUtils;
 import net.lwenstrom.tft.backend.core.combat.TargetSelector;
 import net.lwenstrom.tft.backend.core.combat.UnitMover;
+import net.lwenstrom.tft.backend.core.model.DotEffect;
 import net.lwenstrom.tft.backend.core.model.GameState;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 import net.lwenstrom.tft.backend.core.time.Clock;
@@ -196,6 +197,7 @@ public class CombatSystem {
 
                     // Handle Revive (Big Mom Pirates)
                     target.takeDamage(effectiveDamage);
+                    applyOnHitDot(unit, target, currentTime);
                     if (target.getCurrentHealth() <= 0) {
                         if (target.hasRevive() && !target.isReviveUsed()) {
                             target.setReviveUsed(true);
@@ -324,6 +326,30 @@ public class CombatSystem {
             }
             target.getDotEffects().addAll(effectsToAdd);
         }
+    }
+
+    private void applyOnHitDot(GameUnit source, GameUnit target, long currentTime) {
+        float damageRatio = source.getOnHitDotDamageRatio();
+        long durationMs = source.getOnHitDotDurationMs();
+        long tickIntervalMs = source.getOnHitDotTickIntervalMs();
+        if (damageRatio <= 0 || durationMs <= 0 || tickIntervalMs <= 0 || target.getCurrentHealth() <= 0) {
+            return;
+        }
+
+        int damagePerTick = Math.max(1, Math.round(source.getAttackDamage() * damageRatio));
+        String skillName = "Poison";
+        target.getDotEffects()
+                .removeIf(effect -> effect.sourceId().equals(source.getId()) && skillName.equals(effect.skillName()));
+        target.addDotEffect(new DotEffect(
+                source.getId(),
+                source.getName(),
+                source.getDefinitionId(),
+                source.getOwnerId(),
+                damagePerTick,
+                currentTime + tickIntervalMs,
+                currentTime + durationMs + 1,
+                tickIntervalMs,
+                skillName));
     }
 
     private void triggerShieldOnDeath(GameUnit deadUnit, List<GameUnit> allUnits, long currentTime) {

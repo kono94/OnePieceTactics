@@ -6,6 +6,7 @@ import net.lwenstrom.tft.backend.core.model.CustomEffectHandler;
 import net.lwenstrom.tft.backend.core.model.EffectType;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 import net.lwenstrom.tft.backend.core.model.TraitEffect;
+import net.lwenstrom.tft.backend.core.model.TraitTargetScope;
 import tools.jackson.databind.JsonNode;
 
 /**
@@ -18,11 +19,17 @@ public class GenericTraitApplier implements TraitEffect {
 
     private final String traitId;
     private final EffectType effectType;
+    private final TraitTargetScope targetScope;
     private final List<JsonNode> effects;
     private final Map<String, CustomEffectHandler> customHandlers;
 
     public GenericTraitApplier(String traitId, EffectType effectType, List<JsonNode> effects) {
-        this(traitId, effectType, effects, Map.of());
+        this(traitId, effectType, TraitTargetScope.SELF, effects, Map.of());
+    }
+
+    public GenericTraitApplier(
+            String traitId, EffectType effectType, TraitTargetScope targetScope, List<JsonNode> effects) {
+        this(traitId, effectType, targetScope, effects, Map.of());
     }
 
     public GenericTraitApplier(
@@ -30,8 +37,18 @@ public class GenericTraitApplier implements TraitEffect {
             EffectType effectType,
             List<JsonNode> effects,
             Map<String, CustomEffectHandler> customHandlers) {
+        this(traitId, effectType, TraitTargetScope.SELF, effects, customHandlers);
+    }
+
+    public GenericTraitApplier(
+            String traitId,
+            EffectType effectType,
+            TraitTargetScope targetScope,
+            List<JsonNode> effects,
+            Map<String, CustomEffectHandler> customHandlers) {
         this.traitId = traitId;
         this.effectType = effectType;
+        this.targetScope = targetScope == null ? TraitTargetScope.SELF : targetScope;
         this.effects = effects;
         this.customHandlers = customHandlers;
     }
@@ -52,26 +69,29 @@ public class GenericTraitApplier implements TraitEffect {
         }
 
         var values = activeEffect.get("values");
+        var recipients = getRecipients(units);
 
         // Apply effect based on effectType
         switch (effectType) {
-            case HP -> applyHp(units, values);
-            case HP_AND_AS -> applyHpAndAs(units, values);
-            case AS -> applyAs(units, values);
-            case ARMOR_AND_MR -> applyArmorAndMr(units, values);
-            case ATK_BUFF -> applyAtkBuff(units, values);
-            case START_MANA -> applyStartMana(units, values);
-            case ABILITY_DAMAGE -> applyAbilityDamage(units, values);
-            case LOW_HP_DAMAGE -> applyLowHpDamage(units, values);
-            case LIFESTEAL -> applyLifesteal(units, values);
-            case EXTRA_ATTACK_CHANCE -> applyExtraAttackChance(units, values);
-            case MANA_GAIN -> applyManaGain(units, values);
-            case LOW_HP_AS -> applyLowHpAs(units, values);
-            case DISTANCE_DAMAGE -> applyDistanceDamage(units, values);
-            case GOLD_ON_WIN -> applyGoldOnWin(units, values);
-            case HEAL_AMP -> applyHealAmp(units, values);
-            case AS_ON_CAST -> applyAsOnCast(units, values);
-            case CUSTOM -> applyCustom(count, units, activeEffect);
+            case HP -> applyHp(recipients, values);
+            case HP_AND_AS -> applyHpAndAs(recipients, values);
+            case AS -> applyAs(recipients, values);
+            case ARMOR_AND_MR -> applyArmorAndMr(recipients, values);
+            case ATK_BUFF -> applyAtkBuff(recipients, values);
+            case START_MANA -> applyStartMana(recipients, values);
+            case START_MANA_PERCENT -> applyStartManaPercent(recipients, values);
+            case ABILITY_DAMAGE -> applyAbilityDamage(recipients, values);
+            case LOW_HP_DAMAGE -> applyLowHpDamage(recipients, values);
+            case LIFESTEAL -> applyLifesteal(recipients, values);
+            case EXTRA_ATTACK_CHANCE -> applyExtraAttackChance(recipients, values);
+            case ON_HIT_DOT -> applyOnHitDot(recipients, values);
+            case MANA_GAIN -> applyManaGain(recipients, values);
+            case LOW_HP_AS -> applyLowHpAs(recipients, values);
+            case DISTANCE_DAMAGE -> applyDistanceDamage(recipients, values);
+            case GOLD_ON_WIN -> applyGoldOnWin(recipients, values);
+            case HEAL_AMP -> applyHealAmp(recipients, values);
+            case AS_ON_CAST -> applyAsOnCast(recipients, values);
+            case CUSTOM -> applyCustom(count, recipients, activeEffect);
             case NONE -> {}
         }
     }
@@ -92,9 +112,7 @@ public class GenericTraitApplier implements TraitEffect {
                 ? (float) values.get("abilityDamage").asDouble()
                 : 0f;
         for (GameUnit unit : units) {
-            if (hasTrait(unit)) {
-                unit.setAbilityDamageMultiplier(1.0f + multiplier);
-            }
+            unit.setAbilityDamageMultiplier(1.0f + multiplier);
         }
     }
 
@@ -104,10 +122,8 @@ public class GenericTraitApplier implements TraitEffect {
         float threshold =
                 values.has("hpThreshold") ? (float) values.get("hpThreshold").asDouble() : 0f;
         for (GameUnit unit : units) {
-            if (hasTrait(unit)) {
-                unit.setLowHpDamageBonus(bonus);
-                unit.setLowHpDamageThreshold(threshold);
-            }
+            unit.setLowHpDamageBonus(bonus);
+            unit.setLowHpDamageThreshold(threshold);
         }
     }
 
@@ -116,19 +132,28 @@ public class GenericTraitApplier implements TraitEffect {
                 values.has("lifesteal") ? (float) values.get("lifesteal").asDouble() : 0f;
         boolean canRevive = values.has("revive") && values.get("revive").asBoolean();
         for (GameUnit unit : units) {
-            if (hasTrait(unit)) {
-                unit.setLifesteal(lifesteal);
-                if (canRevive) unit.setHasRevive(true);
-            }
+            unit.setLifesteal(lifesteal);
+            if (canRevive) unit.setHasRevive(true);
         }
     }
 
     private void applyExtraAttackChance(List<GameUnit> units, JsonNode values) {
         float chance = values.has("chance") ? (float) values.get("chance").asDouble() : 0f;
         for (GameUnit unit : units) {
-            if (hasTrait(unit)) {
-                unit.setExtraAttackChance(chance);
-            }
+            unit.setExtraAttackChance(chance);
+        }
+    }
+
+    private void applyOnHitDot(List<GameUnit> units, JsonNode values) {
+        float damageRatio =
+                values.has("damageRatio") ? (float) values.get("damageRatio").asDouble() : 0f;
+        long durationMs = values.has("durationMs") ? values.get("durationMs").asLong() : 2000L;
+        long tickIntervalMs =
+                values.has("tickIntervalMs") ? values.get("tickIntervalMs").asLong() : 1000L;
+        for (GameUnit unit : units) {
+            unit.setOnHitDotDamageRatio(damageRatio);
+            unit.setOnHitDotDurationMs(durationMs);
+            unit.setOnHitDotTickIntervalMs(tickIntervalMs);
         }
     }
 
@@ -136,9 +161,7 @@ public class GenericTraitApplier implements TraitEffect {
         float multiplier =
                 values.has("manaGain") ? (float) values.get("manaGain").asDouble() : 0f;
         for (GameUnit unit : units) {
-            if (hasTrait(unit)) {
-                unit.setManaGainMultiplier(1.0f + multiplier);
-            }
+            unit.setManaGainMultiplier(1.0f + multiplier);
         }
     }
 
@@ -147,10 +170,8 @@ public class GenericTraitApplier implements TraitEffect {
         float threshold =
                 values.has("hpThreshold") ? (float) values.get("hpThreshold").asDouble() : 0f;
         for (GameUnit unit : units) {
-            if (hasTrait(unit)) {
-                unit.setLowHpAsBonus(bonus);
-                unit.setLowHpAsThreshold(threshold);
-            }
+            unit.setLowHpAsBonus(bonus);
+            unit.setLowHpAsThreshold(threshold);
         }
     }
 
@@ -159,9 +180,7 @@ public class GenericTraitApplier implements TraitEffect {
                 ? (float) values.get("damagePerCell").asDouble()
                 : 0f;
         for (GameUnit unit : units) {
-            if (hasTrait(unit)) {
-                unit.setDamagePerCell(bonus);
-            }
+            unit.setDamagePerCell(bonus);
         }
     }
 
@@ -169,19 +188,15 @@ public class GenericTraitApplier implements TraitEffect {
         int min = values.has("goldMin") ? values.get("goldMin").asInt() : 0;
         int max = values.has("goldMax") ? values.get("goldMax").asInt() : 0;
         for (GameUnit unit : units) {
-            if (hasTrait(unit)) {
-                unit.setGoldBonusMin(min);
-                unit.setGoldBonusMax(max);
-            }
+            unit.setGoldBonusMin(min);
+            unit.setGoldBonusMax(max);
         }
     }
 
     private void applyHealAmp(List<GameUnit> units, JsonNode values) {
         float amp = values.has("healAmp") ? (float) values.get("healAmp").asDouble() : 0f;
         for (GameUnit unit : units) {
-            if (hasTrait(unit)) {
-                unit.setHealAmplification(1.0f + amp);
-            }
+            unit.setHealAmplification(1.0f + amp);
         }
     }
 
@@ -189,10 +204,8 @@ public class GenericTraitApplier implements TraitEffect {
         float as = values.has("as") ? (float) values.get("as").asDouble() : 0f;
         int duration = values.has("duration") ? values.get("duration").asInt() : 0;
         for (GameUnit unit : units) {
-            if (hasTrait(unit)) {
-                unit.setAsOnCast(as);
-                unit.setAsOnCastDuration(duration);
-            }
+            unit.setAsOnCast(as);
+            unit.setAsOnCastDuration(duration);
         }
     }
 
@@ -201,10 +214,8 @@ public class GenericTraitApplier implements TraitEffect {
         if (bonusHp <= 0) return;
 
         for (GameUnit unit : units) {
-            if (hasTrait(unit)) {
-                unit.setMaxHealth(unit.getMaxHealth() + bonusHp);
-                unit.setCurrentHealth(unit.getCurrentHealth() + bonusHp);
-            }
+            unit.setMaxHealth(unit.getMaxHealth() + bonusHp);
+            unit.setCurrentHealth(unit.getCurrentHealth() + bonusHp);
         }
     }
 
@@ -213,14 +224,12 @@ public class GenericTraitApplier implements TraitEffect {
         float bonusAs = values.has("as") ? (float) values.get("as").asDouble() : 0f;
 
         for (GameUnit unit : units) {
-            if (hasTrait(unit)) {
-                if (bonusHp > 0) {
-                    unit.setMaxHealth(unit.getMaxHealth() + bonusHp);
-                    unit.setCurrentHealth(unit.getCurrentHealth() + bonusHp);
-                }
-                if (bonusAs > 0) {
-                    unit.setAttackSpeed(unit.getAttackSpeed() + bonusAs);
-                }
+            if (bonusHp > 0) {
+                unit.setMaxHealth(unit.getMaxHealth() + bonusHp);
+                unit.setCurrentHealth(unit.getCurrentHealth() + bonusHp);
+            }
+            if (bonusAs > 0) {
+                unit.setAttackSpeed(unit.getAttackSpeed() + bonusAs);
             }
         }
     }
@@ -230,9 +239,7 @@ public class GenericTraitApplier implements TraitEffect {
         if (bonusAs <= 0) return;
 
         for (GameUnit unit : units) {
-            if (hasTrait(unit)) {
-                unit.setAttackSpeed(unit.getAttackSpeed() + bonusAs);
-            }
+            unit.setAttackSpeed(unit.getAttackSpeed() + bonusAs);
         }
     }
 
@@ -241,13 +248,11 @@ public class GenericTraitApplier implements TraitEffect {
         int bonusMr = values.has("mr") ? values.get("mr").asInt() : 0;
 
         for (GameUnit unit : units) {
-            if (hasTrait(unit)) {
-                if (bonusArmor > 0) {
-                    unit.setArmor(unit.getArmor() + bonusArmor);
-                }
-                if (bonusMr > 0) {
-                    unit.setMagicResist(unit.getMagicResist() + bonusMr);
-                }
+            if (bonusArmor > 0) {
+                unit.setArmor(unit.getArmor() + bonusArmor);
+            }
+            if (bonusMr > 0) {
+                unit.setMagicResist(unit.getMagicResist() + bonusMr);
             }
         }
     }
@@ -258,13 +263,11 @@ public class GenericTraitApplier implements TraitEffect {
                 values.has("shieldOnDeath") && values.get("shieldOnDeath").asBoolean();
 
         for (GameUnit unit : units) {
-            if (hasTrait(unit)) {
-                if (atkBuff > 0) {
-                    unit.setAtkBuff(unit.getAtkBuff() * (1f + atkBuff));
-                }
-                if (shieldOnDeath) {
-                    unit.setShieldOnDeath(true);
-                }
+            if (atkBuff > 0) {
+                unit.setAtkBuff(unit.getAtkBuff() * (1f + atkBuff));
+            }
+            if (shieldOnDeath) {
+                unit.setShieldOnDeath(true);
             }
         }
     }
@@ -274,10 +277,26 @@ public class GenericTraitApplier implements TraitEffect {
         if (bonusMana <= 0) return;
 
         for (GameUnit unit : units) {
-            if (hasTrait(unit)) {
-                unit.setMana(Math.min(unit.getMaxMana(), unit.getMana() + bonusMana));
-            }
+            unit.setMana(Math.min(unit.getMaxMana(), unit.getMana() + bonusMana));
         }
+    }
+
+    private void applyStartManaPercent(List<GameUnit> units, JsonNode values) {
+        float manaPercent =
+                values.has("manaPercent") ? (float) values.get("manaPercent").asDouble() : 0f;
+        if (manaPercent <= 0) return;
+
+        for (GameUnit unit : units) {
+            int bonusMana = Math.round(unit.getMaxMana() * manaPercent);
+            unit.setMana(Math.min(unit.getMaxMana(), unit.getMana() + bonusMana));
+        }
+    }
+
+    private List<GameUnit> getRecipients(List<GameUnit> units) {
+        if (targetScope == TraitTargetScope.TEAM) {
+            return units;
+        }
+        return units.stream().filter(this::hasTrait).toList();
     }
 
     private boolean hasTrait(GameUnit unit) {

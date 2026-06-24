@@ -6,6 +6,7 @@ import java.util.List;
 import net.lwenstrom.tft.backend.core.engine.GenericTraitApplier;
 import net.lwenstrom.tft.backend.core.engine.TraitManager;
 import net.lwenstrom.tft.backend.core.model.EffectType;
+import net.lwenstrom.tft.backend.core.model.TraitTargetScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.jackson.databind.JsonNode;
@@ -29,6 +30,10 @@ public class PokemonTraitLoader {
                         ? traitNode.get("effectType").asString()
                         : "NONE";
                 var effectType = EffectType.valueOf(effectTypeStr);
+                var targetScopeStr = traitNode.has("targetScope")
+                        ? traitNode.get("targetScope").asString()
+                        : TraitTargetScope.SELF.name();
+                var targetScope = TraitTargetScope.valueOf(targetScopeStr);
 
                 List<JsonNode> effects = new ArrayList<>();
                 if (traitNode.has("effects")) {
@@ -37,8 +42,13 @@ public class PokemonTraitLoader {
                     }
                 }
 
-                traitManager.registerEffect(traitId, new GenericTraitApplier(traitId, effectType, effects));
-                log.debug("Registered Pokemon trait: {} with effectType: {}", traitId, effectType);
+                traitManager.registerEffect(
+                        traitId, new GenericTraitApplier(traitId, effectType, targetScope, effects));
+                log.debug(
+                        "Registered Pokemon trait: {} with effectType: {} and scope: {}",
+                        traitId,
+                        effectType,
+                        targetScope);
             }
 
             log.info("Loaded {} traits from traits_pokemon.json", traitsArray.size());

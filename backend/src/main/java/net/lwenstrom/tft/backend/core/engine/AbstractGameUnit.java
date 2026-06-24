@@ -49,8 +49,15 @@ public abstract class AbstractGameUnit implements GameUnit {
     // Planning position (saved before combat)
     private int planningX = -1;
     private int planningY = -1;
+    private boolean savedPlanningStats = false;
     private int savedMaxHealth;
+    private int savedMaxMana;
+    private int savedAttackDamage;
+    private int savedAbilityPower;
+    private int savedArmor;
+    private int savedMagicResist;
     private float savedAttackSpeed;
+    private int savedMana;
 
     // Timing
     private long nextMoveTime;
@@ -65,6 +72,9 @@ public abstract class AbstractGameUnit implements GameUnit {
     private float lifesteal = 0.0f;
     private float manaGainMultiplier = 1.0f;
     private float extraAttackChance = 0.0f;
+    private float onHitDotDamageRatio = 0.0f;
+    private long onHitDotDurationMs = 0L;
+    private long onHitDotTickIntervalMs = 0L;
     private float damagePerCell = 0.0f;
     private float healAmplification = 1.0f;
     private boolean hasRevive = false;
@@ -153,8 +163,15 @@ public abstract class AbstractGameUnit implements GameUnit {
         // Planning position
         this.planningX = other.planningX;
         this.planningY = other.planningY;
+        this.savedPlanningStats = other.savedPlanningStats;
         this.savedMaxHealth = other.savedMaxHealth;
+        this.savedMaxMana = other.savedMaxMana;
+        this.savedAttackDamage = other.savedAttackDamage;
+        this.savedAbilityPower = other.savedAbilityPower;
+        this.savedArmor = other.savedArmor;
+        this.savedMagicResist = other.savedMagicResist;
         this.savedAttackSpeed = other.savedAttackSpeed;
+        this.savedMana = other.savedMana;
 
         // Timing
         this.nextMoveTime = other.nextMoveTime;
@@ -164,6 +181,25 @@ public abstract class AbstractGameUnit implements GameUnit {
         this.activeAbility = other.activeAbility;
         this.buffExpirationTime = other.buffExpirationTime;
         this.activeMusicianBuff = other.activeMusicianBuff;
+        this.abilityDamageMultiplier = other.abilityDamageMultiplier;
+        this.lifesteal = other.lifesteal;
+        this.manaGainMultiplier = other.manaGainMultiplier;
+        this.extraAttackChance = other.extraAttackChance;
+        this.onHitDotDamageRatio = other.onHitDotDamageRatio;
+        this.onHitDotDurationMs = other.onHitDotDurationMs;
+        this.onHitDotTickIntervalMs = other.onHitDotTickIntervalMs;
+        this.damagePerCell = other.damagePerCell;
+        this.healAmplification = other.healAmplification;
+        this.hasRevive = other.hasRevive;
+        this.reviveUsed = other.reviveUsed;
+        this.goldBonusMin = other.goldBonusMin;
+        this.goldBonusMax = other.goldBonusMax;
+        this.asOnCast = other.asOnCast;
+        this.asOnCastDuration = other.asOnCastDuration;
+        this.lowHpDamageBonus = other.lowHpDamageBonus;
+        this.lowHpDamageThreshold = other.lowHpDamageThreshold;
+        this.lowHpAsBonus = other.lowHpAsBonus;
+        this.lowHpAsThreshold = other.lowHpAsThreshold;
         this.shieldOnDeath = other.shieldOnDeath;
         this.shield = other.shield;
     }
@@ -435,8 +471,15 @@ public abstract class AbstractGameUnit implements GameUnit {
     public void savePlanningPosition() {
         this.planningX = x;
         this.planningY = y;
+        this.savedPlanningStats = true;
         this.savedMaxHealth = maxHealth;
+        this.savedMaxMana = maxMana;
+        this.savedAttackDamage = attackDamage;
+        this.savedAbilityPower = abilityPower;
+        this.savedArmor = armor;
+        this.savedMagicResist = magicResist;
         this.savedAttackSpeed = attackSpeed;
+        this.savedMana = mana;
     }
 
     @Override
@@ -445,17 +488,23 @@ public abstract class AbstractGameUnit implements GameUnit {
             this.x = planningX;
             this.y = planningY;
         }
-        if (savedMaxHealth > 0) {
+        if (savedPlanningStats) {
             this.maxHealth = savedMaxHealth;
-            this.currentHealth = this.maxHealth;
-        }
-        if (savedAttackSpeed > 0) {
+            this.maxMana = savedMaxMana;
+            this.attackDamage = savedAttackDamage;
+            this.abilityPower = savedAbilityPower;
+            this.armor = savedArmor;
+            this.magicResist = savedMagicResist;
             this.attackSpeed = savedAttackSpeed;
+            this.currentHealth = this.maxHealth;
+            this.mana = Math.min(savedMana, this.maxMana);
         }
         // Reset combat buffs
         this.stunSecondsRemaining = 0;
         this.atkBuff = 1.0f;
         this.spdBuff = 1.0f;
+        this.activeMusicianBuff = 0.0f;
+        this.buffExpirationTime = 0;
         this.dotEffects.clear();
 
         // Reset trait values
@@ -463,6 +512,9 @@ public abstract class AbstractGameUnit implements GameUnit {
         this.lifesteal = 0.0f;
         this.manaGainMultiplier = 1.0f;
         this.extraAttackChance = 0.0f;
+        this.onHitDotDamageRatio = 0.0f;
+        this.onHitDotDurationMs = 0L;
+        this.onHitDotTickIntervalMs = 0L;
         this.damagePerCell = 0.0f;
         this.healAmplification = 1.0f;
         this.hasRevive = false;
@@ -517,6 +569,36 @@ public abstract class AbstractGameUnit implements GameUnit {
     @Override
     public void setExtraAttackChance(float chance) {
         this.extraAttackChance = chance;
+    }
+
+    @Override
+    public float getOnHitDotDamageRatio() {
+        return onHitDotDamageRatio;
+    }
+
+    @Override
+    public void setOnHitDotDamageRatio(float ratio) {
+        this.onHitDotDamageRatio = ratio;
+    }
+
+    @Override
+    public long getOnHitDotDurationMs() {
+        return onHitDotDurationMs;
+    }
+
+    @Override
+    public void setOnHitDotDurationMs(long durationMs) {
+        this.onHitDotDurationMs = durationMs;
+    }
+
+    @Override
+    public long getOnHitDotTickIntervalMs() {
+        return onHitDotTickIntervalMs;
+    }
+
+    @Override
+    public void setOnHitDotTickIntervalMs(long tickIntervalMs) {
+        this.onHitDotTickIntervalMs = tickIntervalMs;
     }
 
     @Override

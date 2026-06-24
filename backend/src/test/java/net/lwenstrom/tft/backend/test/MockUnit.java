@@ -1,8 +1,10 @@
 package net.lwenstrom.tft.backend.test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
+import net.lwenstrom.tft.backend.core.model.DotEffect;
 import net.lwenstrom.tft.backend.core.model.GameItem;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 
@@ -22,12 +24,21 @@ public class MockUnit implements GameUnit {
     private float attackSpeed = 1.0f;
     private int range = 1;
     private Set<String> traits = Set.of();
+    private final List<DotEffect> dotEffects = new ArrayList<>();
     private int starLevel = 1;
     private String ownerId;
     private int x = 0;
     private int y = 0;
     private int savedX = 0;
     private int savedY = 0;
+    private int savedMaxHealth = 100;
+    private int savedMaxMana = 100;
+    private int savedAttackDamage = 10;
+    private int savedAbilityPower = 0;
+    private int savedArmor = 0;
+    private int savedMagicResist = 0;
+    private float savedAttackSpeed = 1.0f;
+    private int savedMana = 0;
     private long nextAttackTime = 0;
     private long nextMoveTime = 0;
     private AbilityDefinition ability;
@@ -38,6 +49,9 @@ public class MockUnit implements GameUnit {
     private float lifesteal = 0.0f;
     private float manaGainMultiplier = 1.0f;
     private float extraAttackChance = 0.0f;
+    private float onHitDotDamageRatio = 0.0f;
+    private long onHitDotDurationMs = 0L;
+    private long onHitDotTickIntervalMs = 0L;
     private float damagePerCell = 0.0f;
     private float healAmplification = 1.0f;
     private boolean hasRevive = false;
@@ -191,6 +205,16 @@ public class MockUnit implements GameUnit {
     }
 
     @Override
+    public List<DotEffect> getDotEffects() {
+        return dotEffects;
+    }
+
+    @Override
+    public void addDotEffect(DotEffect effect) {
+        dotEffects.add(effect);
+    }
+
+    @Override
     public int getX() {
         return x;
     }
@@ -262,6 +286,31 @@ public class MockUnit implements GameUnit {
     }
 
     @Override
+    public void setMaxMana(int maxMana) {
+        this.maxMana = maxMana;
+    }
+
+    @Override
+    public void setAttackDamage(int attackDamage) {
+        this.attackDamage = attackDamage;
+    }
+
+    @Override
+    public void setAbilityPower(int abilityPower) {
+        this.abilityPower = abilityPower;
+    }
+
+    @Override
+    public void setArmor(int armor) {
+        this.armor = armor;
+    }
+
+    @Override
+    public void setMagicResist(int magicResist) {
+        this.magicResist = magicResist;
+    }
+
+    @Override
     public void setAttackSpeed(float attackSpeed) {
         this.attackSpeed = attackSpeed;
     }
@@ -270,12 +319,52 @@ public class MockUnit implements GameUnit {
     public void savePlanningPosition() {
         this.savedX = this.x;
         this.savedY = this.y;
+        this.savedMaxHealth = this.maxHealth;
+        this.savedMaxMana = this.maxMana;
+        this.savedAttackDamage = this.attackDamage;
+        this.savedAbilityPower = this.abilityPower;
+        this.savedArmor = this.armor;
+        this.savedMagicResist = this.magicResist;
+        this.savedAttackSpeed = this.attackSpeed;
+        this.savedMana = this.mana;
     }
 
     @Override
     public void restorePlanningPosition() {
         this.x = this.savedX;
         this.y = this.savedY;
+        this.maxHealth = this.savedMaxHealth;
+        this.currentHealth = this.savedMaxHealth;
+        this.maxMana = this.savedMaxMana;
+        this.attackDamage = this.savedAttackDamage;
+        this.abilityPower = this.savedAbilityPower;
+        this.armor = this.savedArmor;
+        this.magicResist = this.savedMagicResist;
+        this.attackSpeed = this.savedAttackSpeed;
+        this.mana = Math.min(this.savedMana, this.maxMana);
+        this.stunSecondsRemaining = 0;
+        this.atkBuff = 1.0f;
+        this.spdBuff = 1.0f;
+        this.abilityDamageMultiplier = 1.0f;
+        this.lifesteal = 0.0f;
+        this.manaGainMultiplier = 1.0f;
+        this.extraAttackChance = 0.0f;
+        this.onHitDotDamageRatio = 0.0f;
+        this.onHitDotDurationMs = 0L;
+        this.onHitDotTickIntervalMs = 0L;
+        this.damagePerCell = 0.0f;
+        this.healAmplification = 1.0f;
+        this.hasRevive = false;
+        this.reviveUsed = false;
+        this.goldBonusMin = 0;
+        this.goldBonusMax = 0;
+        this.asOnCast = 0.0f;
+        this.asOnCastDuration = 0;
+        this.lowHpDamageBonus = 0.0f;
+        this.lowHpDamageThreshold = 0.0f;
+        this.lowHpAsBonus = 0.0f;
+        this.lowHpAsThreshold = 0.0f;
+        this.dotEffects.clear();
     }
 
     @Override
@@ -371,6 +460,36 @@ public class MockUnit implements GameUnit {
     @Override
     public void setExtraAttackChance(float chance) {
         this.extraAttackChance = chance;
+    }
+
+    @Override
+    public float getOnHitDotDamageRatio() {
+        return onHitDotDamageRatio;
+    }
+
+    @Override
+    public void setOnHitDotDamageRatio(float ratio) {
+        this.onHitDotDamageRatio = ratio;
+    }
+
+    @Override
+    public long getOnHitDotDurationMs() {
+        return onHitDotDurationMs;
+    }
+
+    @Override
+    public void setOnHitDotDurationMs(long durationMs) {
+        this.onHitDotDurationMs = durationMs;
+    }
+
+    @Override
+    public long getOnHitDotTickIntervalMs() {
+        return onHitDotTickIntervalMs;
+    }
+
+    @Override
+    public void setOnHitDotTickIntervalMs(long tickIntervalMs) {
+        this.onHitDotTickIntervalMs = tickIntervalMs;
     }
 
     @Override
@@ -510,11 +629,20 @@ public class MockUnit implements GameUnit {
         clone.attackSpeed = this.attackSpeed;
         clone.range = this.range;
         clone.traits = this.traits;
+        clone.dotEffects.addAll(this.dotEffects);
         clone.starLevel = this.starLevel;
         clone.x = this.x;
         clone.y = this.y;
         clone.savedX = this.savedX;
         clone.savedY = this.savedY;
+        clone.savedMaxHealth = this.savedMaxHealth;
+        clone.savedMaxMana = this.savedMaxMana;
+        clone.savedAttackDamage = this.savedAttackDamage;
+        clone.savedAbilityPower = this.savedAbilityPower;
+        clone.savedArmor = this.savedArmor;
+        clone.savedMagicResist = this.savedMagicResist;
+        clone.savedAttackSpeed = this.savedAttackSpeed;
+        clone.savedMana = this.savedMana;
         clone.nextAttackTime = this.nextAttackTime;
         clone.nextMoveTime = this.nextMoveTime;
         clone.ability = this.ability;
@@ -526,6 +654,9 @@ public class MockUnit implements GameUnit {
         clone.lifesteal = this.lifesteal;
         clone.manaGainMultiplier = this.manaGainMultiplier;
         clone.extraAttackChance = this.extraAttackChance;
+        clone.onHitDotDamageRatio = this.onHitDotDamageRatio;
+        clone.onHitDotDurationMs = this.onHitDotDurationMs;
+        clone.onHitDotTickIntervalMs = this.onHitDotTickIntervalMs;
         clone.damagePerCell = this.damagePerCell;
         clone.healAmplification = this.healAmplification;
         clone.hasRevive = this.hasRevive;

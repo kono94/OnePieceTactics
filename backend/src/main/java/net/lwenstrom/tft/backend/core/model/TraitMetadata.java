@@ -10,6 +10,7 @@ public record TraitMetadata(
         String name,
         String description,
         String type,
+        TraitTargetScope targetScope,
         String iconColor,
         List<TraitEffect> effects,
         Map<String, Object> extras) {

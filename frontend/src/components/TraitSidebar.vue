@@ -19,9 +19,10 @@ const processedTraits = computed(() => {
         // Guard against incomplete unit data
         if (!u.name) return;
         
-        // Only count unique units (by name) for trait purposes
-        if (!uniqueUnits.has(u.name)) {
-            uniqueUnits.add(u.name);
+        // Backend trait counts use lineId so evolved forms still count as one line.
+        const unitKey = u.lineId || u.definitionId || u.name;
+        if (!uniqueUnits.has(unitKey)) {
+            uniqueUnits.add(unitKey);
             
             if (u.traits && Array.isArray(u.traits)) {
                 u.traits.forEach((tName: string) => {

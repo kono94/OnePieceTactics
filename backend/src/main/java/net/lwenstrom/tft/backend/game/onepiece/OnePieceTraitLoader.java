@@ -6,6 +6,7 @@ import java.util.List;
 import net.lwenstrom.tft.backend.core.engine.GenericTraitApplier;
 import net.lwenstrom.tft.backend.core.engine.TraitManager;
 import net.lwenstrom.tft.backend.core.model.EffectType;
+import net.lwenstrom.tft.backend.core.model.TraitTargetScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.jackson.databind.JsonNode;
@@ -34,6 +35,10 @@ public class OnePieceTraitLoader {
                         ? traitNode.get("effectType").asString()
                         : "NONE";
                 var effectType = EffectType.valueOf(effectTypeStr);
+                var targetScopeStr = traitNode.has("targetScope")
+                        ? traitNode.get("targetScope").asString()
+                        : TraitTargetScope.SELF.name();
+                var targetScope = TraitTargetScope.valueOf(targetScopeStr);
 
                 List<JsonNode> effects = new ArrayList<>();
                 if (traitNode.has("effects")) {
@@ -42,9 +47,9 @@ public class OnePieceTraitLoader {
                     }
                 }
 
-                var applier = new GenericTraitApplier(traitId, effectType, effects);
+                var applier = new GenericTraitApplier(traitId, effectType, targetScope, effects);
                 traitManager.registerEffect(traitId, applier);
-                log.debug("Registered trait: {} with effectType: {}", traitId, effectType);
+                log.debug("Registered trait: {} with effectType: {} and scope: {}", traitId, effectType, targetScope);
             }
 
             log.info("Loaded {} traits from traits_onepiece.json", traitsArray.size());

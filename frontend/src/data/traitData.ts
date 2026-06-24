@@ -11,7 +11,8 @@ export interface TraitDefinition {
     name: string; // "Straw Hat", "Fighter"
     description: string;
     effects: TraitEffect[];
-    type: 'origin' | 'class';
+    type: 'origin' | 'class' | 'type';
+    targetScope?: 'SELF' | 'TEAM';
     iconColor: string; // Simple hex for placeholder
     effectType?: string;
 }

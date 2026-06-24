@@ -4,15 +4,27 @@ import static net.lwenstrom.tft.backend.test.TestHelpers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
+import java.util.Set;
+import net.lwenstrom.tft.backend.core.combat.BfsUnitMover;
+import net.lwenstrom.tft.backend.core.combat.DefaultAbilityCaster;
+import net.lwenstrom.tft.backend.core.combat.NearestEnemyTargetSelector;
 import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
 import net.lwenstrom.tft.backend.core.model.AbilityPattern;
 import net.lwenstrom.tft.backend.core.model.AbilityType;
 import net.lwenstrom.tft.backend.core.model.DotModifier;
+import net.lwenstrom.tft.backend.core.model.EffectType;
+import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
+import net.lwenstrom.tft.backend.core.model.TraitTargetScope;
+import net.lwenstrom.tft.backend.test.MockUnit;
 import net.lwenstrom.tft.backend.test.TestHelpers;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 class ShieldAndDotCombatTest {
+    private final JsonMapper jsonMapper = JsonMapper.builder().build();
+
     @Test
     void shieldAbilityGrantsShieldAndAbsorbsDamage() {
         var ability = new AbilityDefinition(
@@ -87,5 +99,90 @@ class ShieldAndDotCombatTest {
         assertNotNull(damageEntry);
         assertEquals("caster", damageEntry.definitionId());
         assertTrue(damageEntry.damage() >= 65);
+    }
+
+    @Test
+    void onHitDotRefreshesInsteadOfStackingForSameSourceAndTarget() throws Exception {
+        var traitManager = new TraitManager();
+        traitManager.registerEffect(
+                "poison",
+                new GenericTraitApplier("poison", EffectType.ON_HIT_DOT, TraitTargetScope.TEAM, effects("""
+                                [{"minUnits":1,"values":{"damageRatio":0.10,"durationMs":2000,"tickIntervalMs":1000}}]
+                                """)));
+
+        var clock = createTestClock();
+        var combatSystem = new CombatSystem(
+                traitManager,
+                clock,
+                new NearestEnemyTargetSelector(),
+                new BfsUnitMover(clock),
+                new DefaultAbilityCaster());
+        var p1 = new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 = new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var attacker = MockUnit.create("attacker", p1.getId())
+                .withTraits(Set.of("Poison"))
+                .withAttackDamage(100)
+                .withRange(10);
+        var target =
+                MockUnit.create("target", p2.getId()).withHealth(1000, 1000).withRange(1);
+        target.setNextAttackTime(10_000);
+        TestHelpers.addUnitToPlayer(p1, attacker);
+        TestHelpers.addUnitToPlayer(p2, target);
+
+        combatSystem.startCombat(List.of(p1, p2));
+        combatSystem.simulateTick(List.of(p1, p2));
+
+        assertEquals(1, target.getDotEffects().size());
+        var firstExpiresAt = target.getDotEffects().getFirst().expiresAt();
+
+        attacker.setNextAttackTime(0);
+        clock.advance(500);
+        combatSystem.simulateTick(List.of(p1, p2));
+
+        assertEquals(1, target.getDotEffects().size());
+        assertTrue(target.getDotEffects().getFirst().expiresAt() > firstExpiresAt);
+    }
+
+    @Test
+    void traitStatBonusesDoNotStackAcrossRepeatedCombats() throws Exception {
+        var traitManager = new TraitManager();
+        traitManager.registerEffect(
+                "ground",
+                new GenericTraitApplier("ground", EffectType.ARMOR_AND_MR, TraitTargetScope.TEAM, effects("""
+                                [{"minUnits":1,"values":{"armor":18,"mr":18}}]
+                                """)));
+
+        var clock = createTestClock();
+        var combatSystem = new CombatSystem(
+                traitManager,
+                clock,
+                new NearestEnemyTargetSelector(),
+                new BfsUnitMover(clock),
+                new DefaultAbilityCaster());
+        var p1 = new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var ground = MockUnit.create("ground", p1.getId()).withTraits(Set.of("Ground"));
+        var normal = MockUnit.create("normal", p1.getId()).withTraits(Set.of("Normal"));
+        TestHelpers.addUnitToPlayer(p1, ground);
+        TestHelpers.addUnitToPlayer(p1, normal);
+
+        combatSystem.startCombat(List.of(p1));
+        assertEquals(18, ground.getArmor());
+        assertEquals(18, normal.getArmor());
+        combatSystem.endCombat(List.of(p1));
+        assertEquals(0, ground.getArmor());
+        assertEquals(0, normal.getArmor());
+
+        combatSystem.startCombat(List.of(p1));
+        assertEquals(18, ground.getArmor());
+        assertEquals(18, normal.getArmor());
+    }
+
+    private List<JsonNode> effects(String json) throws Exception {
+        var result = new java.util.ArrayList<JsonNode>();
+        var array = jsonMapper.readTree(json);
+        for (var effect : array) {
+            result.add(effect);
+        }
+        return result;
     }
 }

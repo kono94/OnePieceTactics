@@ -160,6 +160,24 @@ public interface GameUnit {
 
     default void setExtraAttackChance(float chance) {}
 
+    default float getOnHitDotDamageRatio() {
+        return 0.0f;
+    }
+
+    default void setOnHitDotDamageRatio(float ratio) {}
+
+    default long getOnHitDotDurationMs() {
+        return 0L;
+    }
+
+    default void setOnHitDotDurationMs(long durationMs) {}
+
+    default long getOnHitDotTickIntervalMs() {
+        return 0L;
+    }
+
+    default void setOnHitDotTickIntervalMs(long tickIntervalMs) {}
+
     default float getDamagePerCell() {
         return 0.0f;
     }
