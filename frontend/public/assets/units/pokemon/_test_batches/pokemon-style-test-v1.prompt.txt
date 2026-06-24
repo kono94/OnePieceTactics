@@ -1,8 +1,0 @@
-Use case: stylized-concept
-Asset type: auto-battler unit icon test batch
-Primary request: Create a single 1024x1024 image split into four equal quadrants, each with an original creature portrait for style testing.
-Subjects: Top-left a small green plant-backed seed creature with broad leaves and a determined face; top-right a small orange fire-tailed lizard creature with a bright ember tail; bottom-left a small blue turtle creature with a rounded shell and confident expression; bottom-right a small elegant blue serpentine dragon hatchling with white fins and soft eyes.
-Style/medium: high-quality modern pixel art portrait, close-up head-and-shoulders or upper-body framing, centered and filling most of each quadrant, thick dark navy/black pixel outline, clean chunky pixel grid, saturated cel-shaded colors, crisp sharp edges.
-Composition/framing: cute but battle-ready, clean readable silhouettes suitable for a small auto-battler unit icon.
-Scene/backdrop: soft very light pastel game-icon backgrounds, one per quadrant; keep backgrounds simple and mostly flat.
-Constraints: original creature designs only, no existing branded characters, no text, no watermark, no UI frame, no decorative border beyond the quadrant split, no realistic rendering, no painterly blur, no distracting gradients.
