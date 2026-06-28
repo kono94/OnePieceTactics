@@ -1,8 +1,9 @@
----
-trigger: always_on
----
-
 # Project Guidelines
+
+## Project Context
+- Start with [README.md](README.md) for project overview, quick start, architecture, and API reference.
+- Use [backend/BACKEND_CONTEXT.md](backend/BACKEND_CONTEXT.md) for backend architecture, game engine details, WebSocket contracts, and state management.
+- Use [frontend/FRONTEND_CONTEXT.md](frontend/FRONTEND_CONTEXT.md) for Vue architecture, component structure, rendering responsibilities, and frontend data flow.
 
 ## 1. Tech Stack & Environment
 - **Java**: Version 25 (Preview features enabled).
