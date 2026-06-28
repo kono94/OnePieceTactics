@@ -5,14 +5,21 @@
     </h3>
     
     <div class="list-container custom-scrollbar">
-      <div 
-        v-for="(player, index) in sortedPlayers" 
+      <div
+        v-for="player in sortedPlayers"
         :key="player.playerId"
         class="player-item"
         :class="[
           player.playerId === myPlayerId ? 'my-player' : 'other-player',
-          player.health <= 0 ? 'dead' : ''
+          player.playerId === selectedPlayerId ? 'selected-player' : '',
+          player.health <= 0 ? 'dead' : '',
+          isSelectable(player) ? 'selectable' : ''
         ]"
+        :tabindex="isSelectable(player) ? 0 : -1"
+        :role="isSelectable(player) ? 'button' : undefined"
+        @click="selectPlayer(player)"
+        @keydown.enter="selectPlayer(player)"
+        @keydown.space.prevent="selectPlayer(player)"
       >
         <!-- Avatar/Icon Placeholder -->
         <div class="avatar-box">
@@ -51,6 +58,11 @@ import type { PlayerState } from '../types';
 const props = defineProps<{
   players: PlayerState[];
   myPlayerId: string | undefined;
+  selectedPlayerId: string | undefined;
+}>();
+
+const emit = defineEmits<{
+  'select-player': [playerId: string]
 }>();
 
 const sortedPlayers = computed(() => {
@@ -78,6 +90,17 @@ const sortedPlayers = computed(() => {
     return 0;
   });
 });
+
+function isSelectable(player: PlayerState) {
+    if (player.playerId === props.myPlayerId) return true;
+    return player.health > 0 && !player.isGhost;
+}
+
+function selectPlayer(player: PlayerState) {
+    if (!isSelectable(player)) return;
+    emit('select-player', player.playerId);
+}
+
 function getHealthColor(health: number) {
     if (health > 50) return 'text-green-400';
     if (health > 20) return 'text-yellow-400';
@@ -142,13 +165,25 @@ function getHealthBarClass(health: number) {
     transition: all 0.2s;
 }
 
+.player-item.selectable {
+    cursor: pointer;
+}
+
 .player-item.my-player {
     background: rgba(51, 65, 85, 0.6);
     border: 1px solid rgba(245, 158, 11, 0.5);
 }
 
-.player-item:hover {
+.player-item.selectable:hover,
+.player-item.selectable:focus-visible {
     background: rgba(51, 65, 85, 0.8);
+    outline: none;
+}
+
+.player-item.selected-player {
+    background: rgba(30, 64, 175, 0.46);
+    border: 1px solid rgba(96, 165, 250, 0.8);
+    box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.22), 0 0 16px rgba(37, 99, 235, 0.22);
 }
 
 .player-item.dead {

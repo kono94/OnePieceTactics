@@ -9,7 +9,9 @@ import { getRarityColor, TEAM_COLORS } from '../utils/colorUtils'
 
 const props = defineProps<{
     state: GameState | null,
-    myPlayerId?: string,
+    actingPlayerId?: string,
+    viewedPlayerId?: string,
+    isReadOnly?: boolean,
     isDraggingProp?: boolean
 }>()
 
@@ -21,33 +23,29 @@ const GRID_COLS = 9
 const PLAYER_ROWS = 3 // Height of one player's board (half of arena)
 const GRID_GUTTER = 6 // Space between cells and board border to prevent clipping
 
+const currentViewedPlayerId = computed(() => props.viewedPlayerId || props.actingPlayerId)
+const isHomeView = computed(() => !!props.actingPlayerId && currentViewedPlayerId.value === props.actingPlayerId)
+
 const renderedUnits = computed((): RenderedUnit[] => {
     const state = props.state
-    if (!state || !state.players) return []
+    const viewedId = currentViewedPlayerId.value
+    if (!state || !state.players || !viewedId) return []
     let allUnits: RenderedUnit[] = []
     
     const isCombat = state.phase === 'COMBAT'
-    const myId = props.myPlayerId
-    
-    // Check explicit combatSide from backend
-    let shouldFlip = false
-    if (isCombat && myId) {
-        const myPlayer = state.players[myId]
-        if (myPlayer && myPlayer.combatSide === 'TOP') {
-            shouldFlip = true
-        }
-    }
+    const viewedPlayer = state.players[viewedId]
+    const shouldFlip = isCombat && viewedPlayer?.combatSide === 'TOP'
+    const opponentId = isCombat ? state.matchups?.[viewedId] : null
+    const visiblePlayerIds = new Set<string>([viewedId])
+    if (opponentId) visiblePlayerIds.add(opponentId)
     
     Object.values(state.players).forEach((player: PlayerState) => {
-        if (player.playerId !== myId) {
-             if (isCombat) {
-                 const oppId = (state.matchups && myId) ? state.matchups[myId] : null
-                 if (player.playerId !== oppId) {
-                     return; 
-                 }
-             } else {
-                 return; 
-             }
+        if (!visiblePlayerIds.has(player.playerId)) {
+            return
+        }
+
+        if (!isCombat && player.playerId !== viewedId) {
+            return
         }
 
         const board = player.boardUnits || player.board
@@ -59,17 +57,12 @@ const renderedUnits = computed((): RenderedUnit[] => {
                     let visualY = u.y;
                     
                     if (isCombat) {
-                        // Combat Logic using Constants
                         if (shouldFlip) {
-                            visualX = u.x; // No X-flip, strict reflection
+                            visualX = u.x;
                             visualY = (GRID_ROWS - 1) - u.y;
                         }
                     } else {
-                        // Planning Phase: I see only my units (0-3).
-                        // I want them at Bottom (4-7).
-                        if (player.playerId === myId) {
-                             visualY = u.y + PLAYER_ROWS;
-                        }
+                        visualY = u.y + PLAYER_ROWS;
                     }
                     
                     return {
@@ -77,7 +70,7 @@ const renderedUnits = computed((): RenderedUnit[] => {
                         visualX,
                         visualY,
                         ownerId: player.playerId,
-                        isMine: player.playerId === myId,
+                        isMine: player.playerId === viewedId,
                         image: getUnitIconPath(u.definitionId, props.state?.gameMode)
                     }
                 }))
@@ -88,8 +81,8 @@ const renderedUnits = computed((): RenderedUnit[] => {
 
 const renderedOrbs = computed((): RenderedOrb[] => {
     const state = props.state
-    if (!state || !state.players || !props.myPlayerId) return []
-    const myPlayer = state.players[props.myPlayerId]
+    if (!state || !state.players || !props.actingPlayerId || !isHomeView.value) return []
+    const myPlayer = state.players[props.actingPlayerId]
     if (!myPlayer || !myPlayer.lootOrbs) return []
 
     return myPlayer.lootOrbs.map((orb): RenderedOrb => {
@@ -182,17 +175,17 @@ const getUnitStyle = (unit: RenderedUnit) => {
     return styles;
 }
 
-const myPlayerName = computed(() => {
+const viewedPlayerName = computed(() => {
      const state = props.state
-     if (!state || !state.players || !props.myPlayerId) return 'Me'
-     const p = state.players[props.myPlayerId]
+     if (!state || !state.players || !currentViewedPlayerId.value) return 'Me'
+     const p = state.players[currentViewedPlayerId.value]
      return p ? p.name : 'Me'
 })
 
 const opponentName = computed(() => {
      const state = props.state
-     if (!state || !state.matchups || !props.myPlayerId) return null
-     const oppId = state.matchups[props.myPlayerId]
+     if (!state || !state.matchups || !currentViewedPlayerId.value) return null
+     const oppId = state.matchups[currentViewedPlayerId.value]
      if (!oppId) return null
      const p = state.players[oppId]
      if (!p) return 'Opponent'
@@ -200,7 +193,7 @@ const opponentName = computed(() => {
 })
 
 const onDragStart = (evt: DragEvent, unit: RenderedUnit) => {
-    if (unit.ownerId !== props.myPlayerId || props.state?.phase === 'COMBAT') {
+    if (props.isReadOnly || unit.ownerId !== props.actingPlayerId || props.state?.phase === 'COMBAT') {
         evt.preventDefault()
         return
     }
@@ -233,8 +226,7 @@ const onDrop = (evt: DragEvent, x: number, y: number) => {
     isDragging.value = false
     dragOverCellIndex.value = -1
     
-    // Block grid drops during combat
-    if (props.state?.phase === 'COMBAT') {
+    if (props.isReadOnly || props.state?.phase === 'COMBAT') {
         onDragEnd() // Ensure drag state is cleared immediately (fixes lag)
         return 
     }
@@ -254,8 +246,7 @@ const onDrop = (evt: DragEvent, x: number, y: number) => {
 const onDragOver = (evt: DragEvent, cellIndex: number) => {
     evt.preventDefault() 
     
-    // Block grid interaction during combat
-    if (props.state?.phase === 'COMBAT') {
+    if (props.isReadOnly || props.state?.phase === 'COMBAT') {
         dragOverCellIndex.value = -1
         if (evt.dataTransfer) {
             evt.dataTransfer.dropEffect = 'none'
@@ -331,6 +322,20 @@ interface FloatingText {
 }
 const castingAnimations = ref<FloatingText[]>([])
 const floatingHeals = ref<FloatingText[]>([])
+
+function clearCombatVisualState() {
+    prevHealthMap.value = {}
+    prevUnitsMap.value.clear()
+    dyingUnits.value.clear()
+    dyingUnitData.value.clear()
+    combatVisualEvents.value = []
+    hitFlashUnits.value = new Set()
+    attackingUnits.value = new Set()
+    castingUnits.value = new Set()
+    castingAnimations.value = []
+    floatingHeals.value = []
+    lastProcessedEventTime.value = 0
+}
 
 // Find nearest enemy for a unit (to animate attacks toward)
 function findNearestEnemy(unit: RenderedUnit, allUnits: RenderedUnit[]): RenderedUnit | null {
@@ -540,16 +545,7 @@ watch(() => renderedUnits.value, (newUnits) => {
     prevPhase.value = currentPhase
     
     if (!isCombat) {
-        // Clear tracking when not in combat, including dying units
-        prevHealthMap.value = {}
-        prevUnitsMap.value.clear()
-        // Clear dying units to stop any looping death animations
-        dyingUnits.value.clear()
-        dyingUnitData.value.clear()
-        combatVisualEvents.value = []
-        hitFlashUnits.value = new Set()
-        attackingUnits.value = new Set()
-        castingUnits.value = new Set()
+        clearCombatVisualState()
         return
     }
     
@@ -619,15 +615,14 @@ function triggerStarUpCelebration(unitId: string) {
 
 // Watch for star level changes (happens during planning phase when combining units)
 watch(() => props.state, (newState) => {
-    if (!newState || !newState.players || !props.myPlayerId) return
+    if (!newState || !newState.players || !currentViewedPlayerId.value) return
     
-    const myPlayer = newState.players[props.myPlayerId]
-    if (!myPlayer) return
+    const viewedPlayer = newState.players[currentViewedPlayerId.value]
+    if (!viewedPlayer) return
     
-    // Check all units (board and bench) for star level changes
-    const allMyUnits = [...(myPlayer.board || []), ...(myPlayer.bench || [])]
+    const viewedBoardUnits = viewedPlayer.board || []
     
-    allMyUnits.forEach((unit: GameUnit) => {
+    viewedBoardUnits.forEach((unit: GameUnit) => {
         if (!unit) return
         const prevStarLevel = prevStarLevelMap.value[unit.id]
         const currentStarLevel = unit.starLevel || 1
@@ -647,6 +642,13 @@ watch(() => props.state, (newState) => {
         prevStarLevelMap.value[unit.id] = currentStarLevel
     })
 }, { deep: true })
+
+watch(currentViewedPlayerId, () => {
+    clearCombatVisualState()
+    prevStarLevelMap.value = {}
+    dragOverCellIndex.value = -1
+    hoveredUnitId.value = null
+})
 
 // Check if a unit is celebrating star-up
 function isStarringUp(unitId: string): boolean {
@@ -670,13 +672,13 @@ const onOrbClick = (orbId: string) => {
                 gridTemplateRows: `repeat(${GRID_ROWS}, ${CELL_SIZE}px)`
             }" @mouseleave="dragOverCellIndex = -1">
                 <!-- Render Grid Cells as Drop Zones -->
-                <div v-for="i in (GRID_ROWS * GRID_COLS)" :key="'cell-'+i" 
-                     class="cell" 
-                     :class="{ 
-                        'player-half': Math.floor((i-1)/GRID_COLS) >= PLAYER_ROWS, 
+                <div v-for="i in (GRID_ROWS * GRID_COLS)" :key="'cell-'+i"
+                     class="cell"
+                     :class="{
+                        'player-half': Math.floor((i-1)/GRID_COLS) >= PLAYER_ROWS,
                         'enemy-half': Math.floor((i-1)/GRID_COLS) < PLAYER_ROWS,
-                        'highlight-drop': (isDragging || isDraggingProp) && Math.floor((i-1)/GRID_COLS) >= PLAYER_ROWS && props.state?.phase !== 'COMBAT',
-                        'active-drop': dragOverCellIndex === (i-1) && Math.floor((i-1)/GRID_COLS) >= PLAYER_ROWS && props.state?.phase !== 'COMBAT'
+                        'highlight-drop': (isDragging || isDraggingProp) && !isReadOnly && Math.floor((i-1)/GRID_COLS) >= PLAYER_ROWS && props.state?.phase !== 'COMBAT',
+                        'active-drop': dragOverCellIndex === (i-1) && !isReadOnly && Math.floor((i-1)/GRID_COLS) >= PLAYER_ROWS && props.state?.phase !== 'COMBAT'
                      }"
                      @dragover="(e) => onDragOver(e, i-1)"
                      @dragleave="onDragLeave"
@@ -695,28 +697,28 @@ const onOrbClick = (orbId: string) => {
                     />
 
                     <!-- Render Units -->
-                    <div v-for="unit in displayedUnits" :key="unit.id" 
-                         class="unit" 
+                    <div v-for="unit in displayedUnits" :key="unit.id"
+                         class="unit"
                          :style="getUnitStyle(unit)"
-                         :class="{ 
-                            'mine': unit.ownerId === myPlayerId, 
-                            'dying': unit.isDying, 
+                         :class="{
+                            'mine': unit.isMine,
+                            'dying': unit.isDying,
                             'star-up': isStarringUp(unit.id),
                             'hit-flash': hitFlashUnits.has(unit.id),
                             'attacking-lunge': attackingUnits.has(unit.id),
                             'casting-glow': castingUnits.has(unit.id),
                             'ultimate-caster': castingUnits.has(unit.id) && (unit.starLevel || 1) >= 3
                          }"
-                         :draggable="unit.ownerId === myPlayerId && !unit.isDying"
+                         :draggable="unit.ownerId === actingPlayerId && !isReadOnly && props.state?.phase !== 'COMBAT' && !unit.isDying"
                          @dragstart="(e) => onDragStart(e, unit)"
                          @dragend="onDragEnd"
                          @mouseenter="(e) => onUnitMouseEnter(e, unit)"
                          @mouseleave="onUnitMouseLeave">
-                         
+
                         <div class="hp-bar-container">
-                            <div class="hp-bar-fill" :style="{ 
+                            <div class="hp-bar-fill" :style="{
                                 width: (unit.currentHealth / unit.maxHealth * 100) + '%',
-                                backgroundColor: unit.ownerId === myPlayerId ? TEAM_COLORS.FRIENDLY : TEAM_COLORS.OPPONENT
+                                backgroundColor: unit.isMine ? TEAM_COLORS.FRIENDLY : TEAM_COLORS.OPPONENT
                             }"></div>
                         </div>
                         <div v-if="unit.maxMana > 0" class="mana-pill">
@@ -765,7 +767,7 @@ const onOrbClick = (orbId: string) => {
         <!-- Player Names Overlay -->
         <div class="overlays">
              <div class="name-tag enemy" v-if="opponentName">{{ opponentName }}</div>
-             <div class="name-tag me" v-if="myPlayerName">{{ myPlayerName }}</div>
+	             <div class="name-tag me" v-if="viewedPlayerName">{{ viewedPlayerName }}</div>
              
              <!-- Ability Floating Text -->
              <div v-for="anim in castingAnimations" :key="anim.id"

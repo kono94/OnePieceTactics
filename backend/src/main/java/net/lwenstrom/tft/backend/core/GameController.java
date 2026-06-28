@@ -2,6 +2,7 @@ package net.lwenstrom.tft.backend.core;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GamePhase;
 import net.lwenstrom.tft.backend.core.model.TraitMetadata;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -33,6 +35,7 @@ public class GameController {
     private final GameEngine gameEngine;
     private final DataLoader dataLoader;
     private final GameModeRegistry gameModeRegistry;
+    private final Map<String, SessionPlayer> sessionPlayers = new ConcurrentHashMap<>();
 
     @Scheduled(fixedRate = GameConstants.TICK_RATE_MS)
     public void tick() {
@@ -54,10 +57,11 @@ public class GameController {
     }
 
     @MessageMapping("/create")
-    public void createRoom(@Payload RoomRequest request) {
+    public void createRoom(@Payload RoomRequest request, @Header("simpSessionId") String sessionId) {
         var room = gameEngine.createRoom(request.roomId());
         configureCombatResultListener(room);
-        joinRoom(new RoomRequest(room.getId(), request.playerName()));
+        addPlayerForSession(room, request.playerName(), sessionId);
+        broadcastRoomState(room);
     }
 
     private void configureCombatResultListener(GameRoom room) {
@@ -101,25 +105,29 @@ public class GameController {
     }
 
     @MessageMapping("/join")
-    public void joinRoom(@Payload RoomRequest request) {
+    public void joinRoom(@Payload RoomRequest request, @Header("simpSessionId") String sessionId) {
         var room = gameEngine.getRoom(request.roomId());
         if (room != null) {
-            room.addPlayer(request.playerName());
+            addPlayerForSession(room, request.playerName(), sessionId);
             broadcastRoomState(room);
         }
     }
 
     @MessageMapping("/leave")
-    public void leaveRoom(@Payload RoomRequest request) {
-        var room = gameEngine.getRoom(request.roomId());
+    public void leaveRoom(@Payload RoomRequest request, @Header("simpSessionId") String sessionId) {
+        var sessionPlayer = resolveSessionPlayer(request.roomId(), sessionId);
+        if (sessionPlayer == null) return;
+
+        var room = gameEngine.getRoom(sessionPlayer.roomId());
         if (room != null) {
-            room.removePlayer(request.playerName());
+            room.removePlayer(sessionPlayer.playerId());
+            sessionPlayers.remove(sessionId);
             broadcastRoomState(room);
         }
     }
 
     @MessageMapping("/start")
-    public void startRoom(@Payload RoomRequest request) {
+    public void startRoom(@Payload RoomRequest request, @Header("simpSessionId") String sessionId) {
         log.info("Received start request for room: {} from player: {}", request.roomId(), request.playerName());
         var room = gameEngine.getRoom(request.roomId());
         if (room == null) {
@@ -127,7 +135,7 @@ public class GameController {
             return;
         }
 
-        var player = findPlayerByName(room, request.playerName());
+        var player = resolveBoundPlayer(room, sessionId);
         if (player == null) {
             log.info("Player not found in room.");
             return;
@@ -148,13 +156,6 @@ public class GameController {
         }
     }
 
-    private Player findPlayerByName(GameRoom room, String playerName) {
-        return room.getPlayers().stream()
-                .filter(p -> p.getName().equals(playerName))
-                .findFirst()
-                .orElse(null);
-    }
-
     @MessageMapping("/room/{id}/add-bot")
     public void addBot(@DestinationVariable String id) {
         var room = gameEngine.getRoom(id);
@@ -165,11 +166,18 @@ public class GameController {
     }
 
     @MessageMapping("/room/{id}/action")
-    public void handleAction(@DestinationVariable String id, @Payload GameAction action) {
+    public void handleAction(
+            @DestinationVariable String id, @Payload GameAction action, @Header("simpSessionId") String sessionId) {
         var room = gameEngine.getRoom(id);
         if (room == null) return;
 
-        var player = room.getPlayer(action.playerId());
+        var sessionPlayer = resolveSessionPlayer(id, sessionId);
+        if (sessionPlayer == null || !sessionPlayer.playerId().equals(action.playerId())) {
+            log.warn("Rejected action for unbound or mismatched player.");
+            return;
+        }
+
+        var player = room.getPlayer(sessionPlayer.playerId());
         if (player == null) {
             log.warn("Player not found in room.");
             return;
@@ -180,11 +188,14 @@ public class GameController {
     }
 
     @MessageMapping("/room/{id}/mode")
-    public void changeRoomMode(@DestinationVariable String id, @Payload ModeChangeRequest request) {
+    public void changeRoomMode(
+            @DestinationVariable String id,
+            @Payload ModeChangeRequest request,
+            @Header("simpSessionId") String sessionId) {
         var room = gameEngine.getRoom(id);
         if (room == null) return;
 
-        var player = findPlayerByName(room, request.playerName());
+        var player = resolveBoundPlayer(room, sessionId);
         if (player == null) return;
 
         if (!room.getState().hostId().equals(player.getId())) {
@@ -202,10 +213,10 @@ public class GameController {
             case BUY -> player.buyUnit(action.shopIndex());
             case REROLL -> player.refreshShop();
             case EXP -> handleExpPurchase(player);
-            case MOVE -> handleMove(room, action);
+            case MOVE -> handleMove(room, player, action);
             case SELL -> handleSell(room, player, action);
             case LOCK -> player.setShopLocked(!player.isShopLocked());
-            case COLLECT_ORB -> room.collectOrb(action.playerId(), action.orbId());
+            case COLLECT_ORB -> room.collectOrb(player.getId(), action.orbId());
         }
     }
 
@@ -216,10 +227,10 @@ public class GameController {
         }
     }
 
-    private void handleMove(GameRoom room, GameAction action) {
+    private void handleMove(GameRoom room, Player player, GameAction action) {
         var phase = room.getState().phase();
         if (phase == GamePhase.PLANNING || phase == GamePhase.COMBAT) {
-            room.moveUnit(action.playerId(), action.unitId(), action.targetX(), action.targetY());
+            room.moveUnit(player.getId(), action.unitId(), action.targetX(), action.targetY());
         }
     }
 
@@ -232,7 +243,30 @@ public class GameController {
         messagingTemplate.convertAndSend("/topic/room/" + room.getId(), room.getState());
     }
 
+    private void addPlayerForSession(GameRoom room, String playerName, String sessionId) {
+        var player = room.addPlayer(playerName);
+        sessionPlayers.put(sessionId, new SessionPlayer(room.getId(), player.getId()));
+    }
+
+    private SessionPlayer resolveSessionPlayer(String roomId, String sessionId) {
+        var sessionPlayer = sessionPlayers.get(sessionId);
+        if (sessionPlayer == null || !sessionPlayer.roomId().equals(roomId)) {
+            return null;
+        }
+        return sessionPlayer;
+    }
+
+    private Player resolveBoundPlayer(GameRoom room, String sessionId) {
+        var sessionPlayer = resolveSessionPlayer(room.getId(), sessionId);
+        if (sessionPlayer == null) {
+            return null;
+        }
+        return room.getPlayer(sessionPlayer.playerId());
+    }
+
     public record RoomRequest(String roomId, String playerName) {}
 
     public record ModeChangeRequest(String playerName, GameMode gameMode) {}
+
+    private record SessionPlayer(String roomId, String playerId) {}
 }

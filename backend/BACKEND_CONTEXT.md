@@ -202,8 +202,8 @@ Payload:
 
 Rules:
 - The room must exist.
-- The sender is resolved by `playerName`.
-- Only the host can change mode.
+- The sender is resolved from the STOMP session that joined the room.
+- Only the session-bound host can change mode.
 - `GameRoom.setGameMode()` only succeeds in `LOBBY`.
 - Changing to the current mode or passing `null` is ignored.
 
@@ -289,13 +289,15 @@ This is how Pokemon evolutions work. Three `Charmander` copies still combine by 
 
 | STOMP destination | Payload | Behavior |
 |-------------------|---------|----------|
-| `/app/create` | `RoomRequest` | Creates room id from payload, configures combat result listener, then joins creator. |
-| `/app/join` | `RoomRequest` | Adds player by `playerName` to an existing room. |
-| `/app/leave` | `RoomRequest` | Calls `room.removePlayer(request.playerName())`. Note: `GameRoom.removePlayer` expects a player id, so this payload currently must carry the id in `playerName` or the backend should be fixed. |
-| `/app/start` | `RoomRequest` | Finds player by name and starts if that player is host. Adds bots up to 8 players. |
+| `/app/create` | `RoomRequest` | Creates room id from payload, configures combat result listener, adds creator, and binds the STOMP session to that player id. |
+| `/app/join` | `RoomRequest` | Adds player by `playerName` to an existing room and binds the STOMP session to that player id. |
+| `/app/leave` | `RoomRequest` | Removes the player id bound to the sender's STOMP session, then clears that session binding. |
+| `/app/start` | `RoomRequest` | Resolves player from the STOMP session and starts only if that player is host. Adds bots up to 8 players. |
 | `/app/room/{id}/add-bot` | no body required | Adds one bot to the room. |
-| `/app/room/{id}/mode` | `ModeChangeRequest` | Host-only LOBBY mode change; resets player mode data as described above. |
-| `/app/room/{id}/action` | `GameAction` | Runs one player action immediately, then broadcasts state. |
+| `/app/room/{id}/mode` | `ModeChangeRequest` | Session-bound host-only LOBBY mode change; resets player mode data as described above. |
+| `/app/room/{id}/action` | `GameAction` | Rejects mismatched `playerId`, runs one session-bound player action immediately, then broadcasts state. |
+
+Action/start/mode authority is session-bound. `GameAction.playerId` must match the player id recorded for the sender's STOMP session during `/app/create` or `/app/join`; otherwise the action is ignored.
 
 `RoomRequest`:
 

@@ -49,6 +49,7 @@ For detailed architectural information, refer to the context documents:
 - **Shop probability tooltip** — Hover over player level to see current unit cost distribution
 - **Git-based version display** — Build metadata (tag, commit, timestamp) in bottom-left corner
 - **Smart unit tooltips** — HTML-formatted ability descriptions with star-level value highlighting
+- **Player board spectating** — Click alive players in the right panel to view their board and combat from their perspective
 - **Keyboard shortcuts** — Enter key support for room creation/joining
 - **Bench reordering** — Swap and rearrange units even during combat phase
 - **Team-colored health bars** — Emerald for allies, red for opponents
@@ -175,6 +176,8 @@ Use `GAME_MODE` or `game.mode` to choose the default lobby selection. To add a n
 | `/topic/room/{id}` | Server → Client | Game state broadcast (100ms) |
 | `/topic/room/{id}/event` | Server → Client | Combat result events (winner, loser, damageLog) |
 
+Client actions are bound to the STOMP session that joined the room. The backend rejects actions, start requests, and mode changes that attempt to act as a different player id.
+
 ### REST Endpoints
 | Endpoint | Method | Description |
 |----------|--------|-------------|
@@ -209,4 +212,4 @@ This project is for educational purposes.
 
 ---
 
-*Last updated: 2026-06-24*
+*Last updated: 2026-06-28*

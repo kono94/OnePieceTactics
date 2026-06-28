@@ -1,6 +1,6 @@
 # Frontend Context — OnePieceTactics Vue.js Implementation
 
-> **Last Updated:** 2026-06-24
+> **Last Updated:** 2026-06-28
 > **Purpose:** Comprehensive architectural blueprint and source of truth for AI developers working on the Vue.js 3 frontend.
 > **Recent Scope:** Adapted for the last 10 commits through `6b00ddb` (`Apply Pokemon type effectiveness to damage`).
 
@@ -115,6 +115,7 @@ const currentView = ref<'lobby' | 'game'>('lobby')  // View router
 const encounterResult = ref<'WON' | 'LOST' | 'DRAW' | null>(null)  // Combat outcome
 const availableModes = ref<GameMode[]>(['onepiece', 'pokemon'])
 const activeTraitMode = ref<GameMode | null>(null)
+const viewedPlayerId = ref<string | null>(null)      // Local board spectating target
 ```
 
 **State Flow:**
@@ -124,7 +125,8 @@ const activeTraitMode = ref<GameMode | null>(null)
 4. When `gameState.gameMode` changes, `App.vue` updates document metadata and fetches `/api/traits?mode={mode}`
 5. `GameState` is passed down via props to child components (`GameInterface`, `GameCanvas`)
 6. Components derive computed properties from `GameState` (e.g., `myPlayer`, `renderedUnits`)
-7. User actions emit events upward, which `App.vue` publishes to backend via WebSocket
+7. `GameInterface` emits local viewed-player changes upward so `App.vue` can point the damage report at the spectated combat.
+8. User actions emit events upward, which `App.vue` publishes to backend via WebSocket
 
 **Why This Approach?**
 - **Backend Authority:** All game logic lives on the server; frontend is a "dumb renderer"
@@ -189,6 +191,8 @@ client.activate()
 | **Publish** | `/app/room/{id}/mode` | `{ playerName, gameMode }` | Host changes waiting-room game mode |
 | **Publish** | `/app/leave` | `{ roomId, playerName }` | Leave room and clear local subscriptions |
 
+The backend binds create/join to the STOMP session id and rejects later action/start/mode messages whose requested player does not match that session. Frontend still sends `playerId` in `GameAction`, but it is not an authority boundary.
+
 **REST Bootstrap:**
 - `GET /api/config` returns `availableModes` and `defaultGameMode` for the waiting room.
 - `GET /api/traits?mode={onepiece|pokemon}` hydrates `TRAIT_DATA` for the active mode.
@@ -224,6 +228,8 @@ interface GameAction {
 1. **Grid Cells:** Planning phase only, backend validates legal moves
 2. **Bench Slots:** Swap/move units in bench
 3. **Sell Zone:** Fixed UI element below bench
+
+When `GameInterface` is spectating another player, the bottom controls are hidden and `GameCanvas` receives `isReadOnly=true`; board drag/drop highlights, drops, and loot collection are disabled until Home is clicked.
 
 **Data Transfer:**
 ```typescript
@@ -603,16 +609,26 @@ client.value.publish({
 // Render units with coordinate transformation for combat
 const renderedUnits = computed((): RenderedUnit[] => {
   const isCombat = props.state.phase === 'COMBAT'
-  const shouldFlip = isCombat && myPlayer.value?.combatSide === 'TOP'
+  const viewedId = props.viewedPlayerId || props.actingPlayerId
+  const viewedPlayer = props.state.players[viewedId]
+  const shouldFlip = isCombat && viewedPlayer?.combatSide === 'TOP'
   
   return allUnits.map(u => ({
     ...u,
     visualX: u.x,
     visualY: shouldFlip ? (GRID_ROWS - 1 - u.y) : u.y + PLAYER_ROWS,
-    isMine: u.ownerId === myPlayerId
+    isMine: u.ownerId === viewedId
   }))
 })
 ```
+
+### 8.5 Board Spectating
+
+- `PlayerList.vue` emits `select-player` when clicking an alive non-ghost player row; clicking yourself returns home.
+- `GameInterface.vue` owns local `viewedPlayerId`, validates it against live `GameState`, shows the `Viewing {name}` notice with a Home button, hides the bottom shop/bench panel while spectating, and sends the effective viewed id to `GameCanvas`.
+- `GameCanvas.vue` separates `actingPlayerId` from `viewedPlayerId`: the viewed player controls board orientation and team coloring, while the acting player remains the only legal drag/action owner.
+- During planning, only the viewed player's board renders on the bottom half. During combat, the viewed player and `state.matchups[viewedPlayerId]` render, with Y flipped when the viewed player is `TOP` so their units stay bottom.
+- `App.vue` tracks the viewed player id emitted by `GameInterface`; the right-side `DamageReport.vue` uses the viewed player and their matchup, while the outcome overlay remains tied to the real player.
 
 ---
 

@@ -16,7 +16,7 @@ const props = defineProps<{
   currentPlayerName: string
 }>()
 
-const emit = defineEmits(['action'])
+const emit = defineEmits(['action', 'view-player'])
 
 const myPlayer = computed((): PlayerState | null => {
     if (!props.state?.players) return null
@@ -27,6 +27,21 @@ const myPlayer = computed((): PlayerState | null => {
 const allPlayers = computed((): PlayerState[] => {
     if (!props.state?.players) return []
     return Object.values(props.state.players)
+})
+
+const viewedPlayerId = ref<string | null>(null)
+
+const effectiveViewedPlayerId = computed(() => {
+    return viewedPlayerId.value || myPlayer.value?.playerId
+})
+
+const viewedPlayer = computed((): PlayerState | null => {
+    if (!props.state?.players || !effectiveViewedPlayerId.value) return myPlayer.value
+    return props.state.players[effectiveViewedPlayerId.value] || myPlayer.value
+})
+
+const isSpectating = computed(() => {
+    return !!myPlayer.value?.playerId && !!viewedPlayer.value && viewedPlayer.value.playerId !== myPlayer.value.playerId
 })
 
 const isDead = computed(() => {
@@ -46,6 +61,11 @@ const myPlayerBoardUnits = computed((): GameUnit[] => {
     return myPlayer.value.boardUnits || myPlayer.value.board || []
 })
 
+const viewedPlayerBoardUnits = computed((): GameUnit[] => {
+    if (!viewedPlayer.value) return []
+    return viewedPlayer.value.boardUnits || viewedPlayer.value.board || []
+})
+
 interface BenchSlot {
     index: number
     unit: GameUnit | null
@@ -58,6 +78,24 @@ const benchSlots = computed((): BenchSlot[] => {
         unit: bench[i] ?? null
     }))
 })
+
+function returnHome() {
+    viewedPlayerId.value = null
+}
+
+function selectViewedPlayer(playerId: string) {
+    if (!myPlayer.value?.playerId) return
+    if (playerId === myPlayer.value.playerId) {
+        returnHome()
+        return
+    }
+
+    const target = props.state?.players?.[playerId]
+    if (!target || target.health <= 0 || target.isGhost) return
+
+    viewedPlayerId.value = target.playerId
+    handleHideTooltip()
+}
 
 
 function buyUnit(index: number) {
@@ -308,6 +346,28 @@ watch([() => props.state?.phase, isDead], ([newPhase, dead]) => {
     }
 }, { immediate: true })
 
+watch(() => props.state, () => {
+    if (!myPlayer.value?.playerId) {
+        viewedPlayerId.value = null
+        return
+    }
+
+    const currentId = viewedPlayerId.value
+    if (!currentId || currentId === myPlayer.value.playerId) {
+        viewedPlayerId.value = null
+        return
+    }
+
+    const currentViewedPlayer = props.state?.players?.[currentId]
+    if (!currentViewedPlayer || currentViewedPlayer.health <= 0 || currentViewedPlayer.isGhost) {
+        viewedPlayerId.value = null
+    }
+}, { immediate: true, deep: true })
+
+watch(effectiveViewedPlayerId, (playerId) => {
+    emit('view-player', playerId || null)
+}, { immediate: true })
+
 </script>
 
 <template>
@@ -339,8 +399,15 @@ watch([() => props.state?.phase, isDead], ([newPhase, dead]) => {
 
         <!-- Main Game Area -->
         <div class="main-area" :class="{ 'dead-state': isDead }">
-            <TraitSidebar v-if="myPlayer" :units="myPlayerBoardUnits" />
-            <GameCanvas :state="state" :my-player-id="myPlayer?.playerId" 
+            <TraitSidebar v-if="viewedPlayer" :units="viewedPlayerBoardUnits" />
+            <div v-if="isSpectating && viewedPlayer" class="spectator-notice">
+                <span>Viewing {{ viewedPlayer.name }}</span>
+                <button class="home-btn" type="button" @click="returnHome">Home</button>
+            </div>
+            <GameCanvas :state="state"
+                :acting-player-id="myPlayer?.playerId"
+                :viewed-player-id="effectiveViewedPlayerId"
+                :is-read-only="isSpectating"
                 :is-dragging-prop="isDraggingUnit"
                 @move="handleBoardMove" 
                 @drag-start="onGridDragStart"
@@ -349,11 +416,15 @@ watch([() => props.state?.phase, isDead], ([newPhase, dead]) => {
                 @update:is-over-grid="(val) => isOverGrid = val"
                 @show-tooltip="(data) => handleShowTooltip(data.rect, data.unit, data.placement)"
                 @hide-tooltip="handleHideTooltip" />
-            <PlayerList v-if="state" :players="allPlayers" :my-player-id="myPlayer?.playerId" />
+            <PlayerList v-if="state"
+                :players="allPlayers"
+                :my-player-id="myPlayer?.playerId"
+                :selected-player-id="effectiveViewedPlayerId"
+                @select-player="selectViewedPlayer" />
         </div>
 
         <!-- Bottom UI -->
-        <div class="bottom-ui" v-if="myPlayer" :class="{ 'dead-state': isDead }">
+        <div class="bottom-ui" v-if="myPlayer && !isSpectating" :class="{ 'dead-state': isDead }">
             <!-- Player Stats -->
             <div class="stats-panel">
                 <div class="level-info">
@@ -490,7 +561,7 @@ watch([() => props.state?.phase, isDead], ([newPhase, dead]) => {
 
             </div>
         </div>
-        <div v-else class="waiting-message">
+        <div v-else-if="!myPlayer" class="waiting-message">
             Waiting for player data...
         </div>
     </template>
@@ -649,6 +720,45 @@ watch([() => props.state?.phase, isDead], ([newPhase, dead]) => {
     background: #1a1a1a;
     overflow: visible;
     z-index: 60; /* Under bottom-ui (70) so bottom tooltips can overlap */
+}
+
+.spectator-notice {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 120;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: rgba(15, 23, 42, 0.92);
+    border: 1px solid rgba(96, 165, 250, 0.55);
+    border-radius: 8px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+    color: #e2e8f0;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    pointer-events: auto;
+}
+
+.home-btn {
+    height: 28px;
+    padding: 0 10px;
+    border: 1px solid rgba(251, 191, 36, 0.8);
+    border-radius: 6px;
+    background: rgba(251, 191, 36, 0.12);
+    color: #fbbf24;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.home-btn:hover {
+    background: rgba(251, 191, 36, 0.22);
+    border-color: #fbbf24;
 }
 
 .bottom-ui {

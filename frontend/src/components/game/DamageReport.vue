@@ -1,7 +1,7 @@
 <template>
   <div class="damage-report-wrapper" :class="{ 'is-collapsed': isCollapsed }">
     <!-- Toggle Button (Tab) -->
-    <button 
+	    <button
       @click="isCollapsed = !isCollapsed"
       class="toggle-btn"
     >
@@ -17,16 +17,16 @@
     <div class="report-panel">
       <div class="header">
         <div class="tabs-container">
-          <button 
-            class="tab-btn" 
-            :class="{ active: selectedTab === 'me' }"
-            @click="selectedTab = 'me'"
-          >YOU</button>
-          <button 
-            class="tab-btn" 
-            :class="{ active: selectedTab === 'opponent' }"
-            @click="selectedTab = 'opponent'"
-          >OPPONENT</button>
+	          <button
+	            class="tab-btn"
+	            :class="{ active: selectedTab === 'me' }"
+	            @click="selectedTab = 'me'"
+	          >{{ primaryTabLabel }}</button>
+	          <button
+	            class="tab-btn"
+	            :class="{ active: selectedTab === 'opponent' }"
+	            @click="selectedTab = 'opponent'"
+	          >{{ opponentTabLabel }}</button>
         </div>
       </div>
 
@@ -64,17 +64,24 @@ import type { DamageEntry } from '../../types';
 import { getUnitIconPath } from '../../utils/iconUtils'
 
 const props = defineProps<{
-  damageLog: Record<string, DamageEntry> | null,
-  myPlayerId?: string,
-  opponentId?: string,
-  opponentName?: string,
-  gameMode?: string
+	  damageLog: Record<string, DamageEntry> | null,
+	  myPlayerId?: string,
+	  myPlayerName?: string,
+	  opponentId?: string,
+	  opponentName?: string,
+	  gameMode?: string
 }>();
 
 const isCollapsed = ref(true);
 const selectedTab = ref<'me' | 'opponent'>('me');
 
 const currentOwnerId = computed(() => selectedTab.value === 'me' ? props.myPlayerId : props.opponentId);
+const primaryTabLabel = computed(() => props.myPlayerName || 'YOU');
+const opponentTabLabel = computed(() => props.opponentName || 'OPPONENT');
+
+watch(() => props.myPlayerId, () => {
+  selectedTab.value = 'me';
+});
 
 const sortedEntries = computed(() => {
   if (!props.damageLog || !currentOwnerId.value) return [];

@@ -27,6 +27,7 @@ const eventSubscription = ref<StompSubscription | null>(null)
 const isUltimateGallery = ref(false)
 const ultimateGalleryMode = ref<GameMode>('onepiece')
 const UltimateGallery = shallowRef<Component | null>(null)
+const viewedPlayerId = ref<string | null>(null)
 
 // Random player name for now
 const PLAYER_NAME = "Player_" + Math.floor(Math.random() * 10000)
@@ -87,13 +88,24 @@ const myPlayerId = computed(() => {
 });
 
 const opponentId = computed(() => {
-    if (!gameState.value || !myPlayerId.value) return undefined;
-    return gameState.value.matchups[myPlayerId.value];
+    if (!gameState.value || !damageReportPlayerId.value) return undefined;
+    return gameState.value.matchups[damageReportPlayerId.value];
 });
 
 const opponentName = computed(() => {
     if (!gameState.value || !opponentId.value) return undefined;
     return gameState.value.players[opponentId.value]?.name || 'Opponent';
+});
+
+const damageReportPlayerId = computed(() => {
+    return viewedPlayerId.value || myPlayerId.value;
+});
+
+const damageReportPlayerName = computed(() => {
+    if (!gameState.value || !damageReportPlayerId.value || damageReportPlayerId.value === myPlayerId.value) {
+        return 'YOU';
+    }
+    return gameState.value.players[damageReportPlayerId.value]?.name || 'Viewed';
 });
 
 const showVersion = computed(() => {
@@ -275,13 +287,14 @@ const handleLeaveLobby = () => {
         eventSubscription.value = null
     }
     
-    currentView.value = 'lobby'
-    gameState.value = null
-    currentRoomId.value = ''
-    activeTraitMode.value = null
+	    currentView.value = 'lobby'
+	    gameState.value = null
+	    currentRoomId.value = ''
+	    activeTraitMode.value = null
+	    viewedPlayerId.value = null
 
-    applyThemeMeta(null);
-}
+	    applyThemeMeta(null);
+	}
 
 const themeClass = computed(() => {
     if (isUltimateGallery.value) return `theme-${ultimateGalleryMode.value}`
@@ -353,23 +366,25 @@ const applyThemeMeta = (mode: GameMode | null) => {
                               @start="handleStartGame"
                               @leave="handleLeaveLobby"
                               @mode-change="handleModeChange" />
-                              
-                 <!-- Otherwise show GameInterface -->
-                 <template v-else>
-                     <GameInterface :state="gameState" 
-                                    :current-player-name="PLAYER_NAME"
-                                    :is-connected="isConnected"
-                                    @action="handleGameAction" />
-                     <Transition name="outcome">
-                        <OutcomeOverlay v-if="encounterResult" :type="encounterResult" />
-                     </Transition>
-                     <DamageReport v-if="gameState.damageLog" 
-                                   :damage-log="gameState.damageLog" 
-                                   :my-player-id="myPlayerId"
-                                   :opponent-id="opponentId"
-                                   :opponent-name="opponentName"
-                                   :game-mode="gameState.gameMode" />
-                 </template>
+
+	                 <!-- Otherwise show GameInterface -->
+	                 <template v-else>
+	                     <GameInterface :state="gameState"
+	                                    :current-player-name="PLAYER_NAME"
+	                                    :is-connected="isConnected"
+	                                    @action="handleGameAction"
+	                                    @view-player="(playerId) => viewedPlayerId = playerId" />
+	                     <Transition name="outcome">
+	                        <OutcomeOverlay v-if="encounterResult" :type="encounterResult" />
+	                     </Transition>
+	                     <DamageReport v-if="gameState.damageLog"
+	                                   :damage-log="gameState.damageLog"
+	                                   :my-player-id="damageReportPlayerId"
+	                                   :my-player-name="damageReportPlayerName"
+	                                   :opponent-id="opponentId"
+	                                   :opponent-name="opponentName"
+	                                   :game-mode="gameState.gameMode" />
+	                 </template>
              </template>
              <div v-else class="loading-screen">
                  Initializing Game Room...
