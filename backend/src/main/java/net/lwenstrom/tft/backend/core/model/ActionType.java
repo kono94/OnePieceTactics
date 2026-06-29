@@ -7,5 +7,6 @@ public enum ActionType {
     REROLL,
     EXP,
     LOCK,
-    COLLECT_ORB
+    COLLECT_ORB,
+    READY_FOR_COMBAT
 }

@@ -104,6 +104,30 @@ class GameControllerSessionGuardTest {
         assertEquals(GameMode.ONEPIECE, room.getState().gameMode());
     }
 
+    @Test
+    void handleAction_RejectsReadyForCombatSpoofing() {
+        var room = createRoomWithHost();
+
+        controller.startRoom(new GameController.RoomRequest(room.getId(), "Host"), "host-session");
+        var host = findPlayer(room, "Host");
+        var bot = room.getPlayers().stream().filter(Player::isBot).findFirst().orElseThrow();
+
+        controller.handleAction(
+                room.getId(),
+                new GameAction(ActionType.READY_FOR_COMBAT, bot.getId(), null, null, null, null, null),
+                "host-session");
+
+        assertEquals(GamePhase.PLANNING, room.getState().phase());
+        assertEquals(host.getId(), room.getState().planningReadyPlayerId());
+
+        controller.handleAction(
+                room.getId(),
+                new GameAction(ActionType.READY_FOR_COMBAT, host.getId(), null, null, null, null, null),
+                "host-session");
+
+        assertEquals(GamePhase.COMBAT, room.getState().phase());
+    }
+
     private GameRoom createRoomWithHost() {
         controller.createRoom(new GameController.RoomRequest("session-room", "Host"), "host-session");
         return gameEngine.getRoom("session-room");

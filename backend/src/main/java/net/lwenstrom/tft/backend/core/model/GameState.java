@@ -16,7 +16,9 @@ public record GameState(
         Map<String, String> matchups,
         List<CombatEvent> recentEvents,
         Map<String, CombatSystem.DamageEntry> damageLog,
-        GameMode gameMode) {
+        GameMode gameMode,
+        boolean planningTimerPaused,
+        String planningReadyPlayerId) {
 
     public record PlayerState(
             String playerId,

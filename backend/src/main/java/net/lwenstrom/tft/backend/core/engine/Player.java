@@ -39,6 +39,7 @@ public class Player {
     private boolean boardLocked = false;
     private boolean inCombat = false;
     private boolean ghost = false;
+    private boolean bot = false;
     private final List<PendingUpgrade> pendingUpgrades = new ArrayList<>();
 
     private record PendingUpgrade(String lineId, int starLevel) {}

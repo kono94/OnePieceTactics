@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -103,7 +104,9 @@ public class GameRoom {
                 new HashMap<>(),
                 new ArrayList<>(),
                 new HashMap<>(),
-                this.gameMode);
+                this.gameMode,
+                false,
+                null);
 
         // In LOBBY, no timer runs until startMatch is called
         this.phaseEndTime = Long.MAX_VALUE;
@@ -174,6 +177,7 @@ public class GameRoom {
     public void addBot() {
         var botId = "Bot-" + UUID.randomUUID().toString().substring(0, 4);
         var bot = new Player(botId, gameMode, dataLoader, randomProvider);
+        bot.setBot(true);
         players.put(bot.getId(), bot);
         bot.refreshShop();
         refreshBotRoster(bot);
@@ -202,12 +206,28 @@ public class GameRoom {
         }
     }
 
+    public boolean readyForCombat(String playerId) {
+        var readyPlayer = getSoloTrainingReadyPlayer();
+        if (readyPlayer.isEmpty() || !readyPlayer.get().getId().equals(playerId)) {
+            return false;
+        }
+
+        startPhase(GamePhase.COMBAT);
+        return true;
+    }
+
     public void tick() {
         if (phase == GamePhase.LOBBY || phase == GamePhase.END) {
             return;
         }
 
         long now = clock.currentTimeMillis();
+        if (isPlanningTimerPaused()) {
+            lastTickEvents.clear();
+            updateGameState(currentPhaseDuration);
+            return;
+        }
+
         if (now >= phaseEndTime) {
             nextPhase();
             return;
@@ -274,9 +294,12 @@ public class GameRoom {
 
         if (phase == GamePhase.PLANNING) {
             var alivePlayers =
-                    players.values().stream().filter(p -> p.getHealth() > 0).count();
-            if (alivePlayers <= 1) {
-                log.info("Game ending: only {} player(s) remaining", alivePlayers);
+                    players.values().stream().filter(p -> p.getHealth() > 0).toList();
+            if (alivePlayers.size() <= 1) {
+                if (alivePlayers.size() == 1) {
+                    alivePlayers.get(0).setPlace(1);
+                }
+                log.info("Game ending: only {} player(s) remaining", alivePlayers.size());
                 startPhase(GamePhase.END_CELEBRATION);
                 return;
             }
@@ -306,7 +329,7 @@ public class GameRoom {
 
                 p.gainXp(GameConstants.XP_PER_PHASE);
                 p.refreshShop();
-                if (p.getName().startsWith("Bot-")) {
+                if (p.isBot()) {
                     refreshBotRoster(p);
                 }
                 if (round % 2 == 0) {
@@ -387,6 +410,10 @@ public class GameRoom {
     }
 
     private void updateGameState(long timeLeft) {
+        var planningTimerPaused = isPlanningTimerPaused();
+        var planningReadyPlayerId =
+                getSoloTrainingReadyPlayer().map(Player::getId).orElse(null);
+        var displayedTimeLeft = planningTimerPaused ? currentPhaseDuration : Math.max(0, timeLeft);
         Map<String, PlayerState> playerStates = players.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().toState()));
 
@@ -403,13 +430,38 @@ public class GameRoom {
                 hostId,
                 phase,
                 round,
-                timeLeft,
+                displayedTimeLeft,
                 calculatePhaseDuration(phase, round),
                 playerStates,
                 new HashMap<>(currentMatchups),
                 new ArrayList<>(lastTickEvents),
                 new HashMap<>(currentRoundDamageLog),
-                gameMode);
+                gameMode,
+                planningTimerPaused,
+                planningReadyPlayerId);
+    }
+
+    private boolean isPlanningTimerPaused() {
+        return getSoloTrainingReadyPlayer().isPresent();
+    }
+
+    private Optional<Player> getSoloTrainingReadyPlayer() {
+        if (phase != GamePhase.PLANNING) {
+            return Optional.empty();
+        }
+
+        var alivePlayers = players.values().stream()
+                .filter(player -> player.getHealth() > 0)
+                .toList();
+        var aliveHumanPlayers = alivePlayers.stream()
+                .filter(player -> !player.isBot() && !player.isGhost())
+                .toList();
+        var hasAliveBot = alivePlayers.stream().anyMatch(Player::isBot);
+
+        if (aliveHumanPlayers.size() == 1 && hasAliveBot) {
+            return Optional.of(aliveHumanPlayers.get(0));
+        }
+        return Optional.empty();
     }
 
     private void spawnLootOrbsForPlayer(Player player) {

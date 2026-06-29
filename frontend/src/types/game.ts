@@ -11,7 +11,7 @@ export type GamePhase = 'LOBBY' | 'PLANNING' | 'COMBAT' | 'END_CELEBRATION' | 'E
 
 export type GameMode = 'onepiece' | 'pokemon'
 
-export type ActionType = 'BUY' | 'SELL' | 'MOVE' | 'REROLL' | 'EXP' | 'LOCK' | 'COLLECT_ORB'
+export type ActionType = 'BUY' | 'SELL' | 'MOVE' | 'REROLL' | 'EXP' | 'LOCK' | 'COLLECT_ORB' | 'READY_FOR_COMBAT'
 
 export type CombatSide = 'TOP' | 'BOTTOM'
 
@@ -182,6 +182,8 @@ export interface GameState {
     recentEvents: CombatEvent[]
     damageLog: Record<string, DamageEntry>
     gameMode: GameMode
+    planningTimerPaused: boolean
+    planningReadyPlayerId: string | null
 }
 
 // ============================================================================

@@ -73,6 +73,7 @@ public class PhaseDurationTest {
         room = new GameRoom(
                 "test-room", dataLoader, registry, testClock, createSeededRandomProvider(), GameMode.ONEPIECE);
         room.addPlayer("P1");
+        room.addPlayer("P2");
     }
 
     @Test

@@ -326,6 +326,33 @@ const rarityColors = [
     '#eab308'  // 5-cost
 ]
 
+const canReadyForCombat = computed(() => {
+    return props.state?.phase === 'PLANNING'
+        && props.state.planningTimerPaused
+        && !!myPlayer.value?.playerId
+        && props.state.planningReadyPlayerId === myPlayer.value.playerId
+})
+
+const timerFillPercent = computed(() => {
+    if (!props.state) return 0
+    if (props.state.phase === 'PLANNING' && props.state.planningTimerPaused) return 100
+    const duration = Math.max(1, props.state.totalPhaseDuration || (props.state.phase === 'PLANNING' ? 8000 : 20000))
+    return Math.max(0, Math.min(100, props.state.timeRemainingMs / duration * 100))
+})
+
+const timerFillColor = computed(() => {
+    if (!props.state) return '#3b82f6'
+    if (props.state.phase === 'COMBAT') return '#ef4444'
+    if (props.state.phase === 'END_CELEBRATION') return '#eab308'
+    if (props.state.phase === 'PLANNING' && props.state.planningTimerPaused) return '#22c55e'
+    return '#3b82f6'
+})
+
+function readyForCombat() {
+    if (!myPlayer.value || !canReadyForCombat.value) return
+    emit('action', { type: 'READY_FOR_COMBAT', playerId: myPlayer.value.playerId })
+}
+
 // ========== END SCREEN DELAY ==========
 const showEndScreen = ref(false)
 const endScreenTimer = ref<number | null>(null)
@@ -385,13 +412,22 @@ watch(effectiveViewedPlayerId, (playerId) => {
                     <span class="game-mode">{{ state.gameMode }}</span>
                     <span class="room-id">Room: {{ state.roomId }}</span>
                 </div>
-                <span class="round-name">Round {{ state.round }}</span>
+                <div class="round-actions">
+                    <span class="round-name">Round {{ state.round }}</span>
+                    <button
+                        v-if="canReadyForCombat"
+                        class="ready-btn"
+                        type="button"
+                        @click="readyForCombat">
+                        Ready
+                    </button>
+                </div>
             </div>
             <div class="timer-bar-container">
                 <div class="timer-bar-fill" 
                      :style="{ 
-                        width: (state.timeRemainingMs / Math.max(1, state.totalPhaseDuration || (state.phase === 'PLANNING' ? 8000 : 20000)) * 100) + '%',
-                        backgroundColor: state.phase === 'COMBAT' ? '#ef4444' : (state.phase === 'END_CELEBRATION' ? '#eab308' : '#3b82f6')
+                        width: timerFillPercent + '%',
+                        backgroundColor: timerFillColor
                      }">
                 </div>
             </div>
@@ -653,6 +689,32 @@ watch(effectiveViewedPlayerId, (playerId) => {
     padding: 2px 8px;
     border-radius: 4px;
     letter-spacing: 0.5px;
+}
+
+.round-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    min-width: 128px;
+}
+
+.ready-btn {
+    height: 28px;
+    padding: 0 12px;
+    border: 1px solid rgba(34, 197, 94, 0.75);
+    border-radius: 6px;
+    background: rgba(22, 163, 74, 0.22);
+    color: #dcfce7;
+    font-size: 12px;
+    font-weight: 900;
+    line-height: 1;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.ready-btn:hover {
+    background: rgba(22, 163, 74, 0.34);
 }
 
 .timer-bar-container {
