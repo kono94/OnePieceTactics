@@ -61,6 +61,30 @@ const myPlayerBoardUnits = computed((): GameUnit[] => {
     return myPlayer.value.boardUnits || myPlayer.value.board || []
 })
 
+function lineIdentity(value: string | null | undefined): string | null {
+    const trimmedValue = value?.trim()
+    return trimmedValue ? trimmedValue : null
+}
+
+const ownedLineIds = computed((): Set<string> => {
+    const ownedIds = new Set<string>()
+    const units = [...benchUnits.value, ...myPlayerBoardUnits.value]
+
+    units.forEach((unit) => {
+        const identity = lineIdentity(unit?.lineId) ?? lineIdentity(unit?.definitionId) ?? lineIdentity(unit?.name)
+        if (identity) {
+            ownedIds.add(identity)
+        }
+    })
+
+    return ownedIds
+})
+
+function isShopCardOwned(card: UnitDefinition): boolean {
+    const identity = lineIdentity(card.lineId) ?? lineIdentity(card.id) ?? lineIdentity(card.name)
+    return identity ? ownedLineIds.value.has(identity) : false
+}
+
 const viewedPlayerBoardUnits = computed((): GameUnit[] => {
     if (!viewedPlayer.value) return []
     return viewedPlayer.value.boardUnits || viewedPlayer.value.board || []
@@ -570,7 +594,7 @@ watch(effectiveViewedPlayerId, (playerId) => {
                 <!-- Shop Cards (Top) -->
                 <div class="shop-cards">
                     <div v-for="(card, idx) in shopCards" :key="idx" class="shop-card" 
-                         :class="{ 'empty': !card, 'can-buy': card && myPlayer.gold >= card.cost, [`rarity-${card?.cost || 1}`]: card }"
+                         :class="{ 'empty': !card, 'can-buy': card && myPlayer.gold >= card.cost, 'owned-line': card && isShopCardOwned(card), [`rarity-${card?.cost || 1}`]: card }"
                          @click="card && buyUnit(Number(idx))"
                          @mouseenter="(e) => card ? handleShowTooltip((e.currentTarget as HTMLElement).getBoundingClientRect(), card, 'top', idx === 4 ? 'more-left' : idx === 3 ? 'left' : undefined) : null"
                          @mouseleave="handleHideTooltip">
@@ -1199,11 +1223,38 @@ watch(effectiveViewedPlayerId, (playerId) => {
     filter: brightness(1.1);
 }
 
+.shop-card.owned-line {
+    box-shadow: inset 0 0 0 2px rgba(34, 211, 238, 0.95), 0 0 18px rgba(34, 211, 238, 0.35);
+}
+
+.shop-card.owned-line::after {
+    content: "";
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    background: #67e8f9;
+    box-shadow: 0 0 10px rgba(103, 232, 249, 0.95), 0 0 18px rgba(34, 211, 238, 0.75);
+    pointer-events: none;
+}
+
+.shop-card.owned-line.can-buy:hover {
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.8), 0 0 20px rgba(96, 165, 250, 0.4), inset 0 0 0 2px rgba(34, 211, 238, 0.95);
+}
+
 .shop-card.rarity-1.can-buy:hover { border-color: #94a3b8; box-shadow: 0 0 10px rgba(148, 163, 184, 0.3); }
 .shop-card.rarity-2.can-buy:hover { border-color: #4ade80; box-shadow: 0 0 10px rgba(74, 222, 128, 0.3); }
 .shop-card.rarity-3.can-buy:hover { border-color: #60a5fa; box-shadow: 0 0 10px rgba(96, 165, 250, 0.3); }
 .shop-card.rarity-4.can-buy:hover { border-color: #c084fc; box-shadow: 0 0 10px rgba(192, 132, 252, 0.3); }
 .shop-card.rarity-5.can-buy:hover { border-color: #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.3); }
+
+.shop-card.owned-line.rarity-1.can-buy:hover { box-shadow: 0 0 10px rgba(148, 163, 184, 0.3), inset 0 0 0 2px rgba(34, 211, 238, 0.95), 0 0 18px rgba(34, 211, 238, 0.35); }
+.shop-card.owned-line.rarity-2.can-buy:hover { box-shadow: 0 0 10px rgba(74, 222, 128, 0.3), inset 0 0 0 2px rgba(34, 211, 238, 0.95), 0 0 18px rgba(34, 211, 238, 0.35); }
+.shop-card.owned-line.rarity-3.can-buy:hover { box-shadow: 0 0 10px rgba(96, 165, 250, 0.3), inset 0 0 0 2px rgba(34, 211, 238, 0.95), 0 0 18px rgba(34, 211, 238, 0.35); }
+.shop-card.owned-line.rarity-4.can-buy:hover { box-shadow: 0 0 10px rgba(192, 132, 252, 0.3), inset 0 0 0 2px rgba(34, 211, 238, 0.95), 0 0 18px rgba(34, 211, 238, 0.35); }
+.shop-card.owned-line.rarity-5.can-buy:hover { box-shadow: 0 0 10px rgba(251, 191, 36, 0.3), inset 0 0 0 2px rgba(34, 211, 238, 0.95), 0 0 18px rgba(34, 211, 238, 0.35); }
 
 
 .shop-card.empty {
