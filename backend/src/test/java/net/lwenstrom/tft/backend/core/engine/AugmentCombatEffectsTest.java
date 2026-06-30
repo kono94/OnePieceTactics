@@ -1,0 +1,84 @@
+package net.lwenstrom.tft.backend.core.engine;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import net.lwenstrom.tft.backend.core.model.AugmentEffectType;
+import net.lwenstrom.tft.backend.core.model.AugmentTier;
+import net.lwenstrom.tft.backend.core.model.SelectedAugment;
+import net.lwenstrom.tft.backend.test.TestHelpers;
+import org.junit.jupiter.api.Test;
+
+class AugmentCombatEffectsTest {
+
+    @Test
+    void combatOnlyEffectsResetAfterCombatEnds() {
+        var player = TestHelpers.createTestPlayer("Player");
+        var rangedDef = new UnitDefinition(
+                "ranged",
+                "Ranged",
+                1,
+                List.of(100, 100, 100),
+                List.of(100, 100, 100),
+                List.of(10, 10, 10),
+                List.of(0, 0, 0),
+                List.of(0, 0, 0),
+                List.of(0, 0, 0),
+                List.of(1.0f, 1.0f, 1.0f),
+                List.of(3, 3, 3),
+                List.of(),
+                null);
+        var meleeDef = TestHelpers.createUnitDef("melee", "Melee", 1, 100, 10);
+        player.setLevel(2);
+        player.addUnitToBoard(rangedDef, 0, 0);
+        player.addUnitToBoard(meleeDef, 1, 0);
+        player.addSelectedAugment(selected("ranged-tempo", AugmentEffectType.TEAM_ATTACK_SPEED_PER_RANGED_UNIT, 5));
+        player.addSelectedAugment(selected("guarded-formation", AugmentEffectType.TEAM_DAMAGE_REDUCTION, 10));
+        player.addSelectedAugment(selected("snowball-strike", AugmentEffectType.TEAM_ATTACK_DAMAGE_ON_KILL, 4));
+
+        var combatSystem = TestHelpers.createTestCombatSystem();
+        var manager = new AugmentManager(TestHelpers.createDefaultAugments(), TestHelpers.createSeededRandomProvider());
+
+        combatSystem.startCombat(List.of(player));
+        manager.applyCombatEffects(List.of(player));
+
+        var ranged = player.getBoardUnits().get(0);
+        assertTrue(ranged.getAttackSpeed() > 1.0f);
+        assertEquals(10, ranged.getDamageReduction());
+        assertEquals(4, ranged.getTeamAttackDamageOnKill());
+
+        combatSystem.endCombat(List.of(player));
+
+        assertEquals(1.0f, ranged.getAttackSpeed());
+        assertEquals(0, ranged.getDamageReduction());
+        assertEquals(0, ranged.getTeamAttackDamageOnKill());
+    }
+
+    @Test
+    void directAttackKillStacksTeamAttackDamage() {
+        var attacker = TestHelpers.createTestPlayer("Attacker");
+        var defender = TestHelpers.createTestPlayer("Defender");
+        attacker.setLevel(2);
+        defender.setLevel(1);
+        attacker.addUnitToBoard(TestHelpers.createUnitDef("carry", "Carry", 1, 100, 20), 0, 0);
+        attacker.addUnitToBoard(TestHelpers.createUnitDef("ally", "Ally", 1, 100, 10), 1, 0);
+        defender.addUnitToBoard(TestHelpers.createUnitDef("target", "Target", 1, 1, 1), 0, 0);
+        attacker.addSelectedAugment(selected("snowball-strike", AugmentEffectType.TEAM_ATTACK_DAMAGE_ON_KILL, 4));
+
+        var clock = TestHelpers.createTestClock();
+        var combatSystem = TestHelpers.createTestCombatSystem(clock);
+        var manager = new AugmentManager(TestHelpers.createDefaultAugments(), TestHelpers.createSeededRandomProvider());
+
+        combatSystem.startCombat(List.of(attacker, defender));
+        manager.applyCombatEffects(List.of(attacker, defender));
+        combatSystem.simulateTick(List.of(attacker, defender));
+
+        assertEquals(24, attacker.getBoardUnits().get(0).getAttackDamage());
+        assertEquals(14, attacker.getBoardUnits().get(1).getAttackDamage());
+    }
+
+    private SelectedAugment selected(String id, AugmentEffectType effectType, int value) {
+        return new SelectedAugment(id, id, id, AugmentTier.SILVER, effectType, value, 3, null);
+    }
+}

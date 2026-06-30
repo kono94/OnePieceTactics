@@ -2,7 +2,7 @@
 import { computed, ref, watch, onUnmounted, onMounted } from 'vue'
 import CombatEffectsCanvas from './game/CombatEffectsCanvas.vue'
 import { getAttackConfig, getAbilityConfig } from '../data/animationConfig'
-import type { GameState, GameUnit, GamePhase, RenderedUnit, RenderedOrb, PlayerState, DisplayedUnit, CombatEvent } from '../types'
+import type { GameState, GameUnit, GamePhase, RenderedUnit, RenderedOrb, PlayerState, DisplayedUnit, CombatEvent, SelectedAugment } from '../types'
 import type { NormalizedCombatVisualEvent } from '../types/combatEffects'
 import { getUnitIconPath } from '../utils/iconUtils'
 import { getRarityColor, TEAM_COLORS } from '../utils/colorUtils'
@@ -182,15 +182,38 @@ const viewedPlayerName = computed(() => {
      return p ? p.name : 'Me'
 })
 
-const opponentName = computed(() => {
+const opponentPlayer = computed((): PlayerState | null => {
      const state = props.state
      if (!state || !state.matchups || !currentViewedPlayerId.value) return null
      const oppId = state.matchups[currentViewedPlayerId.value]
      if (!oppId) return null
-     const p = state.players[oppId]
-     if (!p) return 'Opponent'
+     return state.players[oppId] || null
+})
+
+const opponentName = computed(() => {
+     const p = opponentPlayer.value
+     if (!p) return null
      return p.isGhost ? `${p.name} (Ghost)` : p.name
 })
+
+const viewedAugments = computed((): SelectedAugment[] => {
+    const state = props.state
+    const viewedId = currentViewedPlayerId.value
+    if (!state || !state.players || !viewedId) return []
+    return state.players[viewedId]?.selectedAugments || []
+})
+
+const opponentAugments = computed((): SelectedAugment[] => {
+    return opponentPlayer.value?.selectedAugments || []
+})
+
+function formatAugmentTier(tier: string): string {
+    return tier.charAt(0) + tier.slice(1).toLowerCase()
+}
+
+function augmentImagePath(augment: SelectedAugment): string {
+    return augment.image || '/assets/augments/placeholder.svg'
+}
 
 const onDragStart = (evt: DragEvent, unit: RenderedUnit) => {
     if (props.isReadOnly || unit.ownerId !== props.actingPlayerId || props.state?.phase === 'COMBAT') {
@@ -767,7 +790,39 @@ const onOrbClick = (orbId: string) => {
         <!-- Player Names Overlay -->
         <div class="overlays">
              <div class="name-tag enemy" v-if="opponentName">{{ opponentName }}</div>
-	             <div class="name-tag me" v-if="viewedPlayerName">{{ viewedPlayerName }}</div>
+             <div v-if="opponentAugments.length" class="augment-rail enemy" aria-label="Opponent selected augments">
+                 <button
+                     v-for="augment in opponentAugments"
+                     :key="augment.id"
+                     class="augment-chip"
+                     :class="`augment-tier-${augment.tier.toLowerCase()}`"
+                     type="button"
+                     :aria-label="`${augment.name}: ${augment.description}`">
+                     <img :src="augmentImagePath(augment)" :alt="augment.name" draggable="false" />
+                     <span class="augment-tooltip" role="tooltip">
+                         <span class="augment-tooltip-tier">{{ formatAugmentTier(augment.tier) }}</span>
+                         <span class="augment-tooltip-name">{{ augment.name }}</span>
+                         <span class="augment-tooltip-description">{{ augment.description }}</span>
+                     </span>
+                 </button>
+             </div>
+             <div v-if="viewedAugments.length" class="augment-rail me" aria-label="Selected augments">
+                 <button
+                     v-for="augment in viewedAugments"
+                     :key="augment.id"
+                     class="augment-chip"
+                     :class="`augment-tier-${augment.tier.toLowerCase()}`"
+                     type="button"
+                     :aria-label="`${augment.name}: ${augment.description}`">
+                     <img :src="augmentImagePath(augment)" :alt="augment.name" draggable="false" />
+                     <span class="augment-tooltip" role="tooltip">
+                         <span class="augment-tooltip-tier">{{ formatAugmentTier(augment.tier) }}</span>
+                         <span class="augment-tooltip-name">{{ augment.name }}</span>
+                         <span class="augment-tooltip-description">{{ augment.description }}</span>
+                     </span>
+                 </button>
+             </div>
+             <div class="name-tag me" v-if="viewedPlayerName">{{ viewedPlayerName }}</div>
              
              <!-- Ability Floating Text -->
              <div v-for="anim in castingAnimations" :key="anim.id"
@@ -827,6 +882,193 @@ const onOrbClick = (orbId: string) => {
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 8px;
     pointer-events: none;
+}
+
+.overlays {
+    position: absolute;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+}
+
+.name-tag {
+    position: absolute;
+    left: -132px;
+    width: 118px;
+    padding: 7px 16px;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    color: #f8fafc;
+    background: rgba(15, 23, 42, 0.86);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.36);
+    font-size: 13px;
+    font-weight: 850;
+    line-height: 1.1;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.name-tag.enemy {
+    top: 18px;
+    border-left: 4px solid #ef4444;
+}
+
+.name-tag.me {
+    bottom: 18px;
+    border-left: 4px solid #10b981;
+}
+
+.augment-rail {
+    position: absolute;
+    left: -132px;
+    z-index: 70;
+    display: flex;
+    width: 118px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    pointer-events: auto;
+}
+
+.augment-rail.enemy {
+    top: 58px;
+}
+
+.augment-rail.me {
+    bottom: 58px;
+}
+
+.augment-chip {
+    position: relative;
+    display: flex;
+    width: 38px;
+    height: 38px;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--augment-border);
+    border-radius: 8px;
+    background:
+        radial-gradient(circle at 50% 18%, var(--augment-glow), transparent 68%),
+        linear-gradient(180deg, var(--augment-bg), rgba(15, 23, 42, 0.96));
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+        0 10px 24px rgba(0, 0, 0, 0.34),
+        0 0 18px var(--augment-glow);
+    cursor: help;
+    padding: 0;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.augment-chip:hover,
+.augment-chip:focus-visible {
+    z-index: 90;
+    transform: scale(1.12);
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.16) inset,
+        0 12px 30px rgba(0, 0, 0, 0.45),
+        0 0 28px var(--augment-glow-strong);
+    outline: none;
+}
+
+.augment-chip img {
+    width: 27px;
+    height: 27px;
+    object-fit: contain;
+    filter: drop-shadow(0 5px 7px rgba(0, 0, 0, 0.45));
+    pointer-events: none;
+}
+
+.augment-tooltip {
+    position: absolute;
+    left: calc(100% + 11px);
+    top: 50%;
+    display: flex;
+    width: 240px;
+    flex-direction: column;
+    gap: 5px;
+    padding: 12px 13px;
+    border: 1px solid var(--augment-border);
+    border-radius: 8px;
+    color: #e2e8f0;
+    background: rgba(15, 23, 42, 0.96);
+    box-shadow:
+        0 16px 42px rgba(0, 0, 0, 0.5),
+        0 0 24px var(--augment-glow);
+    opacity: 0;
+    text-align: left;
+    transform: translateY(-50%) translateX(-5px);
+    transition: opacity 0.14s ease, transform 0.14s ease;
+    pointer-events: none;
+}
+
+.augment-tooltip-tier {
+    color: var(--augment-soft);
+    font-size: 10px;
+    font-weight: 900;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.augment-tooltip-name {
+    color: #fff;
+    font-size: 15px;
+    font-weight: 900;
+    line-height: 1.15;
+}
+
+.augment-tooltip-description {
+    color: #cbd5e1;
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1.3;
+}
+
+.augment-chip:hover .augment-tooltip,
+.augment-chip:focus-visible .augment-tooltip {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+}
+
+.augment-tier-silver {
+    --augment-border: #cbd5e1;
+    --augment-bg: rgba(71, 85, 105, 0.76);
+    --augment-glow: rgba(203, 213, 225, 0.2);
+    --augment-glow-strong: rgba(226, 232, 240, 0.42);
+    --augment-soft: #e2e8f0;
+}
+
+.augment-tier-gold {
+    --augment-border: #fbbf24;
+    --augment-bg: rgba(146, 64, 14, 0.76);
+    --augment-glow: rgba(251, 191, 36, 0.28);
+    --augment-glow-strong: rgba(253, 224, 71, 0.56);
+    --augment-soft: #fde68a;
+}
+
+.augment-tier-diamond {
+    --augment-border: #f0abfc;
+    --augment-bg: rgba(88, 28, 135, 0.84);
+    --augment-glow: rgba(217, 70, 239, 0.46);
+    --augment-glow-strong: rgba(34, 211, 238, 0.66);
+    --augment-soft: #f5d0fe;
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+        0 10px 28px rgba(0, 0, 0, 0.38),
+        0 0 20px rgba(217, 70, 239, 0.5),
+        0 0 34px rgba(34, 211, 238, 0.34);
+    animation: diamond-chip-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes diamond-chip-pulse {
+    0%, 100% {
+        filter: brightness(1);
+    }
+    50% {
+        filter: brightness(1.28);
+    }
 }
 
 .grid {
@@ -1085,30 +1327,6 @@ const onOrbClick = (orbId: string) => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}
-
-.name-tag {
-    position: absolute;
-    left: -110px;
-    width: 120px;
-    z-index: 60;
-    padding: 5px 10px;
-    background: rgba(0,0,0,0.7);
-    color: white;
-    border-radius: 4px;
-    font-weight: bold;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center;
-}
-.name-tag.enemy {
-    top: 20px;
-    border-left: 4px solid #ef4444;
-}
-.name-tag.me {
-    bottom: 20px;
-    border-left: 4px solid #10b981;
 }
 
 .floating-text {
@@ -1383,13 +1601,4 @@ const onOrbClick = (orbId: string) => {
     transform: scale(0.8);
     opacity: 0.5;
 }
-/* Overlays & Tooltips */
-.overlays {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 100; /* Above board and units */
-}
-
-
 </style>

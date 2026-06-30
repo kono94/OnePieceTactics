@@ -18,7 +18,8 @@ public record GameState(
         Map<String, CombatSystem.DamageEntry> damageLog,
         GameMode gameMode,
         boolean planningTimerPaused,
-        String planningReadyPlayerId) {
+        String planningReadyPlayerId,
+        PlanningPauseReason planningPauseReason) {
 
     public record PlayerState(
             String playerId,
@@ -35,6 +36,8 @@ public record GameState(
             List<Trait> activeTraits,
             List<UnitDefinition> shop,
             List<LootOrb> lootOrbs,
+            List<AugmentOffer> augmentChoices,
+            List<SelectedAugment> selectedAugments,
             boolean isGhost) {}
 
     public record CombatEvent(

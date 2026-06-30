@@ -8,5 +8,6 @@ public enum ActionType {
     EXP,
     LOCK,
     COLLECT_ORB,
-    READY_FOR_COMBAT
+    READY_FOR_COMBAT,
+    SELECT_AUGMENT
 }

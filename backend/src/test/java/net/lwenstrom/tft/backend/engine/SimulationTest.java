@@ -9,6 +9,7 @@ import net.lwenstrom.tft.backend.core.DataLoader;
 import net.lwenstrom.tft.backend.core.engine.GameRoom;
 import net.lwenstrom.tft.backend.core.engine.Player;
 import net.lwenstrom.tft.backend.core.engine.UnitDefinition;
+import net.lwenstrom.tft.backend.core.model.AugmentDefinition;
 import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GamePhase;
 import org.junit.jupiter.api.Test;
@@ -68,6 +69,11 @@ public class SimulationTest {
             @Override
             public UnitDefinition getUnitDefinition(GameMode mode, String id) {
                 return getAllUnits(mode).get(0);
+            }
+
+            @Override
+            public List<AugmentDefinition> getAugments(GameMode mode) {
+                return createDefaultAugments();
             }
         };
 
@@ -161,6 +167,11 @@ public class SimulationTest {
             @Override
             public UnitDefinition getUnitDefinition(GameMode mode, String id) {
                 return getAllUnits(mode).get(0);
+            }
+
+            @Override
+            public List<AugmentDefinition> getAugments(GameMode mode) {
+                return createDefaultAugments();
             }
         };
 

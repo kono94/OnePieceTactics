@@ -45,6 +45,8 @@ public abstract class AbstractGameUnit implements GameUnit {
     private float atkBuff = 1.0f;
     private float spdBuff = 1.0f;
     private int shield = 0;
+    private int damageReduction = 0;
+    private int teamAttackDamageOnKill = 0;
 
     // Planning position (saved before combat)
     private int planningX = -1;
@@ -202,6 +204,8 @@ public abstract class AbstractGameUnit implements GameUnit {
         this.lowHpAsThreshold = other.lowHpAsThreshold;
         this.shieldOnDeath = other.shieldOnDeath;
         this.shield = other.shield;
+        this.damageReduction = other.damageReduction;
+        this.teamAttackDamageOnKill = other.teamAttackDamageOnKill;
     }
 
     // ========== GETTERS ==========
@@ -444,6 +448,9 @@ public abstract class AbstractGameUnit implements GameUnit {
 
     @Override
     public void takeDamage(int amount) {
+        if (damageReduction > 0) {
+            amount = Math.max(0, Math.round(amount * (1.0f - damageReduction / 100.0f)));
+        }
         if (shield > 0) {
             if (amount <= shield) {
                 shield -= amount;
@@ -529,6 +536,8 @@ public abstract class AbstractGameUnit implements GameUnit {
         this.lowHpAsThreshold = 0.0f;
         this.shieldOnDeath = false;
         this.shield = 0;
+        this.damageReduction = 0;
+        this.teamAttackDamageOnKill = 0;
     }
 
     @Override
@@ -739,5 +748,25 @@ public abstract class AbstractGameUnit implements GameUnit {
     @Override
     public void setShield(int amount) {
         this.shield = amount;
+    }
+
+    @Override
+    public int getDamageReduction() {
+        return damageReduction;
+    }
+
+    @Override
+    public void setDamageReduction(int reductionPercent) {
+        this.damageReduction = reductionPercent;
+    }
+
+    @Override
+    public int getTeamAttackDamageOnKill() {
+        return teamAttackDamageOnKill;
+    }
+
+    @Override
+    public void setTeamAttackDamageOnKill(int bonus) {
+        this.teamAttackDamageOnKill = bonus;
     }
 }

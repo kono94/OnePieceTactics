@@ -8,9 +8,11 @@ import java.util.List;
 import net.lwenstrom.tft.backend.core.DataLoader;
 import net.lwenstrom.tft.backend.core.GameModeProvider;
 import net.lwenstrom.tft.backend.core.GameModeRegistry;
+import net.lwenstrom.tft.backend.core.model.AugmentDefinition;
 import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GamePhase;
 import net.lwenstrom.tft.backend.test.TestClock;
+import net.lwenstrom.tft.backend.test.TestHelpers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.json.JsonMapper;
@@ -66,6 +68,11 @@ public class PhaseDurationTest {
             @Override
             public UnitDefinition getUnitDefinition(GameMode mode, String id) {
                 return getAllUnits(mode).get(0);
+            }
+
+            @Override
+            public List<AugmentDefinition> getAugments(GameMode mode) {
+                return TestHelpers.createDefaultAugments();
             }
         };
 

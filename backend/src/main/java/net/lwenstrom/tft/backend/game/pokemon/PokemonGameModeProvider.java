@@ -28,6 +28,11 @@ public class PokemonGameModeProvider implements GameModeProvider {
     }
 
     @Override
+    public String getAugmentsPath() {
+        return "/data/augments_pokemon.json";
+    }
+
+    @Override
     public void registerTraitEffects(TraitManager traitManager) {
         PokemonTraitLoader.load(traitManager, jsonMapper);
     }

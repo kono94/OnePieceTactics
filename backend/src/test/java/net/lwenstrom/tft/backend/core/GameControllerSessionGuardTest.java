@@ -41,7 +41,7 @@ class GameControllerSessionGuardTest {
 
         controller.handleAction(
                 room.getId(),
-                new GameAction(ActionType.EXP, host.getId(), null, null, null, null, null),
+                new GameAction(ActionType.EXP, host.getId(), null, null, null, null, null, null),
                 "host-session");
 
         assertEquals(
@@ -62,7 +62,7 @@ class GameControllerSessionGuardTest {
 
         controller.handleAction(
                 room.getId(),
-                new GameAction(ActionType.EXP, guest.getId(), null, null, null, null, null),
+                new GameAction(ActionType.EXP, guest.getId(), null, null, null, null, null, null),
                 "host-session");
 
         assertEquals(hostGold, host.getGold());
@@ -114,7 +114,7 @@ class GameControllerSessionGuardTest {
 
         controller.handleAction(
                 room.getId(),
-                new GameAction(ActionType.READY_FOR_COMBAT, bot.getId(), null, null, null, null, null),
+                new GameAction(ActionType.READY_FOR_COMBAT, bot.getId(), null, null, null, null, null, null),
                 "host-session");
 
         assertEquals(GamePhase.PLANNING, room.getState().phase());
@@ -122,7 +122,7 @@ class GameControllerSessionGuardTest {
 
         controller.handleAction(
                 room.getId(),
-                new GameAction(ActionType.READY_FOR_COMBAT, host.getId(), null, null, null, null, null),
+                new GameAction(ActionType.READY_FOR_COMBAT, host.getId(), null, null, null, null, null, null),
                 "host-session");
 
         assertEquals(GamePhase.COMBAT, room.getState().phase());

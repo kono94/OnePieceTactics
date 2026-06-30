@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.lwenstrom.tft.backend.core.engine.UnitDefinition;
+import net.lwenstrom.tft.backend.core.model.AugmentDefinition;
 import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.TraitMetadata;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,10 @@ public class DataLoader {
     private final GameModeRegistry gameModeRegistry;
     private final JsonMapper jsonMapper;
 
-    private record ModeData(Map<String, UnitDefinition> unitRegistry, List<TraitMetadata> traitMetadata) {}
+    private record ModeData(
+            Map<String, UnitDefinition> unitRegistry,
+            List<TraitMetadata> traitMetadata,
+            List<AugmentDefinition> augments) {}
 
     private final Map<GameMode, ModeData> modeDataCache = new ConcurrentHashMap<>();
 
@@ -40,7 +44,8 @@ public class DataLoader {
         var provider = gameModeRegistry.getProvider(mode);
         var units = loadUnits(provider.getUnitsPath());
         var traits = loadTraits(provider.getTraitsPath());
-        return new ModeData(units, traits);
+        var augments = loadAugments(provider.getAugmentsPath());
+        return new ModeData(units, traits, augments);
     }
 
     private Map<String, UnitDefinition> loadUnits(String path) {
@@ -76,6 +81,22 @@ public class DataLoader {
         }
     }
 
+    private List<AugmentDefinition> loadAugments(String path) {
+        try {
+            var is = getClass().getResourceAsStream(path);
+            if (is != null) {
+                var augments = jsonMapper.readValue(is, new TypeReference<List<AugmentDefinition>>() {});
+                log.info("Loaded {} augments from {}", augments.size(), path);
+                return augments;
+            } else {
+                log.error("Could not find augments at {}", path);
+                return List.of();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load augment data: " + path, e);
+        }
+    }
+
     public UnitDefinition getUnitDefinition(GameMode mode, String id) {
         return getModeData(mode).unitRegistry().get(id);
     }
@@ -98,5 +119,9 @@ public class DataLoader {
 
     public List<TraitMetadata> getTraitMetadata(GameMode mode) {
         return getModeData(mode).traitMetadata();
+    }
+
+    public List<AugmentDefinition> getAugments(GameMode mode) {
+        return getModeData(mode).augments();
     }
 }

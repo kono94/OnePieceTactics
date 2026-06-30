@@ -218,6 +218,7 @@ public class GameController {
             case LOCK -> player.setShopLocked(!player.isShopLocked());
             case COLLECT_ORB -> room.collectOrb(player.getId(), action.orbId());
             case READY_FOR_COMBAT -> room.readyForCombat(player.getId());
+            case SELECT_AUGMENT -> room.selectAugment(player.getId(), action.augmentId());
         }
     }
 

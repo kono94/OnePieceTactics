@@ -16,6 +16,7 @@ import net.lwenstrom.tft.backend.core.GameModeRegistry;
 import net.lwenstrom.tft.backend.core.combat.BfsUnitMover;
 import net.lwenstrom.tft.backend.core.combat.DefaultAbilityCaster;
 import net.lwenstrom.tft.backend.core.combat.NearestEnemyTargetSelector;
+import net.lwenstrom.tft.backend.core.model.AugmentTier;
 import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GamePhase;
 import net.lwenstrom.tft.backend.core.model.GameState;
@@ -23,6 +24,7 @@ import net.lwenstrom.tft.backend.core.model.GameState.PlayerState;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 import net.lwenstrom.tft.backend.core.model.LootOrb;
 import net.lwenstrom.tft.backend.core.model.LootType;
+import net.lwenstrom.tft.backend.core.model.PlanningPauseReason;
 import net.lwenstrom.tft.backend.core.random.RandomProvider;
 import net.lwenstrom.tft.backend.core.time.Clock;
 
@@ -49,6 +51,7 @@ public class GameRoom {
     private final RandomProvider randomProvider;
     private final TraitManager traitManager;
     private final CombatSystem combatSystem;
+    private AugmentManager augmentManager;
     private final List<GameState.CombatEvent> lastTickEvents = new ArrayList<>();
     private final Map<String, CombatSystem.DamageEntry> currentRoundDamageLog = new ConcurrentHashMap<>();
 
@@ -90,6 +93,7 @@ public class GameRoom {
                 new NearestEnemyTargetSelector(),
                 new BfsUnitMover(clock),
                 new DefaultAbilityCaster());
+        this.augmentManager = new AugmentManager(dataLoader.getAugments(this.gameMode), randomProvider);
 
         this.round = 0;
 
@@ -106,6 +110,7 @@ public class GameRoom {
                 new HashMap<>(),
                 this.gameMode,
                 false,
+                null,
                 null);
 
         // In LOBBY, no timer runs until startMatch is called
@@ -131,6 +136,7 @@ public class GameRoom {
         this.gameMode = newMode;
         traitManager.clearEffects();
         gameModeRegistry.getProvider(newMode).registerTraitEffects(traitManager);
+        augmentManager = new AugmentManager(dataLoader.getAugments(newMode), randomProvider);
         players.values().forEach(p -> p.resetForMode(newMode));
         updateGameState(0);
         return true;
@@ -214,6 +220,21 @@ public class GameRoom {
 
         startPhase(GamePhase.COMBAT);
         return true;
+    }
+
+    public boolean selectAugment(String playerId, String augmentId) {
+        if (phase != GamePhase.PLANNING) {
+            return false;
+        }
+
+        var player = players.get(playerId);
+        if (player == null || player.getHealth() <= 0) {
+            return false;
+        }
+
+        var selected = augmentManager.selectAugment(player, augmentId, round);
+        updateGameState(phaseEndTime - clock.currentTimeMillis());
+        return selected;
     }
 
     public void tick() {
@@ -341,7 +362,13 @@ public class GameRoom {
         this.currentPhaseDuration = calculatePhaseDuration(newPhase, round);
         this.phaseEndTime = clock.currentTimeMillis() + currentPhaseDuration;
 
+        if (phase == GamePhase.PLANNING) {
+            generateAugmentChoicesForRound();
+        }
+
         if (phase == GamePhase.COMBAT) {
+            selectRandomPendingAugments();
+
             players.values().stream().filter(p -> p.getHealth() > 0).forEach(p -> {
                 p.setInCombat(true);
                 p.autoFillBoard();
@@ -379,7 +406,10 @@ public class GameRoom {
             }
 
             combatSystem.clearDamageLog();
-            activeCombats.forEach(combatSystem::startCombat);
+            activeCombats.forEach(combat -> {
+                combatSystem.startCombat(combat);
+                augmentManager.applyCombatEffects(combat);
+            });
         }
 
         updateGameState(currentPhaseDuration);
@@ -410,7 +440,8 @@ public class GameRoom {
     }
 
     private void updateGameState(long timeLeft) {
-        var planningTimerPaused = isPlanningTimerPaused();
+        var planningPauseReason = getPlanningPauseReason();
+        var planningTimerPaused = planningPauseReason != null;
         var planningReadyPlayerId =
                 getSoloTrainingReadyPlayer().map(Player::getId).orElse(null);
         var displayedTimeLeft = planningTimerPaused ? currentPhaseDuration : Math.max(0, timeLeft);
@@ -438,11 +469,46 @@ public class GameRoom {
                 new HashMap<>(currentRoundDamageLog),
                 gameMode,
                 planningTimerPaused,
-                planningReadyPlayerId);
+                planningReadyPlayerId,
+                planningPauseReason);
     }
 
     private boolean isPlanningTimerPaused() {
-        return getSoloTrainingReadyPlayer().isPresent();
+        return getPlanningPauseReason() != null;
+    }
+
+    private PlanningPauseReason getPlanningPauseReason() {
+        if (getSoloTrainingReadyPlayer().isPresent()) {
+            return PlanningPauseReason.SOLO_READY;
+        }
+        return null;
+    }
+
+    private void generateAugmentChoicesForRound() {
+        AugmentTier tier = AugmentManager.tierForRound(round);
+        if (tier == null) {
+            return;
+        }
+
+        players.values().stream().filter(player -> player.getHealth() > 0).forEach(player -> {
+            var choices = augmentManager.generateOffers(player, tier);
+            player.setAugmentChoices(choices);
+            if (player.isBot() && !choices.isEmpty()) {
+                var selected = choices.get(randomProvider.nextInt(choices.size()));
+                augmentManager.selectAugment(player, selected.id(), round);
+            }
+        });
+    }
+
+    private void selectRandomPendingAugments() {
+        players.values().stream()
+                .filter(player -> player.getHealth() > 0)
+                .filter(player -> !player.getAugmentChoices().isEmpty())
+                .forEach(player -> {
+                    var choices = player.getAugmentChoices();
+                    var selected = choices.get(randomProvider.nextInt(choices.size()));
+                    augmentManager.selectAugment(player, selected.id(), round);
+                });
     }
 
     private Optional<Player> getSoloTrainingReadyPlayer() {

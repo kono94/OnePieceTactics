@@ -29,6 +29,11 @@ public class OnePieceGameModeProvider implements GameModeProvider {
     }
 
     @Override
+    public String getAugmentsPath() {
+        return "/data/augments_onepiece.json";
+    }
+
+    @Override
     public void registerTraitEffects(TraitManager traitManager) {
         OnePieceTraitLoader.load(traitManager, jsonMapper);
     }

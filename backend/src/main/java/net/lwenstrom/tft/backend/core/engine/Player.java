@@ -7,11 +7,13 @@ import lombok.Getter;
 import lombok.Setter;
 import net.lwenstrom.tft.backend.core.DataLoader;
 import net.lwenstrom.tft.backend.core.GameConstants;
+import net.lwenstrom.tft.backend.core.model.AugmentOffer;
 import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GameState.PlayerState;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 import net.lwenstrom.tft.backend.core.model.LootOrb;
 import net.lwenstrom.tft.backend.core.model.LootType;
+import net.lwenstrom.tft.backend.core.model.SelectedAugment;
 import net.lwenstrom.tft.backend.core.random.RandomProvider;
 
 @Getter
@@ -33,6 +35,8 @@ public class Player {
     private final Bench bench = new Bench();
     private final List<GameUnit> boardUnits = new ArrayList<>();
     private final List<LootOrb> lootOrbs = new ArrayList<>();
+    private final List<AugmentOffer> augmentChoices = new ArrayList<>();
+    private final List<SelectedAugment> selectedAugments = new ArrayList<>();
 
     private List<UnitDefinition> shop = new ArrayList<>();
     private boolean shopLocked = false;
@@ -80,6 +84,8 @@ public class Player {
         this.inCombat = false;
         this.pendingUpgrades.clear();
         this.lootOrbs.clear();
+        this.augmentChoices.clear();
+        this.selectedAugments.clear();
         bench.clearAll();
         removeAllUnits();
         refreshShopFree();
@@ -164,6 +170,19 @@ public class Player {
 
     public void gainGold(int amount) {
         this.gold += amount;
+    }
+
+    public void setAugmentChoices(List<AugmentOffer> choices) {
+        this.augmentChoices.clear();
+        this.augmentChoices.addAll(choices);
+    }
+
+    public void clearAugmentChoices() {
+        this.augmentChoices.clear();
+    }
+
+    public void addSelectedAugment(SelectedAugment augment) {
+        this.selectedAugments.add(augment);
     }
 
     public void sellUnit(String unitId, boolean allowBoardSell) {
@@ -456,6 +475,7 @@ public class Player {
         ghostPlayer.setGhost(true);
         ghostPlayer.setHealth(this.health);
         ghostPlayer.setLevel(this.level);
+        ghostPlayer.selectedAugments.addAll(this.selectedAugments);
 
         for (var unit : this.boardUnits) {
             var cloned = unit.cloneUnit();
@@ -481,6 +501,8 @@ public class Player {
                 new ArrayList<>(), // TODO: Calculate active traits
                 new ArrayList<>(shop),
                 new ArrayList<>(lootOrbs),
+                new ArrayList<>(augmentChoices),
+                new ArrayList<>(selectedAugments),
                 ghost);
     }
 

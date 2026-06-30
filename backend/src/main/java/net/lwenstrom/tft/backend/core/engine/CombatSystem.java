@@ -208,6 +208,7 @@ public class CombatSystem {
                         } else {
                             // Trigger Whitebeard Pirates shield on death
                             triggerShieldOnDeath(target, allUnits, currentTime);
+                            AugmentManager.applyTeamAttackDamageOnKill(unit, allUnits);
                             recentEvents.add(new GameState.CombatEvent(
                                     currentTime, "DEATH", unit.getId(), target.getId(), 0, null));
                         }

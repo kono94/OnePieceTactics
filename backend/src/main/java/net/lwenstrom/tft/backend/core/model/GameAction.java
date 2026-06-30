@@ -7,4 +7,5 @@ public record GameAction(
         String orbId,
         Integer targetX,
         Integer targetY,
-        Integer shopIndex) {}
+        Integer shopIndex,
+        String augmentId) {}

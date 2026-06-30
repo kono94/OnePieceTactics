@@ -1,0 +1,26 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="64" fill="#0f172a"/>
+  <circle cx="256" cy="242" r="164" fill="url(#outerGlow)" opacity="0.85"/>
+  <path d="M256 70L373 164L327 395H185L139 164L256 70Z" fill="url(#gemFill)" stroke="#f8fafc" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M139 164H373L305 238H207L139 164Z" fill="#e0f2fe" fill-opacity="0.9"/>
+  <path d="M207 238H305L256 395L207 238Z" fill="#67e8f9" fill-opacity="0.85"/>
+  <path d="M139 164L207 238L185 395L139 164Z" fill="#38bdf8" fill-opacity="0.72"/>
+  <path d="M373 164L305 238L327 395L373 164Z" fill="#0ea5e9" fill-opacity="0.72"/>
+  <path d="M256 70L207 238H305L256 70Z" fill="#f8fafc" fill-opacity="0.8"/>
+  <path d="M175 110L151 64L127 110L81 134L127 158L151 204L175 158L221 134L175 110Z" fill="#ffffff" fill-opacity="0.92"/>
+  <path d="M392 318L377 290L362 318L334 333L362 348L377 376L392 348L420 333L392 318Z" fill="#ffffff" fill-opacity="0.88"/>
+  <path d="M356 82L345 61L334 82L313 93L334 104L345 125L356 104L377 93L356 82Z" fill="#ffffff" fill-opacity="0.76"/>
+  <defs>
+    <radialGradient id="outerGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(256 242) rotate(90) scale(164)">
+      <stop stop-color="#ffffff"/>
+      <stop offset="0.42" stop-color="#67e8f9"/>
+      <stop offset="1" stop-color="#0f172a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gemFill" x1="139" y1="70" x2="373" y2="395" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f8fafc"/>
+      <stop offset="0.34" stop-color="#67e8f9"/>
+      <stop offset="0.68" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#172554"/>
+    </linearGradient>
+  </defs>
+</svg>

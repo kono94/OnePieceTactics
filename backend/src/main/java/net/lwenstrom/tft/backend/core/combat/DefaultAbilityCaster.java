@@ -3,6 +3,7 @@ package net.lwenstrom.tft.backend.core.combat;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import net.lwenstrom.tft.backend.core.engine.AbstractGameUnit;
+import net.lwenstrom.tft.backend.core.engine.AugmentManager;
 import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
 import net.lwenstrom.tft.backend.core.model.ConditionalModifier;
 import net.lwenstrom.tft.backend.core.model.DotEffect;
@@ -90,6 +91,9 @@ public class DefaultAbilityCaster implements AbilityCaster {
         applyToTargets(source, allUnits, target, ability, u -> {
             int effectiveDamage = PokemonTypeEffectiveness.apply(source, u, finalDamage);
             u.takeDamage(effectiveDamage);
+            if (isFinalKill(u)) {
+                AugmentManager.applyTeamAttackDamageOnKill(source, allUnits);
+            }
             // Apply secondary effects from modifiers (stun, knockback)
             applyStunAndKnockbackModifiers(source, u, ability);
             applyDotModifiers(source, u, ability, currentTime);
@@ -99,6 +103,10 @@ public class DefaultAbilityCaster implements AbilityCaster {
 
         // Apply lifesteal modifier
         applyLifestealModifier(source, ability, totalDamageDealt[0], callback);
+    }
+
+    private boolean isFinalKill(GameUnit target) {
+        return target.getCurrentHealth() <= 0 && (!target.hasRevive() || target.isReviveUsed());
     }
 
     private void castStunAbility(

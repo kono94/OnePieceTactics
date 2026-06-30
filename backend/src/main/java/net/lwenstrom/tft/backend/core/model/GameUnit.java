@@ -261,4 +261,16 @@ public interface GameUnit {
     }
 
     default void setShield(int amount) {}
+
+    default int getDamageReduction() {
+        return 0;
+    }
+
+    default void setDamageReduction(int reductionPercent) {}
+
+    default int getTeamAttackDamageOnKill() {
+        return 0;
+    }
+
+    default void setTeamAttackDamageOnKill(int bonus) {}
 }

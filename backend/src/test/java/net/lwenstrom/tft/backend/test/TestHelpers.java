@@ -13,6 +13,8 @@ import net.lwenstrom.tft.backend.core.engine.Player;
 import net.lwenstrom.tft.backend.core.engine.TraitManager;
 import net.lwenstrom.tft.backend.core.engine.UnitDefinition;
 import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
+import net.lwenstrom.tft.backend.core.model.AugmentDefinition;
+import net.lwenstrom.tft.backend.core.model.AugmentEffectType;
 import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.TraitMetadata;
 import net.lwenstrom.tft.backend.core.random.RandomProvider;
@@ -52,6 +54,10 @@ public final class TestHelpers {
     }
 
     public static DataLoader createMockDataLoader(List<UnitDefinition> units) {
+        return createMockDataLoader(units, createDefaultAugments());
+    }
+
+    public static DataLoader createMockDataLoader(List<UnitDefinition> units, List<AugmentDefinition> augments) {
         var registry = createMockRegistry();
         return new DataLoader(
                 registry, tools.jackson.databind.json.JsonMapper.builder().build()) {
@@ -72,7 +78,36 @@ public final class TestHelpers {
             public List<TraitMetadata> getTraitMetadata(GameMode mode) {
                 return List.of();
             }
+
+            @Override
+            public List<AugmentDefinition> getAugments(GameMode mode) {
+                return augments;
+            }
         };
+    }
+
+    public static List<AugmentDefinition> createDefaultAugments() {
+        return List.of(
+                createAugment("ranged-tempo", AugmentEffectType.TEAM_ATTACK_SPEED_PER_RANGED_UNIT, List.of(3, 5, 8)),
+                createAugment("guarded-formation", AugmentEffectType.TEAM_DAMAGE_REDUCTION, List.of(5, 10, 15)),
+                createAugment("snowball-strike", AugmentEffectType.TEAM_ATTACK_DAMAGE_ON_KILL, List.of(5, 8, 12)),
+                createAugment("treasure-cache", AugmentEffectType.GOLD, List.of(30, 45, 70)),
+                createAugment("training-arc", AugmentEffectType.XP, List.of(8, 16, 24)),
+                createAugment("battle-standard", AugmentEffectType.TEAM_MAX_HEALTH, List.of(120, 220, 360)),
+                createAugment("sharpened-blades", AugmentEffectType.TEAM_ATTACK_DAMAGE, List.of(4, 7, 10)),
+                createAugment("focused-haki", AugmentEffectType.TEAM_ABILITY_POWER, List.of(10, 18, 30)),
+                createAugment("iron-line", AugmentEffectType.TEAM_ARMOR_AND_MAGIC_RESIST, List.of(8, 14, 24)),
+                createAugment("close-quarters", AugmentEffectType.MELEE_LIFESTEAL, List.of(8, 12, 18)),
+                createAugment("backline-barrage", AugmentEffectType.RANGED_ATTACK_DAMAGE, List.of(5, 8, 12)),
+                createAugment("quick-study", AugmentEffectType.TEAM_MANA_GAIN, List.of(12, 20, 30)),
+                createAugment("opening-burst", AugmentEffectType.TEAM_STARTING_MANA, List.of(10, 20, 35)),
+                createAugment("clean-bench", AugmentEffectType.GOLD_PER_EMPTY_BENCH_SLOT, List.of(2, 3, 5)),
+                createAugment("first-guard", AugmentEffectType.TEAM_STARTING_SHIELD, List.of(100, 180, 300)));
+    }
+
+    public static AugmentDefinition createAugment(String id, AugmentEffectType effectType, List<Integer> values) {
+        return new AugmentDefinition(
+                id, id, effectType, values, List.of(id + " silver", id + " gold", id + " diamond"), null);
     }
 
     public static UnitDefinition createDefaultUnitDef() {

@@ -11,9 +11,22 @@ export type GamePhase = 'LOBBY' | 'PLANNING' | 'COMBAT' | 'END_CELEBRATION' | 'E
 
 export type GameMode = 'onepiece' | 'pokemon'
 
-export type ActionType = 'BUY' | 'SELL' | 'MOVE' | 'REROLL' | 'EXP' | 'LOCK' | 'COLLECT_ORB' | 'READY_FOR_COMBAT'
+export type ActionType =
+    | 'BUY'
+    | 'SELL'
+    | 'MOVE'
+    | 'REROLL'
+    | 'EXP'
+    | 'LOCK'
+    | 'COLLECT_ORB'
+    | 'READY_FOR_COMBAT'
+    | 'SELECT_AUGMENT'
 
 export type CombatSide = 'TOP' | 'BOTTOM'
+
+export type AugmentTier = 'SILVER' | 'GOLD' | 'DIAMOND'
+
+export type PlanningPauseReason = 'AUGMENT_SELECTION' | 'SOLO_READY' | null
 
 // ============================================================================
 // Core Game Entities
@@ -117,6 +130,31 @@ export interface LootOrb {
 }
 
 // ============================================================================
+// Augments
+// ============================================================================
+
+export interface AugmentOffer {
+    id: string
+    name: string
+    description: string
+    tier: AugmentTier
+    effectType: string
+    value: number
+    image?: string | null
+}
+
+export interface SelectedAugment {
+    id: string
+    name: string
+    description: string
+    tier: AugmentTier
+    effectType: string
+    value: number
+    selectedRound: number
+    image?: string | null
+}
+
+// ============================================================================
 // Player State
 // ============================================================================
 
@@ -135,6 +173,8 @@ export interface PlayerState {
     activeTraits: ActiveTrait[]
     shop: UnitDefinition[]
     lootOrbs: LootOrb[]
+    augmentChoices: AugmentOffer[]
+    selectedAugments: SelectedAugment[]
     isGhost: boolean
     boardUnits?: GameUnit[] // Alternative name for board in some contexts
 }
@@ -184,6 +224,7 @@ export interface GameState {
     gameMode: GameMode
     planningTimerPaused: boolean
     planningReadyPlayerId: string | null
+    planningPauseReason: PlanningPauseReason
 }
 
 // ============================================================================
@@ -198,6 +239,7 @@ export interface GameAction {
     targetY?: number // For MOVE (-1 for bench, 0-7 for board)
     shopIndex?: number // For BUY (0-4)
     orbId?: string // For COLLECT_ORB
+    augmentId?: string // For SELECT_AUGMENT
 }
 
 // ============================================================================

@@ -22,6 +22,10 @@ public interface GameModeProvider {
      */
     String getTraitsPath();
 
+    default String getAugmentsPath() {
+        return "/data/augments_" + getMode().getValue() + ".json";
+    }
+
     /**
      * Registers mode-specific trait effects into the TraitManager.
      *

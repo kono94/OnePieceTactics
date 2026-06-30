@@ -6,7 +6,8 @@ import PhaseAnnouncement from './PhaseAnnouncement.vue'
 import TraitSidebar from './TraitSidebar.vue'
 import PlayerList from './PlayerList.vue'
 import EndScreen from './EndScreen.vue'
-import type { GameState, GameUnit, UnitDefinition, PlayerState } from '../types'
+import AugmentSelectionOverlay from './AugmentSelectionOverlay.vue'
+import type { AugmentOffer, GameState, GameUnit, UnitDefinition, PlayerState } from '../types'
 import { getUnitIconPath } from '../utils/iconUtils'
 import { getRarityColor } from '../utils/colorUtils'
 import { SHOP_ODDS } from '../data/shopOdds'
@@ -51,6 +52,12 @@ const isDead = computed(() => {
 const shopCards = computed((): UnitDefinition[] => {
     return myPlayer.value?.shop || []
 })
+
+const pendingAugmentChoices = computed((): AugmentOffer[] => {
+    return myPlayer.value?.augmentChoices || []
+})
+
+const hasPendingAugmentChoices = computed(() => pendingAugmentChoices.value.length > 0)
 
 const benchUnits = computed((): (GameUnit | null)[] => {
     return myPlayer.value?.bench || []
@@ -135,6 +142,11 @@ function refreshShop() {
 function buyXp() {
     if (!myPlayer.value) return
     emit('action', { type: 'EXP', playerId: myPlayer.value.playerId })
+}
+
+function selectAugment(augmentId: string) {
+    if (!myPlayer.value) return
+    emit('action', { type: 'SELECT_AUGMENT', augmentId, playerId: myPlayer.value.playerId })
 }
 
 const onBenchDragStart = (evt: DragEvent, unit: GameUnit) => {
@@ -353,6 +365,8 @@ const rarityColors = [
 const canReadyForCombat = computed(() => {
     return props.state?.phase === 'PLANNING'
         && props.state.planningTimerPaused
+        && props.state.planningPauseReason !== 'AUGMENT_SELECTION'
+        && !hasPendingAugmentChoices.value
         && !!myPlayer.value?.playerId
         && props.state.planningReadyPlayerId === myPlayer.value.playerId
 })
@@ -368,6 +382,8 @@ const timerFillColor = computed(() => {
     if (!props.state) return '#3b82f6'
     if (props.state.phase === 'COMBAT') return '#ef4444'
     if (props.state.phase === 'END_CELEBRATION') return '#eab308'
+    if (props.state.phase === 'PLANNING' && props.state.planningPauseReason === 'AUGMENT_SELECTION') return '#67e8f9'
+    if (props.state.phase === 'PLANNING' && props.state.planningPauseReason === 'SOLO_READY') return '#22c55e'
     if (props.state.phase === 'PLANNING' && props.state.planningTimerPaused) return '#22c55e'
     return '#3b82f6'
 })
@@ -425,6 +441,10 @@ watch(effectiveViewedPlayerId, (playerId) => {
   <div class="game-interface">
     <PhaseAnnouncement v-if="state" :phase="state.phase" />
     <EndScreen v-if="showEndScreen" :players="allPlayers" :my-player-id="myPlayer?.playerId" />
+    <AugmentSelectionOverlay
+        v-if="state?.phase === 'PLANNING' && hasPendingAugmentChoices"
+        :choices="pendingAugmentChoices"
+        @select="selectAugment" />
 
 
     <template v-if="state">
@@ -1389,6 +1409,7 @@ watch(effectiveViewedPlayerId, (playerId) => {
     transform: none;
     cursor: not-allowed;
 }
+
 .reroll-btn {
     background: #ef4444; 
 }
