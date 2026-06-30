@@ -256,6 +256,10 @@ public class Player {
         }
     }
 
+    public void collectAllOrbs() {
+        new ArrayList<>(lootOrbs).stream().map(LootOrb::id).forEach(this::collectOrb);
+    }
+
     private void addToBenchOrRefund(GameUnit unit, int refundAmount) {
         var emptySlot = bench.findFirstEmptySlot();
         if (emptySlot.isPresent()) {

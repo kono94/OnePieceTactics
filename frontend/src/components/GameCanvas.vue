@@ -289,6 +289,71 @@ const onDragLeave = () => {
     emit('update:is-over-grid', false)
 }
 
+interface AutoPickupEffect {
+    id: number
+    visualX: number
+    visualY: number
+    label: string
+}
+
+const autoPickupEffects = ref<AutoPickupEffect[]>([])
+const lastVisibleOrbs = ref<RenderedOrb[]>([])
+let nextAutoPickupEffectId = 0
+
+function triggerAutoPickupEffects(orbs: RenderedOrb[]) {
+    if (!orbs.length) return
+
+    const grouped = new Map<string, AutoPickupEffect>()
+    orbs.forEach((orb) => {
+        const label = formatPickupLabel(orb)
+        const key = `${orb.visualX}:${orb.visualY}:${label}`
+        const existing = grouped.get(key)
+        if (existing) {
+            existing.label = combinePickupLabels(existing.label, label)
+            return
+        }
+        grouped.set(key, {
+            id: nextAutoPickupEffectId++,
+            visualX: orb.visualX,
+            visualY: orb.visualY,
+            label
+        })
+    })
+
+    const effects = Array.from(grouped.values())
+    autoPickupEffects.value = [...autoPickupEffects.value, ...effects]
+
+    const timer = window.setTimeout(() => {
+        const expiredIds = new Set(effects.map((effect) => effect.id))
+        autoPickupEffects.value = autoPickupEffects.value.filter((effect) => !expiredIds.has(effect.id))
+    }, 900)
+    deathTimers.value.push(timer)
+}
+
+function formatPickupLabel(orb: RenderedOrb): string {
+    const type = orb.type as string
+    if (type === 'GOLD') return `+${orb.amount}g`
+    if (type === 'XP' || type === 'EXP') return `+${orb.amount} XP`
+    if (type === 'UNIT') return '+Unit'
+    return '+Reward'
+}
+
+function combinePickupLabels(currentLabel: string, nextLabel: string): string {
+    const currentMatch = currentLabel.match(/^\+(\d+)(g| XP)$/)
+    const nextMatch = nextLabel.match(/^\+(\d+)(g| XP)$/)
+    if (currentMatch && nextMatch && currentMatch[2] === nextMatch[2]) {
+        return `+${Number(currentMatch[1]) + Number(nextMatch[1])}${currentMatch[2]}`
+    }
+    if (currentLabel === '+Unit' && nextLabel === '+Unit') {
+        return '+2 Units'
+    }
+    const unitsMatch = currentLabel.match(/^\+(\d+) Units$/)
+    if (unitsMatch && nextLabel === '+Unit') {
+        return `+${Number(unitsMatch[1]) + 1} Units`
+    }
+    return currentLabel
+}
+
 // Hover handlers for Tooltip
 const onUnitMouseEnter = (evt: MouseEvent, unit: RenderedUnit) => {
     if (!isDragging.value && !props.isDraggingProp) {
@@ -671,7 +736,21 @@ watch(currentViewedPlayerId, () => {
     prevStarLevelMap.value = {}
     dragOverCellIndex.value = -1
     hoveredUnitId.value = null
+    autoPickupEffects.value = []
+    lastVisibleOrbs.value = []
 })
+
+watch([() => props.state?.phase, renderedOrbs], ([newPhase], [oldPhase]) => {
+    if (oldPhase === 'PLANNING' && newPhase === 'COMBAT' && lastVisibleOrbs.value.length > 0) {
+        triggerAutoPickupEffects(lastVisibleOrbs.value)
+    }
+
+    if (newPhase === 'PLANNING') {
+        lastVisibleOrbs.value = renderedOrbs.value.map((orb) => ({ ...orb }))
+    } else if (newPhase !== 'COMBAT') {
+        lastVisibleOrbs.value = []
+    }
+}, { deep: true })
 
 // Check if a unit is celebrating star-up
 function isStarringUp(unitId: string): boolean {
@@ -679,6 +758,10 @@ function isStarringUp(unitId: string): boolean {
 }
 
 const onOrbClick = (orbId: string) => {
+    const orb = renderedOrbs.value.find((renderedOrb) => renderedOrb.id === orbId)
+    if (orb) {
+        triggerAutoPickupEffects([orb])
+    }
     emit('collect-orb', orbId)
 }
 </script>
@@ -781,6 +864,19 @@ const onOrbClick = (orbId: string) => {
                                 <span v-else>🎁</span>
                             </div>
                         </div>
+                    </div>
+
+                    <div v-for="effect in autoPickupEffects" :key="effect.id"
+                         class="auto-pickup-effect"
+                         :style="{
+                            left: (effect.visualX * CELL_SIZE + CELL_SIZE / 2) + 'px',
+                            top: (effect.visualY * CELL_SIZE + CELL_SIZE / 2) + 'px'
+                         }">
+                        <div class="auto-pickup-ring"></div>
+                        <div class="auto-pickup-spark spark-a"></div>
+                        <div class="auto-pickup-spark spark-b"></div>
+                        <div class="auto-pickup-spark spark-c"></div>
+                        <div class="auto-pickup-label">{{ effect.label }}</div>
                     </div>
 
                 </div>
@@ -1600,5 +1696,117 @@ const onOrbClick = (orbId: string) => {
 .loot-orb:active {
     transform: scale(0.8);
     opacity: 0.5;
+}
+
+.auto-pickup-effect {
+    position: absolute;
+    z-index: 80;
+    width: 48px;
+    height: 48px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: autoPickupLift 0.9s ease-out forwards;
+}
+
+.auto-pickup-ring {
+    position: absolute;
+    inset: 8px;
+    border: 2px solid rgba(251, 191, 36, 0.95);
+    border-radius: 50%;
+    box-shadow:
+        0 0 12px rgba(251, 191, 36, 0.72),
+        0 0 26px rgba(34, 211, 238, 0.38);
+    animation: autoPickupRing 0.9s ease-out forwards;
+}
+
+.auto-pickup-spark {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #fef3c7;
+    box-shadow: 0 0 10px rgba(254, 243, 199, 0.95);
+    animation: autoPickupSpark 0.72s ease-out forwards;
+}
+
+.auto-pickup-spark.spark-a {
+    --spark-x: -24px;
+    --spark-y: -18px;
+}
+
+.auto-pickup-spark.spark-b {
+    --spark-x: 22px;
+    --spark-y: -20px;
+    animation-delay: 0.05s;
+}
+
+.auto-pickup-spark.spark-c {
+    --spark-x: 0;
+    --spark-y: 24px;
+    animation-delay: 0.1s;
+}
+
+.auto-pickup-label {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    min-width: 28px;
+    width: max-content;
+    max-width: 72px;
+    transform: translate(-50%, -50%);
+    color: #fff7ed;
+    font-size: 14px;
+    font-weight: 900;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    text-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.9),
+        0 0 10px rgba(251, 191, 36, 0.95);
+}
+
+@keyframes autoPickupLift {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.72);
+    }
+    20% {
+        opacity: 1;
+        transform: translate(-50%, -58%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -92%) scale(0.86);
+    }
+}
+
+@keyframes autoPickupRing {
+    0% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    28% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(1.75);
+    }
+}
+
+@keyframes autoPickupSpark {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.4);
+    }
+    25% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--spark-x)), calc(-50% + var(--spark-y))) scale(0.85);
+    }
 }
 </style>

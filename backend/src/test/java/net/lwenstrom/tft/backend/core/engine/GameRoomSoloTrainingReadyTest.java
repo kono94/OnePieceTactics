@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import net.lwenstrom.tft.backend.core.model.GamePhase;
+import net.lwenstrom.tft.backend.core.model.LootOrb;
+import net.lwenstrom.tft.backend.core.model.LootType;
 import net.lwenstrom.tft.backend.test.TestClock;
 import net.lwenstrom.tft.backend.test.TestHelpers;
 import org.junit.jupiter.api.Test;
@@ -49,6 +51,23 @@ class GameRoomSoloTrainingReadyTest {
         assertEquals(GamePhase.COMBAT, room.getState().phase());
         assertFalse(room.getState().planningTimerPaused());
         assertNull(room.getState().planningReadyPlayerId());
+    }
+
+    @Test
+    void combatStartCollectsUnclaimedLootOrbs() {
+        var testClock = new TestClock();
+        var room = createRoom(testClock);
+        var human = room.addPlayer("Human");
+        room.startMatch();
+
+        var goldBeforePickup = human.getGold();
+        human.addLootOrb(new LootOrb("unclaimed-gold", 0, 0, LootType.GOLD, "", 5));
+
+        assertTrue(room.readyForCombat(human.getId()));
+
+        var playerState = room.getState().players().get(human.getId());
+        assertEquals(goldBeforePickup + 5, playerState.gold());
+        assertTrue(playerState.lootOrbs().isEmpty());
     }
 
     @Test

@@ -370,6 +370,7 @@ public class GameRoom {
             selectRandomPendingAugments();
 
             players.values().stream().filter(p -> p.getHealth() > 0).forEach(p -> {
+                p.collectAllOrbs();
                 p.setInCombat(true);
                 p.autoFillBoard();
             });
