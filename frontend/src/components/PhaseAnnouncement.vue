@@ -110,7 +110,7 @@ function triggerAnimation() {
     margin: 0;
     text-transform: uppercase;
     letter-spacing: 5px;
-    font-family: 'Impact', fantasy, sans-serif;
+    font-family: var(--app-font-family);
     transform: skew(-10deg);
 }
 
@@ -205,7 +205,7 @@ function triggerAnimation() {
     text-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
     letter-spacing: 8px;
     text-transform: uppercase;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: var(--app-font-family);
 }
 
 @keyframes slide-down {

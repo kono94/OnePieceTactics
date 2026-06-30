@@ -397,7 +397,7 @@ const applyThemeMeta = (mode: GameMode | null) => {
 <style>
 body {
     margin: 0;
-    font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+    font-family: var(--app-font-family);
     background-color: #0f172a;
     color: #f8fafc;
 }

@@ -684,6 +684,7 @@ watch(effectiveViewedPlayerId, (playerId) => {
     flex-direction: column;
     overflow: hidden;
     position: relative;
+    font-family: var(--app-font-family);
     color: white;
     background: var(--app-bg);
 }
@@ -1367,7 +1368,7 @@ watch(effectiveViewedPlayerId, (playerId) => {
     border: 2px solid #3b82f6;
     border-radius: 4px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    font-family: 'Inter', sans-serif;
+    font-family: inherit;
     transition: all 0.2s ease;
 }
 

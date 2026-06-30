@@ -129,6 +129,7 @@ function getHealthBarClass(health: number) {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    font-family: var(--app-font-family);
     pointer-events: auto;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
