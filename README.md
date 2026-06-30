@@ -29,6 +29,7 @@ For detailed architectural information, refer to the context documents:
 - **Auto-battler mechanics**: Shop, XP, Gold (with interest), Trait Synergies, Unit Combinations
 - **Grid-based combat** with BFS pathfinding, ability casting, and directional attack animations
 - **Star-level progression** — combine 3 identical units to upgrade (1★ → 2★ → 3★), including Pokemon evolution forms
+- **Round-based augment choices** — players choose team-wide economy or combat bonuses on rounds 2, 5, and 10
 - **Advanced ability system** — Damage, Stun, Shield, Heal, Buff with modifiers (Lifesteal, Execute, Scaling, Conditional, Knockback)
 - **Data-driven trait system** — All trait effects loaded from JSON configuration (no hardcoded logic)
 - **TFT-style shop odds** — Level-based probability distribution for unit costs (1★-5★)
@@ -156,8 +157,8 @@ Rooms start with the configured default mode, then the host can switch modes in 
 
 | Mode | Property Value | Data Files |
 |------|----------------|------------|
-| One Piece | `game.mode=onepiece` | `units_onepiece.json`, `traits_onepiece.json` |
-| Pokemon | `game.mode=pokemon` | `units_pokemon.json`, `traits_pokemon.json` |
+| One Piece | `game.mode=onepiece` | `units_onepiece.json`, `traits_onepiece.json`, `augments_onepiece.json` |
+| Pokemon | `game.mode=pokemon` | `units_pokemon.json`, `traits_pokemon.json`, `augments_pokemon.json` |
 
 Use `GAME_MODE` or `game.mode` to choose the default lobby selection. To add a new theme, implement `GameModeProvider` and add corresponding JSON data files. See [Backend Context](backend/BACKEND_CONTEXT.md#8-game-mode-system) for details.
 
@@ -172,11 +173,12 @@ Use `GAME_MODE` or `game.mode` to choose the default lobby selection. To add a n
 | `/app/join` | Client → Server | Join an existing room |
 | `/app/start` | Client → Server | Host starts the match |
 | `/app/room/{id}/mode` | Client → Server | Host changes the room game mode during lobby |
-| `/app/room/{id}/action` | Client → Server | Player action (BUY, MOVE, REROLL, EXP, SELL, LOCK, COLLECT_ORB) |
+| `/app/room/{id}/action` | Client → Server | Player action (BUY, MOVE, REROLL, EXP, SELL, LOCK, COLLECT_ORB, READY_FOR_COMBAT, SELECT_AUGMENT) |
 | `/topic/room/{id}` | Server → Client | Game state broadcast (100ms) |
 | `/topic/room/{id}/event` | Server → Client | Combat result events (winner, loser, damageLog) |
 
 Client actions are bound to the STOMP session that joined the room. The backend rejects actions, start requests, and mode changes that attempt to act as a different player id.
+Augment choices are included in each player's `GameState` snapshot as `augmentChoices`; selected augments are exposed as `selectedAugments`.
 
 ### REST Endpoints
 | Endpoint | Method | Description |
@@ -212,4 +214,4 @@ This project is for educational purposes.
 
 ---
 
-*Last updated: 2026-06-28*
+*Last updated: 2026-06-30*

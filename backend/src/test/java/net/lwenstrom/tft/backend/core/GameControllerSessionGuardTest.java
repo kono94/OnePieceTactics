@@ -128,6 +128,26 @@ class GameControllerSessionGuardTest {
         assertEquals(GamePhase.COMBAT, room.getState().phase());
     }
 
+    @Test
+    void handleAction_SelectsAugmentForSessionBoundPlayer() {
+        var room = createRoomWithHost();
+        controller.joinRoom(new GameController.RoomRequest(room.getId(), "Guest"), "guest-session");
+        var host = findPlayer(room, "Host");
+
+        TestHelpers.setPhase(room, GamePhase.PLANNING);
+        TestHelpers.setPhase(room, GamePhase.PLANNING);
+
+        var augmentId = host.getAugmentChoices().get(0).id();
+        controller.handleAction(
+                room.getId(),
+                new GameAction(ActionType.SELECT_AUGMENT, host.getId(), null, null, null, null, null, augmentId),
+                "host-session");
+
+        assertEquals(0, host.getAugmentChoices().size());
+        assertEquals(1, host.getSelectedAugments().size());
+        assertEquals(augmentId, host.getSelectedAugments().get(0).id());
+    }
+
     private GameRoom createRoomWithHost() {
         controller.createRoom(new GameController.RoomRequest("session-room", "Host"), "host-session");
         return gameEngine.getRoom("session-room");

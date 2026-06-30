@@ -7,7 +7,7 @@
 The backend is the authoritative source for match state. It owns:
 - In-memory multiplayer game rooms.
 - A scheduled round loop: `LOBBY -> PLANNING -> COMBAT -> END_CELEBRATION -> END`.
-- Auto-battle simulation, movement, damage, mana, abilities, traits, loot, bots, and elimination.
+- Auto-battle simulation, movement, damage, mana, abilities, traits, augments, loot, bots, and elimination.
 - Real-time synchronization to the frontend through STOMP WebSocket topics.
 - A theme-agnostic engine with pluggable game modes: `onepiece` and `pokemon`.
 
@@ -69,6 +69,7 @@ src/main/java/net/lwenstrom/tft/backend/
 │   │   ├── GameRoom.java                # One match instance: phase state, players, matchups, combat pairs, room mode.
 │   │   ├── Player.java                  # Player economy, bench, board, shop, XP, loot, upgrades.
 │   │   ├── CombatSystem.java            # Combat tick simulation, damage log, combat events.
+│   │   ├── AugmentManager.java          # Round-based augment offers, selection rewards, and combat effects.
 │   │   ├── TraitManager.java            # Counts unique unit lines and applies registered trait effects.
 │   │   ├── GenericTraitApplier.java     # Data-driven trait effect implementation.
 │   │   ├── UnitDefinition.java          # JSON unit blueprint with optional star-level forms.
@@ -83,7 +84,10 @@ src/main/java/net/lwenstrom/tft/backend/
 │   │   ├── GameAction.java              # Client action payload.
 │   │   ├── GameMode.java                # JSON values: onepiece, pokemon.
 │   │   ├── GamePhase.java               # LOBBY, PLANNING, COMBAT, END_CELEBRATION, END.
-│   │   ├── ActionType.java              # BUY, SELL, MOVE, REROLL, EXP, LOCK, COLLECT_ORB.
+│   │   ├── ActionType.java              # BUY, SELL, MOVE, REROLL, EXP, LOCK, COLLECT_ORB, READY_FOR_COMBAT, SELECT_AUGMENT.
+│   │   ├── AugmentDefinition.java       # Data-loaded augment blueprint.
+│   │   ├── AugmentOffer.java            # Per-player augment choice DTO.
+│   │   ├── SelectedAugment.java         # Persisted selected augment DTO.
 │   │   ├── AbilityDefinition.java       # Ability metadata and star-level values/ranges.
 │   │   ├── AbilityModifier.java         # Sealed modifier hierarchy.
 │   │   ├── EffectType.java              # Generic trait effect enum.
@@ -106,8 +110,10 @@ src/main/java/net/lwenstrom/tft/backend/
 src/main/resources/data/
 ├── units_onepiece.json                  # 55 One Piece units.
 ├── traits_onepiece.json                 # 18 One Piece traits.
+├── augments_onepiece.json               # 15 One Piece augment definitions.
 ├── units_pokemon.json                   # 55 Pokemon unit lines with evolution forms.
-└── traits_pokemon.json                  # 16 Pokemon type traits.
+├── traits_pokemon.json                  # 16 Pokemon type traits.
+└── augments_pokemon.json                # 15 Pokemon augment definitions.
 ```
 
 ---
@@ -152,12 +158,17 @@ graph TD
    - `round` increments.
    - Combat state is restored via `CombatSystem.endCombat`.
    - Players leave combat mode, pending upgrades are processed, income/XP/shop/loot/bot roster updates run.
+   - Augment offers are generated on rounds `2`, `5`, and `10` for alive players.
+   - Bots select an offered augment immediately; human choices remain in `PlayerState.augmentChoices`.
    - Duration is `BASE_PLANNING_DURATION_MS + (round - 1) * PLANNING_DURATION_INCREMENT_MS`.
 3. `COMBAT`
+   - Any unselected human augment choices are randomly selected before combat setup.
+   - Unclaimed loot orbs are collected for alive players before units enter combat.
    - Alive players are shuffled and paired.
    - Odd player count creates a ghost clone from another alive player.
    - Players are marked in combat and `autoFillBoard()` fills empty board capacity from bench.
    - `CombatSystem.startCombat()` applies traits and mirrors board positions into the 9x6 combat grid.
+   - `AugmentManager.applyCombatEffects()` applies selected augment combat effects after combat positions/traits are initialized.
    - Each 100ms tick processes dots, stuns, abilities, attacks, mana gain, movement, death, shields, and damage logs.
    - Max combat duration is `COMBAT_PHASE_MS` (`25000ms`).
 4. `END_CELEBRATION`
@@ -211,7 +222,7 @@ Mode-change reset behavior:
 - Room `gameMode` is changed.
 - `TraitManager` effects are cleared and re-registered for the new mode.
 - Every existing `Player` runs `resetForMode(newMode)`.
-- Player reset clears shop lock, board lock, combat flag, pending upgrades, loot orbs, bench, and board units, then rolls a free shop for the new mode.
+- Player reset clears shop lock, board lock, combat flag, pending upgrades, loot orbs, augment choices, selected augments, bench, and board units, then rolls a free shop for the new mode.
 - Player id, name, host status, health, gold, level, and XP are not reset by `resetForMode`.
 
 ### Data Loading
@@ -224,8 +235,9 @@ private final Map<GameMode, ModeData> modeDataCache = new ConcurrentHashMap<>();
 
 - `@PostConstruct` preloads only the default mode.
 - Other modes are lazy-loaded on first use with `computeIfAbsent`.
-- `ModeData` contains a unit registry and trait metadata list.
-- `getAllUnits(mode)`, `getUnitDefinition(mode, id)`, `findUnitDefinition(mode, idOrLineIdOrName)`, and `getTraitMetadata(mode)` always resolve through the mode cache.
+- `ModeData` contains a unit registry, trait metadata list, and augment definitions.
+- `getAllUnits(mode)`, `getUnitDefinition(mode, id)`, `findUnitDefinition(mode, idOrLineIdOrName)`, `getTraitMetadata(mode)`, and `getAugments(mode)` always resolve through the mode cache.
+- Each mode provider supplies units, traits, and augments resource paths. The default augment path convention is `/data/augments_{mode}.json`, with explicit paths in the One Piece and Pokemon providers.
 
 ### Unit Definitions and Forms
 
@@ -321,13 +333,14 @@ Action/start/mode authority is session-bound. `GameAction.playerId` must match t
 
 ```json
 {
-  "type": "BUY | SELL | MOVE | REROLL | EXP | LOCK | COLLECT_ORB",
+  "type": "BUY | SELL | MOVE | REROLL | EXP | LOCK | COLLECT_ORB | READY_FOR_COMBAT | SELECT_AUGMENT",
   "playerId": "player-uuid",
   "unitId": "unit-uuid",
   "orbId": "orb-uuid",
   "targetX": 0,
   "targetY": 0,
-  "shopIndex": 0
+  "shopIndex": 0,
+  "augmentId": "augment-id"
 }
 ```
 
@@ -339,6 +352,8 @@ Action-specific fields:
 - `EXP`: `playerId`
 - `LOCK`: `playerId`
 - `COLLECT_ORB`: `playerId`, `orbId`
+- `READY_FOR_COMBAT`: `playerId`
+- `SELECT_AUGMENT`: `playerId`, `augmentId`
 
 Move conventions:
 - Bench to board: `targetY >= 0`, `targetX/targetY` are board coordinates.
@@ -366,7 +381,10 @@ record GameState(
     Map<String, String> matchups,
     List<CombatEvent> recentEvents,
     Map<String, CombatSystem.DamageEntry> damageLog,
-    GameMode gameMode
+    GameMode gameMode,
+    boolean planningTimerPaused,
+    String planningReadyPlayerId,
+    PlanningPauseReason planningPauseReason
 )
 ```
 
@@ -388,11 +406,31 @@ record PlayerState(
     List<Trait> activeTraits,
     List<UnitDefinition> shop,
     List<LootOrb> lootOrbs,
+    List<AugmentOffer> augmentChoices,
+    List<SelectedAugment> selectedAugments,
     boolean isGhost
 )
 ```
 
 Important frontend alignment note: `activeTraits` is currently emitted as an empty list in `Player.toState()`. Trait effects still apply in combat through `TraitManager`, but the live state snapshot does not yet calculate/display active traits for the UI.
+
+`planningTimerPaused` is currently used for solo-human training rooms with bots. `planningPauseReason` is `SOLO_READY` in that case and `null` otherwise; augment choices do not pause the timer. Pending augment choices are auto-selected when combat starts.
+
+`AugmentOffer` is the temporary choice object sent during augment rounds:
+
+```java
+record AugmentOffer(
+    String id,
+    String name,
+    String description,
+    AugmentTier tier,
+    AugmentEffectType effectType,
+    int value,
+    String image
+)
+```
+
+`SelectedAugment` has the same selected effect data plus `selectedRound`.
 
 `CombatEvent`:
 
@@ -459,14 +497,15 @@ private int round = 0;
 private GameMode gameMode;
 private final TraitManager traitManager;
 private final CombatSystem combatSystem;
+private AugmentManager augmentManager;
 ```
 
 `GameState` is an immutable record snapshot rebuilt by `GameRoom.updateGameState()`. The frontend never mutates state directly. It sends commands through WebSocket; backend mutates room/player objects; state snapshots are broadcast back.
 
 ### Player, GameUnit, and GameRoom Interaction
 
-- `GameRoom` controls phase transitions, matchmaking, combat pairs, mode, loot spawning, bots, and game end.
-- `Player` controls economy, XP, shop, bench slots, board units, selling, moving, upgrades, auto-fill, and loot collection.
+- `GameRoom` controls phase transitions, matchmaking, combat pairs, mode, augment rounds, loot spawning, bots, and game end.
+- `Player` controls economy, XP, shop, bench slots, board units, selling, moving, upgrades, auto-fill, loot collection, and selected augment state.
 - `GameUnit` is an interface implemented by `AbstractGameUnit`/`StandardGameUnit`. Runtime units are mutable combat objects with ids, owner ids, positions, star levels, stats, mana, buffs, dots, shields, traits, and ability references.
 - `UnitDefinition` is data. `StandardGameUnit` is runtime state built from that data.
 
@@ -522,7 +561,7 @@ private final CombatSystem combatSystem;
 
 ---
 
-## 9. Shop, Economy, Bench, and Upgrades
+## 9. Shop, Economy, Bench, Augments, and Upgrades
 
 ### Shop Odds
 
@@ -558,6 +597,33 @@ Combat restrictions:
 - Board units can only be sold when `allowBoardSell` is true, which controller passes only during `PLANNING`.
 - Bench-to-bench swaps are allowed even while in combat.
 - Bench-to-board, board-to-bench, and board-to-board moves return early while `Player.inCombat` is true.
+
+### Augments
+
+`AugmentManager` owns offer generation, selection, instant rewards, and combat-time effects.
+
+Offer rounds:
+- Round `2`: `SILVER`
+- Round `5`: `GOLD`
+- Round `10`: `DIAMOND`
+
+For each augment round, alive players receive up to 3 offers in `Player.augmentChoices`. The manager excludes already selected augment ids before shuffling candidates. Human players choose through `SELECT_AUGMENT`; bots select randomly as soon as offers are generated. If a human player still has choices when combat begins, `GameRoom.selectRandomPendingAugments()` randomly selects one before combat setup.
+
+Instant effects are applied on selection:
+- `GOLD`
+- `XP`
+- `GOLD_PER_EMPTY_BENCH_SLOT`
+
+Combat effects are applied after `CombatSystem.startCombat()`:
+- Team attack speed per ranged unit.
+- Team damage reduction.
+- Team attack damage on kill.
+- Team max health, attack damage, ability power, armor, and magic resist.
+- Melee lifesteal.
+- Ranged attack damage.
+- Team mana gain, starting mana, and starting shield.
+
+Combat-only stat changes are reset by `AbstractGameUnit.restorePlanningPosition()` when combat ends.
 
 ### Upgrades and Evolutions
 
@@ -707,6 +773,7 @@ When alive player count is odd, one unpaired player fights a ghost clone of anot
 Ghosts:
 - Are created by `Player.createGhost()`.
 - Clone board units and positions.
+- Copy selected augments from the donor player.
 - Have `isGhost = true`.
 - Appear in `GameState.players` while active because `updateGameState()` includes active combats.
 - Are not stored in the main `players` map.
@@ -723,7 +790,7 @@ Constants:
 - Unit chance: 40%.
 - Unit drops use `ShopOdds` at `player.level + 1`.
 
-Collection is via `COLLECT_ORB`. Unit orbs create a 1-star unit for the player's current room mode; if the bench is full, the player gets the unit's cost as gold.
+Collection is via `COLLECT_ORB`. At combat start, alive players also run `collectAllOrbs()` so unclaimed loot is picked up before board auto-fill and combat setup. Unit orbs create a 1-star unit for the player's current room mode; if the bench is full, the player gets the unit's cost as gold.
 
 ### Grid
 
@@ -748,6 +815,7 @@ Planning board is 9x3. Combat board is 9x6.
 | Single room state machine | `/Users/jan/Projects/OnePieceTactics-1/backend/src/main/java/net/lwenstrom/tft/backend/core/engine/GameRoom.java` |
 | Player/economy/bench/upgrades | `/Users/jan/Projects/OnePieceTactics-1/backend/src/main/java/net/lwenstrom/tft/backend/core/engine/Player.java` |
 | Combat simulation | `/Users/jan/Projects/OnePieceTactics-1/backend/src/main/java/net/lwenstrom/tft/backend/core/engine/CombatSystem.java` |
+| Augment selection/effects | `/Users/jan/Projects/OnePieceTactics-1/backend/src/main/java/net/lwenstrom/tft/backend/core/engine/AugmentManager.java` |
 | Ability casting | `/Users/jan/Projects/OnePieceTactics-1/backend/src/main/java/net/lwenstrom/tft/backend/core/combat/DefaultAbilityCaster.java` |
 | Pokemon type rules | `/Users/jan/Projects/OnePieceTactics-1/backend/src/main/java/net/lwenstrom/tft/backend/core/combat/PokemonTypeEffectiveness.java` |
 | Data loader | `/Users/jan/Projects/OnePieceTactics-1/backend/src/main/java/net/lwenstrom/tft/backend/core/DataLoader.java` |
@@ -832,7 +900,7 @@ The backend isolates major side effects:
 - Combat strategies are injectable: `TargetSelector`, `UnitMover`, `AbilityCaster`.
 - Test helpers create mock data loaders, registries, units, rooms, and combat systems.
 
-This allows deterministic phase-duration, combat, movement, damage, upgrade, loot, and elimination tests.
+This allows deterministic phase-duration, combat, movement, damage, upgrade, augment, loot, and elimination tests.
 
 ---
 
@@ -851,6 +919,13 @@ Player/economy/board:
 - `GridRefactorTest`: board/grid movement rules.
 - `PlayerAutoFillTest`: combat auto-fill from bench.
 - `LootOrbTest`: loot collection and reward handling.
+
+Augments:
+- `DataLoaderAugmentTest`: validates both mode augment files and supported effect/value sets.
+- `AugmentManagerTest`: instant rewards, offer tier mapping, and excluding already selected augments.
+- `GameRoomAugmentTest`: round-two offer generation, non-pausing planning behavior, invalid selection, and random pending selection at combat start.
+- `AugmentCombatEffectsTest`: combat-only augment effect reset and attack-damage-on-kill stacking.
+- `GameControllerSessionGuardTest`: session-bound `SELECT_AUGMENT` routing.
 
 Combat:
 - `CombatSystemUnitTest`, `CombatIntegrationTest`: combat tick outcomes.
@@ -895,6 +970,10 @@ Pokemon type damage: `PokemonTypeEffectiveness.apply()`.
 How are traits applied?
 
 `GameRoom.startPhase(COMBAT)` -> `CombatSystem.startCombat()` -> `TraitManager.applyTraits()` -> `GenericTraitApplier`.
+
+How do augment choices flow?
+
+`GameRoom.startPhase(PLANNING)` -> `generateAugmentChoicesForRound()` -> frontend sends `SELECT_AUGMENT` -> `GameController.handleAction()` -> `GameRoom.selectAugment()` -> `AugmentManager.selectAugment()`. Any remaining choices are selected in `GameRoom.startPhase(COMBAT)` before combat effects are applied.
 
 Why can frontend state show no active traits?
 
