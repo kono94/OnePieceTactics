@@ -1,20 +1,27 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import type { GameUnit, UnitDefinition } from '../types'
+
+type TooltipUnit = Partial<GameUnit & UnitDefinition> & {
+    formattedAbilityDescription?: string
+}
+
+type TooltipValue = number | string | (number | string)[] | null | undefined
 
 const props = defineProps<{
-    unit: any,
+    unit: TooltipUnit,
     placement?: 'top' | 'bottom',
     shift?: 'left' | 'more-left' | 'center'
 }>()
 
-const getBaseValue = (val: any) => {
+const getBaseValue = (val: TooltipValue): number | string | undefined => {
     if (Array.isArray(val)) return val[0]
-    return val
+    return val ?? undefined
 }
 
 const stats = computed(() => {
     if (!props.unit) return {}
-    const maxHp = getBaseValue(props.unit.maxHealth)
+    const maxHp = Number(getBaseValue(props.unit.maxHealth) ?? 100)
     // If currentHealth is missing (shop unit), use maxHealth
     const curHp = props.unit.currentHealth !== undefined ? props.unit.currentHealth : maxHp;
     // Units usually start with 0 mana unless specified
@@ -23,7 +30,7 @@ const stats = computed(() => {
     return {
         hp: `${curHp || 0}/${maxHp || 100}`,
         atk: getBaseValue(props.unit.attackDamage) || 0,
-        spd: parseFloat(getBaseValue(props.unit.attackSpeed) || 0).toFixed(2),
+        spd: parseFloat(String(getBaseValue(props.unit.attackSpeed) || 0)).toFixed(2),
         range: getBaseValue(props.unit.range) || 0,
         mana: `${curMana || 0}/${getBaseValue(props.unit.maxMana) || 100}`
     }

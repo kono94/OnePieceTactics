@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { TRAIT_DATA, normalizeTraitId, type TraitDefinition, type TraitEffect } from '../data/traitData'
+import type { GameUnit } from '../types'
 
 const props = defineProps<{
-  units: any[] // Array of board units
+  units: GameUnit[]
 }>()
 
 const hoveredTraitId = ref<string | null>(null)
@@ -15,7 +16,7 @@ const processedTraits = computed(() => {
     const uniqueUnits = new Set<string>();
     const traitsCount: Record<string, number> = {};
 
-    props.units.forEach((u: any) => {
+    props.units.forEach((u: GameUnit) => {
         // Guard against incomplete unit data
         if (!u.name) return;
         
@@ -77,7 +78,7 @@ const processedTraits = computed(() => {
 })
 
 function getActiveEffect(trait: TraitDefinition, count: number): TraitEffect | null {
-    let active = null;
+    let active: TraitEffect | null = null;
     // trait.effects is assumed sorted/ordered by minUnits ASC
     for (const effect of trait.effects) {
         if (count >= effect.minUnits) {

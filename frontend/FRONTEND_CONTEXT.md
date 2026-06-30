@@ -1,8 +1,8 @@
 # Frontend Context — OnePieceTactics Vue.js Implementation
 
-> **Last Updated:** 2026-06-28
+> **Last Updated:** 2026-06-30
 > **Purpose:** Comprehensive architectural blueprint and source of truth for AI developers working on the Vue.js 3 frontend.
-> **Recent Scope:** Adapted for the last 10 commits through `6b00ddb` (`Apply Pokemon type effectiveness to damage`).
+> **Recent Scope:** Reviewed frontend changes since `1.3.0` through `938a11e` (`Add loot pickup feedback`): owned shop-line highlights, augment selection/display, and loot pickup feedback.
 
 ---
 
@@ -43,6 +43,8 @@ Deliver a responsive, visually rich UI that reflects backend-authoritative game 
 frontend/
 ├── public/                      # Static assets served at root
 │   ├── assets/
+│   │   ├── augments/           # Augment artwork fallback assets
+│   │   │   └── placeholder.svg # Default icon when an augment has no image
 │   │   └── units/              # Unit character icons organized by theme
 │   │       ├── onepiece/       # One Piece character portraits
 │   │       └── pokemon/        # Pokemon character portraits + generation prompt
@@ -64,6 +66,7 @@ frontend/
 │   │   ├── PlayerList.vue      # Right-side player health leaderboard
 │   │   ├── TraitSidebar.vue    # Left-side active trait indicators
 │   │   ├── UnitTooltip.vue     # Hoverable unit detail tooltip
+│   │   ├── AugmentSelectionOverlay.vue # Blocking augment choice overlay during paused planning
 │   │   ├── EndScreen.vue       # Game-over leaderboard
 │   │   ├── VersionDisplay.vue  # Git version tag display (lobby only)
 │   │   └── game/               # Sub-components for combat features
@@ -125,8 +128,10 @@ const viewedPlayerId = ref<string | null>(null)      // Local board spectating t
 4. When `gameState.gameMode` changes, `App.vue` updates document metadata and fetches `/api/traits?mode={mode}`
 5. `GameState` is passed down via props to child components (`GameInterface`, `GameCanvas`)
 6. Components derive computed properties from `GameState` (e.g., `myPlayer`, `renderedUnits`)
-7. `GameInterface` emits local viewed-player changes upward so `App.vue` can point the damage report at the spectated combat.
-8. User actions emit events upward, which `App.vue` publishes to backend via WebSocket
+7. If the current player has `augmentChoices`, `GameInterface` shows `AugmentSelectionOverlay` and emits `SELECT_AUGMENT`
+8. `GameCanvas` renders selected augment chips for the viewed player and their current opponent from `selectedAugments`
+9. `GameInterface` emits local viewed-player changes upward so `App.vue` can point the damage report at the spectated combat.
+10. User actions emit events upward, which `App.vue` publishes to backend via WebSocket
 
 **Why This Approach?**
 - **Backend Authority:** All game logic lives on the server; frontend is a "dumb renderer"
@@ -141,7 +146,7 @@ const viewedPlayerId = ref<string | null>(null)      // Local board spectating t
 | Type | Components | Responsibilities |
 |------|-----------|------------------|
 | **Smart** (Container) | `App.vue`, `GameInterface.vue`, `GameCanvas.vue`, `UltimateGallery.vue` | WebSocket communication, state derivation, event handling, gallery preview state |
-| **Dumb** (Presentational) | `UnitTooltip.vue`, `PhaseAnnouncement.vue`, `TraitSidebar.vue`, `PlayerList.vue`, `OutcomeOverlay.vue` | Rendering based on props/computed data, minimal side effects |
+| **Dumb** (Presentational) | `AugmentSelectionOverlay.vue`, `UnitTooltip.vue`, `PhaseAnnouncement.vue`, `TraitSidebar.vue`, `PlayerList.vue`, `OutcomeOverlay.vue` | Rendering based on props/computed data, minimal side effects |
 
 **Composition API Pattern:**
 
@@ -187,7 +192,7 @@ client.activate()
 | **Publish** | `/app/create` | `{ roomId, playerName }` | Create new game room |
 | **Publish** | `/app/join` | `{ roomId, playerName }` | Join existing room |
 | **Publish** | `/app/start` | `{ roomId, playerName }` | Start game (host only) |
-| **Publish** | `/app/room/{id}/action` | `GameAction` | Player actions (BUY, MOVE, SELL, etc.) |
+| **Publish** | `/app/room/{id}/action` | `GameAction` | Player actions (BUY, MOVE, SELL, SELECT_AUGMENT, etc.) |
 | **Publish** | `/app/room/{id}/mode` | `{ playerName, gameMode }` | Host changes waiting-room game mode |
 | **Publish** | `/app/leave` | `{ roomId, playerName }` | Leave room and clear local subscriptions |
 
@@ -201,15 +206,22 @@ The backend binds create/join to the STOMP session id and rejects later action/s
 **GameAction Structure:**
 ```typescript
 interface GameAction {
-  type: 'BUY' | 'SELL' | 'MOVE' | 'REROLL' | 'EXP' | 'LOCK' | 'COLLECT_ORB'
+  type: 'BUY' | 'SELL' | 'MOVE' | 'REROLL' | 'EXP' | 'LOCK' | 'COLLECT_ORB' | 'READY_FOR_COMBAT' | 'SELECT_AUGMENT'
   playerId: string
   unitId?: string       // For MOVE, SELL
   targetX?: number      // For MOVE (0-8)
   targetY?: number      // For MOVE (-1 = bench, 0-2 = backend board row)
   shopIndex?: number    // For BUY (0-4)
   orbId?: string        // For COLLECT_ORB
+  augmentId?: string    // For SELECT_AUGMENT
 }
 ```
+
+**Augment Contract:**
+- `PlayerState.augmentChoices` contains the currently pending offer set; non-empty choices block planning progression.
+- `GameInterface.vue` displays `AugmentSelectionOverlay.vue` only during `PLANNING` and emits one `SELECT_AUGMENT` action with the chosen `augmentId`.
+- `GameState.planningPauseReason` distinguishes `AUGMENT_SELECTION` from solo-training ready pauses so the Ready button stays hidden while a choice is required.
+- `PlayerState.selectedAugments` contains committed choices. `GameCanvas.vue` renders them as small tier-colored chips beside the viewed player and current opponent name tags.
 
 
 ### 4.4 Drag-and-Drop System
@@ -276,6 +288,11 @@ function triggerDeathAnimation(unit: GameUnit) {
   setTimeout(() => dyingUnits.value.delete(unit.id), 600)
 }
 ```
+
+**Loot Pickup Feedback:**
+- Loot orbs remain backend-authoritative and are still collected through `COLLECT_ORB`.
+- `GameCanvas.vue` shows a short local pickup effect when an orb is clicked.
+- If planning transitions to combat with visible unclaimed orbs, `GameCanvas.vue` replays the latest visible orb snapshot as auto-pickup feedback because the backend collects remaining loot before combat setup.
 
 **Star-Up Celebrations:**
 ```typescript
@@ -363,6 +380,7 @@ export const TEAM_COLORS = {
 - **2-Star Units:** Pulsing halo ring effect
 - **3-Star Units:** Flowing gradient overlay
 - **Cost-Based Borders:** Unit borders match rarity color
+- **Owned Shop Lines:** Shop cards whose `lineId`/definition/name matches a bench or board unit get a cyan inset highlight and corner dot
 - **Status Effects:** Grayscale filter for stun, glow for buffs
 
 
@@ -383,7 +401,8 @@ export const TEAM_COLORS = {
 | File | Lines | Responsibilities |
 |------|-------|-----------------|
 | [GameInterface.vue](src/components/GameInterface.vue) | ~1200 | Shop UI, bench management, drag-and-drop, player stats, buy/sell/reroll actions |
-| [GameCanvas.vue](src/components/GameCanvas.vue) | ~1100 | 9×6 board rendering, unit positioning, event normalization, DOM feedback, loot orbs, tooltips |
+| [GameCanvas.vue](src/components/GameCanvas.vue) | ~1100 | 9×6 board rendering, unit positioning, event normalization, DOM feedback, loot orbs, augment chips, tooltips |
+| [AugmentSelectionOverlay.vue](src/components/AugmentSelectionOverlay.vue) | ~400 | Full-screen augment choice overlay with tier-specific silver/gold/diamond styling |
 | [CombatEffectsCanvas.vue](src/components/game/CombatEffectsCanvas.vue) | ~2000 | Canvas renderer for attack, ultimate, heal, shield, death, particle, and shake effects |
 | [UltimateGallery.vue](src/components/game/UltimateGallery.vue) | ~600 | Standalone hash route for previewing One Piece/Pokemon attacks and ultimates |
 | [AttackAnimation.vue](src/components/game/AttackAnimation.vue) | legacy | Older DOM attack/ability effect component; currently not imported by the live board |
@@ -392,7 +411,7 @@ export const TEAM_COLORS = {
 
 | File | Key Exports |
 |------|------------|
-| [types/game.ts](src/types/game.ts) | `GameState`, `GameUnit`, `PlayerState`, `GameAction`, `GameEvent`, `UnitDefinition`, `ActiveTrait`, `LootOrb` |
+| [types/game.ts](src/types/game.ts) | `GameState`, `GameUnit`, `PlayerState`, `GameAction`, `GameEvent`, `UnitDefinition`, `ActiveTrait`, `LootOrb`, `AugmentOffer`, `SelectedAugment`, `PlanningPauseReason` |
 | [types/combatEffects.ts](src/types/combatEffects.ts) | `NormalizedCombatVisualEvent`, `EffectIntensity`, `RenderLayer`, canvas point contracts |
 
 **Type Sync:**  
@@ -688,9 +707,11 @@ The project currently has **no unit tests, integration tests, or E2E tests**.
 2. **Room Creation/Joining:** Test with multiple browser tabs
 3. **Drag-and-Drop:** Move units between bench/board, ensure backend sync
 4. **Shop Actions:** Buy units, reroll, verify gold deduction
-5. **Combat Animations:** Check attack/ability effects render correctly
-6. **Theme Switching:** Waiting-room mode change updates title, favicon, traits, icons, and CSS variables
-7. **Multi-Player:** Test with 2+ players, verify matchups and ghost copies
+5. **Augment Selection:** Reach rounds 2, 5, and 10, choose an augment, verify selected chips display for self/opponent
+6. **Loot Feedback:** Click loot orbs manually and let unclaimed orbs auto-collect when combat starts
+7. **Combat Animations:** Check attack/ability effects render correctly
+8. **Theme Switching:** Waiting-room mode change updates title, favicon, traits, icons, and CSS variables
+9. **Multi-Player:** Test with 2+ players, verify matchups and ghost copies
 
 ---
 

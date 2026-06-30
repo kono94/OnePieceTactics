@@ -1,27 +1,28 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import type { GameMode, GameState, PlayerState } from '../types'
 
 const props = defineProps<{
-  gameState: any
+  gameState: GameState
   currentPlayerName: string
-  availableModes: string[]
-  defaultMode: string
+  availableModes: GameMode[]
+  defaultMode: GameMode
 }>()
 
-const emit = defineEmits(['start', 'leave', 'mode-change'])
+defineEmits(['start', 'leave', 'mode-change'])
 
 const isHost = computed(() => {
     if (!props.gameState || !props.gameState.players) return false
-    const myPlayer = Object.values(props.gameState.players).find((p: any) => p.name === props.currentPlayerName) as any
+    const myPlayer = Object.values(props.gameState.players).find((p: PlayerState) => p.name === props.currentPlayerName)
     return myPlayer && myPlayer.playerId === props.gameState.hostId
 })
 
-const players = computed(() => {
+const players = computed((): PlayerState[] => {
     if (!props.gameState || !props.gameState.players) return []
     return Object.values(props.gameState.players)
 })
 
-const selectedMode = ref<string>(props.gameState?.gameMode ?? props.defaultMode ?? 'onepiece')
+const selectedMode = ref<GameMode>(props.gameState?.gameMode ?? props.defaultMode ?? 'onepiece')
 
 watch(
     () => props.gameState?.gameMode,
@@ -32,13 +33,13 @@ watch(
     }
 )
 
-const modeOptions = computed(() => {
+const modeOptions = computed((): GameMode[] => {
     return props.availableModes && props.availableModes.length > 0
         ? props.availableModes
         : ['onepiece', 'pokemon']
 })
 
-const modeLabel = (mode: string) => {
+const modeLabel = (mode: GameMode) => {
     if (mode === 'pokemon') return 'Pokemon'
     if (mode === 'onepiece') return 'One Piece'
     return mode
@@ -63,15 +64,15 @@ const themeClass = computed(() => {
     <div class="player-list">
         <h3>Connected Players ({{ players.length }}/8)</h3>
         <div class="players-grid">
-            <div v-for="player in players" :key="(player as any).playerId" class="player-card">
+            <div v-for="player in players" :key="player.playerId" class="player-card">
                 <div class="avatar">
                     <!-- Placeholder avatar -->
-                    {{ (player as any).name.charAt(0).toUpperCase() }}
+                    {{ player.name.charAt(0).toUpperCase() }}
                 </div>
                 <div class="name">
-                    {{ (player as any).name }}
-                    <span v-if="(player as any).playerId === gameState.hostId" class="host-badge">HOST</span>
-                    <span v-if="(player as any).name === currentPlayerName" class="me-badge">YOU</span>
+                    {{ player.name }}
+                    <span v-if="player.playerId === gameState.hostId" class="host-badge">HOST</span>
+                    <span v-if="player.name === currentPlayerName" class="me-badge">YOU</span>
                 </div>
             </div>
              <!-- Empty slots -->

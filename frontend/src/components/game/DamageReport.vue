@@ -87,7 +87,7 @@ const sortedEntries = computed(() => {
   if (!props.damageLog || !currentOwnerId.value) return [];
   
   return Object.entries(props.damageLog)
-    .filter(([_, data]) => data.ownerId === currentOwnerId.value)
+    .filter(([, data]) => data.ownerId === currentOwnerId.value)
     .map(([unitId, data]) => ({
       unitId,
       unitName: data.unitName,

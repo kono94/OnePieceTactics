@@ -121,7 +121,7 @@ function triggerBurst() {
     if (!burstContainer.value) return;
 
     let particleColor = '#64748b'; // default slate
-    if (myPlace.value === 1) particleColor = '#fbbf24'; // gold
+    if (isWinner.value) particleColor = '#fbbf24'; // gold
     else if (myPlace.value === 2) particleColor = '#e2e8f0'; // silver
     else if (myPlace.value === 3) particleColor = '#d97706'; // bronze
 

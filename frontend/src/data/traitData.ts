@@ -3,7 +3,7 @@ export interface TraitEffect {
     minUnits: number;
     description: string;
     style: 'bronze' | 'silver' | 'gold' | 'prismatic';
-    values?: Record<string, any>;
+    values?: Record<string, unknown>;
 }
 
 export interface TraitDefinition {

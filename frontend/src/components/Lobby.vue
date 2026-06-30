@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-const props = defineProps<{
+defineOptions({
+  name: 'GameLobby'
+})
+
+defineProps<{
   title: string
 }>()
 

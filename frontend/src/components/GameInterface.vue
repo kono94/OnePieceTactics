@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, onUnmounted, onMounted } from 'vue'
+import { computed, ref, watch, onUnmounted } from 'vue'
 import GameCanvas from './GameCanvas.vue'
 import UnitTooltip from './UnitTooltip.vue'
 import PhaseAnnouncement from './PhaseAnnouncement.vue'
@@ -220,13 +220,13 @@ const handleCollectOrb = (orbId: string) => {
 
 // Unified Global Tooltip State
 const activeTooltip = ref<{
-    unit: any,
+    unit: GameUnit | UnitDefinition,
     rect: DOMRect,
     placement: 'top' | 'bottom',
     shift?: 'left' | 'more-left' | 'center'
 } | null>(null)
 
-const handleShowTooltip = (rect: DOMRect, unit: any, placement: 'top' | 'bottom' = 'top', shift?: 'left' | 'more-left' | 'center') => {
+const handleShowTooltip = (rect: DOMRect, unit: GameUnit | UnitDefinition, placement: 'top' | 'bottom' = 'top', shift?: 'left' | 'more-left' | 'center') => {
     if (isDraggingUnit.value) return
     activeTooltip.value = {
         unit,
@@ -263,6 +263,7 @@ function sellUnit(unitId: string) {
 
 const onSellDragOver = (evt: DragEvent) => {
     evt.preventDefault()
+    if (!draggedUnit.value) return
     isSellZoneHovered.value = true
     if (evt.dataTransfer) {
         evt.dataTransfer.dropEffect = 'move'
@@ -598,8 +599,9 @@ watch(effectiveViewedPlayerId, (playerId) => {
 
                 <!-- Permanent Sell Zone (Below Bench) -->
                 <div class="sell-zone bench-sell-zone" 
-                     :class="{ 'active': draggedUnit }"
-                     @dragover.prevent 
+                     :class="{ 'active': draggedUnit, 'hovered': isSellZoneHovered }"
+                     @dragover="onSellDragOver"
+                     @dragleave="onSellDragLeave"
                      @drop="onSellDrop">
                     <div class="sell-content">
                         <span class="sell-icon">💰</span>
@@ -1136,6 +1138,13 @@ watch(effectiveViewedPlayerId, (playerId) => {
     transform: scale(1.01);
 }
 
+.sell-zone.hovered {
+    border-color: #f87171;
+    background: linear-gradient(90deg, rgba(127, 29, 29, 0.24) 0%, rgba(239, 68, 68, 0.34) 50%, rgba(127, 29, 29, 0.24) 100%);
+    box-shadow: 0 0 24px rgba(248, 113, 113, 0.42), inset 0 0 0 1px rgba(254, 202, 202, 0.28);
+    transform: translateY(-1px) scale(1.015);
+}
+
 .sell-content {
     display: flex;
     align-items: center;
@@ -1159,6 +1168,12 @@ watch(effectiveViewedPlayerId, (playerId) => {
 .sell-zone.active .sell-text {
     color: #f87171;
     text-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+}
+
+.sell-zone.hovered .sell-icon,
+.sell-zone.hovered .sell-text {
+    color: #fecaca;
+    text-shadow: 0 0 10px rgba(248, 113, 113, 0.8);
 }
 
 .sell-refund {
