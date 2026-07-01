@@ -54,9 +54,96 @@ class ShieldAndDotCombatTest {
         combatSystem.simulateTick(List.of(p1, p2));
 
         assertEquals(120, shieldUnit.getShield());
+        var damageEntry = combatSystem.getDamageLog().get(shieldUnit.getId());
+        assertNotNull(damageEntry);
+        assertEquals(120, damageEntry.shielding());
         shieldUnit.takeDamage(80);
         assertEquals(40, shieldUnit.getShield());
         assertEquals(500, shieldUnit.getCurrentHealth());
+    }
+
+    @Test
+    void healAbilityTracksEffectiveHealingOnly() {
+        var ability = new AbilityDefinition(
+                "Patch Up",
+                "Heal ally",
+                AbilityType.HEAL,
+                AbilityPattern.SINGLE,
+                List.of(1, 1, 1),
+                List.of(120, 240, 480),
+                List.of());
+        var healerDef = TestHelpers.createUnitDefWithAbility("healer", "Healer", 1, 500, 10, ability);
+        var enemyDef = TestHelpers.createUnitDef("enemy", "Enemy", 1, 500, 10);
+        var dataLoader = TestHelpers.createMockDataLoader(List.of(healerDef, enemyDef));
+        var p1 = createTestPlayer("P1", dataLoader);
+        var p2 = createTestPlayer("P2", dataLoader);
+        p1.addUnitToBoard(healerDef, 0, 0);
+        p2.addUnitToBoard(enemyDef, 0, 0);
+        var healer = p1.getBoardUnits().getFirst();
+        healer.setCurrentHealth(450);
+        healer.setMana(10);
+        p2.getBoardUnits().getFirst().setNextAttackTime(10_000);
+
+        var combatSystem = TestHelpers.createTestCombatSystem(createTestClock());
+        combatSystem.startCombat(List.of(p1, p2));
+        combatSystem.simulateTick(List.of(p1, p2));
+
+        var damageEntry = combatSystem.getDamageLog().get(healer.getId());
+        assertNotNull(damageEntry);
+        assertEquals(50, damageEntry.healing());
+        assertEquals(0, damageEntry.damage());
+    }
+
+    @Test
+    void lifestealTracksEffectiveHealingOnly() {
+        var attackerDef = TestHelpers.createUnitDef("attacker", "Attacker", 1, 500, 100);
+        var targetDef = TestHelpers.createUnitDef("target", "Target", 1, 500, 5);
+        var dataLoader = TestHelpers.createMockDataLoader(List.of(attackerDef, targetDef));
+        var p1 = createTestPlayer("P1", dataLoader);
+        var p2 = createTestPlayer("P2", dataLoader);
+        p1.addUnitToBoard(attackerDef, 0, 0);
+        p2.addUnitToBoard(targetDef, 0, 0);
+        var attacker = p1.getBoardUnits().getFirst();
+        attacker.setCurrentHealth(480);
+        attacker.setLifesteal(0.5f);
+        p2.getBoardUnits().getFirst().setNextAttackTime(10_000);
+
+        var combatSystem = TestHelpers.createTestCombatSystem(createTestClock());
+        combatSystem.startCombat(List.of(p1, p2));
+        combatSystem.simulateTick(List.of(p1, p2));
+
+        var damageEntry = combatSystem.getDamageLog().get(attacker.getId());
+        assertNotNull(damageEntry);
+        assertEquals(100, damageEntry.damage());
+        assertEquals(20, damageEntry.healing());
+    }
+
+    @Test
+    void shieldOnDeathTracksShieldingForGrantingUnit() {
+        var guardianDef = TestHelpers.createUnitDef("guardian", "Guardian", 1, 500, 1);
+        var allyDef = TestHelpers.createUnitDef("ally", "Ally", 1, 200, 1);
+        var attackerDef = TestHelpers.createUnitDef("attacker", "Attacker", 1, 500, 999);
+        var dataLoader = TestHelpers.createMockDataLoader(List.of(guardianDef, allyDef, attackerDef));
+        var p1 = createTestPlayer("P1", dataLoader);
+        var p2 = createTestPlayer("P2", dataLoader);
+        p1.setLevel(2);
+        p1.addUnitToBoard(guardianDef, 0, 2);
+        p1.addUnitToBoard(allyDef, 0, 0);
+        p2.addUnitToBoard(attackerDef, 0, 0);
+        var guardian = p1.getBoardUnits().getFirst();
+        var ally = p1.getBoardUnits().get(1);
+        guardian.setNextAttackTime(10_000);
+        ally.setNextAttackTime(10_000);
+
+        var combatSystem = TestHelpers.createTestCombatSystem(createTestClock());
+        combatSystem.startCombat(List.of(p1, p2));
+        guardian.setShieldOnDeath(true);
+        combatSystem.simulateTick(List.of(p1, p2));
+
+        assertEquals(0, ally.getCurrentHealth());
+        var damageEntry = combatSystem.getDamageLog().get(guardian.getId());
+        assertNotNull(damageEntry);
+        assertEquals(30, damageEntry.shielding());
     }
 
     @Test

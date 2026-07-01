@@ -9,13 +9,25 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
         </svg>
-        <span>DAMAGE DEALT</span>
+        <span>COMBAT REPORT</span>
       </div>
     </button>
 
     <!-- Main Panel -->
     <div class="report-panel">
       <div class="header">
+        <div class="metric-tabs-container">
+          <button
+            class="metric-tab-btn"
+            :class="{ active: selectedMetric === 'damage' }"
+            @click="selectedMetric = 'damage'"
+          >Damage</button>
+          <button
+            class="metric-tab-btn"
+            :class="{ active: selectedMetric === 'support' }"
+            @click="selectedMetric = 'support'"
+          >Heal & Shield</button>
+        </div>
         <div class="tabs-container">
 	          <button
 	            class="tab-btn"
@@ -39,19 +51,45 @@
             <div class="unit-details">
                 <div class="name-dmg-row">
                   <span class="unit-name">{{ entry.unitName }}</span>
-                  <span class="dmg-val">{{ entry.damage.toLocaleString() }}</span>
+                  <span v-if="selectedMetric === 'damage'" class="dmg-val">
+                    {{ entry.damage.toLocaleString() }}
+                  </span>
+                  <span v-else class="support-values">
+                    <span class="support-total">{{ entry.totalSupport.toLocaleString() }}</span>
+                    <span class="support-breakdown">
+                      <span class="heal-val">{{ entry.healing.toLocaleString() }}</span>
+                      <span class="shield-val">{{ entry.shielding.toLocaleString() }}</span>
+                    </span>
+                  </span>
                 </div>
                 <div class="dmg-bar-container">
-                  <div 
+                  <div
+                    v-if="selectedMetric === 'damage'"
                     class="dmg-bar"
-                    :style="{ width: `${(entry.damage / maxDamage) * 100}%` }"
+                    :style="{ width: `${(entry.value / maxValue) * 100}%` }"
                   ></div>
+                  <div
+                    v-else
+                    class="support-bar"
+                    :style="{ width: `${(entry.value / maxValue) * 100}%` }"
+                  >
+                    <div
+                      v-if="entry.healing > 0"
+                      class="healing-bar"
+                      :style="{ width: `${entry.healingShare}%` }"
+                    ></div>
+                    <div
+                      v-if="entry.shielding > 0"
+                      class="shielding-bar"
+                      :style="{ width: `${entry.shieldingShare}%` }"
+                    ></div>
+                  </div>
                 </div>
             </div>
           </div>
         </div>
         <div v-else class="empty-state">
-            <p>No damage data available</p>
+            <p>{{ emptyStateMessage }}</p>
         </div>
       </div>
     </div>
@@ -74,6 +112,7 @@ const props = defineProps<{
 
 const isCollapsed = ref(true);
 const selectedTab = ref<'me' | 'opponent'>('me');
+const selectedMetric = ref<'damage' | 'support'>('damage');
 
 const currentOwnerId = computed(() => selectedTab.value === 'me' ? props.myPlayerId : props.opponentId);
 const primaryTabLabel = computed(() => props.myPlayerName || 'YOU');
@@ -88,19 +127,37 @@ const sortedEntries = computed(() => {
   
   return Object.entries(props.damageLog)
     .filter(([, data]) => data.ownerId === currentOwnerId.value)
-    .map(([unitId, data]) => ({
-      unitId,
-      unitName: data.unitName,
-      damage: data.damage,
-      image: getUnitIconPath(data.definitionId, props.gameMode)
-    }))
-    .sort((a, b) => b.damage - a.damage);
+    .map(([unitId, data]) => {
+      const healing = data.healing || 0;
+      const shielding = data.shielding || 0;
+      const totalSupport = healing + shielding;
+      const value = selectedMetric.value === 'damage' ? data.damage : totalSupport;
+
+      return {
+        unitId,
+        unitName: data.unitName,
+        damage: data.damage,
+        healing,
+        shielding,
+        totalSupport,
+        value,
+        healingShare: totalSupport > 0 ? (healing / totalSupport) * 100 : 0,
+        shieldingShare: totalSupport > 0 ? (shielding / totalSupport) * 100 : 0,
+        image: getUnitIconPath(data.definitionId, props.gameMode)
+      };
+    })
+    .filter(entry => entry.value > 0)
+    .sort((a, b) => b.value - a.value);
 });
 
-const maxDamage = computed(() => {
+const maxValue = computed(() => {
   if (sortedEntries.value.length === 0) return 1;
-  return Math.max(...sortedEntries.value.map(e => e.damage));
+  return Math.max(...sortedEntries.value.map(e => e.value));
 });
+
+const emptyStateMessage = computed(() =>
+  selectedMetric.value === 'damage' ? 'No damage data available' : 'No heal or shield data available'
+);
 </script>
 
 <style scoped>
@@ -172,6 +229,39 @@ const maxDamage = computed(() => {
   display: flex;
   width: 100%;
   background: rgba(255, 255, 255, 0.02);
+}
+
+.metric-tabs-container {
+  display: flex;
+  width: 100%;
+  padding: 6px;
+  gap: 6px;
+  background: rgba(0,0,0,0.25);
+}
+
+.metric-tab-btn {
+  flex: 1;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.metric-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.metric-tab-btn.active {
+  color: #f8fafc;
+  border-color: rgba(251, 191, 36, 0.45);
+  background: rgba(251, 191, 36, 0.12);
 }
 
 .tab-btn {
@@ -277,6 +367,36 @@ const maxDamage = computed(() => {
   flex-shrink: 0;
 }
 
+.support-values {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  font-family: monospace;
+  flex-shrink: 0;
+}
+
+.support-total {
+  font-size: 12px;
+  font-weight: 900;
+  color: #f8fafc;
+}
+
+.support-breakdown {
+  display: flex;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.heal-val {
+  color: #22c55e;
+}
+
+.shield-val {
+  color: #f8fafc;
+}
+
 .dmg-bar-container {
   height: 6px;
   background: rgba(0,0,0,0.5);
@@ -288,6 +408,24 @@ const maxDamage = computed(() => {
   height: 100%;
   background: linear-gradient(90deg, #f97316, #ef4444);
   transition: width 0.5s ease-out;
+}
+
+.support-bar {
+  height: 100%;
+  display: flex;
+  overflow: hidden;
+  border-radius: 3px;
+  transition: width 0.5s ease-out;
+}
+
+.healing-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+}
+
+.shielding-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #e2e8f0, #f8fafc);
 }
 
 .empty-state {

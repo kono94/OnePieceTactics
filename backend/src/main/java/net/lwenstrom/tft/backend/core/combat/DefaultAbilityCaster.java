@@ -22,12 +22,12 @@ public class DefaultAbilityCaster implements AbilityCaster {
 
     @Override
     public void castAbility(GameUnit source, List<GameUnit> allUnits, TargetSelector targetSelector) {
-        castAbility(source, allUnits, targetSelector, (id, name, tId, dmg) -> {}, System.currentTimeMillis());
+        castAbility(source, allUnits, targetSelector, new CombatStatCallback() {}, System.currentTimeMillis());
     }
 
     @Override
     public void castAbility(
-            GameUnit source, List<GameUnit> allUnits, TargetSelector targetSelector, DamageCallback callback) {
+            GameUnit source, List<GameUnit> allUnits, TargetSelector targetSelector, CombatStatCallback callback) {
         castAbility(source, allUnits, targetSelector, callback, System.currentTimeMillis());
     }
 
@@ -36,7 +36,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
             GameUnit source,
             List<GameUnit> allUnits,
             TargetSelector targetSelector,
-            DamageCallback callback,
+            CombatStatCallback callback,
             long currentTime) {
         AbilityDefinition ability = source.getAbility();
         if (ability == null) {
@@ -64,7 +64,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
             TargetSelector targetSelector,
             AbilityDefinition ability,
             int damage,
-            DamageCallback callback,
+            CombatStatCallback callback,
             long currentTime) {
         var target = targetSelector.findTarget(source, allUnits);
         if (target == null) {
@@ -115,7 +115,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
             TargetSelector targetSelector,
             AbilityDefinition ability,
             int stunSeconds,
-            DamageCallback callback) {
+            CombatStatCallback callback) {
         var target = targetSelector.findTarget(source, allUnits);
         if (target == null) {
             return;
@@ -123,7 +123,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
 
         applyToTargets(source, allUnits, target, ability, u -> {
             u.setStunSecondsRemaining(u.getStunSecondsRemaining() + stunSeconds);
-            callback.onDamage(source.getId(), source.getName(), u.getId(), 0);
+            callback.onSkill(source.getId(), source.getName(), u.getId(), 0);
         });
     }
 
@@ -132,7 +132,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
             List<GameUnit> allUnits,
             AbilityDefinition ability,
             int healAmount,
-            DamageCallback callback) {
+            CombatStatCallback callback) {
         // Apply Doctor heal amplification
         int amplifiedHeal = (int) (healAmount * source.getHealAmplification());
         final int finalHeal = amplifiedHeal;
@@ -143,8 +143,10 @@ public class DefaultAbilityCaster implements AbilityCaster {
                 // Heal lowest-health ally on board
                 GameUnit target = findLowestHealthAlly(allUnits, source);
                 if (target != null) {
-                    healUnit(target, finalHeal);
-                    callback.onDamage(source.getId(), source.getName(), target.getId(), -finalHeal);
+                    var effectiveHeal = healUnit(target, finalHeal);
+                    if (effectiveHeal > 0) {
+                        callback.onHealing(source.getId(), source.getName(), target.getId(), effectiveHeal);
+                    }
                 }
             }
             case SURROUND, LINE -> {
@@ -153,14 +155,18 @@ public class DefaultAbilityCaster implements AbilityCaster {
                         .filter(u -> u.getCurrentHealth() > 0)
                         .filter(u -> CombatUtils.isAlly(source, u))
                         .forEach(u -> {
-                            healUnit(u, finalHeal);
-                            callback.onDamage(source.getId(), source.getName(), u.getId(), -finalHeal);
+                            var effectiveHeal = healUnit(u, finalHeal);
+                            if (effectiveHeal > 0) {
+                                callback.onHealing(source.getId(), source.getName(), u.getId(), effectiveHeal);
+                            }
                         });
             }
             default -> {
                 // Default: heal self
-                healUnit(source, finalHeal);
-                callback.onDamage(source.getId(), source.getName(), source.getId(), -finalHeal);
+                var effectiveHeal = healUnit(source, finalHeal);
+                if (effectiveHeal > 0) {
+                    callback.onHealing(source.getId(), source.getName(), source.getId(), effectiveHeal);
+                }
             }
         }
     }
@@ -170,7 +176,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
             List<GameUnit> allUnits,
             AbilityDefinition ability,
             int buffPercent,
-            DamageCallback callback) {
+            CombatStatCallback callback) {
         // Buff all allies' ATK board-wide
         float multiplier = 1.0f + (buffPercent / 100.0f);
         allUnits.stream()
@@ -178,7 +184,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
                 .filter(u -> CombatUtils.isAlly(source, u))
                 .forEach(u -> {
                     u.setAtkBuff(u.getAtkBuff() * multiplier);
-                    callback.onDamage(source.getId(), source.getName(), u.getId(), 0);
+                    callback.onSkill(source.getId(), source.getName(), u.getId(), 0);
                 });
 
         // Musician check
@@ -203,7 +209,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
             List<GameUnit> allUnits,
             AbilityDefinition ability,
             int buffPercent,
-            DamageCallback callback) {
+            CombatStatCallback callback) {
         // Buff all allies' attack speed board-wide
         float multiplier = 1.0f + (buffPercent / 100.0f);
         allUnits.stream()
@@ -211,7 +217,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
                 .filter(u -> CombatUtils.isAlly(source, u))
                 .forEach(u -> {
                     u.setSpdBuff(u.getSpdBuff() * multiplier);
-                    callback.onDamage(source.getId(), source.getName(), u.getId(), 0);
+                    callback.onSkill(source.getId(), source.getName(), u.getId(), 0);
                 });
     }
 
@@ -220,11 +226,11 @@ public class DefaultAbilityCaster implements AbilityCaster {
             List<GameUnit> allUnits,
             AbilityDefinition ability,
             int shieldAmount,
-            DamageCallback callback) {
+            CombatStatCallback callback) {
         switch (ability.pattern()) {
             case SINGLE -> {
                 source.setShield(source.getShield() + shieldAmount);
-                callback.onDamage(source.getId(), source.getName(), source.getId(), 0);
+                callback.onShielding(source.getId(), source.getName(), source.getId(), shieldAmount);
             }
             case SURROUND, LINE ->
                 allUnits.stream()
@@ -232,7 +238,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
                         .filter(u -> CombatUtils.isAlly(source, u))
                         .forEach(u -> {
                             u.setShield(u.getShield() + shieldAmount);
-                            callback.onDamage(source.getId(), source.getName(), u.getId(), 0);
+                            callback.onShielding(source.getId(), source.getName(), u.getId(), shieldAmount);
                         });
         }
     }
@@ -295,9 +301,11 @@ public class DefaultAbilityCaster implements AbilityCaster {
                 .orElse(null);
     }
 
-    private void healUnit(GameUnit unit, int amount) {
+    private int healUnit(GameUnit unit, int amount) {
+        int previousHealth = unit.getCurrentHealth();
         int newHealth = Math.min(unit.getMaxHealth(), unit.getCurrentHealth() + amount);
         unit.setCurrentHealth(newHealth);
+        return newHealth - previousHealth;
     }
 
     // Check all conditional modifiers. Returns false if any condition is not met.
@@ -342,14 +350,15 @@ public class DefaultAbilityCaster implements AbilityCaster {
 
     // Apply lifesteal modifier healing to the caster.
     private void applyLifestealModifier(
-            GameUnit source, AbilityDefinition ability, int damageDealt, DamageCallback callback) {
+            GameUnit source, AbilityDefinition ability, int damageDealt, CombatStatCallback callback) {
         for (var modifier : ability.modifiers()) {
             if (modifier instanceof LifestealModifier lifestealModifier) {
                 var healAmount = lifestealModifier.calculateHealing(damageDealt, source.getStarLevel());
                 if (healAmount > 0) {
-                    healUnit(source, healAmount);
-                    // Report healing as negative damage
-                    callback.onDamage(source.getId(), source.getName(), source.getId(), -healAmount);
+                    var effectiveHeal = healUnit(source, healAmount);
+                    if (effectiveHeal > 0) {
+                        callback.onHealing(source.getId(), source.getName(), source.getId(), effectiveHeal);
+                    }
                 }
             }
         }

@@ -140,6 +140,38 @@ const draggingUnitId = ref<string|null>(null)
 const dragOverCellIndex = ref(-1)
 const hoveredUnitId = ref<string|null>(null)
 
+const clampPercent = (value: number) => Math.max(0, Math.min(100, value))
+
+const getHealthPercent = (unit: RenderedUnit | DisplayedUnit) => {
+    if (unit.maxHealth <= 0) return 0
+    return clampPercent((unit.currentHealth / unit.maxHealth) * 100)
+}
+
+const getShieldPercent = (unit: RenderedUnit | DisplayedUnit) => {
+    if (unit.maxHealth <= 0) return 0
+    return clampPercent(((unit.shield ?? 0) / unit.maxHealth) * 100)
+}
+
+const getShieldStyle = (unit: RenderedUnit | DisplayedUnit) => {
+    const healthPercent = getHealthPercent(unit)
+    const shieldPercent = getShieldPercent(unit)
+    const overflowsHealthBar = healthPercent + shieldPercent > 100
+
+    if (overflowsHealthBar) {
+        return {
+            width: `${shieldPercent}%`,
+            right: '0',
+            left: 'auto'
+        }
+    }
+
+    return {
+        width: `${Math.min(shieldPercent, 100 - healthPercent)}%`,
+        left: `${healthPercent}%`,
+        right: 'auto'
+    }
+}
+
 
 const getUnitStyle = (unit: RenderedUnit) => {
     // Disable pointer events on units when dragging, EXCEPT the unit being dragged.
@@ -823,9 +855,14 @@ const onOrbClick = (orbId: string) => {
 
                         <div class="hp-bar-container">
                             <div class="hp-bar-fill" :style="{
-                                width: (unit.currentHealth / unit.maxHealth * 100) + '%',
+                                width: getHealthPercent(unit) + '%',
                                 backgroundColor: unit.isMine ? TEAM_COLORS.FRIENDLY : TEAM_COLORS.OPPONENT
                             }"></div>
+                            <div
+                                v-if="unit.shield > 0"
+                                class="shield-bar-fill"
+                                :style="getShieldStyle(unit)">
+                            </div>
                         </div>
                         <div v-if="unit.maxMana > 0" class="mana-pill">
                             <div class="mana-fill-btm" :style="{ height: (unit.mana / unit.maxMana * 100) + '%' }"></div>
@@ -1356,8 +1393,26 @@ const onOrbClick = (orbId: string) => {
 }
 
 .hp-bar-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
     height: 100%;
     transition: width 0.3s cubic-bezier(0.1, 0.7, 0.1, 1);
+}
+
+.shield-bar-fill {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    border-left: 1px solid rgba(255, 255, 255, 0.85);
+    background: linear-gradient(180deg, #f8fafc 0%, #dbe4ee 100%);
+    box-shadow:
+        0 0 4px rgba(248, 250, 252, 0.9),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    transition:
+        width 0.3s cubic-bezier(0.1, 0.7, 0.1, 1),
+        left 0.3s cubic-bezier(0.1, 0.7, 0.1, 1),
+        right 0.3s cubic-bezier(0.1, 0.7, 0.1, 1);
 }
 
 .mana-pill {

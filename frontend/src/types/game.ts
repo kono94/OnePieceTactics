@@ -66,6 +66,7 @@ export interface GameUnit {
     cost: number
     maxHealth: number
     currentHealth: number
+    shield: number
     mana: number
     maxMana: number
     attackDamage: number
@@ -197,6 +198,8 @@ export interface DamageEntry {
     definitionId: string
     ownerId: string
     damage: number
+    healing: number
+    shielding: number
 }
 
 export interface CombatResultPayload {

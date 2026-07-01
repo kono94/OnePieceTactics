@@ -82,6 +82,7 @@ function createRenderedUnit(unit: UltimateGalleryUnit, instanceId: string, x: nu
         cost: unit.cost,
         maxHealth: 1000,
         currentHealth: 1000,
+        shield: 0,
         mana: 100,
         maxMana: 100,
         attackDamage: 70,

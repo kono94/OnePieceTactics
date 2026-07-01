@@ -87,8 +87,18 @@ public class GameController {
                         e -> Map.of(
                                 "name",
                                 e.getValue().unitName(),
+                                "unitName",
+                                e.getValue().unitName(),
+                                "definitionId",
+                                e.getValue().definitionId(),
+                                "ownerId",
+                                e.getValue().ownerId(),
                                 "damage",
-                                e.getValue().damage())));
+                                e.getValue().damage(),
+                                "healing",
+                                e.getValue().healing(),
+                                "shielding",
+                                e.getValue().shielding())));
     }
 
     private Map<String, Object> buildCombatResultPayload(
