@@ -3,6 +3,7 @@ package net.lwenstrom.tft.backend.core.engine;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -549,14 +550,71 @@ public class GameRoom {
                         + randomProvider.nextInt(GameConstants.MAX_ORB_GOLD - GameConstants.MIN_ORB_GOLD + 1);
             } else {
                 var units = dataLoader.getAllUnits(gameMode);
-                // Use shop odds for player level + 1 to determine loot unit
-                var def = ShopOdds.rollUnit(player.getLevel() + 1, units, randomProvider);
+                var def = chooseLootUnitDefinitionForPlayer(player, units);
                 contentId = def.id();
             }
 
             var orb = new LootOrb(orbId, x, y, type, contentId, amount);
             player.addLootOrb(orb);
         }
+    }
+
+    UnitDefinition chooseLootUnitDefinitionForPlayer(Player player, List<UnitDefinition> units) {
+        if (randomProvider.nextInt(100) < GameConstants.ORB_OWNED_UNIT_CHANCE_PERCENT) {
+            var ownedDef = chooseOwnedLootUnitDefinition(player, units);
+            if (ownedDef.isPresent()) {
+                return ownedDef.get();
+            }
+        }
+
+        return ShopOdds.rollUnit(player.getLevel() + 1, units, randomProvider);
+    }
+
+    private Optional<UnitDefinition> chooseOwnedLootUnitDefinition(Player player, List<UnitDefinition> units) {
+        var eligibleLineIds = getUpgradeableOwnedLineIds(player);
+        if (eligibleLineIds.isEmpty()) {
+            return Optional.empty();
+        }
+
+        var seenLineIds = new HashSet<String>();
+        var candidates = units.stream()
+                .filter(def -> eligibleLineIds.contains(def.lineId()))
+                .filter(def -> seenLineIds.add(def.lineId()))
+                .toList();
+        if (candidates.isEmpty()) {
+            return Optional.empty();
+        }
+
+        var totalWeight = candidates.stream()
+                .mapToInt(def -> getOwnedLootWeight(def.cost()))
+                .sum();
+        var roll = randomProvider.nextInt(totalWeight);
+        var cumulativeWeight = 0;
+        for (var candidate : candidates) {
+            cumulativeWeight += getOwnedLootWeight(candidate.cost());
+            if (roll < cumulativeWeight) {
+                return Optional.of(candidate);
+            }
+        }
+        return Optional.of(candidates.getFirst());
+    }
+
+    private List<String> getUpgradeableOwnedLineIds(Player player) {
+        return java.util.stream.Stream.concat(player.getBenchSlots().units(), player.getBoardUnits().stream())
+                .filter(unit -> unit.getStarLevel() < GameConstants.MAX_STAR_LEVEL)
+                .map(GameUnit::getLineId)
+                .distinct()
+                .toList();
+    }
+
+    private int getOwnedLootWeight(int cost) {
+        return switch (cost) {
+            case 1 -> 10;
+            case 2 -> 7;
+            case 3 -> 4;
+            case 4 -> 2;
+            default -> 1;
+        };
     }
 
     private long calculatePhaseDuration(GamePhase phase, int round) {

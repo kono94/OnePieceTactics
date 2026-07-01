@@ -31,6 +31,10 @@ class GameConstantsTest {
         assertEquals(9, GameConstants.GRID_COLS);
         assertEquals(3, GameConstants.PLAYER_ROWS);
         assertEquals(6, GameConstants.COMBAT_ROWS);
+        assertEquals(3, GameConstants.MAX_STAR_LEVEL);
+        assertEquals(3, GameConstants.COPIES_TO_UPGRADE_TO_TWO_STAR);
+        assertEquals(2, GameConstants.COPIES_TO_UPGRADE_TO_THREE_STAR);
+        assertEquals(6, GameConstants.THREE_STAR_SELL_COPY_COUNT);
     }
 
     @Test
@@ -57,6 +61,7 @@ class GameConstantsTest {
         assertEquals(2, GameConstants.MIN_ORB_COUNT);
         assertEquals(4, GameConstants.MAX_ORB_COUNT);
         assertEquals(60, GameConstants.ORB_GOLD_CHANCE_PERCENT);
+        assertEquals(70, GameConstants.ORB_OWNED_UNIT_CHANCE_PERCENT);
         assertEquals(3, GameConstants.MIN_ORB_GOLD);
         assertEquals(8, GameConstants.MAX_ORB_GOLD);
     }

@@ -28,7 +28,7 @@ For detailed architectural information, refer to the context documents:
 - **Theme-agnostic core engine** — hosts choose One Piece or Pokemon per room in the lobby; config controls the default
 - **Auto-battler mechanics**: Shop, XP, Gold (with interest), Trait Synergies, Unit Combinations
 - **Grid-based combat** with BFS pathfinding, ability casting, and directional attack animations
-- **Star-level progression** — combine 3 identical units to upgrade (1★ → 2★ → 3★), including Pokemon evolution forms
+- **Star-level progression** — combine 3 matching 1★ units into 1 2★, then 2 matching 2★ units into 1 3★, including Pokemon evolution forms
 - **Round-based augment choices** — players choose team-wide economy or combat bonuses on rounds 2, 5, and 10
 - **Advanced ability system** — Damage, Stun, Shield, Heal, Buff with modifiers (Lifesteal, Execute, Scaling, Conditional, Knockback)
 - **Data-driven trait system** — All trait effects loaded from JSON configuration (no hardcoded logic)

@@ -115,6 +115,11 @@ public class Player {
     }
 
     private void checkUpgrade(String lineId, int starLevel) {
+        var requiredCopies = getRequiredCopiesForUpgrade(starLevel);
+        if (requiredCopies == 0) {
+            return;
+        }
+
         var candidates = new ArrayList<GameUnit>();
         candidates.addAll(bench.units()
                 .filter(u -> u.getLineId().equals(lineId) && u.getStarLevel() == starLevel)
@@ -123,8 +128,8 @@ public class Player {
                 .filter(u -> u.getLineId().equals(lineId) && u.getStarLevel() == starLevel)
                 .toList());
 
-        if (candidates.size() >= 3) {
-            var unitsToRemove = candidates.subList(0, 3);
+        if (candidates.size() >= requiredCopies) {
+            var unitsToRemove = candidates.subList(0, requiredCopies);
             var targetPosUnit = unitsToRemove.stream()
                     .filter(boardUnits::contains)
                     .findFirst()
@@ -166,6 +171,14 @@ public class Player {
                 checkUpgrade(lineId, starLevel + 1);
             }
         }
+    }
+
+    private int getRequiredCopiesForUpgrade(int starLevel) {
+        return switch (starLevel) {
+            case 1 -> GameConstants.COPIES_TO_UPGRADE_TO_TWO_STAR;
+            case 2 -> GameConstants.COPIES_TO_UPGRADE_TO_THREE_STAR;
+            default -> 0;
+        };
     }
 
     public void gainGold(int amount) {
@@ -213,7 +226,13 @@ public class Player {
     public int calculateSellValue(GameUnit unit) {
         var cost = unit.getCost();
         var starLevel = unit.getStarLevel();
-        return cost * (int) Math.pow(3, starLevel - 1);
+        var copyCount =
+                switch (starLevel) {
+                    case 1 -> 1;
+                    case 2 -> GameConstants.COPIES_TO_UPGRADE_TO_TWO_STAR;
+                    default -> GameConstants.THREE_STAR_SELL_COPY_COUNT;
+                };
+        return cost * copyCount;
     }
 
     public void setInCombat(boolean inCombat) {

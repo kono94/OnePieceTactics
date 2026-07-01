@@ -317,8 +317,8 @@ class PlayerUnitTest {
         var player = createTestPlayer("TestPlayer", dataLoader);
         player.setGold(200);
 
-        // Buy 9 units to create a 3-star (3 for 2-star, then 3 more 2-stars = 9 total)
-        for (var i = 0; i < 9; i++) {
+        // Buy 6 units to create a 3-star (3 for each 2-star, then 2 2-stars = 6 total)
+        for (var i = 0; i < 6; i++) {
             player.refreshShop();
             player.buyUnit(0);
         }
@@ -331,7 +331,36 @@ class PlayerUnitTest {
         var goldBefore = player.getGold();
         player.sellUnit(unit.getId(), true);
 
-        assertEquals(goldBefore + 18, player.getGold(), "Should refund 18 gold for 3-star, 2-cost unit");
+        assertEquals(goldBefore + 12, player.getGold(), "Should refund 12 gold for 3-star, 2-cost unit");
+    }
+
+    @Test
+    void testUpgrade_StopsAt3Star() {
+        var units = List.of(TestHelpers.createUnitDef("u1", "TestUnit", 1, 100, 10));
+        var dataLoader = TestHelpers.createMockDataLoader(units);
+        var player = createTestPlayer("TestPlayer", dataLoader);
+        player.setGold(200);
+
+        for (var i = 0; i < 9; i++) {
+            player.refreshShop();
+            player.buyUnit(0);
+        }
+
+        assertEquals(2, countBenchUnits(player), "Should keep one 3-star and one 2-star after 9 copies");
+        assertEquals(
+                1,
+                player.getBench().stream()
+                        .filter(java.util.Objects::nonNull)
+                        .filter(unit -> unit.getStarLevel() == 3)
+                        .count(),
+                "Should have exactly one 3-star unit");
+        assertEquals(
+                1,
+                player.getBench().stream()
+                        .filter(java.util.Objects::nonNull)
+                        .filter(unit -> unit.getStarLevel() == 2)
+                        .count(),
+                "Should not upgrade beyond 3-star");
     }
 
     @Test
@@ -384,8 +413,8 @@ class PlayerUnitTest {
 
         assertEquals(1, player.calculateSellValue(unit1Star1Cost), "1-star, 1-cost = 1 gold");
         assertEquals(3, player.calculateSellValue(unit2Star1Cost), "2-star, 1-cost = 3 gold");
-        assertEquals(9, player.calculateSellValue(unit3Star1Cost), "3-star, 1-cost = 9 gold");
-        assertEquals(18, player.calculateSellValue(unit3Star2Cost), "3-star, 2-cost = 18 gold");
+        assertEquals(6, player.calculateSellValue(unit3Star1Cost), "3-star, 1-cost = 6 gold");
+        assertEquals(12, player.calculateSellValue(unit3Star2Cost), "3-star, 2-cost = 12 gold");
     }
 
     @Test

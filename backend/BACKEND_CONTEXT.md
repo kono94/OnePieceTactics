@@ -627,13 +627,17 @@ Combat-only stat changes are reset by `AbstractGameUnit.restorePlanningPosition(
 
 ### Upgrades and Evolutions
 
-`Player.checkUpgrade(lineId, starLevel)` searches bench and board for three copies with the same `lineId` and same star level.
+`Player.checkUpgrade(lineId, starLevel)` searches bench and board for copies with the same `lineId` and same star level.
 
 When found:
-- Three units are removed.
+- Three 1-star units are removed to create a 2-star unit.
+- Two 2-star units are removed to create a 3-star unit.
+- 3-star units do not upgrade further.
 - One upgraded `StandardGameUnit(def, starLevel + 1)` is created.
 - Placement is preserved from a board unit if possible; otherwise the unit goes to bench.
 - The method recursively checks for chained upgrades.
+
+Sell value follows invested copy count: 1-star units sell for `cost`, 2-star units sell for `cost * 3`, and 3-star units sell for `cost * 6`.
 
 When a unit is bought during combat, upgrade checking is deferred:
 
@@ -788,7 +792,9 @@ Constants:
 - Gold chance: 60%.
 - Gold amount: 3 to 8.
 - Unit chance: 40%.
-- Unit drops use `ShopOdds` at `player.level + 1`.
+- Unit drops have a 70% chance to target a unit line the player already owns on board or bench, excluding lines where every owned copy is already 3-star.
+- Owned-line unit drops are weighted toward low costs: 1-cost = 10, 2-cost = 7, 3-cost = 4, 4-cost = 2, 5-cost = 1.
+- If the owned-line branch misses or has no eligible owned line, unit drops use `ShopOdds` at `player.level + 1`.
 
 Collection is via `COLLECT_ORB`. At combat start, alive players also run `collectAllOrbs()` so unclaimed loot is picked up before board auto-fill and combat setup. Unit orbs create a 1-star unit for the player's current room mode; if the bench is full, the player gets the unit's cost as gold.
 

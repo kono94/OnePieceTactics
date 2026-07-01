@@ -22,6 +22,10 @@ public final class GameConstants {
     public static final int GRID_COLS = 9;
     public static final int PLAYER_ROWS = 3;
     public static final int COMBAT_ROWS = 6;
+    public static final int MAX_STAR_LEVEL = 3;
+    public static final int COPIES_TO_UPGRADE_TO_TWO_STAR = 3;
+    public static final int COPIES_TO_UPGRADE_TO_THREE_STAR = 2;
+    public static final int THREE_STAR_SELL_COPY_COUNT = 6;
 
     // Damage
     public static final int BASE_COMBAT_DAMAGE = 2;
@@ -40,6 +44,7 @@ public final class GameConstants {
     public static final int MIN_ORB_COUNT = 2;
     public static final int MAX_ORB_COUNT = 4;
     public static final int ORB_GOLD_CHANCE_PERCENT = 60;
+    public static final int ORB_OWNED_UNIT_CHANCE_PERCENT = 70;
     public static final int MIN_ORB_GOLD = 3;
     public static final int MAX_ORB_GOLD = 8;
 

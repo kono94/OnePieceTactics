@@ -40,6 +40,28 @@ class PokemonEvolutionUpgradeTest {
         assertEquals("charmeleon", upgraded.getDefinitionId());
     }
 
+    @Test
+    void combiningSixBasePokemonCreatesFinalForm() throws Exception {
+        var charmander = loadPokemonUnit("charmander");
+        var dataLoader = TestHelpers.createMockDataLoader(List.of(charmander));
+        var player = createTestPlayer("Ash", dataLoader);
+        player.setGold(100);
+
+        for (var i = 0; i < 6; i++) {
+            player.refreshShop();
+            player.buyUnit(0);
+        }
+
+        var upgraded = player.getBench().stream()
+                .filter(java.util.Objects::nonNull)
+                .findFirst()
+                .orElseThrow();
+        assertEquals("charmander", upgraded.getLineId());
+        assertEquals(3, upgraded.getStarLevel());
+        assertEquals("Charizard", upgraded.getName());
+        assertEquals("charizard", upgraded.getDefinitionId());
+    }
+
     private UnitDefinition loadPokemonUnit(String id) throws Exception {
         InputStream is = getClass().getResourceAsStream("/data/units_pokemon.json");
         assertNotNull(is);
