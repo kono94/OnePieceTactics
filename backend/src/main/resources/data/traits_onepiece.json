@@ -489,19 +489,11 @@
         "effectType": "DISTANCE_DAMAGE",
         "effects": [
             {
-                "minUnits": 2,
+                "minUnits": 1,
                 "description": "+10% DMG per cell",
-                "style": "bronze",
-                "values": {
-                    "damagePerCell": 0.1
-                }
-            },
-            {
-                "minUnits": 4,
-                "description": "+20% DMG per cell",
                 "style": "gold",
                 "values": {
-                    "damagePerCell": 0.2
+                    "damagePerCell": 0.1
                 }
             }
         ]
