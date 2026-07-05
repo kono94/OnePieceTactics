@@ -10,7 +10,8 @@ public record AbilityDefinition(
         AbilityPattern pattern,
         List<Integer> range,
         List<Integer> values, // Exactly 3 values [lvl1, lvl2, lvl3]
-        List<AbilityModifier> modifiers) {
+        List<AbilityModifier> modifiers,
+        List<Integer> targetLimit) {
     public AbilityDefinition {
         if (modifiers == null) {
             modifiers = Collections.emptyList();
@@ -21,6 +22,20 @@ public record AbilityDefinition(
         if (range == null) {
             range = Collections.emptyList();
         }
+        if (targetLimit == null) {
+            targetLimit = Collections.emptyList();
+        }
+    }
+
+    public AbilityDefinition(
+            String name,
+            String description,
+            AbilityType type,
+            AbilityPattern pattern,
+            List<Integer> range,
+            List<Integer> values,
+            List<AbilityModifier> modifiers) {
+        this(name, description, type, pattern, range, values, modifiers, Collections.emptyList());
     }
 
     // Get value for a specific star level (1-indexed)
@@ -39,6 +54,14 @@ public record AbilityDefinition(
         }
         int index = Math.min(starLevel - 1, range.size() - 1);
         return range.get(index);
+    }
+
+    public int getTargetLimitForLevel(int starLevel) {
+        if (targetLimit.isEmpty()) {
+            return Integer.MAX_VALUE;
+        }
+        int index = Math.min(starLevel - 1, targetLimit.size() - 1);
+        return targetLimit.get(index);
     }
 
     public List<AbilityModifier> modifiers() {

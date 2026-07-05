@@ -4,6 +4,7 @@ import type { Component } from 'vue'
 import { Client } from '@stomp/stompjs'
 import type { StompSubscription } from '@stomp/stompjs'
 import Lobby from './components/Lobby.vue'
+import Changelog from './components/Changelog.vue'
 import WaitingRoom from './components/WaitingRoom.vue'
 import GameInterface from './components/GameInterface.vue'
 import OutcomeOverlay from './components/game/OutcomeOverlay.vue'
@@ -16,7 +17,7 @@ import type { GameState, GameAction, CombatResultPayload, GameMode } from './typ
 const isConnected = ref(false)
 const gameState = ref<GameState | null>(null)
 const client = ref<Client | null>(null)
-const currentView = ref<'lobby' | 'game'>('lobby')
+const currentView = ref<'lobby' | 'game' | 'changelog'>('lobby')
 const currentRoomId = ref('')
 const gameTitle = ref('Tactics Arena')
 const availableModes = ref<GameMode[]>(['onepiece', 'pokemon'])
@@ -374,6 +375,12 @@ const applyThemeMeta = (mode: GameMode | null) => {
 
 <template>
   <div :class="['app-container', themeClass]">
+    <button v-if="showVersion && currentView === 'lobby'"
+            class="changelog-dock"
+            type="button"
+            @click="currentView = 'changelog'">
+        Changelog
+    </button>
     <VersionDisplay :visible="showVersion" />
 
     <component :is="UltimateGallery" v-if="isUltimateGallery && UltimateGallery" :mode="ultimateGalleryMode" />
@@ -388,6 +395,9 @@ const applyThemeMeta = (mode: GameMode | null) => {
                :error="lobbyError"
                @create="handleCreate" 
                @join="handleJoin" />
+
+        <Changelog v-else-if="currentView === 'changelog'"
+                   @back="currentView = 'lobby'" />
                
         <div v-else class="game-container">
              <!-- If in LOBBY phase, show WaitingRoom -->
@@ -494,6 +504,30 @@ body {
 
 .outcome-enter-active {
   animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.changelog-dock {
+  position: fixed;
+  bottom: 28px;
+  left: 8px;
+  z-index: 10000;
+  padding: 5px 8px;
+  border: 1px solid rgba(251, 191, 36, 0.34);
+  border-radius: 5px;
+  background: rgba(15, 23, 42, 0.76);
+  color: #fde68a;
+  font-family: 'Courier New', monospace;
+  font-size: 0.66rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.changelog-dock:hover {
+  border-color: rgba(251, 191, 36, 0.68);
+  background: rgba(30, 41, 59, 0.92);
+  color: #fef3c7;
 }
 
 .outcome-leave-active {

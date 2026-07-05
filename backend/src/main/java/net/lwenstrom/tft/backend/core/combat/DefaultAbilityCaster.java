@@ -1,5 +1,6 @@
 package net.lwenstrom.tft.backend.core.combat;
 
+import java.util.Comparator;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import net.lwenstrom.tft.backend.core.engine.AbstractGameUnit;
@@ -258,38 +259,52 @@ public class DefaultAbilityCaster implements AbilityCaster {
             case LINE -> {
                 int dx = Integer.compare(target.getX(), source.getX());
                 int dy = Integer.compare(target.getY(), source.getY());
-                for (int i = 1; i <= range; i++) {
-                    int tx = source.getX() + dx * i;
-                    int ty = source.getY() + dy * i;
-                    final int fX = tx;
-                    final int fY = ty;
-
-                    allUnits.stream()
-                            .filter(u -> u.getX() == fX && u.getY() == fY && u.getCurrentHealth() > 0)
-                            .filter(u -> CombatUtils.isEnemy(source, u))
-                            .forEach(effect);
-                }
+                applyLimitedTargets(
+                        source,
+                        ability,
+                        allUnits.stream()
+                                .filter(u -> isInLine(source, u, dx, dy, range))
+                                .toList(),
+                        effect);
             }
             case SURROUND -> {
                 int r = range;
-                for (int dx = -r; dx <= r; dx++) {
-                    for (int dy = -r; dy <= r; dy++) {
-                        if (dx == 0 && dy == 0) {
-                            continue;
-                        }
-                        int tx = source.getX() + dx;
-                        int ty = source.getY() + dy;
-                        final int fX = tx;
-                        final int fY = ty;
-
+                applyLimitedTargets(
+                        source,
+                        ability,
                         allUnits.stream()
-                                .filter(u -> u.getX() == fX && u.getY() == fY && u.getCurrentHealth() > 0)
-                                .filter(u -> CombatUtils.isEnemy(source, u))
-                                .forEach(effect);
-                    }
-                }
+                                .filter(u -> u != source)
+                                .filter(u -> CombatUtils.getDistance(source, u) <= r)
+                                .toList(),
+                        effect);
             }
         }
+    }
+
+    private boolean isInLine(GameUnit source, GameUnit unit, int dx, int dy, int range) {
+        for (int i = 1; i <= range; i++) {
+            if (unit.getX() == source.getX() + dx * i && unit.getY() == source.getY() + dy * i) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void applyLimitedTargets(
+            GameUnit source,
+            AbilityDefinition ability,
+            List<GameUnit> candidates,
+            java.util.function.Consumer<GameUnit> effect) {
+        var targetLimit = ability.getTargetLimitForLevel(source.getStarLevel());
+        candidates.stream()
+                .filter(u -> u.getCurrentHealth() > 0)
+                .filter(u -> CombatUtils.isEnemy(source, u))
+                .sorted(Comparator.comparingDouble((GameUnit u) -> CombatUtils.getDistance(source, u))
+                        .thenComparingInt(GameUnit::getX)
+                        .thenComparingInt(GameUnit::getY)
+                        .thenComparing(GameUnit::getId))
+                .limit(targetLimit)
+                .forEach(effect);
     }
 
     private GameUnit findLowestHealthAlly(List<GameUnit> allUnits, GameUnit source) {

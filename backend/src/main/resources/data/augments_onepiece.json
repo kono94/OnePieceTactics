@@ -39,11 +39,11 @@
     "id": "treasure-cache",
     "name": "Treasure Cache",
     "effectType": "GOLD",
-    "values": [30, 45, 70],
+    "values": [20, 35, 50],
     "descriptions": [
-      "Gain 30 gold.",
-      "Gain 45 gold.",
-      "Gain 70 gold."
+      "Gain 20 gold.",
+      "Gain 35 gold.",
+      "Gain 50 gold."
     ],
     "image": null
   },
@@ -159,11 +159,11 @@
     "id": "clean-bench",
     "name": "Clean Bench",
     "effectType": "GOLD_PER_EMPTY_BENCH_SLOT",
-    "values": [2, 3, 5],
+    "values": [3, 5, 8],
     "descriptions": [
-      "Gain 2 gold for each empty bench slot.",
       "Gain 3 gold for each empty bench slot.",
-      "Gain 5 gold for each empty bench slot."
+      "Gain 5 gold for each empty bench slot.",
+      "Gain 8 gold for each empty bench slot."
     ],
     "image": null
   },

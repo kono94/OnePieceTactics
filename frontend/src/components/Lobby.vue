@@ -63,6 +63,13 @@ defineEmits(['create', 'join'])
     -webkit-text-fill-color: transparent;
 }
 
+.title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
 .actions {
     display: flex;
     gap: 40px;

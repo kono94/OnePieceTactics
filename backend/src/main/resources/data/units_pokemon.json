@@ -1081,6 +1081,7 @@
                     "pattern": "SURROUND",
                     "values": [146, 329, 699],
                     "range": [2, 2, 3],
+                    "targetLimit": [3, 3, 3],
                     "modifiers": [
                         {
                             "type": "STUN",
@@ -1101,6 +1102,7 @@
                     "pattern": "SURROUND",
                     "values": [146, 329, 699],
                     "range": [2, 3, 3],
+                    "targetLimit": [3, 3, 3],
                     "modifiers": [
                         {
                             "type": "STUN",

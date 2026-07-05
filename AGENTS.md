@@ -64,3 +64,9 @@
 
 ## 5. Misc
 - when defining units in the .json files. When you define multiple values in an array and its just 3 numbers, keep them in one line and not multiple line
+
+## 6. Changelog & Release Notes
+- When adding a commit-worthy change or any balance change, also update the in-app changelog page in `frontend/src/components/Changelog.vue`.
+- The changelog should list all commits after the latest git tag under a temporary next-version heading like `Version X.X.X`.
+- Before creating a release tag, replace the temporary `Version X.X.X` heading with the actual git tag/version.
+- Balance notes must include both new and previous values, using clear wording such as `(from X)`, and should visually distinguish buffs and nerfs when shown in the changelog UI.

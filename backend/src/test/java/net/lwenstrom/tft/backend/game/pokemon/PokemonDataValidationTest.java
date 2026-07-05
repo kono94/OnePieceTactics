@@ -123,6 +123,58 @@ class PokemonDataValidationTest {
         }
     }
 
+    @Test
+    void pokemonBalanceValuesMatchCurrentPatch() throws Exception {
+        var traits = loadPokemonTraits();
+
+        var normal = effects(findTrait(traits, "normal"));
+        assertEquals(1, minUnits(normal, 0));
+        assertEquals(0.01, doubleValue(normal, 0, "atkBuff"));
+        assertEquals(0.05, doubleValue(normal, 1, "atkBuff"));
+        assertEquals(0.10, doubleValue(normal, 2, "atkBuff"));
+        assertEquals(0.16, doubleValue(normal, 3, "atkBuff"));
+
+        var flying = effects(findTrait(traits, "flying"));
+        assertEquals(
+                List.of(1, 2, 3, 4),
+                flying.stream().map(effect -> minUnits(effect)).toList());
+        assertEquals(0.04, doubleValue(flying, 0, "as"));
+        assertEquals(0.12, doubleValue(flying, 1, "as"));
+        assertEquals(0.24, doubleValue(flying, 2, "as"));
+        assertEquals(0.36, doubleValue(flying, 3, "as"));
+
+        var poison = effects(findTrait(traits, "poison"));
+        assertEquals(0.03, doubleValue(poison, 0, "damageRatio"));
+        assertEquals(0.07, doubleValue(poison, 1, "damageRatio"));
+        assertEquals(0.11, doubleValue(poison, 2, "damageRatio"));
+        assertEquals(0.16, doubleValue(poison, 3, "damageRatio"));
+        assertTrue(poison.stream().allMatch(effect -> intValue(effect, "durationMs") == 3000));
+        assertTrue(poison.stream().allMatch(effect -> intValue(effect, "tickIntervalMs") == 1000));
+    }
+
+    @Test
+    void raichuThunderKeepsTwoSecondThirdStarStunButCapsTargets() throws Exception {
+        var pikachu = find(loadPokemonUnits(), "pikachu");
+        var raichuForms = pikachu.forms().stream()
+                .filter(form -> form.definitionId().equals("raichu"))
+                .toList();
+
+        assertEquals(2, raichuForms.size());
+        raichuForms.forEach(form -> {
+            var ability = form.ability();
+            assertEquals(
+                    List.of(1, 1, 2),
+                    ability.modifiers().stream()
+                            .filter(net.lwenstrom.tft.backend.core.model.StunModifier.class::isInstance)
+                            .map(net.lwenstrom.tft.backend.core.model.StunModifier.class::cast)
+                            .findFirst()
+                            .orElseThrow()
+                            .stunSeconds());
+            assertEquals(List.of(3, 3, 3), ability.targetLimit());
+            assertEquals(3, ability.getTargetLimitForLevel(3));
+        });
+    }
+
     private List<UnitDefinition> loadPokemonUnits() throws Exception {
         InputStream is = getClass().getResourceAsStream("/data/units_pokemon.json");
         assertNotNull(is);
@@ -151,5 +203,38 @@ class PokemonDataValidationTest {
         traits.forEach(trait -> possibleLinesByTrait
                 .computeIfAbsent(trait, ignored -> new HashSet<>())
                 .add(lineId));
+    }
+
+    private Map<String, Object> findTrait(List<Map<String, Object>> traits, String id) {
+        return traits.stream()
+                .filter(trait -> id.equals(trait.get("id")))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Missing trait " + id));
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> effects(Map<String, Object> trait) {
+        return (List<Map<String, Object>>) trait.get("effects");
+    }
+
+    private int minUnits(List<Map<String, Object>> effects, int index) {
+        return minUnits(effects.get(index));
+    }
+
+    private int minUnits(Map<String, Object> effect) {
+        return ((Number) effect.get("minUnits")).intValue();
+    }
+
+    private double doubleValue(List<Map<String, Object>> effects, int index, String key) {
+        return ((Number) values(effects.get(index)).get(key)).doubleValue();
+    }
+
+    private int intValue(Map<String, Object> effect, String key) {
+        return ((Number) values(effect).get(key)).intValue();
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> values(Map<String, Object> effect) {
+        return (Map<String, Object>) effect.get("values");
     }
 }

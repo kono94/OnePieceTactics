@@ -69,9 +69,9 @@ class DataLoaderAugmentTest {
                         Map.entry(AugmentEffectType.RANGED_ATTACK_DAMAGE, List.of(5, 8, 12)),
                         Map.entry(AugmentEffectType.TEAM_MANA_GAIN, List.of(12, 20, 30)),
                         Map.entry(AugmentEffectType.TEAM_STARTING_MANA, List.of(10, 20, 35)),
-                        Map.entry(AugmentEffectType.GOLD_PER_EMPTY_BENCH_SLOT, List.of(2, 3, 5)),
+                        Map.entry(AugmentEffectType.GOLD_PER_EMPTY_BENCH_SLOT, List.of(3, 5, 8)),
                         Map.entry(AugmentEffectType.TEAM_STARTING_SHIELD, List.of(100, 180, 300)),
-                        Map.entry(AugmentEffectType.GOLD, List.of(30, 45, 70)),
+                        Map.entry(AugmentEffectType.GOLD, List.of(20, 35, 50)),
                         Map.entry(AugmentEffectType.XP, List.of(8, 16, 24))),
                 augments.stream()
                         .collect(Collectors.toMap(augment -> augment.effectType(), augment -> augment.values())));
