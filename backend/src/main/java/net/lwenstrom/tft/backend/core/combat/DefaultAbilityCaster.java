@@ -1,7 +1,9 @@
 package net.lwenstrom.tft.backend.core.combat;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import net.lwenstrom.tft.backend.core.engine.AbstractGameUnit;
 import net.lwenstrom.tft.backend.core.engine.AugmentManager;
@@ -258,13 +260,12 @@ public class DefaultAbilityCaster implements AbilityCaster {
         switch (ability.pattern()) {
             case SINGLE -> effect.accept(target);
             case LINE -> {
-                int dx = Integer.compare(target.getX(), source.getX());
-                int dy = Integer.compare(target.getY(), source.getY());
+                var lineCells = getAimedLineCells(source, target, range);
                 applyLimitedTargets(
                         source,
                         ability,
                         allUnits.stream()
-                                .filter(u -> isInLine(source, u, dx, dy, range))
+                                .filter(u -> lineCells.contains(new LineCell(u.getX(), u.getY())))
                                 .toList(),
                         effect);
             }
@@ -282,14 +283,24 @@ public class DefaultAbilityCaster implements AbilityCaster {
         }
     }
 
-    private boolean isInLine(GameUnit source, GameUnit unit, int dx, int dy, int range) {
-        for (int i = 1; i <= range; i++) {
-            if (unit.getX() == source.getX() + dx * i && unit.getY() == source.getY() + dy * i) {
-                return true;
-            }
+    private Set<LineCell> getAimedLineCells(GameUnit source, GameUnit target, int range) {
+        var cells = new HashSet<LineCell>();
+        int distance = (int) CombatUtils.getDistance(source, target);
+        if (distance <= 0 || range <= 0) {
+            return cells;
         }
-        return false;
+
+        int dx = target.getX() - source.getX();
+        int dy = target.getY() - source.getY();
+        for (int i = 1; i <= range; i++) {
+            int x = source.getX() + (int) Math.round((double) dx * i / distance);
+            int y = source.getY() + (int) Math.round((double) dy * i / distance);
+            cells.add(new LineCell(x, y));
+        }
+        return cells;
     }
+
+    private record LineCell(int x, int y) {}
 
     private void applyLimitedTargets(
             GameUnit source,

@@ -2,15 +2,64 @@ package net.lwenstrom.tft.backend.core.combat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.ArrayList;
 import java.util.List;
 import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
 import net.lwenstrom.tft.backend.core.model.AbilityPattern;
 import net.lwenstrom.tft.backend.core.model.AbilityType;
+import net.lwenstrom.tft.backend.core.model.GameUnit;
 import net.lwenstrom.tft.backend.core.model.StunModifier;
 import net.lwenstrom.tft.backend.test.MockUnit;
 import org.junit.jupiter.api.Test;
 
 class DefaultAbilityCasterTest {
+
+    @Test
+    void lineDamageAbilityHitsOffAxisSelectedTarget() {
+        var ability = lineDamageAbility();
+        var source = MockUnit.create("source", "P1").withPosition(0, 5).withAbility(ability);
+        var target = MockUnit.create("target", "P2").withPosition(3, 3);
+        var onBeam = MockUnit.create("on-beam", "P2").withPosition(2, 4);
+        var offBeam = MockUnit.create("off-beam", "P2").withPosition(3, 4);
+        var allUnits = new ArrayList<GameUnit>(List.of(source, target, onBeam, offBeam));
+        var damagedTargets = new ArrayList<String>();
+
+        new DefaultAbilityCaster()
+                .castAbility(
+                        source,
+                        allUnits,
+                        (unit, ignored) -> target,
+                        new AbilityCaster.CombatStatCallback() {
+                            @Override
+                            public void onDamage(String unitId, String unitName, String targetId, int damage) {
+                                damagedTargets.add(targetId);
+                            }
+                        },
+                        0L);
+
+        assertEquals(75, target.getCurrentHealth());
+        assertEquals(75, onBeam.getCurrentHealth());
+        assertEquals(100, offBeam.getCurrentHealth());
+        assertEquals(List.of("on-beam", "target"), damagedTargets);
+    }
+
+    @Test
+    void lineDamageAbilityStillPiercesAlignedTargets() {
+        var ability = lineDamageAbility();
+        var source = MockUnit.create("source", "P1").withPosition(1, 5).withAbility(ability);
+        var target = MockUnit.create("target", "P2").withPosition(1, 3);
+        var behindTarget = MockUnit.create("behind-target", "P2").withPosition(1, 1);
+        var offLine = MockUnit.create("off-line", "P2").withPosition(2, 3);
+        var allUnits = new ArrayList<GameUnit>(List.of(source, target, behindTarget, offLine));
+
+        new DefaultAbilityCaster()
+                .castAbility(
+                        source, allUnits, (unit, ignored) -> target, new AbilityCaster.CombatStatCallback() {}, 0L);
+
+        assertEquals(75, target.getCurrentHealth());
+        assertEquals(75, behindTarget.getCurrentHealth());
+        assertEquals(100, offLine.getCurrentHealth());
+    }
 
     @Test
     void surroundDamageAbilityRespectsTargetLimit() {
@@ -60,5 +109,16 @@ class DefaultAbilityCasterTest {
                 enemies.stream()
                         .filter(enemy -> enemy.getStunSecondsRemaining() == 0)
                         .count());
+    }
+
+    private AbilityDefinition lineDamageAbility() {
+        return new AbilityDefinition(
+                "Beam",
+                "Hits a line.",
+                AbilityType.DAMAGE,
+                AbilityPattern.LINE,
+                List.of(7, 7, 7),
+                List.of(25, 25, 25),
+                List.of());
     }
 }
