@@ -101,6 +101,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
             applyDotModifiers(source, u, ability, currentTime);
             totalDamageDealt[0] += effectiveDamage;
             callback.onDamage(source.getId(), source.getName(), u.getId(), effectiveDamage);
+            callback.onDirectHit(u);
         });
 
         // Apply lifesteal modifier

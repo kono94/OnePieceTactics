@@ -4,6 +4,7 @@ public final class GameConstants {
 
     // Combat
     public static final int MANA_PER_HIT = 10;
+    public static final float MANA_ON_DIRECT_HIT_PERCENT = 0.05f;
     public static final long ABILITY_COOLDOWN_MS = 1000L;
     public static final long COMBAT_PHASE_MS = 25000L;
 

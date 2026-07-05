@@ -189,6 +189,11 @@ public class CombatSystem {
                             }
 
                             @Override
+                            public void onDirectHit(GameUnit target) {
+                                grantDirectHitMana(target);
+                            }
+
+                            @Override
                             public void onHealing(String unitId, String unitName, String targetId, int healing) {
                                 accumulateHealing(unitId, unitName, unit.getDefinitionId(), unit.getOwnerId(), healing);
                                 recentEvents.add(new GameState.CombatEvent(
@@ -256,6 +261,7 @@ public class CombatSystem {
 
                     // Handle Revive (Big Mom Pirates)
                     target.takeDamage(effectiveDamage);
+                    grantDirectHitMana(target);
                     applyOnHitDot(unit, target, currentTime);
                     if (target.getCurrentHealth() <= 0) {
                         if (target.hasRevive() && !target.isReviveUsed()) {
@@ -340,6 +346,15 @@ public class CombatSystem {
         }
 
         return new CombatResult(false, null, Map.of(), new ArrayList<>(recentEvents));
+    }
+
+    private void grantDirectHitMana(GameUnit target) {
+        if (target.getMaxMana() <= 0) {
+            return;
+        }
+
+        var manaGain = Math.max(1, Math.round(target.getMaxMana() * GameConstants.MANA_ON_DIRECT_HIT_PERCENT));
+        target.gainMana(manaGain);
     }
 
     private void processDotEffects(List<GameUnit> allUnits, long currentTime) {

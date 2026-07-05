@@ -6,6 +6,7 @@ defineOptions({
 defineEmits(['back'])
 
 const commits = [
+  { hash: 'pending', title: 'Add defender mana on direct hits' },
   { hash: 'e5dba11', title: 'Fix unit drag preview rendering' },
   { hash: '989c37b', title: 'Prevent joining started games' },
   { hash: '700c520', title: 'Fix ghost unit board state sync' },
@@ -19,8 +20,8 @@ const commits = [
       <button class="back-button" type="button" @click="$emit('back')">Back</button>
       <div>
         <p class="eyebrow">Release Notes</p>
-        <h1>Version 1.6.0</h1>
-        <p class="summary">Combat reliability fixes, lobby safeguards, drag polish, and a Pokemon balance pass.</p>
+        <h1>Version X.X.X</h1>
+        <p class="summary">Combat reliability fixes, lobby safeguards, drag polish, mana flow, and a Pokemon balance pass.</p>
       </div>
     </header>
 
@@ -42,6 +43,19 @@ const commits = [
         <div class="section-heading">
           <span class="marker balance"></span>
           <h2>Balance Changes</h2>
+        </div>
+
+        <div class="balance-block">
+          <div class="balance-title">
+            <span class="tag buff">Buff</span>
+            <h3>Mana</h3>
+          </div>
+          <p>
+            Defender mana on direct attacks and damage abilities:
+            <span class="old-value">0%</span>
+            <span class="change-arrow">&nbsp;=>&nbsp;</span>
+            <strong class="value buff">5%</strong> max mana.
+          </p>
         </div>
 
         <div class="balance-block">

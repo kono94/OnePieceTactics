@@ -1,12 +1,23 @@
 package net.lwenstrom.tft.backend.core.engine;
 
-import static net.lwenstrom.tft.backend.test.TestHelpers.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static net.lwenstrom.tft.backend.test.TestHelpers.createMockDataLoader;
+import static net.lwenstrom.tft.backend.test.TestHelpers.createSeededRandomProvider;
+import static net.lwenstrom.tft.backend.test.TestHelpers.createTestClock;
+import static net.lwenstrom.tft.backend.test.TestHelpers.createTestCombatSystem;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import net.lwenstrom.tft.backend.core.combat.CombatUtils;
 import net.lwenstrom.tft.backend.core.combat.NearestEnemyTargetSelector;
 import net.lwenstrom.tft.backend.core.combat.TargetSelector;
+import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
+import net.lwenstrom.tft.backend.core.model.AbilityModifier;
+import net.lwenstrom.tft.backend.core.model.AbilityPattern;
+import net.lwenstrom.tft.backend.core.model.AbilityType;
+import net.lwenstrom.tft.backend.core.model.DotModifier;
 import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 import net.lwenstrom.tft.backend.test.MockUnit;
@@ -145,7 +156,7 @@ class CombatSystemUnitTest {
     }
 
     @Test
-    void testSimulateTick_ManaGain_OnAttack() {
+    void testSimulateTick_BasicAttackGivesAttackerAndDefenderMana() {
         var p1 = new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
         var p2 = new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
 
@@ -154,17 +165,129 @@ class CombatSystemUnitTest {
                 .withMana(0, 100)
                 .withRange(1);
         var target = MockUnit.create("target", p2.getId()).withPosition(3, 0).withHealth(100, 100);
+        target.setNextAttackTime(10_000);
 
         addUnitToPlayer(p1, attacker);
         addUnitToPlayer(p2, target);
 
         combatSystem.startCombat(List.of(p1, p2));
+        combatSystem.simulateTick(List.of(p1, p2));
 
-        for (int i = 0; i < 20; i++) {
-            combatSystem.simulateTick(List.of(p1, p2));
-        }
+        assertEquals(10, attacker.getMana(), "Attacker should gain existing flat mana from attacking");
+        assertEquals(5, target.getMana(), "Defender should gain 5% max mana from the direct hit");
+    }
 
-        assertTrue(attacker.getMana() > 0, "Attacker should have gained mana from attacking");
+    @Test
+    void testSimulateTick_DefenderDirectHitManaClampsAtMax() {
+        var p1 = new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 = new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+
+        var attacker = MockUnit.create("attacker", p1.getId())
+                .withPosition(3, 0)
+                .withAttackDamage(10)
+                .withRange(1);
+        var target = MockUnit.create("target", p2.getId())
+                .withPosition(3, 0)
+                .withHealth(100, 100)
+                .withMana(98, 100);
+        target.setNextAttackTime(10_000);
+
+        addUnitToPlayer(p1, attacker);
+        addUnitToPlayer(p2, target);
+
+        combatSystem.startCombat(List.of(p1, p2));
+        combatSystem.simulateTick(List.of(p1, p2));
+
+        assertEquals(100, target.getMana(), "Defender mana gain should clamp at max mana");
+    }
+
+    @Test
+    void testSimulateTick_ZeroMaxManaDefenderDoesNotGainDirectHitMana() {
+        var p1 = new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 = new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+
+        var attacker = MockUnit.create("attacker", p1.getId())
+                .withPosition(3, 0)
+                .withAttackDamage(10)
+                .withRange(1);
+        var target = MockUnit.create("target", p2.getId())
+                .withPosition(3, 0)
+                .withHealth(100, 100)
+                .withMana(0, 0);
+        target.setNextAttackTime(10_000);
+
+        addUnitToPlayer(p1, attacker);
+        addUnitToPlayer(p2, target);
+
+        combatSystem.startCombat(List.of(p1, p2));
+        combatSystem.simulateTick(List.of(p1, p2));
+
+        assertEquals(0, target.getMana(), "Units with zero max mana should not gain direct-hit mana");
+    }
+
+    @Test
+    void testSimulateTick_DirectDamageAbilityGrantsTargetMana() {
+        var p1 = new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 = new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var ability = damageAbility(List.of());
+
+        var caster = MockUnit.create("caster", p1.getId())
+                .withPosition(3, 0)
+                .withAbility(ability)
+                .withMana(10, 10);
+        var target = MockUnit.create("target", p2.getId()).withPosition(3, 0).withHealth(100, 100);
+        target.setNextAttackTime(10_000);
+
+        addUnitToPlayer(p1, caster);
+        addUnitToPlayer(p2, target);
+
+        combatSystem.startCombat(List.of(p1, p2));
+        combatSystem.simulateTick(List.of(p1, p2));
+
+        assertEquals(5, target.getMana(), "Direct damage abilities should grant target direct-hit mana");
+    }
+
+    @Test
+    void testSimulateTick_DotTickDoesNotGrantAdditionalTargetMana() {
+        var clock = createTestClock();
+        var combatSystem = createTestCombatSystem(clock);
+        var p1 = new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 = new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var dot = new DotModifier(
+                DotModifier.DotType.BURN, List.of(25, 25, 25), List.of(3, 3, 3), List.of(1000, 1000, 1000));
+        var ability = damageAbility(List.of(dot));
+
+        var caster = MockUnit.create("caster", p1.getId())
+                .withPosition(3, 0)
+                .withAbility(ability)
+                .withMana(10, 10);
+        var target = MockUnit.create("target", p2.getId()).withPosition(3, 0).withHealth(100, 100);
+        target.setNextAttackTime(10_000);
+
+        addUnitToPlayer(p1, caster);
+        addUnitToPlayer(p2, target);
+
+        combatSystem.startCombat(List.of(p1, p2));
+        combatSystem.simulateTick(List.of(p1, p2));
+        var manaAfterDirectHit = target.getMana();
+        caster.setNextAttackTime(10_000);
+
+        clock.advance(1000);
+        combatSystem.simulateTick(List.of(p1, p2));
+
+        assertEquals(5, manaAfterDirectHit);
+        assertEquals(manaAfterDirectHit, target.getMana(), "DOT ticks should not grant additional target mana");
+    }
+
+    private AbilityDefinition damageAbility(List<AbilityModifier> modifiers) {
+        return new AbilityDefinition(
+                "Direct Hit",
+                "Deal damage",
+                AbilityType.DAMAGE,
+                AbilityPattern.SINGLE,
+                List.of(1, 1, 1),
+                List.of(40, 40, 40),
+                modifiers);
     }
 
     private void addUnitToPlayer(Player player, GameUnit unit) {

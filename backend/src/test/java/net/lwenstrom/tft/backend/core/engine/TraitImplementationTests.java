@@ -124,6 +124,7 @@ class TraitImplementationTests {
                 .withName("Target")
                 .withPosition(1, 0)
                 .withHealth(1000, 1000);
+        target.setNextAttackTime(10_000);
 
         TestHelpers.addUnitToPlayer(p1, unit);
         TestHelpers.addUnitToPlayer(p2, target);

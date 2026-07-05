@@ -133,6 +133,7 @@ class CombatIntegrationTest {
                 .withMana(50, 50)
                 .withAbility(ability);
         var target = MockUnit.create("target", p2.getId()).withPosition(3, 4).withHealth(100, 100);
+        target.setNextAttackTime(10_000);
 
         addUnitToPlayer(p1, caster);
         addUnitToPlayer(p2, target);
