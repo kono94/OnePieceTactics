@@ -151,7 +151,19 @@ public class GameRoom {
         return phase == GamePhase.END;
     }
 
+    public boolean canAcceptPlayers() {
+        return phase == GamePhase.LOBBY && players.size() < GameConstants.MAX_PLAYERS;
+    }
+
     public Player addPlayer(String name) {
+        return tryAddPlayer(name).orElseThrow(() -> new IllegalStateException("Room is not accepting players"));
+    }
+
+    public Optional<Player> tryAddPlayer(String name) {
+        if (!canAcceptPlayers()) {
+            return Optional.empty();
+        }
+
         var player = new Player(name, gameMode, dataLoader, randomProvider);
         players.put(player.getId(), player);
 
@@ -161,7 +173,7 @@ public class GameRoom {
 
         player.refreshShop();
         updateGameState(0);
-        return player;
+        return Optional.of(player);
     }
 
     public void removePlayer(String playerId) {
@@ -177,15 +189,19 @@ public class GameRoom {
             return;
         }
 
-        int currentCount = players.size();
-        for (int i = 0; i < 8 - currentCount; i++) {
+        var currentCount = players.size();
+        for (int i = 0; i < GameConstants.MAX_PLAYERS - currentCount; i++) {
             addBot();
         }
 
         startPhase(GamePhase.PLANNING);
     }
 
-    public void addBot() {
+    public Optional<Player> addBot() {
+        if (!canAcceptPlayers()) {
+            return Optional.empty();
+        }
+
         var botId = "Bot-" + UUID.randomUUID().toString().substring(0, 4);
         var bot = new Player(botId, gameMode, dataLoader, randomProvider);
         bot.setBot(true);
@@ -193,6 +209,7 @@ public class GameRoom {
         bot.refreshShop();
         refreshBotRoster(bot);
         updateGameState(phaseEndTime - clock.currentTimeMillis());
+        return Optional.of(bot);
     }
 
     public Player getPlayer(String id) {

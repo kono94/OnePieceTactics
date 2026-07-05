@@ -19,6 +19,7 @@ public final class GameConstants {
     // Grid & Units
     public static final int MAX_BENCH_SIZE = 9;
     public static final int SHOP_SIZE = 5;
+    public static final int MAX_PLAYERS = 8;
     public static final int GRID_COLS = 9;
     public static final int PLAYER_ROWS = 3;
     public static final int COMBAT_ROWS = 6;

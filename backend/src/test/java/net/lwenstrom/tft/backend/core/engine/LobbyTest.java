@@ -96,4 +96,40 @@ public class LobbyTest {
         assertEquals(1, gameRoom.getState().round());
         assertEquals(8, gameRoom.getState().players().size()); // 1 Human + 7 Bots
     }
+
+    @Test
+    public void addPlayer_DoesNotAddAfterStart() {
+        gameRoom.addPlayer("Host");
+        gameRoom.startMatch();
+        var playerCount = gameRoom.getPlayers().size();
+
+        var player = gameRoom.tryAddPlayer("Late");
+
+        assertTrue(player.isEmpty());
+        assertEquals(playerCount, gameRoom.getPlayers().size());
+    }
+
+    @Test
+    public void addPlayer_DoesNotExceedMaxPlayers() {
+        for (int i = 0; i < 8; i++) {
+            gameRoom.addPlayer("Player" + i);
+        }
+
+        var player = gameRoom.tryAddPlayer("TooLate");
+
+        assertTrue(player.isEmpty());
+        assertEquals(8, gameRoom.getPlayers().size());
+    }
+
+    @Test
+    public void addBot_DoesNotAddAfterStart() {
+        gameRoom.addPlayer("Host");
+        gameRoom.startMatch();
+        var playerCount = gameRoom.getPlayers().size();
+
+        var bot = gameRoom.addBot();
+
+        assertTrue(bot.isEmpty());
+        assertEquals(playerCount, gameRoom.getPlayers().size());
+    }
 }

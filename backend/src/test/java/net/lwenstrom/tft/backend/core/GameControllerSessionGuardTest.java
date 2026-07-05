@@ -105,6 +105,63 @@ class GameControllerSessionGuardTest {
     }
 
     @Test
+    void joinRoom_DoesNotAddPlayerAfterMatchStarted() {
+        var room = createRoomWithHost();
+        controller.startRoom(new GameController.RoomRequest(room.getId(), "Host"), "host-session");
+        var playerCount = room.getPlayers().size();
+
+        controller.joinRoom(new GameController.RoomRequest(room.getId(), "Late"), "late-session");
+
+        assertEquals(GamePhase.PLANNING, room.getState().phase());
+        assertEquals(playerCount, room.getPlayers().size());
+    }
+
+    @Test
+    void joinRoom_DoesNotBindSessionWhenRejected() {
+        var room = createRoomWithHost();
+        controller.startRoom(new GameController.RoomRequest(room.getId(), "Host"), "host-session");
+        var playerCount = room.getPlayers().size();
+
+        controller.joinRoom(new GameController.RoomRequest(room.getId(), "Late"), "late-session");
+        controller.leaveRoom(new GameController.RoomRequest(room.getId(), "Late"), "late-session");
+
+        assertEquals(playerCount, room.getPlayers().size());
+        assertNotNull(findPlayer(room, "Host"));
+    }
+
+    @Test
+    void joinRoom_IsIdempotentForSameSessionInSameRoom() {
+        var room = createRoomWithHost();
+
+        controller.joinRoom(new GameController.RoomRequest(room.getId(), "Guest"), "guest-session");
+        controller.joinRoom(new GameController.RoomRequest(room.getId(), "Guest"), "guest-session");
+
+        assertEquals(2, room.getPlayers().size());
+        assertEquals(
+                1,
+                room.getPlayers().stream()
+                        .filter(player -> player.getName().equals("Guest"))
+                        .count());
+    }
+
+    @Test
+    void addBot_RejectsNonHostAndStartedRoom() {
+        var room = createRoomWithHost();
+        controller.joinRoom(new GameController.RoomRequest(room.getId(), "Guest"), "guest-session");
+
+        controller.addBot(room.getId(), "guest-session");
+
+        assertEquals(2, room.getPlayers().size());
+
+        controller.startRoom(new GameController.RoomRequest(room.getId(), "Host"), "host-session");
+        var playerCount = room.getPlayers().size();
+
+        controller.addBot(room.getId(), "host-session");
+
+        assertEquals(playerCount, room.getPlayers().size());
+    }
+
+    @Test
     void handleAction_RejectsReadyForCombatSpoofing() {
         var room = createRoomWithHost();
 

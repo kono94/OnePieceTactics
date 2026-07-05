@@ -117,10 +117,22 @@ public class GameController {
     @MessageMapping("/join")
     public void joinRoom(@Payload RoomRequest request, @Header("simpSessionId") String sessionId) {
         var room = gameEngine.getRoom(request.roomId());
-        if (room != null) {
-            addPlayerForSession(room, request.playerName(), sessionId);
-            broadcastRoomState(room);
+        if (room == null) {
+            return;
         }
+
+        var existingSessionPlayer = resolveSessionPlayer(room.getId(), sessionId);
+        if (existingSessionPlayer != null) {
+            broadcastRoomState(room);
+            return;
+        }
+
+        if (!addPlayerForSession(room, request.playerName(), sessionId)) {
+            log.info("Rejected join for room {} because it is not accepting players.", room.getId());
+            return;
+        }
+
+        broadcastRoomState(room);
     }
 
     @MessageMapping("/leave")
@@ -167,11 +179,22 @@ public class GameController {
     }
 
     @MessageMapping("/room/{id}/add-bot")
-    public void addBot(@DestinationVariable String id) {
+    public void addBot(@DestinationVariable String id, @Header("simpSessionId") String sessionId) {
         var room = gameEngine.getRoom(id);
-        if (room != null) {
-            room.addBot();
+        if (room == null) return;
+
+        var player = resolveBoundPlayer(room, sessionId);
+        if (player == null) return;
+
+        if (!room.getState().hostId().equals(player.getId())) {
+            log.info("Player is not host. Add bot denied.");
+            return;
+        }
+
+        if (room.addBot().isPresent()) {
             broadcastRoomState(room);
+        } else {
+            log.info("Rejected add bot for room {} because it is not accepting players.", room.getId());
         }
     }
 
@@ -256,9 +279,10 @@ public class GameController {
         messagingTemplate.convertAndSend("/topic/room/" + room.getId(), room.getState());
     }
 
-    private void addPlayerForSession(GameRoom room, String playerName, String sessionId) {
-        var player = room.addPlayer(playerName);
-        sessionPlayers.put(sessionId, new SessionPlayer(room.getId(), player.getId()));
+    private boolean addPlayerForSession(GameRoom room, String playerName, String sessionId) {
+        var player = room.tryAddPlayer(playerName);
+        player.ifPresent(p -> sessionPlayers.put(sessionId, new SessionPlayer(room.getId(), p.getId())));
+        return player.isPresent();
     }
 
     private SessionPlayer resolveSessionPlayer(String roomId, String sessionId) {

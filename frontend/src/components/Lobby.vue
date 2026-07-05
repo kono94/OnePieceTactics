@@ -7,6 +7,7 @@ defineOptions({
 
 defineProps<{
   title: string
+  error?: string
 }>()
 
 const createId = ref('')
@@ -20,6 +21,7 @@ defineEmits(['create', 'join'])
     <div class="title">
         <h1>{{ title }}</h1>
     </div>
+    <div v-if="error" class="lobby-error">{{ error }}</div>
     
     <div class="actions">
        <div class="card">
@@ -66,6 +68,16 @@ defineEmits(['create', 'join'])
     gap: 40px;
     align-items: center;
     margin-top: 50px;
+}
+
+.lobby-error {
+    margin-top: 20px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    background: rgba(239, 68, 68, 0.16);
+    border: 1px solid rgba(248, 113, 113, 0.5);
+    color: #fecaca;
+    font-weight: 600;
 }
 
 .card {

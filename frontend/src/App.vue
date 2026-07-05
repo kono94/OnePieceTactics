@@ -28,6 +28,8 @@ const isUltimateGallery = ref(false)
 const ultimateGalleryMode = ref<GameMode>('onepiece')
 const UltimateGallery = shallowRef<Component | null>(null)
 const viewedPlayerId = ref<string | null>(null)
+const pendingJoinRoomId = ref<string | null>(null)
+const lobbyError = ref('')
 
 // Random player name for now
 const PLAYER_NAME = "Player_" + Math.floor(Math.random() * 10000)
@@ -146,6 +148,12 @@ const subscribeToRoom = (roomId: string) => {
                 fetchTraitsForMode(mode);
             }
 
+            if (pendingJoinRoomId.value === roomId && !hasCurrentPlayer(gameState.value) && gameState.value.phase !== 'LOBBY') {
+                rejectPendingJoin('That game has already started.')
+            } else if (pendingJoinRoomId.value === roomId && hasCurrentPlayer(gameState.value)) {
+                pendingJoinRoomId.value = null
+            }
+
         } catch (e) {
             console.error("Failed to parse game state", e)
         }
@@ -163,6 +171,33 @@ const subscribeToRoom = (roomId: string) => {
             console.error("Failed to parse event", e)
         }
     })
+}
+
+const hasCurrentPlayer = (state: GameState) => {
+    return Object.values(state.players).some((player) => player.name === PLAYER_NAME)
+}
+
+const clearRoomSubscriptions = () => {
+    if (roomSubscription.value) {
+        roomSubscription.value.unsubscribe()
+        roomSubscription.value = null
+    }
+    if (eventSubscription.value) {
+        eventSubscription.value.unsubscribe()
+        eventSubscription.value = null
+    }
+}
+
+const rejectPendingJoin = (message: string) => {
+    clearRoomSubscriptions()
+    pendingJoinRoomId.value = null
+    currentView.value = 'lobby'
+    gameState.value = null
+    currentRoomId.value = ''
+    activeTraitMode.value = null
+    viewedPlayerId.value = null
+    lobbyError.value = message
+    applyThemeMeta(null)
 }
 
 const handleCombatResult = (payload: CombatResultPayload) => {
@@ -201,6 +236,8 @@ const handleCombatResult = (payload: CombatResultPayload) => {
 
 const handleCreate = (roomId: string) => {
     if (!client.value || !isConnected.value) return
+    lobbyError.value = ''
+    pendingJoinRoomId.value = null
     currentRoomId.value = roomId
     
     subscribeToRoom(roomId)
@@ -215,6 +252,8 @@ const handleCreate = (roomId: string) => {
 
 const handleJoin = (roomId: string) => {
     if (!client.value || !isConnected.value) return
+    lobbyError.value = ''
+    pendingJoinRoomId.value = roomId
     currentRoomId.value = roomId
     
     subscribeToRoom(roomId)
@@ -278,20 +317,14 @@ const handleLeaveLobby = () => {
         })
     }
     
-    if (roomSubscription.value) {
-        roomSubscription.value.unsubscribe()
-        roomSubscription.value = null
-    }
-    if (eventSubscription.value) {
-        eventSubscription.value.unsubscribe()
-        eventSubscription.value = null
-    }
+    clearRoomSubscriptions()
     
 	    currentView.value = 'lobby'
 	    gameState.value = null
 	    currentRoomId.value = ''
 	    activeTraitMode.value = null
 	    viewedPlayerId.value = null
+	    pendingJoinRoomId.value = null
 
 	    applyThemeMeta(null);
 	}
@@ -352,6 +385,7 @@ const applyThemeMeta = (mode: GameMode | null) => {
     <template v-else>
         <Lobby v-if="currentView === 'lobby'" 
                :title="gameTitle"
+               :error="lobbyError"
                @create="handleCreate" 
                @join="handleJoin" />
                
