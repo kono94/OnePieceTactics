@@ -6,7 +6,11 @@ defineOptions({
 defineEmits(['back'])
 
 const commits = [
-  { hash: 'pending', title: 'Add defender mana on direct hits' },
+  { hash: 'fc426b0', title: 'Fix line abilities silently missing off-axis targets' },
+  { hash: '78c7cc3', title: 'Balance One Piece units and augments' },
+  { hash: '21e362d', title: 'Add defender mana on direct hits' },
+  { hash: '869c746', title: 'Update agent instructions' },
+  { hash: 'b771cf4', title: 'Balance Pokemon traits and add changelog' },
   { hash: 'e5dba11', title: 'Fix unit drag preview rendering' },
   { hash: '989c37b', title: 'Prevent joining started games' },
   { hash: '700c520', title: 'Fix ghost unit board state sync' },
@@ -20,8 +24,10 @@ const commits = [
       <button class="back-button" type="button" @click="$emit('back')">Back</button>
       <div>
         <p class="eyebrow">Release Notes</p>
-        <h1>Version X.X.X</h1>
-        <p class="summary">Combat reliability fixes, lobby safeguards, drag polish, mana flow, and a Pokemon balance pass.</p>
+        <h1>Version 1.6.0</h1>
+        <p class="summary">
+          Combat reliability fixes, lobby safeguards, drag polish, mana flow, and Pokemon plus One Piece balance passes.
+        </p>
       </div>
     </header>
 
@@ -55,6 +61,98 @@ const commits = [
             <span class="old-value">0%</span>
             <span class="change-arrow">&nbsp;=>&nbsp;</span>
             <strong class="value buff">5%</strong> max mana.
+          </p>
+        </div>
+
+        <div class="balance-block">
+          <div class="balance-title">
+            <span class="tag nerf">Nerf</span>
+            <h3>Straw Hat</h3>
+          </div>
+          <p>
+            Health:
+            <span class="old-value">200/400/700/1000</span>
+            <span class="change-arrow">&nbsp;=>&nbsp;</span>
+            <strong class="value nerf">150/300/500/750</strong>. Attack speed:
+            <span class="old-value">10/25/50/75%</span>
+            <span class="change-arrow">&nbsp;=>&nbsp;</span>
+            <strong class="value nerf">6/14/28/42%</strong>.
+          </p>
+        </div>
+
+        <div class="balance-block">
+          <div class="balance-title">
+            <span class="tag nerf">Nerf</span>
+            <h3>Jinbei</h3>
+          </div>
+          <p>
+            Health:
+            <span class="old-value">1050/1890/3402</span>
+            <span class="change-arrow">&nbsp;=>&nbsp;</span>
+            <strong class="value nerf">950/1710/3078</strong>. Mana:
+            <span class="old-value">65</span>
+            <span class="change-arrow">&nbsp;=>&nbsp;</span>
+            <strong class="value nerf">75</strong>. Armor:
+            <span class="old-value">40</span>
+            <span class="change-arrow">&nbsp;=>&nbsp;</span>
+            <strong class="value nerf">35</strong>. Vagabond Drill:
+            <span class="old-value">500/900/1620</span>
+            <span class="change-arrow">&nbsp;=>&nbsp;</span>
+            <strong class="value nerf">420/760/1368</strong>.
+          </p>
+        </div>
+
+        <div class="balance-block">
+          <div class="balance-title">
+            <span class="tag nerf">Nerf</span>
+            <h3>Boa Hancock</h3>
+          </div>
+          <p>
+            Slave Arrow stun:
+            <span class="old-value">3/4/5s</span>
+            <span class="change-arrow">&nbsp;=>&nbsp;</span>
+            <strong class="value nerf">1/1/2s</strong>.
+          </p>
+        </div>
+
+        <div class="balance-block">
+          <div class="balance-title">
+            <span class="tag buff">Buff</span>
+            <h3>Garp</h3>
+          </div>
+          <p>
+            Mana:
+            <span class="old-value">60</span>
+            <span class="change-arrow">&nbsp;=>&nbsp;</span>
+            <strong class="value buff">55</strong>. Fist of Love:
+            <span class="old-value">600/1080/1944</span>
+            <span class="change-arrow">&nbsp;=>&nbsp;</span>
+            <strong class="value buff">700/1260/2268</strong>. Missing HP scaling:
+            <span class="old-value">0.5/0.75/1.0</span>
+            <span class="change-arrow">&nbsp;=>&nbsp;</span>
+            <strong class="value buff">0.6/0.85/1.1</strong>.
+          </p>
+        </div>
+
+        <div class="balance-block">
+          <div class="balance-title">
+            <span class="tag buff">Buff</span>
+            <h3>One Piece Augments</h3>
+          </div>
+          <p>
+            Battle Standard:
+            <span class="old-value">120/220/360</span>
+            <span class="change-arrow">&nbsp;=>&nbsp;</span>
+            <strong class="value buff">150/275/450</strong>. Sharpened Blades:
+            <span class="old-value">4/7/10</span>
+            <span class="change-arrow">&nbsp;=>&nbsp;</span>
+            <strong class="value buff">6/10/16</strong>. Iron Line:
+            <span class="old-value">8/14/24</span>
+            <span class="change-arrow">&nbsp;=>&nbsp;</span>
+            <strong class="value buff">10/18/30</strong>. Backline Barrage:
+            <span class="old-value">5/8/12</span>
+            <span class="change-arrow">&nbsp;=>&nbsp;</span>
+            <strong class="value buff">7/12/18</strong>.
           </p>
         </div>
 
