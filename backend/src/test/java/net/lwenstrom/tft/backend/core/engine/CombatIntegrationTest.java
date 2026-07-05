@@ -5,7 +5,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
+import net.lwenstrom.tft.backend.core.model.AbilityPattern;
+import net.lwenstrom.tft.backend.core.model.AbilityType;
 import net.lwenstrom.tft.backend.core.model.GameMode;
+import net.lwenstrom.tft.backend.core.model.KnockbackModifier;
 import net.lwenstrom.tft.backend.test.MockUnit;
 import net.lwenstrom.tft.backend.test.TestHelpers;
 import org.junit.jupiter.api.Test;
@@ -177,6 +180,103 @@ class CombatIntegrationTest {
     }
 
     @Test
+    void testCombat_KnockbackStopsAtBottomEdge() {
+        var ability = createKnockbackAbility(1);
+        var combatSystem = createTestCombatSystem();
+        var p1 = new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 = new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+
+        var caster = MockUnit.create("caster", p1.getId())
+                .withPosition(4, 4)
+                .withMana(1, 1)
+                .withAbility(ability);
+        var target = MockUnit.create("target", p2.getId()).withPosition(4, 5).withHealth(100, 100);
+        target.setNextAttackTime(Long.MAX_VALUE);
+
+        addUnitToPlayer(p1, caster);
+        addUnitToPlayer(p2, target);
+
+        combatSystem.simulateTick(List.of(p1, p2));
+
+        assertEquals(4, target.getX());
+        assertEquals(Grid.COMBAT_ROWS - 1, target.getY());
+    }
+
+    @Test
+    void testCombat_KnockbackKeepsRightEdgeCellValid() {
+        var ability = createKnockbackAbility(1);
+        var combatSystem = createTestCombatSystem();
+        var p1 = new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 = new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+
+        var caster = MockUnit.create("caster", p1.getId())
+                .withPosition(7, 2)
+                .withMana(1, 1)
+                .withAbility(ability);
+        var target = MockUnit.create("target", p2.getId()).withPosition(8, 2).withHealth(100, 100);
+        target.setNextAttackTime(Long.MAX_VALUE);
+
+        addUnitToPlayer(p1, caster);
+        addUnitToPlayer(p2, target);
+
+        combatSystem.simulateTick(List.of(p1, p2));
+
+        assertEquals(Grid.COLS - 1, target.getX());
+        assertEquals(2, target.getY());
+    }
+
+    @Test
+    void testCombat_KnockbackStopsBeforeOccupiedCell() {
+        var ability = createKnockbackAbility(1);
+        var combatSystem = createTestCombatSystem();
+        var p1 = new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 = new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+
+        var caster = MockUnit.create("caster", p1.getId())
+                .withPosition(4, 3)
+                .withMana(1, 1)
+                .withAbility(ability);
+        var target = MockUnit.create("target", p2.getId()).withPosition(4, 4).withHealth(100, 100);
+        var blocker = MockUnit.create("blocker", p2.getId()).withPosition(4, 5).withHealth(100, 100);
+        target.setNextAttackTime(Long.MAX_VALUE);
+        blocker.setNextAttackTime(Long.MAX_VALUE);
+
+        addUnitToPlayer(p1, caster);
+        addUnitToPlayer(p2, target);
+        addUnitToPlayer(p2, blocker);
+
+        combatSystem.simulateTick(List.of(p1, p2));
+
+        assertEquals(4, target.getX());
+        assertEquals(4, target.getY());
+        assertEquals(4, blocker.getX());
+        assertEquals(5, blocker.getY());
+    }
+
+    @Test
+    void testCombat_MultiCellKnockbackStopsAtEdge() {
+        var ability = createKnockbackAbility(3);
+        var combatSystem = createTestCombatSystem();
+        var p1 = new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 = new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+
+        var caster = MockUnit.create("caster", p1.getId())
+                .withPosition(4, 3)
+                .withMana(1, 1)
+                .withAbility(ability);
+        var target = MockUnit.create("target", p2.getId()).withPosition(4, 4).withHealth(100, 100);
+        target.setNextAttackTime(Long.MAX_VALUE);
+
+        addUnitToPlayer(p1, caster);
+        addUnitToPlayer(p2, target);
+
+        combatSystem.simulateTick(List.of(p1, p2));
+
+        assertEquals(4, target.getX());
+        assertEquals(Grid.COMBAT_ROWS - 1, target.getY());
+    }
+
+    @Test
     void testCombat_StunPersistence() {
         var testClock = createTestClock();
         var combatSystem = createTestCombatSystem(testClock);
@@ -221,5 +321,16 @@ class CombatIntegrationTest {
 
     private void addUnitToPlayer(Player player, MockUnit unit) {
         TestHelpers.addUnitToPlayer(player, unit);
+    }
+
+    private AbilityDefinition createKnockbackAbility(int cells) {
+        return new AbilityDefinition(
+                "Knockback",
+                "Knockback",
+                AbilityType.DAMAGE,
+                AbilityPattern.SINGLE,
+                List.of(1, 1, 1),
+                List.of(1, 1, 1),
+                List.of(new KnockbackModifier(List.of(cells, cells, cells))));
     }
 }

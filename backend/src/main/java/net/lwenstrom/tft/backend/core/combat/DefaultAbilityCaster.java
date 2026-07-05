@@ -4,6 +4,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import net.lwenstrom.tft.backend.core.engine.AbstractGameUnit;
 import net.lwenstrom.tft.backend.core.engine.AugmentManager;
+import net.lwenstrom.tft.backend.core.engine.Grid;
 import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
 import net.lwenstrom.tft.backend.core.model.ConditionalModifier;
 import net.lwenstrom.tft.backend.core.model.DotEffect;
@@ -95,7 +96,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
                 AugmentManager.applyTeamAttackDamageOnKill(source, allUnits);
             }
             // Apply secondary effects from modifiers (stun, knockback)
-            applyStunAndKnockbackModifiers(source, u, ability);
+            applyStunAndKnockbackModifiers(source, u, ability, allUnits);
             applyDotModifiers(source, u, ability, currentTime);
             totalDamageDealt[0] += effectiveDamage;
             callback.onDamage(source.getId(), source.getName(), u.getId(), effectiveDamage);
@@ -364,7 +365,8 @@ public class DefaultAbilityCaster implements AbilityCaster {
         }
     }
 
-    private void applyStunAndKnockbackModifiers(GameUnit source, GameUnit target, AbilityDefinition ability) {
+    private void applyStunAndKnockbackModifiers(
+            GameUnit source, GameUnit target, AbilityDefinition ability, List<GameUnit> allUnits) {
         if (target == null) return;
         int starLevel = source.getStarLevel();
 
@@ -374,7 +376,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
                 target.setStunSecondsRemaining(target.getStunSecondsRemaining() + seconds);
             } else if (modifier instanceof KnockbackModifier knockbackModifier) {
                 int cells = knockbackModifier.getCells(starLevel);
-                applyKnockback(source, target, cells);
+                applyKnockback(source, target, cells, allUnits);
             }
         }
     }
@@ -405,18 +407,31 @@ public class DefaultAbilityCaster implements AbilityCaster {
         }
     }
 
-    private void applyKnockback(GameUnit source, GameUnit target, int cells) {
+    private void applyKnockback(GameUnit source, GameUnit target, int cells, List<GameUnit> allUnits) {
         if (target == null || cells <= 0) return;
         int dx = Integer.compare(target.getX(), source.getX());
         int dy = Integer.compare(target.getY(), source.getY());
+        if (dx == 0 && dy == 0) return;
 
-        int newX = target.getX() + dx * cells;
-        int newY = target.getY() + dy * cells;
+        int newX = target.getX();
+        int newY = target.getY();
+        for (int step = 0; step < cells; step++) {
+            int candidateX = newX + dx;
+            int candidateY = newY + dy;
+            if (!Grid.isValidCombatPosition(candidateX, candidateY)
+                    || isOccupiedCombatPosition(candidateX, candidateY, target, allUnits)) {
+                break;
+            }
 
-        // Clamp to board boundaries
-        newX = Math.max(0, Math.min(6, newX));
-        newY = Math.max(0, Math.min(7, newY));
-
+            newX = candidateX;
+            newY = candidateY;
+        }
         target.setPosition(newX, newY);
+    }
+
+    private boolean isOccupiedCombatPosition(int x, int y, GameUnit target, List<GameUnit> allUnits) {
+        return allUnits.stream()
+                .filter(unit -> unit != target && unit.getCurrentHealth() > 0)
+                .anyMatch(unit -> unit.getX() == x && unit.getY() == y);
     }
 }

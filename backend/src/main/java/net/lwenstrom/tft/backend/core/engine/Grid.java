@@ -41,6 +41,10 @@ public class Grid {
         return y >= 0 && y < PLAYER_ROWS && x >= 0 && x < COLS;
     }
 
+    public static boolean isValidCombatPosition(int x, int y) {
+        return y >= 0 && y < COMBAT_ROWS && x >= 0 && x < COLS;
+    }
+
     public boolean isEmpty(int x, int y) {
         return isValid(x, y) && board[y][x] == null;
     }
