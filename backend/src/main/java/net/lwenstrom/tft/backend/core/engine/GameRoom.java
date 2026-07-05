@@ -130,6 +130,10 @@ public class GameRoom {
         return currentState;
     }
 
+    public void refreshState() {
+        updateGameState(phaseEndTime - clock.currentTimeMillis());
+    }
+
     public boolean setGameMode(GameMode newMode) {
         if (newMode == null || newMode == gameMode || phase != GamePhase.LOBBY) {
             return false;

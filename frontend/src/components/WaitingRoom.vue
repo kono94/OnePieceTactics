@@ -9,7 +9,7 @@ const props = defineProps<{
   defaultMode: GameMode
 }>()
 
-defineEmits(['start', 'leave', 'mode-change'])
+const emit = defineEmits(['start', 'leave', 'mode-change'])
 
 const isHost = computed(() => {
     if (!props.gameState || !props.gameState.players) return false
@@ -50,6 +50,13 @@ const themeClass = computed(() => {
     return `theme-${props.gameState.gameMode}`
 })
 
+function selectMode(mode: GameMode) {
+    if (mode === selectedMode.value) return
+
+    selectedMode.value = mode
+    emit('mode-change', mode)
+}
+
 </script>
 
 <template>
@@ -85,15 +92,18 @@ const themeClass = computed(() => {
 
     <div class="mode-panel">
         <div class="mode-label">Theme</div>
-        <div v-if="isHost" class="mode-control">
-            <select
-                v-model="selectedMode"
-                @change="$emit('mode-change', selectedMode)"
+        <div v-if="isHost" class="mode-control" role="group" aria-label="Select game theme">
+            <button
+                v-for="mode in modeOptions"
+                :key="mode"
+                type="button"
+                class="mode-option"
+                :class="{ active: selectedMode === mode }"
+                :aria-pressed="selectedMode === mode"
+                @click="selectMode(mode)"
             >
-                <option v-for="mode in modeOptions" :key="mode" :value="mode">
                     {{ modeLabel(mode) }}
-                </option>
-            </select>
+            </button>
         </div>
         <div v-else class="mode-display">
             {{ modeLabel(selectedMode) }}
@@ -236,13 +246,40 @@ const themeClass = computed(() => {
     font-size: 0.85em;
 }
 
-.mode-control select {
-    padding: 10px 14px;
+.mode-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
     border-radius: 8px;
-    border: none;
     background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    user-select: none;
+}
+
+.mode-option {
+    min-width: 96px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
     color: white;
-    font-size: 1em;
+    font-size: 0.95em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.mode-option:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.mode-option.active {
+    color: #0f172a;
+    background: var(--room-accent);
+    box-shadow: 0 0 18px rgba(255, 255, 255, 0.18);
 }
 
 .mode-display {

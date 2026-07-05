@@ -93,6 +93,36 @@ class GridRefactorTest {
     }
 
     @Test
+    void testRemoveUnitUsesStoredOccupancyWhenCoordinatesChanged() {
+        var grid = new Grid();
+        var unit = new StandardGameUnit(createDummyDef());
+
+        grid.placeUnit(unit, 3, 2);
+        unit.setPosition(3, 5);
+
+        grid.removeUnit(unit);
+
+        assertTrue(grid.isEmpty(3, 2), "Grid should remove unit from its stored planning cell");
+    }
+
+    @Test
+    void testSellBoardUnitAfterCombatCoordinatesClearsPlanningCell() {
+        var dataLoader = createMockDataLoader();
+        var player = createTestPlayer("TestPlayer", dataLoader);
+        player.setLevel(3);
+        player.addUnitToBoard(createDefaultUnitDef(), 3, 2);
+
+        var unit = player.getBoardUnits().getFirst();
+        unit.savePlanningPosition();
+        unit.setPosition(3, 5);
+
+        player.sellUnit(unit.getId(), true);
+
+        assertEquals(0, player.getBoardUnits().size(), "Board should be empty after selling");
+        assertTrue(player.getGrid().isEmpty(3, 2), "Grid planning cell should be empty after selling");
+    }
+
+    @Test
     void testCombatMerging() {
         var registry = createMockRegistry();
         var p1 = new Player("P1", GameMode.ONEPIECE, new MockDataLoader(registry), createSeededRandomProvider());

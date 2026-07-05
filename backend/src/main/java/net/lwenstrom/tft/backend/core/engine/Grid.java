@@ -27,6 +27,16 @@ public class Grid {
     public void removeUnit(GameUnit unit) {
         if (isValid(unit.getX(), unit.getY()) && board[unit.getY()][unit.getX()] == unit) {
             board[unit.getY()][unit.getX()] = null;
+            return;
+        }
+
+        for (var y = 0; y < PLAYER_ROWS; y++) {
+            for (var x = 0; x < COLS; x++) {
+                if (board[y][x] == unit) {
+                    board[y][x] = null;
+                    return;
+                }
+            }
         }
     }
 

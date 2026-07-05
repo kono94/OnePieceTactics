@@ -10,6 +10,7 @@ import AugmentSelectionOverlay from './AugmentSelectionOverlay.vue'
 import type { AugmentOffer, GameState, GameUnit, UnitDefinition, PlayerState } from '../types'
 import { getUnitIconPath } from '../utils/iconUtils'
 import { getRarityColor } from '../utils/colorUtils'
+import { setUnitDragPreview } from '../utils/dragPreview'
 import { SHOP_ODDS } from '../data/shopOdds'
 
 const props = defineProps<{
@@ -149,6 +150,13 @@ function selectAugment(augmentId: string) {
     emit('action', { type: 'SELECT_AUGMENT', augmentId, playerId: myPlayer.value.playerId })
 }
 
+let benchDragPreviewCleanup: (() => void) | null = null
+
+function cleanupBenchDragPreview() {
+    benchDragPreviewCleanup?.()
+    benchDragPreviewCleanup = null
+}
+
 const onBenchDragStart = (evt: DragEvent, unit: GameUnit) => {
     isDraggingUnit.value = true
     draggedUnit.value = unit
@@ -158,16 +166,13 @@ const onBenchDragStart = (evt: DragEvent, unit: GameUnit) => {
     if (evt.dataTransfer) {
         evt.dataTransfer.setData('unitId', unit.id)
         evt.dataTransfer.effectAllowed = 'move'
-        
-        // Use only the icon for the drag image to avoid capturing neighbors/tooltips
-        const img = (evt.currentTarget as HTMLElement)?.querySelector('.bench-unit-img');
-        if (img) {
-            evt.dataTransfer.setDragImage(img, 32, 32);
-        }
+        cleanupBenchDragPreview()
+        benchDragPreviewCleanup = setUnitDragPreview(evt, getUnitIconPath(unit.definitionId, props.state?.gameMode))
     }
 }
 
 const onBenchDragEnd = () => {
+    cleanupBenchDragPreview()
     isDraggingUnit.value = false
     draggedUnit.value = null
     isSellZoneHovered.value = false
@@ -312,6 +317,7 @@ const STAR_UP_ANIMATION_DURATION = 1200
 // Cleanup timers on unmount
 const starUpTimers = ref<number[]>([])
 onUnmounted(() => {
+    cleanupBenchDragPreview()
     starUpTimers.value.forEach(timer => clearTimeout(timer))
 })
 

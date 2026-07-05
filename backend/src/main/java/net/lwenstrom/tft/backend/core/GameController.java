@@ -194,6 +194,7 @@ public class GameController {
         }
 
         processAction(room, player, action);
+        room.refreshState();
         broadcastRoomState(room);
     }
 

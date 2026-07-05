@@ -6,6 +6,7 @@ import type { GameState, GameUnit, GamePhase, RenderedUnit, RenderedOrb, PlayerS
 import type { NormalizedCombatVisualEvent } from '../types/combatEffects'
 import { getUnitIconPath } from '../utils/iconUtils'
 import { getRarityColor, TEAM_COLORS } from '../utils/colorUtils'
+import { setUnitDragPreview } from '../utils/dragPreview'
 
 const props = defineProps<{
     state: GameState | null,
@@ -129,6 +130,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+    cleanupBoardDragPreview()
     if (resizeObserver) {
         resizeObserver.disconnect()
     }
@@ -139,6 +141,12 @@ const isDragging = ref(false)
 const draggingUnitId = ref<string|null>(null)
 const dragOverCellIndex = ref(-1)
 const hoveredUnitId = ref<string|null>(null)
+let boardDragPreviewCleanup: (() => void) | null = null
+
+function cleanupBoardDragPreview() {
+    boardDragPreviewCleanup?.()
+    boardDragPreviewCleanup = null
+}
 
 const clampPercent = (value: number) => Math.max(0, Math.min(100, value))
 
@@ -260,16 +268,13 @@ const onDragStart = (evt: DragEvent, unit: RenderedUnit) => {
     if (evt.dataTransfer) {
         evt.dataTransfer.setData('unitId', unit.id)
         evt.dataTransfer.effectAllowed = 'move'
-        
-        // Use only the icon for the drag image to avoid capturing bars/halos
-        const img = (evt.currentTarget as HTMLElement)?.querySelector('.unit-img');
-        if (img) {
-            evt.dataTransfer.setDragImage(img, 32, 32);
-        }
+        cleanupBoardDragPreview()
+        boardDragPreviewCleanup = setUnitDragPreview(evt, unit.image)
     }
 }
 
 const onDragEnd = () => {
+    cleanupBoardDragPreview()
     isDragging.value = false
     draggingUnitId.value = null
     dragOverCellIndex.value = -1
@@ -420,11 +425,13 @@ const dyingUnits = ref<Set<string>>(new Set())
 // Store the last known position/data for dead units during animation
 const dyingUnitData = ref<Map<string, DisplayedUnit>>(new Map())
 const DEATH_ANIMATION_DURATION = 600 // ms
+const deathAnimationTimers = ref<number[]>([])
 
 // Cleanup timers on unmount
 const deathTimers = ref<number[]>([])
 onUnmounted(() => {
     deathTimers.value.forEach(timer => clearTimeout(timer))
+    deathAnimationTimers.value.forEach(timer => clearTimeout(timer))
 })
 
 // ========== STAR-UP CELEBRATION SYSTEM ==========
@@ -448,6 +455,8 @@ function clearCombatVisualState() {
     prevUnitsMap.value.clear()
     dyingUnits.value.clear()
     dyingUnitData.value.clear()
+    deathAnimationTimers.value.forEach(timer => clearTimeout(timer))
+    deathAnimationTimers.value = []
     combatVisualEvents.value = []
     hitFlashUnits.value = new Set()
     attackingUnits.value = new Set()
@@ -709,13 +718,18 @@ function triggerDeathAnimation(unit: RenderedUnit) {
         delete prevHealthMap.value[unit.id]
     }, DEATH_ANIMATION_DURATION)
     
-    deathTimers.value.push(timer)
+    deathAnimationTimers.value.push(timer)
 }
 
 // Combined units: alive units + dying units (for animation)
 const displayedUnits = computed((): DisplayedUnit[] => {
     const alive = renderedUnits.value
+    const aliveUnitIds = new Set(alive.map((unit) => unit.id))
+    const currentPlayerIds = new Set(Object.keys(props.state?.players ?? {}))
     const dying = Array.from(dyingUnitData.value.values())
+        .filter(() => props.state?.phase === 'COMBAT')
+        .filter((unit) => !aliveUnitIds.has(unit.id))
+        .filter((unit) => currentPlayerIds.has(unit.ownerId))
     return [...alive, ...dying]
 })
 
@@ -770,6 +784,10 @@ watch(currentViewedPlayerId, () => {
     hoveredUnitId.value = null
     autoPickupEffects.value = []
     lastVisibleOrbs.value = []
+})
+
+watch(() => opponentPlayer.value?.playerId ?? null, () => {
+    clearCombatVisualState()
 })
 
 watch([() => props.state?.phase, renderedOrbs], ([newPhase], [oldPhase]) => {
@@ -1291,6 +1309,12 @@ const onOrbClick = (orbId: string) => {
 
 .unit.ultimate-caster {
     animation: unitUltimateCaster 0.9s ease-out;
+}
+
+.unit.dying {
+    pointer-events: none;
+    animation: unitDeath 0.6s ease-out forwards;
+    z-index: 5;
 }
 
 @keyframes unitHitFlash {
