@@ -10,38 +10,38 @@
         "effects": [
             {
                 "minUnits": 2,
-                "description": "+200 HP, +10% AS",
+                "description": "+150 HP, +6% AS",
                 "style": "bronze",
                 "values": {
-                    "hp": 200,
-                    "as": 0.1
+                    "hp": 150,
+                    "as": 0.06
                 }
             },
             {
                 "minUnits": 4,
-                "description": "+400 HP, +25% AS",
+                "description": "+300 HP, +14% AS",
                 "style": "silver",
                 "values": {
-                    "hp": 400,
-                    "as": 0.25
+                    "hp": 300,
+                    "as": 0.14
                 }
             },
             {
                 "minUnits": 6,
-                "description": "+700 HP, +50% AS",
+                "description": "+500 HP, +28% AS",
                 "style": "gold",
                 "values": {
-                    "hp": 700,
-                    "as": 0.5
+                    "hp": 500,
+                    "as": 0.28
                 }
             },
             {
                 "minUnits": 8,
-                "description": "+1000 HP, +75% AS",
+                "description": "+750 HP, +42% AS",
                 "style": "prismatic",
                 "values": {
-                    "hp": 1000,
-                    "as": 0.75
+                    "hp": 750,
+                    "as": 0.42
                 }
             }
         ]

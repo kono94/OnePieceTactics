@@ -3,6 +3,7 @@ package net.lwenstrom.tft.backend.core;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,23 +58,36 @@ class DataLoaderAugmentTest {
         assertTrue(augments.stream().allMatch(augment -> augment.values().size() == 3));
         assertTrue(augments.stream().allMatch(augment -> augment.descriptions().size() == 3));
         assertEquals(
-                Map.ofEntries(
-                        Map.entry(AugmentEffectType.TEAM_ATTACK_SPEED_PER_RANGED_UNIT, List.of(3, 5, 8)),
-                        Map.entry(AugmentEffectType.TEAM_DAMAGE_REDUCTION, List.of(5, 10, 15)),
-                        Map.entry(AugmentEffectType.TEAM_ATTACK_DAMAGE_ON_KILL, List.of(5, 8, 12)),
-                        Map.entry(AugmentEffectType.TEAM_MAX_HEALTH, List.of(120, 220, 360)),
-                        Map.entry(AugmentEffectType.TEAM_ATTACK_DAMAGE, List.of(4, 7, 10)),
-                        Map.entry(AugmentEffectType.TEAM_ABILITY_POWER, List.of(10, 18, 30)),
-                        Map.entry(AugmentEffectType.TEAM_ARMOR_AND_MAGIC_RESIST, List.of(8, 14, 24)),
-                        Map.entry(AugmentEffectType.MELEE_LIFESTEAL, List.of(8, 12, 18)),
-                        Map.entry(AugmentEffectType.RANGED_ATTACK_DAMAGE, List.of(5, 8, 12)),
-                        Map.entry(AugmentEffectType.TEAM_MANA_GAIN, List.of(12, 20, 30)),
-                        Map.entry(AugmentEffectType.TEAM_STARTING_MANA, List.of(10, 20, 35)),
-                        Map.entry(AugmentEffectType.GOLD_PER_EMPTY_BENCH_SLOT, List.of(3, 5, 8)),
-                        Map.entry(AugmentEffectType.TEAM_STARTING_SHIELD, List.of(100, 180, 300)),
-                        Map.entry(AugmentEffectType.GOLD, List.of(20, 35, 50)),
-                        Map.entry(AugmentEffectType.XP, List.of(8, 16, 24))),
+                expectedAugmentValues(mode),
                 augments.stream()
                         .collect(Collectors.toMap(augment -> augment.effectType(), augment -> augment.values())));
+    }
+
+    private Map<AugmentEffectType, List<Integer>> expectedAugmentValues(GameMode mode) {
+        var values = new EnumMap<AugmentEffectType, List<Integer>>(AugmentEffectType.class);
+        values.put(AugmentEffectType.TEAM_ATTACK_SPEED_PER_RANGED_UNIT, List.of(3, 5, 8));
+        values.put(AugmentEffectType.TEAM_DAMAGE_REDUCTION, List.of(5, 10, 15));
+        values.put(AugmentEffectType.TEAM_ATTACK_DAMAGE_ON_KILL, List.of(5, 8, 12));
+        values.put(
+                AugmentEffectType.TEAM_MAX_HEALTH,
+                mode == GameMode.ONEPIECE ? List.of(150, 275, 450) : List.of(120, 220, 360));
+        values.put(
+                AugmentEffectType.TEAM_ATTACK_DAMAGE,
+                mode == GameMode.ONEPIECE ? List.of(6, 10, 16) : List.of(4, 7, 10));
+        values.put(AugmentEffectType.TEAM_ABILITY_POWER, List.of(10, 18, 30));
+        values.put(
+                AugmentEffectType.TEAM_ARMOR_AND_MAGIC_RESIST,
+                mode == GameMode.ONEPIECE ? List.of(10, 18, 30) : List.of(8, 14, 24));
+        values.put(AugmentEffectType.MELEE_LIFESTEAL, List.of(8, 12, 18));
+        values.put(
+                AugmentEffectType.RANGED_ATTACK_DAMAGE,
+                mode == GameMode.ONEPIECE ? List.of(7, 12, 18) : List.of(5, 8, 12));
+        values.put(AugmentEffectType.TEAM_MANA_GAIN, List.of(12, 20, 30));
+        values.put(AugmentEffectType.TEAM_STARTING_MANA, List.of(10, 20, 35));
+        values.put(AugmentEffectType.GOLD_PER_EMPTY_BENCH_SLOT, List.of(3, 5, 8));
+        values.put(AugmentEffectType.TEAM_STARTING_SHIELD, List.of(100, 180, 300));
+        values.put(AugmentEffectType.GOLD, List.of(20, 35, 50));
+        values.put(AugmentEffectType.XP, List.of(8, 16, 24));
+        return values;
     }
 }

@@ -614,16 +614,8 @@
         "id": "jinbei_v1",
         "name": "Jinbei",
         "cost": 4,
-        "maxHealth": [
-            1050,
-            1890,
-            3402
-        ],
-        "maxMana": [
-            65,
-            65,
-            65
-        ],
+        "maxHealth": [950, 1710, 3078],
+        "maxMana": [75, 75, 75],
         "attackDamage": [
             80,
             144,
@@ -634,11 +626,7 @@
             70,
             70
         ],
-        "armor": [
-            40,
-            40,
-            40
-        ],
+        "armor": [35, 35, 35],
         "magicResist": [
             35,
             35,
@@ -664,11 +652,7 @@
             "description": "Water blast deals $value damage and knocks enemies back.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [
-                500,
-                900,
-                1620
-            ],
+            "values": [420, 760, 1368],
             "range": [
                 2,
                 2,
@@ -1020,11 +1004,7 @@
             1800,
             3240
         ],
-        "maxMana": [
-            60,
-            60,
-            60
-        ],
+        "maxMana": [55, 55, 55],
         "attackDamage": [
             90,
             162,
@@ -1064,11 +1044,7 @@
             "description": "Devastating punch dealing $value damage. More damage when wounded.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [
-                600,
-                1080,
-                1944
-            ],
+            "values": [700, 1260, 2268],
             "range": [
                 1,
                 1,
@@ -1078,11 +1054,7 @@
                 {
                     "type": "SCALING",
                     "scalingType": "CASTER_MISSING_HP",
-                    "factor": [
-                        0.5,
-                        0.75,
-                        1.0
-                    ]
+                    "factor": [0.6, 0.85, 1.1]
                 }
             ]
         }
@@ -1747,11 +1719,7 @@
             "description": "Hearts of stone petrify enemies, stunning for $value seconds.",
             "type": "STUN",
             "pattern": "SURROUND",
-            "values": [
-                3,
-                4,
-                5
-            ],
+            "values": [1, 1, 2],
             "range": [
                 3,
                 3,

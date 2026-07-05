@@ -63,11 +63,11 @@
     "id": "battle-standard",
     "name": "Battle Standard",
     "effectType": "TEAM_MAX_HEALTH",
-    "values": [120, 220, 360],
+    "values": [150, 275, 450],
     "descriptions": [
-      "Your team gains 120 Health.",
-      "Your team gains 220 Health.",
-      "Your team gains 360 Health."
+      "Your team gains 150 Health.",
+      "Your team gains 275 Health.",
+      "Your team gains 450 Health."
     ],
     "image": null
   },
@@ -75,11 +75,11 @@
     "id": "sharpened-blades",
     "name": "Sharpened Blades",
     "effectType": "TEAM_ATTACK_DAMAGE",
-    "values": [4, 7, 10],
+    "values": [6, 10, 16],
     "descriptions": [
-      "Your team gains 4 Attack Damage.",
-      "Your team gains 7 Attack Damage.",
-      "Your team gains 10 Attack Damage."
+      "Your team gains 6 Attack Damage.",
+      "Your team gains 10 Attack Damage.",
+      "Your team gains 16 Attack Damage."
     ],
     "image": null
   },
@@ -99,11 +99,11 @@
     "id": "iron-line",
     "name": "Iron Line",
     "effectType": "TEAM_ARMOR_AND_MAGIC_RESIST",
-    "values": [8, 14, 24],
+    "values": [10, 18, 30],
     "descriptions": [
-      "Your team gains 8 Armor and Magic Resist.",
-      "Your team gains 14 Armor and Magic Resist.",
-      "Your team gains 24 Armor and Magic Resist."
+      "Your team gains 10 Armor and Magic Resist.",
+      "Your team gains 18 Armor and Magic Resist.",
+      "Your team gains 30 Armor and Magic Resist."
     ],
     "image": null
   },
@@ -123,11 +123,11 @@
     "id": "backline-barrage",
     "name": "Backline Barrage",
     "effectType": "RANGED_ATTACK_DAMAGE",
-    "values": [5, 8, 12],
+    "values": [7, 12, 18],
     "descriptions": [
-      "Ranged units gain 5 Attack Damage.",
-      "Ranged units gain 8 Attack Damage.",
-      "Ranged units gain 12 Attack Damage."
+      "Ranged units gain 7 Attack Damage.",
+      "Ranged units gain 12 Attack Damage.",
+      "Ranged units gain 18 Attack Damage."
     ],
     "image": null
   },
