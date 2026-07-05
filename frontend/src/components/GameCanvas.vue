@@ -269,7 +269,8 @@ const onDragStart = (evt: DragEvent, unit: RenderedUnit) => {
         evt.dataTransfer.setData('unitId', unit.id)
         evt.dataTransfer.effectAllowed = 'move'
         cleanupBoardDragPreview()
-        boardDragPreviewCleanup = setUnitDragPreview(evt, unit.image)
+        const img = (evt.currentTarget as HTMLElement)?.querySelector<HTMLImageElement>('.unit-img')
+        boardDragPreviewCleanup = setUnitDragPreview(evt, img ?? unit.image)
     }
 }
 

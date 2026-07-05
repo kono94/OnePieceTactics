@@ -167,7 +167,8 @@ const onBenchDragStart = (evt: DragEvent, unit: GameUnit) => {
         evt.dataTransfer.setData('unitId', unit.id)
         evt.dataTransfer.effectAllowed = 'move'
         cleanupBenchDragPreview()
-        benchDragPreviewCleanup = setUnitDragPreview(evt, getUnitIconPath(unit.definitionId, props.state?.gameMode))
+        const img = (evt.currentTarget as HTMLElement)?.querySelector<HTMLImageElement>('.bench-unit-img')
+        benchDragPreviewCleanup = setUnitDragPreview(evt, img ?? getUnitIconPath(unit.definitionId, props.state?.gameMode))
     }
 }
 
