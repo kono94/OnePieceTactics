@@ -6,9 +6,9 @@ defineOptions({
 defineEmits(['back'])
 
 const commits = [
-  { hash: 'pending-1', title: 'Tune bot opponent roster scaling' },
-  { hash: 'pending-2', title: 'Prevent completed 3-star unit lines from reappearing in shops and unit loot' },
-  { hash: 'pending-3', title: 'Rebalance augments and activate Ability Power damage bonuses' }
+  { hash: '92d4a30', title: 'Prevent completed unit lines from reappearing' },
+  { hash: '8833a6f', title: 'Balance augments' },
+  { hash: 'f3a35cd', title: 'Balance bot opponent scaling' }
 ]
 </script>
 
@@ -18,7 +18,7 @@ const commits = [
       <button class="back-button" type="button" @click="$emit('back')">Back</button>
       <div>
         <p class="eyebrow">Release Notes</p>
-        <h1>Version X.X.X</h1>
+        <h1>Version 1.6.1</h1>
         <p class="summary">
           Bot opponents now scale more deliberately, completed 3-star character lines stop appearing in shops and unit
           loot, and augment rewards have a tighter combat-versus-economy balance.
