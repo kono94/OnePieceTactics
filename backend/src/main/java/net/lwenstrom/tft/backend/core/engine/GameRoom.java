@@ -68,6 +68,12 @@ public class GameRoom {
                 Map<String, CombatSystem.DamageEntry> damageLog);
     }
 
+    private record BotRosterProfile(
+            int maxUnits,
+            int oneToThreeCostTwoStarChance,
+            int oneToThreeCostThreeStarChance,
+            int fourToFiveCostTwoStarChance) {}
+
     public void setCombatResultListener(CombatResultListener listener) {
         this.combatResultListener = listener;
     }
@@ -444,22 +450,46 @@ public class GameRoom {
         var botLevel = Math.min(GameConstants.BOT_STARTING_LEVEL + (round / 2), GameConstants.BOT_MAX_LEVEL);
         bot.setLevel(botLevel);
 
-        var unitCount = Math.min(Math.min(round + 1, botLevel), GameConstants.BOT_MAX_UNITS_PER_ROW);
+        var profile = getBotRosterProfile();
+        var naturalUnitCount = Math.min(Math.min(round + 1, botLevel), GameConstants.BOT_MAX_UNITS_PER_ROW);
+        var unitCount = Math.min(naturalUnitCount, profile.maxUnits());
         var available = dataLoader.getAllUnits(gameMode);
         for (var i = 0; i < unitCount; i++) {
             var def = ShopOdds.rollUnit(botLevel, available, randomProvider);
-
-            // Roll for star level: 1* (94%), 2* (5%), 3* (1%)
-            int starRoll = randomProvider.nextInt(100);
-            int starLevel = 1;
-            if (starRoll < 1) {
-                starLevel = 3;
-            } else if (starRoll < 6) {
-                starLevel = 2;
-            }
+            var starLevel = rollBotStarLevel(def.cost(), profile);
 
             bot.addUnitToBoard(def, i, Grid.PLAYER_ROWS - 1, starLevel);
         }
+    }
+
+    private BotRosterProfile getBotRosterProfile() {
+        if (round <= 3) {
+            return new BotRosterProfile(GameConstants.BOT_MAX_UNITS_PER_ROW, 5, 1, 5);
+        }
+        if (round <= 6) {
+            return new BotRosterProfile(GameConstants.BOT_MAX_UNITS_PER_ROW, 24, 2, 12);
+        }
+        if (round <= 9) {
+            return new BotRosterProfile(7, 34, 8, 18);
+        }
+        if (round <= 13) {
+            return new BotRosterProfile(7, 40, 16, 25);
+        }
+        return new BotRosterProfile(7, 35, 30, 35);
+    }
+
+    private int rollBotStarLevel(int unitCost, BotRosterProfile profile) {
+        var starRoll = randomProvider.nextInt(100);
+        if (unitCost >= 4) {
+            return starRoll < profile.fourToFiveCostTwoStarChance() ? 2 : 1;
+        }
+        if (starRoll < profile.oneToThreeCostThreeStarChance()) {
+            return 3;
+        }
+        if (starRoll < profile.oneToThreeCostThreeStarChance() + profile.oneToThreeCostTwoStarChance()) {
+            return 2;
+        }
+        return 1;
     }
 
     private void updateGameState(long timeLeft) {
@@ -567,12 +597,16 @@ public class GameRoom {
             var amount = 0;
 
             if (type == LootType.GOLD) {
-                amount = GameConstants.MIN_ORB_GOLD
-                        + randomProvider.nextInt(GameConstants.MAX_ORB_GOLD - GameConstants.MIN_ORB_GOLD + 1);
+                amount = rollLootGoldAmount();
             } else {
                 var units = dataLoader.getAllUnits(gameMode);
                 var def = chooseLootUnitDefinitionForPlayer(player, units);
-                contentId = def.id();
+                if (def.isPresent()) {
+                    contentId = def.get().id();
+                } else {
+                    type = LootType.GOLD;
+                    amount = rollLootGoldAmount();
+                }
             }
 
             var orb = new LootOrb(orbId, x, y, type, contentId, amount);
@@ -580,15 +614,22 @@ public class GameRoom {
         }
     }
 
-    UnitDefinition chooseLootUnitDefinitionForPlayer(Player player, List<UnitDefinition> units) {
+    Optional<UnitDefinition> chooseLootUnitDefinitionForPlayer(Player player, List<UnitDefinition> units) {
+        var availableUnits = units.stream()
+                .filter(def -> !player.hasCompletedUnitLine(def.lineId()))
+                .toList();
+        if (availableUnits.isEmpty()) {
+            return Optional.empty();
+        }
+
         if (randomProvider.nextInt(100) < GameConstants.ORB_OWNED_UNIT_CHANCE_PERCENT) {
-            var ownedDef = chooseOwnedLootUnitDefinition(player, units);
+            var ownedDef = chooseOwnedLootUnitDefinition(player, availableUnits);
             if (ownedDef.isPresent()) {
-                return ownedDef.get();
+                return ownedDef;
             }
         }
 
-        return ShopOdds.rollUnit(player.getLevel() + 1, units, randomProvider);
+        return Optional.of(ShopOdds.rollUnit(player.getLevel() + 1, availableUnits, randomProvider));
     }
 
     private Optional<UnitDefinition> chooseOwnedLootUnitDefinition(Player player, List<UnitDefinition> units) {
@@ -636,6 +677,11 @@ public class GameRoom {
             case 4 -> 2;
             default -> 1;
         };
+    }
+
+    private int rollLootGoldAmount() {
+        return GameConstants.MIN_ORB_GOLD
+                + randomProvider.nextInt(GameConstants.MAX_ORB_GOLD - GameConstants.MIN_ORB_GOLD + 1);
     }
 
     private long calculatePhaseDuration(GamePhase phase, int round) {

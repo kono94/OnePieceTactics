@@ -1,6 +1,7 @@
 package net.lwenstrom.tft.backend.core.engine;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -27,7 +28,7 @@ class GameRoomLootOrbTest {
 
         var selected = room.chooseLootUnitDefinitionForPlayer(player, units);
 
-        assertEquals(oneCost.id(), selected.id());
+        assertEquals(oneCost.id(), selected.orElseThrow().id());
     }
 
     @Test
@@ -42,24 +43,55 @@ class GameRoomLootOrbTest {
 
         var selected = room.chooseLootUnitDefinitionForPlayer(player, units);
 
-        assertEquals(oneCost.id(), selected.id());
+        assertEquals(oneCost.id(), selected.orElseThrow().id());
     }
 
     @Test
-    void unitLootDoesNotTargetCompletedThreeStarOnlyLines() {
+    void unitLootDoesNotTargetCompletedThreeStarLines() {
         var completed = TestHelpers.createUnitDef("completed", "Completed", 1, 100, 10);
         var fallback = TestHelpers.createUnitDef("fallback", "Fallback", 1, 100, 10);
         var units = List.of(completed, fallback);
         var randomProvider = mock(RandomProvider.class);
         when(randomProvider.nextInt(100)).thenReturn(0);
-        when(randomProvider.nextInt(2)).thenReturn(1);
+        when(randomProvider.nextInt(1)).thenReturn(0);
         var room = createRoom(units, randomProvider);
         var player = createPlayer(units, randomProvider);
         player.getBenchSlots().set(0, new StandardGameUnit(completed, 3));
 
         var selected = room.chooseLootUnitDefinitionForPlayer(player, units);
 
-        assertEquals(fallback.id(), selected.id());
+        assertEquals(fallback.id(), selected.orElseThrow().id());
+    }
+
+    @Test
+    void fallbackUnitLootDoesNotRollCompletedThreeStarLines() {
+        var completed = TestHelpers.createUnitDef("completed", "Completed", 1, 100, 10);
+        var fallback = TestHelpers.createUnitDef("fallback", "Fallback", 2, 100, 10);
+        var units = List.of(completed, fallback);
+        var randomProvider = mock(RandomProvider.class);
+        when(randomProvider.nextInt(100)).thenReturn(99, 0);
+        when(randomProvider.nextInt(1)).thenReturn(0);
+        var room = createRoom(units, randomProvider);
+        var player = createPlayer(units, randomProvider);
+        player.getBenchSlots().set(0, new StandardGameUnit(completed, 3));
+
+        var selected = room.chooseLootUnitDefinitionForPlayer(player, units);
+
+        assertEquals(fallback.id(), selected.orElseThrow().id());
+    }
+
+    @Test
+    void unitLootIsEmptyWhenEveryLineIsCompleted() {
+        var completed = TestHelpers.createUnitDef("completed", "Completed", 1, 100, 10);
+        var units = List.of(completed);
+        var randomProvider = mock(RandomProvider.class);
+        var room = createRoom(units, randomProvider);
+        var player = createPlayer(units, randomProvider);
+        player.getBenchSlots().set(0, new StandardGameUnit(completed, 3));
+
+        var selected = room.chooseLootUnitDefinitionForPlayer(player, units);
+
+        assertTrue(selected.isEmpty());
     }
 
     private GameRoom createRoom(List<UnitDefinition> units, RandomProvider randomProvider) {

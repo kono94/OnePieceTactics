@@ -107,4 +107,35 @@ public class LootOrbTest {
         assertEquals(initialGold + 1, player.getGold());
         assertTrue(player.toState().lootOrbs().isEmpty());
     }
+
+    @Test
+    void testCollectUnitOrbForCompletedLineGrantsGold() {
+        var unitDef = new UnitDefinition(
+                "unit-1",
+                "Luffy",
+                2,
+                List.of(100, 100, 100),
+                List.of(100, 100, 100),
+                List.of(10, 10, 10),
+                List.of(10, 10, 10),
+                List.of(10, 10, 10),
+                List.of(10, 10, 10),
+                List.of(1.0f, 1.0f, 1.0f),
+                List.of(1, 1, 1),
+                List.of(),
+                null);
+        when(dataLoader.getAllUnits(GameMode.ONEPIECE)).thenReturn(List.of(unitDef));
+        player.getBenchSlots().set(0, new StandardGameUnit(unitDef, 3));
+
+        var initialGold = player.getGold();
+        var unitOrb = new LootOrb("orb-4", 0, 0, LootType.UNIT, "Luffy", 1);
+        player.addLootOrb(unitOrb);
+
+        player.collectOrb("orb-4");
+
+        var benchCount = player.getBench().stream().filter(Objects::nonNull).count();
+        assertEquals(1, benchCount);
+        assertEquals(initialGold + 2, player.getGold());
+        assertTrue(player.toState().lootOrbs().isEmpty());
+    }
 }

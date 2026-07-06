@@ -6,15 +6,8 @@ defineOptions({
 defineEmits(['back'])
 
 const commits = [
-  { hash: 'fc426b0', title: 'Fix line abilities silently missing off-axis targets' },
-  { hash: '78c7cc3', title: 'Balance One Piece units and augments' },
-  { hash: '21e362d', title: 'Add defender mana on direct hits' },
-  { hash: '869c746', title: 'Update agent instructions' },
-  { hash: 'b771cf4', title: 'Balance Pokemon traits and add changelog' },
-  { hash: 'e5dba11', title: 'Fix unit drag preview rendering' },
-  { hash: '989c37b', title: 'Prevent joining started games' },
-  { hash: '700c520', title: 'Fix ghost unit board state sync' },
-  { hash: 'c9fe5e5', title: 'Fix knockback combat grid bounds' }
+  { hash: 'pending-1', title: 'Tune bot opponent roster scaling' },
+  { hash: 'pending-2', title: 'Prevent completed 3-star unit lines from reappearing in shops and unit loot' }
 ]
 </script>
 
@@ -24,9 +17,9 @@ const commits = [
       <button class="back-button" type="button" @click="$emit('back')">Back</button>
       <div>
         <p class="eyebrow">Release Notes</p>
-        <h1>Version 1.6.0</h1>
+        <h1>Version X.X.X</h1>
         <p class="summary">
-          Combat reliability fixes, lobby safeguards, drag polish, mana flow, and Pokemon plus One Piece balance passes.
+          Bot opponents now scale more deliberately, and completed 3-star character lines stop appearing in shops and unit loot.
         </p>
       </div>
     </header>
@@ -53,178 +46,54 @@ const commits = [
 
         <div class="balance-block">
           <div class="balance-title">
-            <span class="tag buff">Buff</span>
-            <h3>Mana</h3>
+            <span class="tag mixed">Mixed</span>
+            <h3>Bot Opponents</h3>
           </div>
           <p>
-            Defender mana on direct attacks and damage abilities:
-            <span class="old-value">0%</span>
+            Rounds 1-3 stay at
+            <strong class="value buff">5%</strong> 2-star and
+            <strong class="value buff">1%</strong> 3-star odds. Rounds 4-6 1-3 cost upgrade odds:
+            <span class="old-value">5% 2-star / 1% 3-star</span>
             <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value buff">5%</strong> max mana.
+            <strong class="value buff">24% 2-star / 2% 3-star</strong>. Rounds 7-9:
+            <span class="old-value">5% / 1%</span>
+            <span class="change-arrow">&nbsp;=>&nbsp;</span>
+            <strong class="value buff">34% / 8%</strong>. Rounds 10-13:
+            <span class="old-value">5% / 1%</span>
+            <span class="change-arrow">&nbsp;=>&nbsp;</span>
+            <strong class="value buff">40% / 16%</strong>. Rounds 14+:
+            <span class="old-value">5% / 1%</span>
+            <span class="change-arrow">&nbsp;=>&nbsp;</span>
+            <strong class="value buff">35% / 30%</strong>.
           </p>
         </div>
 
         <div class="balance-block">
           <div class="balance-title">
             <span class="tag nerf">Nerf</span>
-            <h3>Straw Hat</h3>
+            <h3>Late Bot Boards</h3>
           </div>
           <p>
-            Health:
-            <span class="old-value">200/400/700/1000</span>
+            Maximum late board size:
+            <span class="old-value">9 units</span>
             <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value nerf">150/300/500/750</strong>. Attack speed:
-            <span class="old-value">10/25/50/75%</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value nerf">6/14/28/42%</strong>.
+            <strong class="value nerf">7 units</strong> from the late-round roster profiles.
           </p>
         </div>
 
         <div class="balance-block">
           <div class="balance-title">
-            <span class="tag nerf">Nerf</span>
-            <h3>Jinbei</h3>
+            <span class="tag mixed">Mixed</span>
+            <h3>Premium Bot Units</h3>
           </div>
           <p>
-            Health:
-            <span class="old-value">1050/1890/3402</span>
+            4-5 cost 3-star chance:
+            <span class="old-value">1%</span>
             <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value nerf">950/1710/3078</strong>. Mana:
-            <span class="old-value">65</span>
+            <strong class="value nerf">0%</strong>. 4-5 cost 2-star chance scales from
+            <span class="old-value">5%</span>
             <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value nerf">75</strong>. Armor:
-            <span class="old-value">40</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value nerf">35</strong>. Vagabond Drill:
-            <span class="old-value">500/900/1620</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value nerf">420/760/1368</strong>.
-          </p>
-        </div>
-
-        <div class="balance-block">
-          <div class="balance-title">
-            <span class="tag nerf">Nerf</span>
-            <h3>Boa Hancock</h3>
-          </div>
-          <p>
-            Slave Arrow stun:
-            <span class="old-value">3/4/5s</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value nerf">1/1/2s</strong>.
-          </p>
-        </div>
-
-        <div class="balance-block">
-          <div class="balance-title">
-            <span class="tag buff">Buff</span>
-            <h3>Garp</h3>
-          </div>
-          <p>
-            Mana:
-            <span class="old-value">60</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value buff">55</strong>. Fist of Love:
-            <span class="old-value">600/1080/1944</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value buff">700/1260/2268</strong>. Missing HP scaling:
-            <span class="old-value">0.5/0.75/1.0</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value buff">0.6/0.85/1.1</strong>.
-          </p>
-        </div>
-
-        <div class="balance-block">
-          <div class="balance-title">
-            <span class="tag buff">Buff</span>
-            <h3>One Piece Augments</h3>
-          </div>
-          <p>
-            Battle Standard:
-            <span class="old-value">120/220/360</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value buff">150/275/450</strong>. Sharpened Blades:
-            <span class="old-value">4/7/10</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value buff">6/10/16</strong>. Iron Line:
-            <span class="old-value">8/14/24</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value buff">10/18/30</strong>. Backline Barrage:
-            <span class="old-value">5/8/12</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value buff">7/12/18</strong>.
-          </p>
-        </div>
-
-        <div class="balance-block">
-          <div class="balance-title">
-            <span class="tag nerf">Nerf</span>
-            <h3>Normal</h3>
-          </div>
-          <p>
-            Team attack bonus:
-            <span class="old-value">3/10/16/24%</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value nerf">1/5/10/16%</strong>.
-          </p>
-        </div>
-
-        <div class="balance-block">
-          <div class="balance-title">
-            <span class="tag nerf">Nerf</span>
-            <h3>Flying</h3>
-          </div>
-          <p>
-            Low-health attack speed:
-            <span class="old-value">8/24/40/60%</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value nerf">4/12/24/36%</strong>.
-          </p>
-        </div>
-
-        <div class="balance-block">
-          <div class="balance-title">
-            <span class="tag buff">Buff</span>
-            <h3>Poison</h3>
-          </div>
-          <p>
-            Duration:
-            <span class="old-value">2s</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value buff">3s</strong>. Damage per tick:
-            <span class="old-value">2/7/12/18%</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value buff">3/7/11/16%</strong> attack damage.
-          </p>
-        </div>
-
-        <div class="balance-block">
-          <div class="balance-title">
-            <span class="tag nerf">Nerf</span>
-            <h3>Raichu</h3>
-          </div>
-          <p>
-            Thunder target count:
-            <span class="old-value">uncapped</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value nerf">3 targets</strong>. 3-star stun remains
-            <strong class="value buff">2s</strong>.
-          </p>
-        </div>
-
-        <div class="balance-block">
-          <div class="balance-title">
-            <span class="tag mixed">Economy</span>
-            <h3>Augments</h3>
-          </div>
-          <p>
-            Flat gold:
-            <span class="old-value">30/45/70</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value nerf">20/35/50</strong>. Empty bench gold:
-            <span class="old-value">2/3/5</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value buff">3/5/8</strong> per slot.
+            <strong class="value buff">12/18/25/35%</strong> across the later round bands.
           </p>
         </div>
       </article>

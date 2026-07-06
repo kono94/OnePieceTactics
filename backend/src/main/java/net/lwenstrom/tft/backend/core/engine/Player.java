@@ -3,6 +3,7 @@ package net.lwenstrom.tft.backend.core.engine;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.Setter;
 import net.lwenstrom.tft.backend.core.DataLoader;
@@ -69,11 +70,12 @@ public class Player {
     }
 
     public void refreshShopFree() {
-        var allUnits = dataLoader.getAllUnits(gameMode);
+        var availableUnits = dataLoader.getAllUnits(gameMode).stream()
+                .filter(def -> !hasCompletedUnitLine(def.lineId()))
+                .toList();
         shop = new ArrayList<>();
         for (var i = 0; i < GameConstants.SHOP_SIZE; i++) {
-            var rolledUnit = ShopOdds.rollUnit(level, allUnits, randomProvider);
-            shop.add(rolledUnit);
+            shop.add(availableUnits.isEmpty() ? null : ShopOdds.rollUnit(level, availableUnits, randomProvider));
         }
     }
 
@@ -96,6 +98,7 @@ public class Player {
         var def = shop.get(shopIndex);
 
         if (def == null) return;
+        if (hasCompletedUnitLine(def.lineId())) return;
         if (gold < def.cost()) return;
 
         var emptySlot = bench.findFirstEmptySlot();
@@ -267,12 +270,26 @@ public class Player {
                         .findFirst()
                         .orElse(null);
                 if (def != null) {
+                    if (hasCompletedUnitLine(def.lineId())) {
+                        gainGold(def.cost());
+                        return;
+                    }
                     var unit = new StandardGameUnit(def);
                     unit.setOwnerId(this.id);
                     addToBenchOrRefund(unit, def.cost());
                 }
             }
         }
+    }
+
+    boolean hasCompletedUnitLine(String lineId) {
+        return ownedUnits()
+                .anyMatch(
+                        unit -> unit.getLineId().equals(lineId) && unit.getStarLevel() >= GameConstants.MAX_STAR_LEVEL);
+    }
+
+    private Stream<GameUnit> ownedUnits() {
+        return Stream.concat(bench.units(), boardUnits.stream());
     }
 
     public void collectAllOrbs() {

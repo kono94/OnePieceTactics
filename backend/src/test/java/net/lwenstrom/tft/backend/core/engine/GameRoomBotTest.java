@@ -2,14 +2,21 @@ package net.lwenstrom.tft.backend.core.engine;
 
 import static net.lwenstrom.tft.backend.test.TestHelpers.createSeededRandomProvider;
 import static net.lwenstrom.tft.backend.test.TestHelpers.createTestClock;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import net.lwenstrom.tft.backend.core.DataLoader;
 import net.lwenstrom.tft.backend.core.GameModeProvider;
 import net.lwenstrom.tft.backend.core.GameModeRegistry;
 import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GamePhase;
+import net.lwenstrom.tft.backend.core.random.RandomProvider;
+import net.lwenstrom.tft.backend.test.TestHelpers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -140,11 +147,6 @@ class GameRoomBotTest {
 
     @Test
     void testBotCanHaveHigherStarUnits() {
-        // With seeded random, we can test the star level distribution
-        // The probabilities are: 1* (94%), 2* (5%), 3* (1%)
-        // With a seeded random provider, we should see some variation over multiple
-        // bots
-
         boolean found2Star = false;
         boolean found3Star = false;
 
@@ -165,10 +167,119 @@ class GameRoomBotTest {
             }
         }
 
-        // With 20 bots and a seeded random, we should statistically see at least one
-        // 2-star
         System.out.println("Found 2-star: " + found2Star + ", Found 3-star: " + found3Star);
-        // Note: We don't assert this because the seeded random might not produce them,
-        // but this test verifies the code path works
+    }
+
+    @Test
+    void botRosterKeepsEarlyRoundUnitCounts() {
+        var unit = TestHelpers.createUnitDef("one-cost", "One Cost", 1, 100, 10);
+        var room = createRoomWithUnits(List.of(unit), new FixedRandomProvider(99));
+        var bot = room.addBot().orElseThrow();
+
+        refreshBotAtRound(room, bot, 1);
+        assertEquals(2, bot.getBoardUnits().size());
+        assertTrue(bot.getBoardUnits().stream().allMatch(boardUnit -> boardUnit.getStarLevel() == 1));
+
+        refreshBotAtRound(room, bot, 2);
+        assertEquals(3, bot.getBoardUnits().size());
+        assertTrue(bot.getBoardUnits().stream().allMatch(boardUnit -> boardUnit.getStarLevel() == 1));
+
+        refreshBotAtRound(room, bot, 3);
+        assertEquals(3, bot.getBoardUnits().size());
+        assertTrue(bot.getBoardUnits().stream().allMatch(boardUnit -> boardUnit.getStarLevel() == 1));
+    }
+
+    @Test
+    void botRosterRaisesTwoStarChanceAfterRoundThree() {
+        var unit = TestHelpers.createUnitDef("one-cost", "One Cost", 1, 100, 10);
+        var room = createRoomWithUnits(List.of(unit), new FixedRandomProvider(10));
+        var bot = room.addBot().orElseThrow();
+
+        refreshBotAtRound(room, bot, 3);
+        assertTrue(bot.getBoardUnits().stream().allMatch(boardUnit -> boardUnit.getStarLevel() == 1));
+
+        refreshBotAtRound(room, bot, 4);
+        assertTrue(bot.getBoardUnits().stream().allMatch(boardUnit -> boardUnit.getStarLevel() == 2));
+    }
+
+    @Test
+    void lateBotRosterCapsUnitCountAndAllowsCheapThreeStars() {
+        var unit = TestHelpers.createUnitDef("one-cost", "One Cost", 1, 100, 10);
+        var room = createRoomWithUnits(List.of(unit), new FixedRandomProvider(0));
+        var bot = room.addBot().orElseThrow();
+
+        refreshBotAtRound(room, bot, 14);
+
+        assertEquals(7, bot.getBoardUnits().size());
+        assertTrue(bot.getBoardUnits().stream().allMatch(boardUnit -> boardUnit.getStarLevel() == 3));
+    }
+
+    @Test
+    void expensiveBotUnitsNeverExceedTwoStars() {
+        var unit = TestHelpers.createUnitDef("five-cost", "Five Cost", 5, 100, 10);
+        var room = createRoomWithUnits(List.of(unit), new FixedRandomProvider(0));
+        var bot = room.addBot().orElseThrow();
+
+        refreshBotAtRound(room, bot, 14);
+
+        assertEquals(7, bot.getBoardUnits().size());
+        assertTrue(bot.getBoardUnits().stream().allMatch(boardUnit -> boardUnit.getCost() == 5));
+        assertTrue(bot.getBoardUnits().stream().allMatch(boardUnit -> boardUnit.getStarLevel() == 2));
+    }
+
+    private GameRoom createRoomWithUnits(List<UnitDefinition> units, RandomProvider randomProvider) {
+        return new GameRoom(
+                "bot-tuning-test",
+                TestHelpers.createMockDataLoader(units),
+                TestHelpers.createMockRegistry(),
+                createTestClock(),
+                randomProvider,
+                GameMode.ONEPIECE);
+    }
+
+    private void refreshBotAtRound(GameRoom room, Player bot, int targetRound) {
+        try {
+            var roundField = GameRoom.class.getDeclaredField("round");
+            roundField.setAccessible(true);
+            roundField.setInt(room, targetRound);
+
+            var method = GameRoom.class.getDeclaredMethod("refreshBotRoster", Player.class);
+            method.setAccessible(true);
+            method.invoke(room, bot);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException("Failed to refresh bot roster", e);
+        }
+    }
+
+    private static final class FixedRandomProvider implements RandomProvider {
+        private final int value;
+        private final Random random = new Random(0L);
+
+        private FixedRandomProvider(int value) {
+            this.value = value;
+        }
+
+        @Override
+        public <T> void shuffle(List<T> list) {
+            Collections.shuffle(list, random);
+        }
+
+        @Override
+        public int nextInt(int bound) {
+            if (bound <= 0) {
+                throw new IllegalArgumentException("bound must be positive");
+            }
+            return Math.floorMod(value, bound);
+        }
+
+        @Override
+        public double nextDouble() {
+            return Math.max(0.0, Math.min(0.99, value / 100.0));
+        }
+
+        @Override
+        public Random getRandom() {
+            return random;
+        }
     }
 }

@@ -182,6 +182,51 @@ class PlayerUnitTest {
     }
 
     @Test
+    void refreshShopExcludesCompletedThreeStarLine() {
+        var completed = TestHelpers.createUnitDef("completed", "Completed", 1, 100, 10);
+        var available = TestHelpers.createUnitDef("available", "Available", 1, 100, 10);
+        var units = List.of(completed, available);
+        var dataLoader = TestHelpers.createMockDataLoader(units);
+        var player = createTestPlayer("TestPlayer", dataLoader);
+        player.getBenchSlots().set(0, new StandardGameUnit(completed, 3));
+
+        player.refreshShopFree();
+
+        assertEquals(5, player.getShop().size());
+        assertTrue(player.getShop().stream()
+                .allMatch(unit -> unit != null && unit.lineId().equals("available")));
+    }
+
+    @Test
+    void refreshShopUsesEmptySlotsWhenEveryLineIsCompleted() {
+        var completed = TestHelpers.createUnitDef("completed", "Completed", 1, 100, 10);
+        var dataLoader = TestHelpers.createMockDataLoader(List.of(completed));
+        var player = createTestPlayer("TestPlayer", dataLoader);
+        player.getBenchSlots().set(0, new StandardGameUnit(completed, 3));
+
+        player.refreshShopFree();
+
+        assertEquals(5, player.getShop().size());
+        assertTrue(player.getShop().stream().allMatch(java.util.Objects::isNull));
+    }
+
+    @Test
+    void buyUnitDoesNotBuyStaleShopOfferForCompletedLine() {
+        var completed = TestHelpers.createUnitDef("completed", "Completed", 1, 100, 10);
+        var dataLoader = TestHelpers.createMockDataLoader(List.of(completed));
+        var player = createTestPlayer("TestPlayer", dataLoader);
+        player.setGold(100);
+        player.setShop(new java.util.ArrayList<>(List.of(completed)));
+        player.getBenchSlots().set(0, new StandardGameUnit(completed, 3));
+
+        player.buyUnit(0);
+
+        assertEquals(100, player.getGold());
+        assertEquals(1, countBenchUnits(player));
+        assertEquals(3, player.getBench().get(0).getStarLevel());
+    }
+
+    @Test
     void testMoveUnit_BenchToBoard() {
         var dataLoader = TestHelpers.createMockDataLoader();
         var player = createTestPlayer("TestPlayer", dataLoader);
@@ -346,7 +391,7 @@ class PlayerUnitTest {
             player.buyUnit(0);
         }
 
-        assertEquals(2, countBenchUnits(player), "Should keep one 3-star and one 2-star after 9 copies");
+        assertEquals(1, countBenchUnits(player), "Should keep only the completed 3-star after extra buy attempts");
         assertEquals(
                 1,
                 player.getBench().stream()
@@ -355,12 +400,12 @@ class PlayerUnitTest {
                         .count(),
                 "Should have exactly one 3-star unit");
         assertEquals(
-                1,
+                0,
                 player.getBench().stream()
                         .filter(java.util.Objects::nonNull)
                         .filter(unit -> unit.getStarLevel() == 2)
                         .count(),
-                "Should not upgrade beyond 3-star");
+                "Should not acquire extra copies after completing the 3-star line");
     }
 
     @Test

@@ -766,9 +766,15 @@ Examples covered by tests:
 `refreshBotRoster()`:
 - Clears bot board units.
 - Sets bot level to `min(BOT_STARTING_LEVEL + round / 2, BOT_MAX_LEVEL)`.
-- Adds up to `min(round + 1, botLevel, BOT_MAX_UNITS_PER_ROW)` units.
+- Starts from `min(round + 1, botLevel, BOT_MAX_UNITS_PER_ROW)` units, then applies the round profile cap.
 - Uses `ShopOdds.rollUnit(botLevel, available, randomProvider)`.
-- Rolls star level: 1% for 3-star, next 5% for 2-star, otherwise 1-star.
+- Uses round profiles for star levels:
+  - Rounds 1-3: old early tuning, 1-3 cost units roll 1% for 3-star and next 5% for 2-star.
+  - Rounds 4-6: 1-3 cost units roll 2% for 3-star and next 24% for 2-star.
+  - Rounds 7-9: max 7 units; 1-3 cost units roll 8% for 3-star and next 34% for 2-star.
+  - Rounds 10-13: max 7 units; 1-3 cost units roll 16% for 3-star and next 40% for 2-star.
+  - Rounds 14+: max 7 units; 1-3 cost units roll 30% for 3-star and next 35% for 2-star.
+- 4-5 cost bot units never roll 3-star; their 2-star chance scales from 5% early to 35% late.
 
 ### Ghosts
 
@@ -887,6 +893,7 @@ Bot:
 - `BOT_STARTING_LEVEL = 2`
 - `BOT_MAX_LEVEL = 9`
 - `BOT_MAX_UNITS_PER_ROW = 9`
+- Late bot roster profiles cap active units at 7 from round 7 onward.
 
 Loot:
 - `MIN_ORB_COUNT = 2`

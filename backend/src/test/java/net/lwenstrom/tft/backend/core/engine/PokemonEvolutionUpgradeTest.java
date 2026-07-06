@@ -62,6 +62,22 @@ class PokemonEvolutionUpgradeTest {
         assertEquals("charizard", upgraded.getDefinitionId());
     }
 
+    @Test
+    void shopRefreshExcludesCompletedPokemonEvolutionLine() throws Exception {
+        var charmander = loadPokemonUnit("charmander");
+        var squirtle = loadPokemonUnit("squirtle");
+        var dataLoader = TestHelpers.createMockDataLoader(List.of(charmander, squirtle));
+        var player = createTestPlayer("Ash", dataLoader);
+        player.getBenchSlots().set(0, new StandardGameUnit(charmander, 3));
+
+        player.refreshShopFree();
+
+        assertTrue(player.hasCompletedUnitLine("charmander"));
+        assertEquals("Charizard", player.getBench().get(0).getName());
+        assertTrue(player.getShop().stream()
+                .allMatch(unit -> unit != null && unit.lineId().equals("squirtle")));
+    }
+
     private UnitDefinition loadPokemonUnit(String id) throws Exception {
         InputStream is = getClass().getResourceAsStream("/data/units_pokemon.json");
         assertNotNull(is);
