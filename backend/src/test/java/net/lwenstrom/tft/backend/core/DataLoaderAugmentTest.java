@@ -67,7 +67,7 @@ class DataLoaderAugmentTest {
         var values = new EnumMap<AugmentEffectType, List<Integer>>(AugmentEffectType.class);
         values.put(AugmentEffectType.TEAM_ATTACK_SPEED_PER_RANGED_UNIT, List.of(3, 5, 8));
         values.put(AugmentEffectType.TEAM_DAMAGE_REDUCTION, List.of(5, 10, 15));
-        values.put(AugmentEffectType.TEAM_ATTACK_DAMAGE_ON_KILL, List.of(5, 8, 12));
+        values.put(AugmentEffectType.TEAM_ATTACK_DAMAGE_ON_KILL, List.of(6, 10, 15));
         values.put(
                 AugmentEffectType.TEAM_MAX_HEALTH,
                 mode == GameMode.ONEPIECE ? List.of(150, 275, 450) : List.of(120, 220, 360));
@@ -78,15 +78,15 @@ class DataLoaderAugmentTest {
         values.put(
                 AugmentEffectType.TEAM_ARMOR_AND_MAGIC_RESIST,
                 mode == GameMode.ONEPIECE ? List.of(10, 18, 30) : List.of(8, 14, 24));
-        values.put(AugmentEffectType.MELEE_LIFESTEAL, List.of(8, 12, 18));
+        values.put(AugmentEffectType.MELEE_LIFESTEAL, List.of(10, 16, 24));
         values.put(
                 AugmentEffectType.RANGED_ATTACK_DAMAGE,
                 mode == GameMode.ONEPIECE ? List.of(7, 12, 18) : List.of(5, 8, 12));
         values.put(AugmentEffectType.TEAM_MANA_GAIN, List.of(12, 20, 30));
         values.put(AugmentEffectType.TEAM_STARTING_MANA, List.of(10, 20, 35));
         values.put(AugmentEffectType.GOLD_PER_EMPTY_BENCH_SLOT, List.of(3, 5, 8));
-        values.put(AugmentEffectType.TEAM_STARTING_SHIELD, List.of(100, 180, 300));
-        values.put(AugmentEffectType.GOLD, List.of(20, 35, 50));
+        values.put(AugmentEffectType.TEAM_STARTING_SHIELD, List.of(125, 225, 375));
+        values.put(AugmentEffectType.GOLD, List.of(15, 25, 35));
         values.put(AugmentEffectType.XP, List.of(8, 16, 24));
         return values;
     }

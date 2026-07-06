@@ -27,11 +27,11 @@
     "id": "snowball-strike",
     "name": "Snowball Strike",
     "effectType": "TEAM_ATTACK_DAMAGE_ON_KILL",
-    "values": [5, 8, 12],
+    "values": [6, 10, 15],
     "descriptions": [
-      "When one of your units gets a kill, your team gains 5 Attack Damage for the rest of combat.",
-      "When one of your units gets a kill, your team gains 8 Attack Damage for the rest of combat.",
-      "When one of your units gets a kill, your team gains 12 Attack Damage for the rest of combat."
+      "When one of your units gets a kill, your team gains 6 Attack Damage for the rest of combat.",
+      "When one of your units gets a kill, your team gains 10 Attack Damage for the rest of combat.",
+      "When one of your units gets a kill, your team gains 15 Attack Damage for the rest of combat."
     ],
     "image": null
   },
@@ -39,11 +39,11 @@
     "id": "treasure-cache",
     "name": "Treasure Cache",
     "effectType": "GOLD",
-    "values": [20, 35, 50],
+    "values": [15, 25, 35],
     "descriptions": [
-      "Gain 20 gold.",
-      "Gain 35 gold.",
-      "Gain 50 gold."
+      "Gain 15 gold.",
+      "Gain 25 gold.",
+      "Gain 35 gold."
     ],
     "image": null
   },
@@ -89,9 +89,9 @@
     "effectType": "TEAM_ABILITY_POWER",
     "values": [10, 18, 30],
     "descriptions": [
-      "Your team gains 10 Ability Power.",
-      "Your team gains 18 Ability Power.",
-      "Your team gains 30 Ability Power."
+      "Your team's damaging abilities deal 10% more damage.",
+      "Your team's damaging abilities deal 18% more damage.",
+      "Your team's damaging abilities deal 30% more damage."
     ],
     "image": null
   },
@@ -111,11 +111,11 @@
     "id": "close-quarters",
     "name": "Close Quarters",
     "effectType": "MELEE_LIFESTEAL",
-    "values": [8, 12, 18],
+    "values": [10, 16, 24],
     "descriptions": [
-      "Melee units gain 8% Lifesteal.",
-      "Melee units gain 12% Lifesteal.",
-      "Melee units gain 18% Lifesteal."
+      "Melee units gain 10% Lifesteal.",
+      "Melee units gain 16% Lifesteal.",
+      "Melee units gain 24% Lifesteal."
     ],
     "image": null
   },
@@ -171,11 +171,11 @@
     "id": "first-guard",
     "name": "First Guard",
     "effectType": "TEAM_STARTING_SHIELD",
-    "values": [100, 180, 300],
+    "values": [125, 225, 375],
     "descriptions": [
-      "Your team starts combat with a 100 shield.",
-      "Your team starts combat with a 180 shield.",
-      "Your team starts combat with a 300 shield."
+      "Your team starts combat with a 125 shield.",
+      "Your team starts combat with a 225 shield.",
+      "Your team starts combat with a 375 shield."
     ],
     "image": null
   }

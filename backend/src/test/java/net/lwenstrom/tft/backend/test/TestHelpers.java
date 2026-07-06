@@ -90,19 +90,19 @@ public final class TestHelpers {
         return List.of(
                 createAugment("ranged-tempo", AugmentEffectType.TEAM_ATTACK_SPEED_PER_RANGED_UNIT, List.of(3, 5, 8)),
                 createAugment("guarded-formation", AugmentEffectType.TEAM_DAMAGE_REDUCTION, List.of(5, 10, 15)),
-                createAugment("snowball-strike", AugmentEffectType.TEAM_ATTACK_DAMAGE_ON_KILL, List.of(5, 8, 12)),
-                createAugment("treasure-cache", AugmentEffectType.GOLD, List.of(20, 35, 50)),
+                createAugment("snowball-strike", AugmentEffectType.TEAM_ATTACK_DAMAGE_ON_KILL, List.of(6, 10, 15)),
+                createAugment("treasure-cache", AugmentEffectType.GOLD, List.of(15, 25, 35)),
                 createAugment("training-arc", AugmentEffectType.XP, List.of(8, 16, 24)),
                 createAugment("battle-standard", AugmentEffectType.TEAM_MAX_HEALTH, List.of(120, 220, 360)),
                 createAugment("sharpened-blades", AugmentEffectType.TEAM_ATTACK_DAMAGE, List.of(4, 7, 10)),
                 createAugment("focused-haki", AugmentEffectType.TEAM_ABILITY_POWER, List.of(10, 18, 30)),
                 createAugment("iron-line", AugmentEffectType.TEAM_ARMOR_AND_MAGIC_RESIST, List.of(8, 14, 24)),
-                createAugment("close-quarters", AugmentEffectType.MELEE_LIFESTEAL, List.of(8, 12, 18)),
+                createAugment("close-quarters", AugmentEffectType.MELEE_LIFESTEAL, List.of(10, 16, 24)),
                 createAugment("backline-barrage", AugmentEffectType.RANGED_ATTACK_DAMAGE, List.of(5, 8, 12)),
                 createAugment("quick-study", AugmentEffectType.TEAM_MANA_GAIN, List.of(12, 20, 30)),
                 createAugment("opening-burst", AugmentEffectType.TEAM_STARTING_MANA, List.of(10, 20, 35)),
                 createAugment("clean-bench", AugmentEffectType.GOLD_PER_EMPTY_BENCH_SLOT, List.of(3, 5, 8)),
-                createAugment("first-guard", AugmentEffectType.TEAM_STARTING_SHIELD, List.of(100, 180, 300)));
+                createAugment("first-guard", AugmentEffectType.TEAM_STARTING_SHIELD, List.of(125, 225, 375)));
     }
 
     public static AugmentDefinition createAugment(String id, AugmentEffectType effectType, List<Integer> values) {

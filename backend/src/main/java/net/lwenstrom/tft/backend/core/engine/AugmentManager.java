@@ -125,7 +125,9 @@ public class AugmentManager {
             case TEAM_ATTACK_DAMAGE ->
                 player.getBoardUnits().forEach(unit -> unit.setAttackDamage(unit.getAttackDamage() + augment.value()));
             case TEAM_ABILITY_POWER ->
-                player.getBoardUnits().forEach(unit -> unit.setAbilityPower(unit.getAbilityPower() + augment.value()));
+                player.getBoardUnits()
+                        .forEach(unit -> unit.setAbilityDamageMultiplier(
+                                unit.getAbilityDamageMultiplier() * (1.0f + augment.value() / 100.0f)));
             case TEAM_ARMOR_AND_MAGIC_RESIST ->
                 player.getBoardUnits().forEach(unit -> {
                     unit.setArmor(unit.getArmor() + augment.value());

@@ -4,6 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import net.lwenstrom.tft.backend.core.combat.DefaultAbilityCaster;
+import net.lwenstrom.tft.backend.core.combat.NearestEnemyTargetSelector;
+import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
+import net.lwenstrom.tft.backend.core.model.AbilityPattern;
+import net.lwenstrom.tft.backend.core.model.AbilityType;
 import net.lwenstrom.tft.backend.core.model.AugmentEffectType;
 import net.lwenstrom.tft.backend.core.model.AugmentTier;
 import net.lwenstrom.tft.backend.core.model.SelectedAugment;
@@ -76,6 +81,53 @@ class AugmentCombatEffectsTest {
 
         assertEquals(24, attacker.getBoardUnits().get(0).getAttackDamage());
         assertEquals(14, attacker.getBoardUnits().get(1).getAttackDamage());
+    }
+
+    @Test
+    void abilityPowerAugmentIncreasesDamagingAbilityOutput() {
+        var attacker = TestHelpers.createTestPlayer("Attacker");
+        var defender = TestHelpers.createTestPlayer("Defender");
+        attacker.addUnitToBoard(createDamageCaster(), 0, 0);
+        defender.addUnitToBoard(TestHelpers.createUnitDef("target", "Target", 1, 200, 1), 0, 0);
+        attacker.addSelectedAugment(selected("focused-haki", AugmentEffectType.TEAM_ABILITY_POWER, 20));
+
+        var manager = new AugmentManager(TestHelpers.createDefaultAugments(), TestHelpers.createSeededRandomProvider());
+        manager.applyCombatEffects(List.of(attacker));
+
+        var caster = new DefaultAbilityCaster();
+        caster.castAbility(
+                attacker.getBoardUnits().get(0),
+                List.of(
+                        attacker.getBoardUnits().get(0),
+                        defender.getBoardUnits().get(0)),
+                new NearestEnemyTargetSelector());
+
+        assertEquals(80, defender.getBoardUnits().get(0).getCurrentHealth());
+    }
+
+    private UnitDefinition createDamageCaster() {
+        var ability = new AbilityDefinition(
+                "Strike",
+                "Deal damage.",
+                AbilityType.DAMAGE,
+                AbilityPattern.SINGLE,
+                List.of(1, 1, 1),
+                List.of(100, 100, 100),
+                List.of());
+        return new UnitDefinition(
+                "caster",
+                "Caster",
+                1,
+                List.of(100, 100, 100),
+                List.of(100, 100, 100),
+                List.of(10, 10, 10),
+                List.of(0, 0, 0),
+                List.of(0, 0, 0),
+                List.of(0, 0, 0),
+                List.of(1.0f, 1.0f, 1.0f),
+                List.of(1, 1, 1),
+                List.of(),
+                ability);
     }
 
     private SelectedAugment selected(String id, AugmentEffectType effectType, int value) {

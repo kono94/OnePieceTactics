@@ -7,7 +7,8 @@ defineEmits(['back'])
 
 const commits = [
   { hash: 'pending-1', title: 'Tune bot opponent roster scaling' },
-  { hash: 'pending-2', title: 'Prevent completed 3-star unit lines from reappearing in shops and unit loot' }
+  { hash: 'pending-2', title: 'Prevent completed 3-star unit lines from reappearing in shops and unit loot' },
+  { hash: 'pending-3', title: 'Rebalance augments and activate Ability Power damage bonuses' }
 ]
 </script>
 
@@ -19,7 +20,8 @@ const commits = [
         <p class="eyebrow">Release Notes</p>
         <h1>Version X.X.X</h1>
         <p class="summary">
-          Bot opponents now scale more deliberately, and completed 3-star character lines stop appearing in shops and unit loot.
+          Bot opponents now scale more deliberately, completed 3-star character lines stop appearing in shops and unit
+          loot, and augment rewards have a tighter combat-versus-economy balance.
         </p>
       </div>
     </header>
@@ -42,6 +44,29 @@ const commits = [
         <div class="section-heading">
           <span class="marker balance"></span>
           <h2>Balance Changes</h2>
+        </div>
+
+        <div class="balance-block">
+          <div class="balance-title">
+            <span class="tag mixed">Mixed</span>
+            <h3>Augments</h3>
+          </div>
+          <p>
+            Flat gold:
+            <span class="old-value">20/35/50 gold</span>
+            <span class="change-arrow">&nbsp;=>&nbsp;</span>
+            <strong class="value nerf">15/25/35 gold</strong>. On-kill team Attack Damage:
+            <span class="old-value">5/8/12</span>
+            <span class="change-arrow">&nbsp;=>&nbsp;</span>
+            <strong class="value buff">6/10/15</strong>. Melee Lifesteal:
+            <span class="old-value">8/12/18%</span>
+            <span class="change-arrow">&nbsp;=>&nbsp;</span>
+            <strong class="value buff">10/16/24%</strong>. Starting Shield:
+            <span class="old-value">100/180/300</span>
+            <span class="change-arrow">&nbsp;=>&nbsp;</span>
+            <strong class="value buff">125/225/375</strong>. Ability Power now increases damaging ability output by
+            <strong class="value buff">10/18/30%</strong>.
+          </p>
         </div>
 
         <div class="balance-block">
