@@ -5,6 +5,10 @@ defineOptions({
 
 defineEmits(['back'])
 
+const versionXXXCommits = [
+  { hash: 'pending', title: 'Upgrade third-party dependencies' }
+]
+
 const version161Commits = [
   { hash: '92d4a30', title: 'Prevent completed unit lines from reappearing' },
   { hash: '8833a6f', title: 'Balance augments' },
@@ -32,6 +36,32 @@ const version160Commits = [
       <section class="release-section">
         <div class="release-header">
           <p class="eyebrow">Latest</p>
+          <h2>Version X.X.X</h2>
+          <p>
+            Frontend and backend dependencies have been refreshed for the current security baseline, including Vite 8,
+            Spring Boot 4.1, Vue 3.5, and updated build tooling.
+          </p>
+        </div>
+
+        <div class="release-grid">
+          <article class="release-panel">
+            <div class="section-heading">
+              <span class="marker release"></span>
+              <h3>Development</h3>
+            </div>
+            <ul class="commit-list">
+              <li v-for="commit in versionXXXCommits" :key="commit.hash">
+                <span class="hash">{{ commit.hash }}</span>
+                <span>{{ commit.title }}</span>
+              </li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="release-section">
+        <div class="release-header">
+          <p class="eyebrow">Previous</p>
           <h2>Version 1.6.1</h2>
           <p>
             Bot opponents now scale more deliberately, completed 3-star character lines stop appearing in shops and unit

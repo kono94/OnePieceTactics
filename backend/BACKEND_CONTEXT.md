@@ -22,7 +22,7 @@ Architecturally this is not a classic CRUD layered backend. It is a custom state
 | Component | Version/Tool | Notes |
 |-----------|--------------|-------|
 | Java | 25 | Configured in `pom.xml`; preview flags are not enabled. |
-| Spring Boot | 4.0.1 | Web, WebSocket, scheduling. |
+| Spring Boot | 4.1.0 | Web, WebSocket, scheduling. |
 | Build Tool | Maven | Backend `pom.xml` is in `/backend`. |
 | WebSockets | STOMP over native WebSocket | Endpoint `/tft-websocket`; no SockJS fallback is configured. |
 | JSON | Jackson 3 runtime APIs plus Jackson annotations | `tools.jackson.databind.json.JsonMapper` is used by loaders. |

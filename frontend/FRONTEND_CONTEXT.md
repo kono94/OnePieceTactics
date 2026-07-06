@@ -19,11 +19,11 @@ Deliver a responsive, visually rich UI that reflects backend-authoritative game 
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| **Vue.js** | 3.4+ | Component framework using Composition API + `<script setup>` |
-| **TypeScript** | 5.2+ | Type safety for components, state, and WebSocket messages |
-| **Vite** | 5.0+ | Build tool and dev server with HMR |
-| **Pinia** | 2.1+ | **NOT USED** — State is managed via reactive `ref()` in `App.vue` |
-| **@stomp/stompjs** | 7.0+ | WebSocket client for STOMP protocol |
+| **Vue.js** | 3.5+ | Component framework using Composition API + `<script setup>` |
+| **TypeScript** | 5.9+ | Type safety for components, state, and WebSocket messages |
+| **Vite** | 8.1+ | Build tool and dev server with HMR |
+| **Pinia** | N/A | **NOT USED** — Removed from dependencies; state is managed via reactive `ref()` in `App.vue` |
+| **@stomp/stompjs** | 7.3+ | WebSocket client for STOMP protocol |
 | **No Router** | N/A | Single-page app with reactive view switching; hash-only standalone route for animation gallery |
 | **No UI Framework** | N/A | Vanilla CSS with scoped styles (no Tailwind) |
 | **ESLint** | 9.x | Vue/TypeScript linting via `eslint.config.ts` |
@@ -106,7 +106,7 @@ frontend/
 ### 4.1 State Management Strategy
 
 **❌ NO Pinia/Vuex Store**  
-Despite Pinia being listed in dependencies, the application **does not use it**. All state is managed via **reactive primitives** in the root component.
+The application **does not use Pinia**. All state is managed via **reactive primitives** in the root component.
 
 **✅ Centralized State in `App.vue`**
 
@@ -830,9 +830,8 @@ function handleAction() {
 
 ```json
 {
-  "@stomp/stompjs": "^7.0.0",  // WebSocket STOMP client
-  "pinia": "^2.1.7",            // ⚠️ Listed but NOT USED
-  "vue": "^3.4.0"               // Core framework
+  "@stomp/stompjs": "^7.3.0",  // WebSocket STOMP client
+  "vue": "^3.5.39"             // Core framework
 }
 ```
 
@@ -840,14 +839,14 @@ function handleAction() {
 
 ```json
 {
-  "@vitejs/plugin-vue": "^5.0.0",           // Vite Vue 3 plugin
+  "@vitejs/plugin-vue": "^6.0.7",           // Vite Vue 3 plugin
   "@vue/eslint-config-prettier": "^10.2.0", // Prettier integration
-  "@vue/eslint-config-typescript": "^14.6.0", // TypeScript linting
-  "eslint": "^9.39.2",                      // Linter
-  "eslint-plugin-vue": "^10.7.0",          // Vue-specific lint rules
-  "typescript": "^5.2.0",                   // TypeScript compiler
-  "vite": "^5.0.0",                         // Build tool
-  "vue-tsc": "^3.2.4"                       // Vue TypeScript checker
+  "@vue/eslint-config-typescript": "^14.9.0", // TypeScript linting
+  "eslint": "^9.39.4",                      // Linter
+  "eslint-plugin-vue": "^10.9.2",          // Vue-specific lint rules
+  "typescript": "^5.9.3",                   // TypeScript compiler
+  "vite": "^8.1.3",                         // Build tool
+  "vue-tsc": "^3.3.6"                       // Vue TypeScript checker
 }
 ```
 

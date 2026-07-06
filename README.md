@@ -2,7 +2,7 @@
 
 A browser-based **auto-battler game** inspired by Teamfight Tactics, featuring a theme-swappable engine with lobby-selectable One Piece (default) and Pokemon modes. This project showcases a clean, production-grade architecture with real-time multiplayer via WebSockets.
 
-![Java 25](https://img.shields.io/badge/Java-25-orange) ![Spring Boot 4](https://img.shields.io/badge/Spring%20Boot-4.0.1-green) ![Vue 3](https://img.shields.io/badge/Vue.js-3.4-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.2-blue)
+![Java 25](https://img.shields.io/badge/Java-25-orange) ![Spring Boot 4](https://img.shields.io/badge/Spring%20Boot-4.1.0-green) ![Vue 3](https://img.shields.io/badge/Vue.js-3.5-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)
 
 ![One Piece Tactics Board](docs/board_preview.jpg)
 
@@ -94,7 +94,7 @@ For detailed architectural information, refer to the context documents:
 | Technology | Version | Purpose |
 |------------|---------|---------|
 | Java | 25 (Preview) | Core language |
-| Spring Boot | 4.0.1 | Application framework |
+| Spring Boot | 4.1.0 | Application framework |
 | WebSocket (STOMP) | — | Real-time communication |
 | Maven | — | Build tool |
 | Lombok | — | Boilerplate reduction |
@@ -103,10 +103,10 @@ For detailed architectural information, refer to the context documents:
 ### Frontend
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| Vue.js | 3.4 | UI framework |
-| TypeScript | 5.2 | Type-safe JavaScript |
-| Vite | 5.0 | Build tool & dev server |
-| @stomp/stompjs | 7.0 | WebSocket client |
+| Vue.js | 3.5 | UI framework |
+| TypeScript | 5.9 | Type-safe JavaScript |
+| Vite | 8.1 | Build tool & dev server |
+| @stomp/stompjs | 7.3 | WebSocket client |
 | Vanilla CSS | — | Scoped component styling |
 
 ### Infrastructure
@@ -121,7 +121,7 @@ For detailed architectural information, refer to the context documents:
 
 ### Prerequisites
 - Java 25
-- Node.js 18+ & npm
+- Node.js 20.19+ or 22.12+ & npm
 - Docker (optional, for containerized deployment)
 
 ### Run Backend
