@@ -30,10 +30,9 @@ const version160Commits = [
       <button class="back-button" type="button" @click="$emit('back')">Back</button>
       <div>
         <p class="eyebrow">Release Notes</p>
-        <h1>Version 1.6.1</h1>
+        <h1>Changelog</h1>
         <p class="summary">
-          Bot opponents now scale more deliberately, completed 3-star character lines stop appearing in shops and unit
-          loot, and augment rewards have a tighter combat-versus-economy balance.
+          Latest patch notes first, with previous release history below.
         </p>
       </div>
     </header>
