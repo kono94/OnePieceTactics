@@ -3,8 +3,6 @@ defineOptions({
   name: 'GameChangelog'
 })
 
-defineEmits(['back'])
-
 const version161Commits = [
   { hash: '92d4a30', title: 'Prevent completed unit lines from reappearing' },
   { hash: '8833a6f', title: 'Balance augments' },
@@ -26,17 +24,6 @@ const version160Commits = [
 
 <template>
   <main class="changelog-page">
-    <header class="hero">
-      <button class="back-button" type="button" @click="$emit('back')">Back</button>
-      <div>
-        <p class="eyebrow">Release Notes</p>
-        <h1>Changelog</h1>
-        <p class="summary">
-          Latest patch notes first, with previous release history below.
-        </p>
-      </div>
-    </header>
-
     <div class="release-history">
       <section class="release-section">
         <div class="release-header">
@@ -333,44 +320,12 @@ const version160Commits = [
         #0b1120;
 }
 
-.hero {
-    display: flex;
-    align-items: flex-start;
-    gap: 22px;
-    max-width: 1180px;
-    margin: 0 auto 34px;
-}
-
-.back-button {
-    flex: 0 0 auto;
-    padding: 10px 14px;
-    border: 1px solid rgba(148, 163, 184, 0.34);
-    border-radius: 6px;
-    background: rgba(15, 23, 42, 0.76);
-    color: #e2e8f0;
-    font-weight: 800;
-    cursor: pointer;
-}
-
 .eyebrow {
     margin: 0 0 8px;
     color: #38bdf8;
     font-size: 13px;
     font-weight: 900;
     text-transform: uppercase;
-}
-
-h1 {
-    margin: 0;
-    font-size: clamp(38px, 6vw, 72px);
-    line-height: 0.95;
-}
-
-.summary {
-    max-width: 720px;
-    margin: 18px 0 0;
-    color: #cbd5e1;
-    font-size: 18px;
 }
 
 .release-history {
@@ -558,10 +513,6 @@ h1 {
 }
 
 @media (max-width: 820px) {
-    .hero {
-        flex-direction: column;
-    }
-
     .release-grid {
         grid-template-columns: 1fr;
     }
