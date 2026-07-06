@@ -70,9 +70,14 @@ public class GameRoom {
 
     private record BotRosterProfile(
             int maxUnits,
-            int oneToThreeCostTwoStarChance,
-            int oneToThreeCostThreeStarChance,
-            int fourToFiveCostTwoStarChance) {}
+            int guaranteedTwoStarUnits,
+            int guaranteedCheapThreeStarUnits,
+            int guaranteedMidCostThreeStarUnits,
+            int cheapTwoStarChance,
+            int cheapThreeStarChance,
+            int midCostTwoStarChance,
+            int midCostThreeStarChance,
+            int fiveCostTwoStarChance) {}
 
     public void setCombatResultListener(CombatResultListener listener) {
         this.combatResultListener = listener;
@@ -455,38 +460,95 @@ public class GameRoom {
         var unitCount = Math.min(naturalUnitCount, profile.maxUnits());
         var available = dataLoader.getAllUnits(gameMode);
         for (var i = 0; i < unitCount; i++) {
-            var def = ShopOdds.rollUnit(botLevel, available, randomProvider);
-            var starLevel = rollBotStarLevel(def.cost(), profile);
+            var def = rollBotUnitDefinition(i, botLevel, available, profile);
+            var starLevel = rollBotStarLevel(i, def.cost(), profile, isGuaranteedThreeStarSlot(i, def.cost(), profile));
 
             bot.addUnitToBoard(def, i, Grid.PLAYER_ROWS - 1, starLevel);
         }
     }
 
     private BotRosterProfile getBotRosterProfile() {
-        if (round <= 3) {
-            return new BotRosterProfile(GameConstants.BOT_MAX_UNITS_PER_ROW, 5, 1, 5);
+        if (round <= 2) {
+            return new BotRosterProfile(GameConstants.BOT_MAX_UNITS_PER_ROW, 0, 0, 0, 5, 1, 5, 0, 5);
+        }
+        if (round == 3) {
+            return new BotRosterProfile(GameConstants.BOT_MAX_UNITS_PER_ROW, 1, 0, 0, 30, 2, 30, 2, 10);
         }
         if (round <= 6) {
-            return new BotRosterProfile(GameConstants.BOT_MAX_UNITS_PER_ROW, 24, 2, 12);
+            return new BotRosterProfile(GameConstants.BOT_MAX_UNITS_PER_ROW, 1, 0, 0, 40, 4, 35, 3, 18);
         }
         if (round <= 9) {
-            return new BotRosterProfile(7, 34, 8, 18);
+            return new BotRosterProfile(7, 1, 0, 0, 50, 12, 42, 8, 25);
         }
-        if (round <= 13) {
-            return new BotRosterProfile(7, 40, 16, 25);
+        if (round <= 14) {
+            return new BotRosterProfile(7, 1, 2, 0, 25, 55, 50, 18, 35);
         }
-        return new BotRosterProfile(7, 35, 30, 35);
+        return new BotRosterProfile(7, 0, 2, 2, 15, 75, 35, 45, 45);
     }
 
-    private int rollBotStarLevel(int unitCost, BotRosterProfile profile) {
-        var starRoll = randomProvider.nextInt(100);
-        if (unitCost >= 4) {
-            return starRoll < profile.fourToFiveCostTwoStarChance() ? 2 : 1;
+    private UnitDefinition rollBotUnitDefinition(
+            int slotIndex, int botLevel, List<UnitDefinition> available, BotRosterProfile profile) {
+        if (slotIndex < profile.guaranteedCheapThreeStarUnits()) {
+            return rollBotUnitDefinitionByCost(available, 1, 2)
+                    .orElseGet(() -> ShopOdds.rollUnit(botLevel, available, randomProvider));
         }
-        if (starRoll < profile.oneToThreeCostThreeStarChance()) {
+        if (slotIndex < profile.guaranteedCheapThreeStarUnits() + profile.guaranteedMidCostThreeStarUnits()) {
+            return rollBotUnitDefinitionByCost(available, 3, 4)
+                    .orElseGet(() -> ShopOdds.rollUnit(botLevel, available, randomProvider));
+        }
+        return ShopOdds.rollUnit(botLevel, available, randomProvider);
+    }
+
+    private Optional<UnitDefinition> rollBotUnitDefinitionByCost(
+            List<UnitDefinition> available, int minCost, int maxCost) {
+        var candidates = available.stream()
+                .filter(def -> def.cost() >= minCost && def.cost() <= maxCost)
+                .toList();
+        if (candidates.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(candidates.get(randomProvider.nextInt(candidates.size())));
+    }
+
+    private boolean isGuaranteedThreeStarSlot(int slotIndex, int unitCost, BotRosterProfile profile) {
+        if (slotIndex < profile.guaranteedCheapThreeStarUnits()) {
+            return unitCost <= 2;
+        }
+        if (slotIndex < profile.guaranteedCheapThreeStarUnits() + profile.guaranteedMidCostThreeStarUnits()) {
+            return unitCost >= 3 && unitCost <= 4;
+        }
+        return false;
+    }
+
+    private int rollBotStarLevel(
+            int slotIndex, int unitCost, BotRosterProfile profile, boolean guaranteedThreeStarSlot) {
+        if (guaranteedThreeStarSlot) {
             return 3;
         }
-        if (starRoll < profile.oneToThreeCostThreeStarChance() + profile.oneToThreeCostTwoStarChance()) {
+
+        var starRoll = randomProvider.nextInt(100);
+        var starLevel =
+                switch (unitCost) {
+                    case 1, 2 ->
+                        rollBotStarLevel(starRoll, profile.cheapTwoStarChance(), profile.cheapThreeStarChance());
+                    case 3, 4 ->
+                        rollBotStarLevel(starRoll, profile.midCostTwoStarChance(), profile.midCostThreeStarChance());
+                    default -> starRoll < profile.fiveCostTwoStarChance() ? 2 : 1;
+                };
+
+        var guaranteedTwoStarStart =
+                profile.guaranteedCheapThreeStarUnits() + profile.guaranteedMidCostThreeStarUnits();
+        if (slotIndex < guaranteedTwoStarStart + profile.guaranteedTwoStarUnits()) {
+            return Math.max(2, starLevel);
+        }
+        return starLevel;
+    }
+
+    private int rollBotStarLevel(int starRoll, int twoStarChance, int threeStarChance) {
+        if (starRoll < threeStarChance) {
+            return 3;
+        }
+        if (starRoll < threeStarChance + twoStarChance) {
             return 2;
         }
         return 1;

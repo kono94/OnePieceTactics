@@ -171,7 +171,7 @@ class GameRoomBotTest {
     }
 
     @Test
-    void botRosterKeepsEarlyRoundUnitCounts() {
+    void botRosterKeepsFirstTwoRoundsSoftAndGuaranteesRoundThreeUpgrade() {
         var unit = TestHelpers.createUnitDef("one-cost", "One Cost", 1, 100, 10);
         var room = createRoomWithUnits(List.of(unit), new FixedRandomProvider(99));
         var bot = room.addBot().orElseThrow();
@@ -186,7 +186,7 @@ class GameRoomBotTest {
 
         refreshBotAtRound(room, bot, 3);
         assertEquals(3, bot.getBoardUnits().size());
-        assertTrue(bot.getBoardUnits().stream().allMatch(boardUnit -> boardUnit.getStarLevel() == 1));
+        assertTrue(bot.getBoardUnits().stream().anyMatch(boardUnit -> boardUnit.getStarLevel() == 2));
     }
 
     @Test
@@ -196,22 +196,47 @@ class GameRoomBotTest {
         var bot = room.addBot().orElseThrow();
 
         refreshBotAtRound(room, bot, 3);
-        assertTrue(bot.getBoardUnits().stream().allMatch(boardUnit -> boardUnit.getStarLevel() == 1));
+        assertTrue(bot.getBoardUnits().stream().anyMatch(boardUnit -> boardUnit.getStarLevel() >= 2));
 
         refreshBotAtRound(room, bot, 4);
         assertTrue(bot.getBoardUnits().stream().allMatch(boardUnit -> boardUnit.getStarLevel() == 2));
     }
 
     @Test
-    void lateBotRosterCapsUnitCountAndAllowsCheapThreeStars() {
+    void roundTenBotRosterCapsUnitCountAndGuaranteesCheapThreeStars() {
         var unit = TestHelpers.createUnitDef("one-cost", "One Cost", 1, 100, 10);
-        var room = createRoomWithUnits(List.of(unit), new FixedRandomProvider(0));
+        var room = createRoomWithUnits(List.of(unit), new FixedRandomProvider(99));
         var bot = room.addBot().orElseThrow();
 
-        refreshBotAtRound(room, bot, 14);
+        refreshBotAtRound(room, bot, 10);
 
         assertEquals(7, bot.getBoardUnits().size());
-        assertTrue(bot.getBoardUnits().stream().allMatch(boardUnit -> boardUnit.getStarLevel() == 3));
+        assertTrue(bot.getBoardUnits().stream()
+                        .filter(boardUnit -> boardUnit.getStarLevel() == 3)
+                        .count()
+                >= 2);
+    }
+
+    @Test
+    void roundFifteenBotRosterGuaranteesCheapAndMidCostThreeStars() {
+        var oneCost = TestHelpers.createUnitDef("one-cost", "One Cost", 1, 100, 10);
+        var threeCost = TestHelpers.createUnitDef("three-cost", "Three Cost", 3, 100, 10);
+        var room = createRoomWithUnits(List.of(oneCost, threeCost), new FixedRandomProvider(99));
+        var bot = room.addBot().orElseThrow();
+
+        refreshBotAtRound(room, bot, 15);
+
+        assertEquals(7, bot.getBoardUnits().size());
+        assertTrue(bot.getBoardUnits().stream()
+                        .filter(boardUnit -> boardUnit.getCost() <= 2)
+                        .filter(boardUnit -> boardUnit.getStarLevel() == 3)
+                        .count()
+                >= 2);
+        assertTrue(bot.getBoardUnits().stream()
+                        .filter(boardUnit -> boardUnit.getCost() >= 3 && boardUnit.getCost() <= 4)
+                        .filter(boardUnit -> boardUnit.getStarLevel() == 3)
+                        .count()
+                >= 2);
     }
 
     @Test
@@ -220,11 +245,11 @@ class GameRoomBotTest {
         var room = createRoomWithUnits(List.of(unit), new FixedRandomProvider(0));
         var bot = room.addBot().orElseThrow();
 
-        refreshBotAtRound(room, bot, 14);
+        refreshBotAtRound(room, bot, 15);
 
         assertEquals(7, bot.getBoardUnits().size());
         assertTrue(bot.getBoardUnits().stream().allMatch(boardUnit -> boardUnit.getCost() == 5));
-        assertTrue(bot.getBoardUnits().stream().allMatch(boardUnit -> boardUnit.getStarLevel() == 2));
+        assertTrue(bot.getBoardUnits().stream().allMatch(boardUnit -> boardUnit.getStarLevel() <= 2));
     }
 
     private GameRoom createRoomWithUnits(List<UnitDefinition> units, RandomProvider randomProvider) {

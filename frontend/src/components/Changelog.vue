@@ -71,54 +71,15 @@ const commits = [
 
         <div class="balance-block">
           <div class="balance-title">
-            <span class="tag mixed">Mixed</span>
+            <span class="tag buff">Buff</span>
             <h3>Bot Opponents</h3>
           </div>
           <p>
-            Rounds 1-3 stay at
-            <strong class="value buff">5%</strong> 2-star and
-            <strong class="value buff">1%</strong> 3-star odds. Rounds 4-6 1-3 cost upgrade odds:
-            <span class="old-value">5% 2-star / 1% 3-star</span>
+            Overall bot power level:
+            <span class="old-value">too low</span>
             <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value buff">24% 2-star / 2% 3-star</strong>. Rounds 7-9:
-            <span class="old-value">5% / 1%</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value buff">34% / 8%</strong>. Rounds 10-13:
-            <span class="old-value">5% / 1%</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value buff">40% / 16%</strong>. Rounds 14+:
-            <span class="old-value">5% / 1%</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value buff">35% / 30%</strong>.
-          </p>
-        </div>
-
-        <div class="balance-block">
-          <div class="balance-title">
-            <span class="tag nerf">Nerf</span>
-            <h3>Late Bot Boards</h3>
-          </div>
-          <p>
-            Maximum late board size:
-            <span class="old-value">9 units</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value nerf">7 units</strong> from the late-round roster profiles.
-          </p>
-        </div>
-
-        <div class="balance-block">
-          <div class="balance-title">
-            <span class="tag mixed">Mixed</span>
-            <h3>Premium Bot Units</h3>
-          </div>
-          <p>
-            4-5 cost 3-star chance:
-            <span class="old-value">1%</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value nerf">0%</strong>. 4-5 cost 2-star chance scales from
-            <span class="old-value">5%</span>
-            <span class="change-arrow">&nbsp;=>&nbsp;</span>
-            <strong class="value buff">12/18/25/35%</strong> across the later round bands.
+            <strong class="value buff">greatly improved</strong>, with more pressure from early upgraded boards and
+            stronger late-game threats.
           </p>
         </div>
       </article>

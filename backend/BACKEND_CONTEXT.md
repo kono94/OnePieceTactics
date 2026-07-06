@@ -769,12 +769,13 @@ Examples covered by tests:
 - Starts from `min(round + 1, botLevel, BOT_MAX_UNITS_PER_ROW)` units, then applies the round profile cap.
 - Uses `ShopOdds.rollUnit(botLevel, available, randomProvider)`.
 - Uses round profiles for star levels:
-  - Rounds 1-3: old early tuning, 1-3 cost units roll 1% for 3-star and next 5% for 2-star.
-  - Rounds 4-6: 1-3 cost units roll 2% for 3-star and next 24% for 2-star.
-  - Rounds 7-9: max 7 units; 1-3 cost units roll 8% for 3-star and next 34% for 2-star.
-  - Rounds 10-13: max 7 units; 1-3 cost units roll 16% for 3-star and next 40% for 2-star.
-  - Rounds 14+: max 7 units; 1-3 cost units roll 30% for 3-star and next 35% for 2-star.
-- 4-5 cost bot units never roll 3-star; their 2-star chance scales from 5% early to 35% late.
+  - Rounds 1-2: old soft opening, 1-2 cost units roll 1% for 3-star and next 5% for 2-star.
+  - Round 3: guarantees at least one 2-star unit; 1-2 and 3-4 cost units roll 2% for 3-star and next 30% for 2-star.
+  - Rounds 4-6: guarantee one 2-star unit; 1-2 cost units roll 4% for 3-star and next 40% for 2-star.
+  - Rounds 7-9: max 7 units; guarantee one 2-star unit; 1-2 cost units roll 12% for 3-star and next 50% for 2-star.
+  - Rounds 10-14: max 7 units; guarantee two 3-star 1-2 cost units; 1-2 cost units roll 55% for 3-star.
+  - Rounds 15+: max 7 units; guarantee two 3-star 1-2 cost units and two 3-star 3-4 cost units.
+- 5 cost bot units never roll 3-star; their 2-star chance scales from 5% early to 45% late.
 
 ### Ghosts
 
