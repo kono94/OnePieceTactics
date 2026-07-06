@@ -3,6 +3,8 @@ defineOptions({
   name: 'GameChangelog'
 })
 
+defineEmits(['back'])
+
 const version161Commits = [
   { hash: '92d4a30', title: 'Prevent completed unit lines from reappearing' },
   { hash: '8833a6f', title: 'Balance augments' },
@@ -24,6 +26,8 @@ const version160Commits = [
 
 <template>
   <main class="changelog-page">
+    <button class="back-button" type="button" @click="$emit('back')">Back</button>
+
     <div class="release-history">
       <section class="release-section">
         <div class="release-header">
@@ -310,6 +314,7 @@ const version160Commits = [
 
 <style scoped>
 .changelog-page {
+    position: relative;
     height: 100vh;
     overflow-y: auto;
     padding: 36px clamp(18px, 5vw, 72px) 56px;
@@ -318,6 +323,20 @@ const version160Commits = [
         linear-gradient(135deg, rgba(14, 165, 233, 0.14), transparent 34%),
         radial-gradient(circle at 92% 14%, rgba(244, 114, 182, 0.16), transparent 28%),
         #0b1120;
+}
+
+.back-button {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    margin-bottom: 18px;
+    padding: 10px 14px;
+    border: 1px solid rgba(148, 163, 184, 0.34);
+    border-radius: 6px;
+    background: rgba(15, 23, 42, 0.86);
+    color: #e2e8f0;
+    font-weight: 800;
+    cursor: pointer;
 }
 
 .eyebrow {
