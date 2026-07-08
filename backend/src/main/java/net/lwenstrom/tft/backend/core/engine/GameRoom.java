@@ -104,7 +104,8 @@ public class GameRoom {
                 clock,
                 new NearestEnemyTargetSelector(),
                 new BfsUnitMover(clock),
-                new DefaultAbilityCaster());
+                new DefaultAbilityCaster(),
+                randomProvider);
         this.augmentManager = new AugmentManager(dataLoader.getAugments(this.gameMode), randomProvider);
 
         this.round = 0;
@@ -373,8 +374,8 @@ public class GameRoom {
                 // Navigator trait gold
                 int navGold = p.getBoardUnits().stream()
                         .filter(u -> u.getGoldBonusMax() > 0)
-                        .mapToInt(u -> (int)
-                                (u.getGoldBonusMin() + Math.random() * (u.getGoldBonusMax() - u.getGoldBonusMin() + 1)))
+                        .mapToInt(u -> u.getGoldBonusMin()
+                                + randomProvider.nextInt(u.getGoldBonusMax() - u.getGoldBonusMin() + 1))
                         .sum();
                 if (navGold > 0) {
                     p.gainGold(navGold);

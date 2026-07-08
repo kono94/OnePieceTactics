@@ -180,7 +180,8 @@ public final class TestHelpers {
                 clock,
                 new NearestEnemyTargetSelector(),
                 new BfsUnitMover(clock),
-                new DefaultAbilityCaster());
+                new DefaultAbilityCaster(),
+                createSeededRandomProvider());
     }
 
     public static GameRoom createTestGameRoom() {

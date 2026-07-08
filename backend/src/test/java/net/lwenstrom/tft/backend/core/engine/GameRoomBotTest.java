@@ -266,13 +266,16 @@ class GameRoomBotTest {
         try {
             var roundField = GameRoom.class.getDeclaredField("round");
             roundField.setAccessible(true);
+            var previousRound = roundField.getInt(room);
             roundField.setInt(room, targetRound);
 
             var method = GameRoom.class.getDeclaredMethod("refreshBotRoster", Player.class);
             method.setAccessible(true);
             method.invoke(room, bot);
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException("Failed to refresh bot roster", e);
+
+            roundField.setInt(room, previousRound);
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to refresh bot roster for round " + targetRound, e);
         }
     }
 

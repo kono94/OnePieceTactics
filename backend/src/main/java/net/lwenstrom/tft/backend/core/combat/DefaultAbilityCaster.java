@@ -56,7 +56,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
             case DAMAGE -> castDamageAbility(source, allUnits, targetSelector, ability, value, callback, currentTime);
             case STUN -> castStunAbility(source, allUnits, targetSelector, ability, value, callback);
             case HEAL -> castHealAbility(source, allUnits, ability, value, callback);
-            case BUFF_ATK -> castBuffAtkAbility(source, allUnits, ability, value, callback);
+            case BUFF_ATK -> castBuffAtkAbility(source, allUnits, ability, value, callback, currentTime);
             case BUFF_SPD -> castBuffSpdAbility(source, allUnits, ability, value, callback);
             case SHIELD -> castShieldAbility(source, allUnits, ability, value, callback);
         }
@@ -181,7 +181,8 @@ public class DefaultAbilityCaster implements AbilityCaster {
             List<GameUnit> allUnits,
             AbilityDefinition ability,
             int buffPercent,
-            CombatStatCallback callback) {
+            CombatStatCallback callback,
+            long currentTime) {
         // Buff all allies' ATK board-wide
         float multiplier = 1.0f + (buffPercent / 100.0f);
         allUnits.stream()
@@ -196,13 +197,12 @@ public class DefaultAbilityCaster implements AbilityCaster {
         if (source.getAsOnCast() > 0) {
             float musAs = source.getAsOnCast();
             int duration = source.getAsOnCastDuration();
-            long now = System.currentTimeMillis();
             allUnits.stream()
                     .filter(u -> u.getCurrentHealth() > 0)
                     .filter(u -> CombatUtils.isAlly(source, u))
                     .forEach(u -> {
                         if (u instanceof AbstractGameUnit agu) {
-                            agu.applyTemporaryAsBuff(musAs, duration, now);
+                            agu.applyTemporaryAsBuff(musAs, duration, currentTime);
                         }
                     });
             log.info("Musician {} buffs allies with +{} AS for {}s", source.getName(), musAs, duration);
@@ -314,7 +314,8 @@ public class DefaultAbilityCaster implements AbilityCaster {
                 .sorted(Comparator.comparingDouble((GameUnit u) -> CombatUtils.getDistance(source, u))
                         .thenComparingInt(GameUnit::getX)
                         .thenComparingInt(GameUnit::getY)
-                        .thenComparing(GameUnit::getId))
+                        .thenComparing(GameUnit::getOwnerId, Comparator.nullsLast(String::compareTo))
+                        .thenComparing(GameUnit::getDefinitionId))
                 .limit(targetLimit)
                 .forEach(effect);
     }

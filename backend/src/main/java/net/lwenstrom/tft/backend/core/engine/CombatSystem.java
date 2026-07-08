@@ -1,7 +1,6 @@
 package net.lwenstrom.tft.backend.core.engine;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -16,6 +15,8 @@ import net.lwenstrom.tft.backend.core.combat.UnitMover;
 import net.lwenstrom.tft.backend.core.model.DotEffect;
 import net.lwenstrom.tft.backend.core.model.GameState;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
+import net.lwenstrom.tft.backend.core.random.DefaultRandomProvider;
+import net.lwenstrom.tft.backend.core.random.RandomProvider;
 import net.lwenstrom.tft.backend.core.time.Clock;
 
 @Slf4j
@@ -26,6 +27,7 @@ public class CombatSystem {
     private final TargetSelector targetSelector;
     private final UnitMover unitMover;
     private final AbilityCaster abilityCaster;
+    private final RandomProvider randomProvider;
 
     private Map<String, DamageEntry> damageLog = new HashMap<>();
     private List<GameState.CombatEvent> recentEvents = new ArrayList<>();
@@ -39,11 +41,22 @@ public class CombatSystem {
             TargetSelector targetSelector,
             UnitMover unitMover,
             AbilityCaster abilityCaster) {
+        this(traitManager, clock, targetSelector, unitMover, abilityCaster, new DefaultRandomProvider());
+    }
+
+    public CombatSystem(
+            TraitManager traitManager,
+            Clock clock,
+            TargetSelector targetSelector,
+            UnitMover unitMover,
+            AbilityCaster abilityCaster,
+            RandomProvider randomProvider) {
         this.traitManager = traitManager;
         this.clock = clock;
         this.targetSelector = targetSelector;
         this.unitMover = unitMover;
         this.abilityCaster = abilityCaster;
+        this.randomProvider = randomProvider;
     }
 
     private void accumulateDamage(String unitId, String unitName, String defId, String ownerId, int damage) {
@@ -83,10 +96,9 @@ public class CombatSystem {
     public void startCombat(java.util.Collection<Player> players) {
         clearDamageLog();
 
-        var sortedPlayers = new ArrayList<Player>(players);
-        sortedPlayers.sort(Comparator.comparing(Player::getId));
+        var orderedPlayers = new ArrayList<Player>(players);
 
-        if (sortedPlayers.isEmpty()) {
+        if (orderedPlayers.isEmpty()) {
             return;
         }
 
@@ -97,8 +109,8 @@ public class CombatSystem {
             traitManager.applyTraits(player.getBoardUnits());
         }
 
-        if (sortedPlayers.size() > 1) {
-            var p1 = sortedPlayers.get(0);
+        if (orderedPlayers.size() > 1) {
+            var p1 = orderedPlayers.get(0);
             p1.setCombatSide("TOP");
             for (var unit : p1.getBoardUnits()) {
                 int newX = unit.getX();
@@ -107,7 +119,7 @@ public class CombatSystem {
                 log.debug("CombatPos: {} (TOP) -> {},{}", unit.getName(), newX, newY);
             }
 
-            var p2 = sortedPlayers.get(1);
+            var p2 = orderedPlayers.get(1);
             p2.setCombatSide("BOTTOM");
             for (var u : p2.getBoardUnits()) {
                 int newY = Grid.PLAYER_ROWS + u.getY();
@@ -115,7 +127,7 @@ public class CombatSystem {
                 log.debug("CombatPos: {} (BOT) -> {},{}", u.getName(), u.getX(), newY);
             }
         } else {
-            var p1 = sortedPlayers.get(0);
+            var p1 = orderedPlayers.get(0);
             p1.setCombatSide("BOTTOM");
             for (var unit : p1.getBoardUnits()) {
                 int newY = Grid.PLAYER_ROWS + unit.getY();
@@ -319,7 +331,7 @@ public class CombatSystem {
                     long cooldownMs = (long) (1000 / effectiveAs);
 
                     // Extra Attack Chance (Swordsman)
-                    if (Math.random() < unit.getExtraAttackChance()) {
+                    if (randomProvider.nextDouble() < unit.getExtraAttackChance()) {
                         log.debug("{} triggers extra attack!", unit.getName());
                         // For simplicity, we just reduce next attack time significantly
                         unit.setNextAttackTime(currentTime + (cooldownMs / 4));
