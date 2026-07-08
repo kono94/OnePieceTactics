@@ -42,27 +42,30 @@ class BalanceSimulationReportTest {
         var seed = Long.getLong("simulation.seed", 42L);
         var matchups = Integer.getInteger("simulation.matchups", Integer.getInteger("simulation.runs", 100_000));
         var threads = simulationThreads(matchups);
+        var style = SimulationStyle.fromProperty(System.getProperty("simulation.style", "same-star"));
         var outputDir = Path.of("target", "simulation-reports");
         Files.createDirectories(outputDir);
 
-        var scenarios = generateBoardMatchups(fixture, mode, seed, matchups, threads);
+        var scenarios = generateBoardMatchups(fixture, mode, seed, matchups, threads, style);
         var coverage = coverageStats(scenarios);
         var unitImpacts = unitImpactRows(scenarios, mode, fixture);
         var traitImpacts = traitImpactRows(scenarios, mode, fixture);
         var traitPairImpacts = traitPairImpactRows(scenarios, mode, fixture);
 
         Files.writeString(
-                outputDir.resolve("balance-report.md"),
+                outputDir.resolve(style.reportFileName()),
                 toMarkdown(
                         mode,
                         seed,
                         matchups,
                         threads,
+                        style,
                         coverage,
                         scenarios,
                         unitImpacts,
                         traitImpacts,
                         traitPairImpacts));
+        writeBoardSizeTierLists(outputDir, mode, seed, style, scenarios, fixture);
         deleteCsvReports(outputDir);
     }
 
@@ -75,8 +78,13 @@ class BalanceSimulationReportTest {
     }
 
     private List<ScenarioResult> generateBoardMatchups(
-            SimulationTestSupport.Fixture fixture, GameMode mode, long seed, int matchups, int threads) {
-        var workloads = generateScenarioWorkloads(fixture, mode, seed, matchups);
+            SimulationTestSupport.Fixture fixture,
+            GameMode mode,
+            long seed,
+            int matchups,
+            int threads,
+            SimulationStyle style) {
+        var workloads = generateScenarioWorkloads(fixture, mode, seed, matchups, style);
         var progress = new ProgressBar(
                 "Simulating combats",
                 workloads.size(),
@@ -93,20 +101,40 @@ class BalanceSimulationReportTest {
     }
 
     private List<ScenarioWorkload> generateScenarioWorkloads(
-            SimulationTestSupport.Fixture fixture, GameMode mode, long seed, int matchups) {
+            SimulationTestSupport.Fixture fixture, GameMode mode, long seed, int matchups, SimulationStyle style) {
         var randomProvider = new SeededRandomProvider(seed);
+        var boardDetailsRandomProvider = new SeededRandomProvider(seed ^ 0x5DEECE66DL);
         var allUnits = fixture.dataLoader().getAllUnits(mode);
         var unitsByCost = allUnits.stream()
                 .collect(Collectors.groupingBy(UnitDefinition::cost, LinkedHashMap::new, Collectors.toList()));
         var workloads = new ArrayList<ScenarioWorkload>();
 
         for (var index = 0; index < matchups; index++) {
-            var boardSize = BOARD_SIZES.get(index % BOARD_SIZES.size());
+            var boardSize = style == SimulationStyle.RANDOM_BOARDS
+                    ? BOARD_SIZES.get(randomProvider.nextInt(BOARD_SIZES.size()))
+                    : BOARD_SIZES.get(index % BOARD_SIZES.size());
             var starLevel = STAR_LEVELS.get((index / BOARD_SIZES.size()) % STAR_LEVELS.size());
-            var boardOne =
-                    generateBoard(unitsByCost, randomProvider, boardSize, starLevel, "Matchup " + (index + 1) + " A");
-            var boardTwo =
-                    generateBoard(unitsByCost, randomProvider, boardSize, starLevel, "Matchup " + (index + 1) + " B");
+            var boardTwoSize = style == SimulationStyle.RANDOM_BOARDS
+                    ? BOARD_SIZES.get(randomProvider.nextInt(BOARD_SIZES.size()))
+                    : boardSize;
+            var boardOne = generateBoard(
+                    allUnits,
+                    unitsByCost,
+                    randomProvider,
+                    boardDetailsRandomProvider,
+                    boardSize,
+                    starLevel,
+                    "Matchup " + (index + 1) + " A",
+                    style);
+            var boardTwo = generateBoard(
+                    allUnits,
+                    unitsByCost,
+                    randomProvider,
+                    boardDetailsRandomProvider,
+                    boardTwoSize,
+                    starLevel,
+                    "Matchup " + (index + 1) + " B",
+                    style);
             var request = new CombatSimulationRequest(
                     mode,
                     boardOne.spec(),
@@ -166,36 +194,74 @@ class BalanceSimulationReportTest {
     }
 
     private GeneratedBoard generateBoard(
+            List<UnitDefinition> allUnits,
             Map<Integer, List<UnitDefinition>> unitsByCost,
             SeededRandomProvider randomProvider,
+            SeededRandomProvider boardDetailsRandomProvider,
             int boardSize,
             int starLevel,
-            String boardName) {
+            String boardName,
+            SimulationStyle style) {
         var selected = new LinkedHashMap<String, UnitDefinition>();
-        var costProfile = rollCostProfile(boardSize, randomProvider);
+        List<Integer> costProfile;
 
-        for (var cost : costProfile) {
-            addRandomUnitFromCost(selected, unitsByCost, cost, randomProvider);
-        }
-
-        if (selected.size() < boardSize) {
-            allowedCosts(boardSize).forEach(cost -> unitsByCost.getOrDefault(cost, List.of()).stream()
+        if (style == SimulationStyle.RANDOM_BOARDS) {
+            var shuffledUnits = new ArrayList<>(allUnits);
+            randomProvider.shuffle(shuffledUnits);
+            shuffledUnits.stream()
                     .filter(unit -> !selected.containsKey(unit.lineId()))
-                    .forEach(unit -> selected.putIfAbsent(unit.lineId(), unit)));
+                    .limit(boardSize)
+                    .forEach(unit -> selected.put(unit.lineId(), unit));
+            costProfile = selected.values().stream()
+                    .map(UnitDefinition::cost)
+                    .sorted()
+                    .toList();
+        } else {
+            costProfile = rollCostProfile(boardSize, randomProvider);
+            for (var cost : costProfile) {
+                addRandomUnitFromCost(selected, unitsByCost, cost, randomProvider);
+            }
+
+            if (selected.size() < boardSize) {
+                allowedCosts(boardSize).forEach(cost -> unitsByCost.getOrDefault(cost, List.of()).stream()
+                        .filter(unit -> !selected.containsKey(unit.lineId()))
+                        .forEach(unit -> selected.putIfAbsent(unit.lineId(), unit)));
+            }
         }
 
         var specs = new ArrayList<UnitSpec>();
-        var slot = 0;
         var positionedUnits =
                 new ArrayList<>(selected.values().stream().limit(boardSize).toList());
         randomProvider.shuffle(positionedUnits);
+        var positions = boardPositions(style, boardDetailsRandomProvider);
+        var slot = 0;
         for (var unit : positionedUnits) {
-            specs.add(new UnitSpec(unit.id(), starLevel, slot % 9, 2 - (slot / 3)));
+            var unitStarLevel = style == SimulationStyle.SAME_STAR
+                    ? starLevel
+                    : STAR_LEVELS.get(boardDetailsRandomProvider.nextInt(STAR_LEVELS.size()));
+            var position = positions.get(slot);
+            specs.add(new UnitSpec(unit.id(), unitStarLevel, position.x(), position.y()));
             slot++;
         }
 
+        var starDescription = style == SimulationStyle.SAME_STAR ? starLevel + " star" : "random stars";
         return new GeneratedBoard(
-                new BoardSpec(boardName + " L" + boardSize + " " + starLevel + " star", boardSize, specs), costProfile);
+                new BoardSpec(boardName + " L" + boardSize + " " + starDescription, boardSize, specs), costProfile);
+    }
+
+    private List<BoardPosition> boardPositions(SimulationStyle style, SeededRandomProvider randomProvider) {
+        var positions = new ArrayList<BoardPosition>();
+        if (style != SimulationStyle.RANDOM_BOARDS) {
+            for (var slot = 0; slot < BOARD_SIZES.getLast(); slot++) {
+                positions.add(new BoardPosition(slot % 9, 2 - (slot / 3)));
+            }
+            return positions;
+        }
+        for (var slot = 0; slot < 27; slot++) {
+            positions.add(new BoardPosition(slot % 9, slot / 9));
+        }
+        randomProvider.shuffle(positions);
+        return positions;
     }
 
     private List<Integer> rollCostProfile(int boardSize, SeededRandomProvider randomProvider) {
@@ -229,13 +295,15 @@ class BalanceSimulationReportTest {
 
     private List<ImpactRow> unitImpactRows(
             List<ScenarioResult> scenarios, GameMode mode, SimulationTestSupport.Fixture fixture) {
+        return unitImpactRowsForBoards(boardOutcomes(scenarios), mode, fixture);
+    }
+
+    private List<ImpactRow> unitImpactRowsForBoards(
+            List<BoardOutcome> boards, GameMode mode, SimulationTestSupport.Fixture fixture) {
         var unitById = fixture.dataLoader().getAllUnits(mode).stream()
                 .collect(Collectors.toMap(UnitDefinition::id, Function.identity()));
         var rows = new HashMap<String, ImpactAccumulator>();
-        scenarios.forEach(scenario -> {
-            addUnitImpact(rows, scenario.boardOne(), scenario.result().boardOneWinRate(), unitById);
-            addUnitImpact(rows, scenario.boardTwo(), scenario.result().boardTwoWinRate(), unitById);
-        });
+        boards.forEach(board -> addUnitImpact(rows, board.board(), board.winRate(), unitById));
         return sortedImpactRows(rows);
     }
 
@@ -260,13 +328,15 @@ class BalanceSimulationReportTest {
 
     private List<ImpactRow> traitImpactRows(
             List<ScenarioResult> scenarios, GameMode mode, SimulationTestSupport.Fixture fixture) {
+        return traitImpactRowsForBoards(boardOutcomes(scenarios), mode, fixture);
+    }
+
+    private List<ImpactRow> traitImpactRowsForBoards(
+            List<BoardOutcome> boards, GameMode mode, SimulationTestSupport.Fixture fixture) {
         var unitById = fixture.dataLoader().getAllUnits(mode).stream()
                 .collect(Collectors.toMap(UnitDefinition::id, Function.identity()));
         var rows = new HashMap<String, ImpactAccumulator>();
-        scenarios.forEach(scenario -> {
-            addTraitImpact(rows, scenario.boardOne(), scenario.result().boardOneWinRate(), unitById);
-            addTraitImpact(rows, scenario.boardTwo(), scenario.result().boardTwoWinRate(), unitById);
-        });
+        boards.forEach(board -> addTraitImpact(rows, board.board(), board.winRate(), unitById));
         return sortedImpactRows(rows);
     }
 
@@ -283,14 +353,25 @@ class BalanceSimulationReportTest {
 
     private List<ImpactRow> traitPairImpactRows(
             List<ScenarioResult> scenarios, GameMode mode, SimulationTestSupport.Fixture fixture) {
+        return traitPairImpactRowsForBoards(boardOutcomes(scenarios), mode, fixture);
+    }
+
+    private List<ImpactRow> traitPairImpactRowsForBoards(
+            List<BoardOutcome> boards, GameMode mode, SimulationTestSupport.Fixture fixture) {
         var unitById = fixture.dataLoader().getAllUnits(mode).stream()
                 .collect(Collectors.toMap(UnitDefinition::id, Function.identity()));
         var rows = new HashMap<String, ImpactAccumulator>();
-        scenarios.forEach(scenario -> {
-            addTraitPairImpact(rows, scenario.boardOne(), scenario.result().boardOneWinRate(), unitById);
-            addTraitPairImpact(rows, scenario.boardTwo(), scenario.result().boardTwoWinRate(), unitById);
-        });
+        boards.forEach(board -> addTraitPairImpact(rows, board.board(), board.winRate(), unitById));
         return sortedImpactRows(rows);
+    }
+
+    private List<BoardOutcome> boardOutcomes(List<ScenarioResult> scenarios) {
+        return scenarios.stream()
+                .flatMap(scenario -> List.of(
+                        new BoardOutcome(scenario.boardOne(), scenario.result().boardOneWinRate()),
+                        new BoardOutcome(scenario.boardTwo(), scenario.result().boardTwoWinRate()))
+                        .stream())
+                .toList();
     }
 
     private void addTraitPairImpact(
@@ -342,6 +423,7 @@ class BalanceSimulationReportTest {
             long seed,
             int matchups,
             int threads,
+            SimulationStyle style,
             CoverageStats coverage,
             List<ScenarioResult> scenarios,
             List<ImpactRow> unitImpacts,
@@ -354,9 +436,15 @@ class BalanceSimulationReportTest {
         builder.append("- Board matchups: ").append(matchups).append('\n');
         builder.append("- Combat samples per matchup: 1\n");
         builder.append("- Simulation threads: ").append(threads).append('\n');
-        builder.append("- Board sizes: ").append(BOARD_SIZES).append('\n');
-        builder.append("- Star levels: all-1-star, all-2-star, all-3-star boards\n");
-        builder.append("- Unit costs: uniformly sampled from all cost profiles available at board size/player level\n");
+        builder.append("- Simulation style: ").append(style.propertyValue()).append('\n');
+        builder.append("- Board sizes: ")
+                .append(BOARD_SIZES)
+                .append(style.boardSizeDescription())
+                .append('\n');
+        builder.append("- Star levels: ").append(style.starLevelDescription()).append('\n');
+        builder.append("- Unit selection: ")
+                .append(style.unitSelectionDescription())
+                .append('\n');
         builder.append("- Draws: included as 0% win contribution for both boards\n");
         builder.append("- Completed combats: ").append(scenarios.size()).append("\n\n");
         builder.append("## Sample Coverage\n\n");
@@ -375,8 +463,52 @@ class BalanceSimulationReportTest {
         appendUnitSections(builder, unitImpacts);
         appendImpactSection(builder, "Trait Count Ranking", traitImpacts, 40);
         appendImpactSection(builder, "Trait Pair Ranking", traitPairImpacts, 40);
-        appendCostProfileSection(builder);
+        appendCostProfileSection(builder, style);
+        appendBoardSizeTierListLinks(builder, style);
         return builder.toString();
+    }
+
+    private void writeBoardSizeTierLists(
+            Path outputDir,
+            GameMode mode,
+            long seed,
+            SimulationStyle style,
+            List<ScenarioResult> scenarios,
+            SimulationTestSupport.Fixture fixture)
+            throws IOException {
+        var allBoardOutcomes = boardOutcomes(scenarios);
+        for (var boardSize : BOARD_SIZES) {
+            var boardSizeOutcomes = allBoardOutcomes.stream()
+                    .filter(board -> board.board().spec().level() == boardSize)
+                    .toList();
+            var unitRows = unitImpactRowsForBoards(boardSizeOutcomes, mode, fixture);
+            var traitRows = traitImpactRowsForBoards(boardSizeOutcomes, mode, fixture);
+            var traitPairRows = traitPairImpactRowsForBoards(boardSizeOutcomes, mode, fixture);
+            var builder = new StringBuilder();
+            builder.append("# Balance Report - Board Size ").append(boardSize).append("\n\n");
+            builder.append("- Mode: ").append(mode.getValue()).append('\n');
+            builder.append("- Seed: ").append(seed).append('\n');
+            builder.append("- Simulation style: ").append(style.propertyValue()).append('\n');
+            builder.append("- Boards sampled: ")
+                    .append(boardSizeOutcomes.size())
+                    .append('\n');
+            builder.append("- Minimum appearances for reliable ordering: ")
+                    .append(MIN_IMPACT_APPEARANCES)
+                    .append('\n');
+            appendUnitSections(builder, unitRows);
+            appendImpactSection(builder, "Trait Count Ranking", traitRows, 40);
+            appendImpactSection(builder, "Trait Pair Ranking", traitPairRows, 40);
+            Files.writeString(outputDir.resolve(style.tierListFileName(boardSize)), builder.toString());
+        }
+    }
+
+    private void appendBoardSizeTierListLinks(StringBuilder builder, SimulationStyle style) {
+        builder.append("\n## Balance Reports by Board Size\n\n");
+        BOARD_SIZES.forEach(boardSize -> builder.append("- [Board size ")
+                .append(boardSize)
+                .append("](")
+                .append(style.tierListFileName(boardSize))
+                .append(")\n"));
     }
 
     private void appendUnitSections(StringBuilder builder, List<ImpactRow> rows) {
@@ -415,7 +547,12 @@ class BalanceSimulationReportTest {
                 .append(" |\n"));
     }
 
-    private void appendCostProfileSection(StringBuilder builder) {
+    private void appendCostProfileSection(StringBuilder builder, SimulationStyle style) {
+        if (style == SimulationStyle.RANDOM_BOARDS) {
+            builder.append("\n## Unit Cost Sampling\n\n");
+            builder.append("Unit costs are unconstrained: every unit in the mode has equal selection probability.\n");
+            return;
+        }
         builder.append("\n## Cost Profiles Used\n\n");
         builder.append("| Board Size / Level | Available Costs | Possible Cost Profiles |\n");
         builder.append("|---:|---|---:|\n");
@@ -516,12 +653,92 @@ class BalanceSimulationReportTest {
 
     private record GeneratedBoard(BoardSpec spec, List<Integer> costProfile) {}
 
+    private record BoardPosition(int x, int y) {}
+
+    private record BoardOutcome(GeneratedBoard board, double winRate) {}
+
     private record ScenarioWorkload(
             GeneratedBoard boardOne, GeneratedBoard boardTwo, CombatSimulationRequest request) {}
 
     private record ScenarioResult(GeneratedBoard boardOne, GeneratedBoard boardTwo, CombatSimulationResult result) {}
 
     private record CoverageStats(int uniqueBoards, int uniqueMatchups, int uniqueCostProfiles) {}
+
+    private enum SimulationStyle {
+        SAME_STAR(
+                "same-star",
+                "balance-report.md",
+                "",
+                "all-1-star, all-2-star, all-3-star boards",
+                "uniformly sampled from all cost profiles available at board size/player level"),
+        RANDOM_STARS(
+                "random-stars",
+                "balance-report-random-stars.md",
+                "",
+                "independently randomized from 1 to 3 stars per unit",
+                "uniformly sampled from all cost profiles available at board size/player level"),
+        RANDOM_BOARDS(
+                "random-boards",
+                "balance-report-random-boards.md",
+                "; independently randomized per board",
+                "independently randomized from 1 to 3 stars per unit",
+                "uniformly sampled from the full unit pool, independent of shop cost odds");
+
+        private final String propertyValue;
+        private final String reportFileName;
+        private final String boardSizeDescription;
+        private final String starLevelDescription;
+        private final String unitSelectionDescription;
+
+        SimulationStyle(
+                String propertyValue,
+                String reportFileName,
+                String boardSizeDescription,
+                String starLevelDescription,
+                String unitSelectionDescription) {
+            this.propertyValue = propertyValue;
+            this.reportFileName = reportFileName;
+            this.boardSizeDescription = boardSizeDescription;
+            this.starLevelDescription = starLevelDescription;
+            this.unitSelectionDescription = unitSelectionDescription;
+        }
+
+        private static SimulationStyle fromProperty(String value) {
+            return switch (value.toLowerCase(Locale.ROOT)) {
+                case "same-star" -> SAME_STAR;
+                case "random-stars" -> RANDOM_STARS;
+                case "random-boards" -> RANDOM_BOARDS;
+                default ->
+                    throw new IllegalArgumentException("Unknown simulation.style '" + value
+                            + "'. Expected same-star, random-stars, or random-boards.");
+            };
+        }
+
+        private String tierListFileName(int boardSize) {
+            var suffix = this == SAME_STAR ? "" : "-" + propertyValue;
+            return "unit-tier-list-board-size-" + boardSize + suffix + ".md";
+        }
+
+        private String propertyValue() {
+            return propertyValue;
+        }
+
+        private String reportFileName() {
+            return reportFileName;
+        }
+
+        private String boardSizeDescription() {
+            return boardSizeDescription;
+        }
+
+        private String starLevelDescription() {
+            return starLevelDescription;
+        }
+
+        private String unitSelectionDescription() {
+            return unitSelectionDescription;
+        }
+    }
 
     private record ImpactRow(String key, int appearances, double winRate) {
         private int starLevel() {

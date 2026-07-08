@@ -6,7 +6,7 @@ defineOptions({
 defineEmits(['back'])
 
 const versionXXXCommits = [
-  { hash: 'pending', title: 'Add backend combat simulation reports' },
+  { hash: 'pending', title: 'Add backend combat simulation reports and randomized board modes' },
   { hash: 'pending', title: 'Upgrade third-party dependencies' }
 ]
 
@@ -65,9 +65,9 @@ const version160Commits = [
             </div>
             <p>
               Backend balance tooling can now run deterministic tick-based combat simulations and generate Pokemon-first
-              Markdown reports for 100k cost-profile board matchups, split unit rankings by star level, and trait impact
-              tables, with sample coverage diagnostics, console progress, and configurable parallel workers during long
-              runs.
+              Markdown reports for 100k cost-profile board matchups, randomized-star and fully randomized-board modes,
+              split unit rankings by star level, board-size unit and trait rankings, and trait impact tables, with sample
+              coverage diagnostics, console progress, and configurable parallel workers during long runs.
             </p>
           </article>
         </div>

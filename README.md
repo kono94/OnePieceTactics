@@ -197,6 +197,23 @@ Augment choices are included in each player's `GameState` snapshot as `augmentCh
 cd backend && mvn spotless:apply
 ```
 
+### Balance Simulation Reports
+```bash
+cd backend
+
+# Existing same-star board simulation
+mvn -Dtest=BalanceSimulationReportTest -Dsimulation.report=true -Dsimulation.runs=100000 -Dsimulation.threads=8 test
+
+# Keep the same board-building rules, but randomize every unit's star level
+mvn -Dtest=BalanceSimulationReportTest -Dsimulation.report=true -Dsimulation.runs=100000 -Dsimulation.threads=8 -Dsimulation.style=random-stars test
+
+# Randomize board sizes, units, star levels, and positions
+mvn -Dtest=BalanceSimulationReportTest -Dsimulation.report=true -Dsimulation.runs=100000 -Dsimulation.threads=8 -Dsimulation.style=random-boards test
+```
+
+Reports are written to `backend/target/simulation-reports`. Every style also writes unit and trait rankings for board
+sizes 2–7.
+
 ### Build for Production
 ```bash
 # Backend
