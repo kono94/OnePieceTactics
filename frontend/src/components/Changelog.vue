@@ -5,11 +5,8 @@ defineOptions({
 
 defineEmits(['back'])
 
-const nextVersionCommits = [
-  { hash: 'pending', title: 'Nerf Pokemon bot board size from rounds 8-15' }
-]
-
 const version162Commits = [
+  { hash: '4a5c569', title: 'Nerf Pokemon bot board size' },
   { hash: 'e7b41c5', title: 'Improve README' },
   { hash: '48fa306', title: 'Rebalance One Piece units from combat simulation results' },
   { hash: '282d2cf', title: 'Rebalance Pokemon units from combat simulation results' },
@@ -45,55 +42,6 @@ const version160Commits = [
       <section class="release-section latest-release">
         <div class="release-header">
           <p class="eyebrow">Latest</p>
-          <h2>Version X.X.X</h2>
-          <p>
-            Pokemon bot opponents now field slightly smaller boards during the midgame and early late game while One
-            Piece bot scaling remains unchanged.
-          </p>
-        </div>
-
-        <div class="release-grid">
-          <article class="release-panel">
-            <div class="section-heading">
-              <span class="marker release"></span>
-              <h3>Development</h3>
-            </div>
-            <ul class="commit-list">
-              <li v-for="commit in nextVersionCommits" :key="commit.hash">
-                <span class="hash">{{ commit.hash }}</span>
-                <span>{{ commit.title }}</span>
-              </li>
-            </ul>
-          </article>
-
-          <article class="balance-panel">
-            <div class="section-heading">
-              <span class="marker balance"></span>
-              <h3>Balance Changes</h3>
-            </div>
-
-            <div class="balance-block">
-              <div class="balance-title">
-                <span class="tag nerf">Nerf</span>
-                <h4>Pokemon Bots</h4>
-              </div>
-              <p>
-                Round 8-9 active units:
-                <span class="old-value">6</span>
-                <span class="change-arrow">&nbsp;=>&nbsp;</span>
-                <strong class="value nerf">5</strong>. Round 10-15 active units:
-                <span class="old-value">7</span>
-                <span class="change-arrow">&nbsp;=>&nbsp;</span>
-                <strong class="value nerf">6</strong>. One Piece bot unit counts are unchanged.
-              </p>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section class="release-section">
-        <div class="release-header">
-          <p class="eyebrow">Previous</p>
           <h2>Version 1.6.2</h2>
           <p>
             Frontend and backend dependencies have been refreshed for the current security baseline, including Vite 8,
@@ -133,6 +81,22 @@ const version160Commits = [
             <div class="section-heading">
               <span class="marker balance"></span>
               <h3>Balance Changes</h3>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag nerf">Nerf</span>
+                <h4>Pokemon Bots</h4>
+              </div>
+              <p>
+                Round 8-9 active units:
+                <span class="old-value">6</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value nerf">5</strong>. Round 10-15 active units:
+                <span class="old-value">7</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value nerf">6</strong>. One Piece bot unit counts are unchanged.
+              </p>
             </div>
 
             <div class="balance-block">
