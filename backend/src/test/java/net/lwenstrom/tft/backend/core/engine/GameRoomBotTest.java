@@ -218,6 +218,44 @@ class GameRoomBotTest {
     }
 
     @Test
+    void pokemonRoundFiveBotRosterKeepsSharedEarlyCurve() {
+        var unit = TestHelpers.createUnitDef("one-cost", "One Cost", 1, 100, 10);
+        var room = createRoomWithUnits(List.of(unit), new FixedRandomProvider(35), GameMode.POKEMON);
+        var bot = room.addBot().orElseThrow();
+
+        refreshBotAtRound(room, bot, 5);
+
+        assertEquals(4, bot.getBoardUnits().size());
+        assertTrue(bot.getBoardUnits().stream().allMatch(boardUnit -> boardUnit.getStarLevel() == 2));
+    }
+
+    @Test
+    void pokemonRoundEightBotRosterUsesOneFewerUnit() {
+        var unit = TestHelpers.createUnitDef("one-cost", "One Cost", 1, 100, 10);
+        var room = createRoomWithUnits(List.of(unit), new FixedRandomProvider(99), GameMode.POKEMON);
+        var bot = room.addBot().orElseThrow();
+
+        refreshBotAtRound(room, bot, 8);
+
+        assertEquals(5, bot.getBoardUnits().size());
+    }
+
+    @Test
+    void pokemonRoundTenBotRosterUsesOneFewerUnit() {
+        var unit = TestHelpers.createUnitDef("one-cost", "One Cost", 1, 100, 10);
+        var room = createRoomWithUnits(List.of(unit), new FixedRandomProvider(99), GameMode.POKEMON);
+        var bot = room.addBot().orElseThrow();
+
+        refreshBotAtRound(room, bot, 10);
+
+        assertEquals(6, bot.getBoardUnits().size());
+        assertTrue(bot.getBoardUnits().stream()
+                        .filter(boardUnit -> boardUnit.getStarLevel() == 3)
+                        .count()
+                >= 2);
+    }
+
+    @Test
     void roundFifteenBotRosterGuaranteesCheapAndMidCostThreeStars() {
         var oneCost = TestHelpers.createUnitDef("one-cost", "One Cost", 1, 100, 10);
         var threeCost = TestHelpers.createUnitDef("three-cost", "Three Cost", 3, 100, 10);
@@ -227,6 +265,28 @@ class GameRoomBotTest {
         refreshBotAtRound(room, bot, 15);
 
         assertEquals(7, bot.getBoardUnits().size());
+        assertTrue(bot.getBoardUnits().stream()
+                        .filter(boardUnit -> boardUnit.getCost() <= 2)
+                        .filter(boardUnit -> boardUnit.getStarLevel() == 3)
+                        .count()
+                >= 2);
+        assertTrue(bot.getBoardUnits().stream()
+                        .filter(boardUnit -> boardUnit.getCost() >= 3 && boardUnit.getCost() <= 4)
+                        .filter(boardUnit -> boardUnit.getStarLevel() == 3)
+                        .count()
+                >= 2);
+    }
+
+    @Test
+    void pokemonRoundFifteenBotRosterUsesOneFewerUnit() {
+        var oneCost = TestHelpers.createUnitDef("one-cost", "One Cost", 1, 100, 10);
+        var threeCost = TestHelpers.createUnitDef("three-cost", "Three Cost", 3, 100, 10);
+        var room = createRoomWithUnits(List.of(oneCost, threeCost), new FixedRandomProvider(99), GameMode.POKEMON);
+        var bot = room.addBot().orElseThrow();
+
+        refreshBotAtRound(room, bot, 15);
+
+        assertEquals(6, bot.getBoardUnits().size());
         assertTrue(bot.getBoardUnits().stream()
                         .filter(boardUnit -> boardUnit.getCost() <= 2)
                         .filter(boardUnit -> boardUnit.getStarLevel() == 3)
@@ -253,13 +313,40 @@ class GameRoomBotTest {
     }
 
     private GameRoom createRoomWithUnits(List<UnitDefinition> units, RandomProvider randomProvider) {
+        return createRoomWithUnits(units, randomProvider, GameMode.ONEPIECE);
+    }
+
+    private GameRoom createRoomWithUnits(List<UnitDefinition> units, RandomProvider randomProvider, GameMode mode) {
         return new GameRoom(
                 "bot-tuning-test",
                 TestHelpers.createMockDataLoader(units),
-                TestHelpers.createMockRegistry(),
+                createMockRegistry(mode),
                 createTestClock(),
                 randomProvider,
-                GameMode.ONEPIECE);
+                mode);
+    }
+
+    private GameModeRegistry createMockRegistry(GameMode mode) {
+        GameModeProvider provider = new GameModeProvider() {
+            @Override
+            public GameMode getMode() {
+                return mode;
+            }
+
+            @Override
+            public String getUnitsPath() {
+                return "";
+            }
+
+            @Override
+            public String getTraitsPath() {
+                return "";
+            }
+
+            @Override
+            public void registerTraitEffects(TraitManager traitManager) {}
+        };
+        return new GameModeRegistry(List.of(provider), mode.getValue());
     }
 
     private void refreshBotAtRound(GameRoom room, Player bot, int targetRound) {
