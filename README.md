@@ -204,6 +204,9 @@ cd backend
 # Existing same-star board simulation
 mvn -Dtest=BalanceSimulationReportTest -Dsimulation.report=true -Dsimulation.runs=100000 -Dsimulation.threads=8 test
 
+# One piece
+mvn -Dtest=BalanceSimulationReportTest -Dsimulation.mode=onepiece -Dsimulation.report=true -Dsimulation.runs=100000 -Dsimulation.threads=8 test
+
 # Keep the same board-building rules, but randomize every unit's star level
 mvn -Dtest=BalanceSimulationReportTest -Dsimulation.report=true -Dsimulation.runs=100000 -Dsimulation.threads=8 -Dsimulation.style=random-stars test
 
