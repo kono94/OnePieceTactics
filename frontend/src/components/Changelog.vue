@@ -5,11 +5,13 @@ defineOptions({
 
 defineEmits(['back'])
 
-const versionXXXCommits = [
-  { hash: 'pending', title: 'Rebalance One Piece units from combat simulation results' },
-  { hash: 'pending', title: 'Rebalance Pokemon units from combat simulation results' },
-  { hash: 'pending', title: 'Add backend combat simulation reports and randomized board modes' },
-  { hash: 'pending', title: 'Upgrade third-party dependencies' }
+const version162Commits = [
+  { hash: 'e7b41c5', title: 'Improve README' },
+  { hash: '48fa306', title: 'Rebalance One Piece units from combat simulation results' },
+  { hash: '282d2cf', title: 'Rebalance Pokemon units from combat simulation results' },
+  { hash: 'f49c6d9', title: 'Add backend combat simulation reports and randomized board modes' },
+  { hash: '96a6c5e', title: 'Add deterministic combat simulation reports' },
+  { hash: '405a32b', title: 'Upgrade third-party dependencies' }
 ]
 
 const version161Commits = [
@@ -39,7 +41,7 @@ const version160Commits = [
       <section class="release-section">
         <div class="release-header">
           <p class="eyebrow">Latest</p>
-          <h2>Version X.X.X</h2>
+          <h2>Version 1.6.2</h2>
           <p>
             Frontend and backend dependencies have been refreshed for the current security baseline, including Vite 8,
             Spring Boot 4.1, Vue 3.5, and updated build tooling. One Piece and Pokemon unit balance has also been
@@ -54,7 +56,7 @@ const version160Commits = [
               <h3>Development</h3>
             </div>
             <ul class="commit-list">
-              <li v-for="commit in versionXXXCommits" :key="commit.hash">
+              <li v-for="commit in version162Commits" :key="commit.hash">
                 <span class="hash">{{ commit.hash }}</span>
                 <span>{{ commit.title }}</span>
               </li>
