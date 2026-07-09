@@ -6,6 +6,7 @@ defineOptions({
 defineEmits(['back'])
 
 const versionXXXCommits = [
+  { hash: 'pending', title: 'Rebalance One Piece units from combat simulation results' },
   { hash: 'pending', title: 'Rebalance Pokemon units from combat simulation results' },
   { hash: 'pending', title: 'Add backend combat simulation reports and randomized board modes' },
   { hash: 'pending', title: 'Upgrade third-party dependencies' }
@@ -41,8 +42,8 @@ const version160Commits = [
           <h2>Version X.X.X</h2>
           <p>
             Frontend and backend dependencies have been refreshed for the current security baseline, including Vite 8,
-            Spring Boot 4.1, Vue 3.5, and updated build tooling. Pokemon unit balance has also been adjusted from
-            same-star and randomized-star combat simulation results.
+            Spring Boot 4.1, Vue 3.5, and updated build tooling. One Piece and Pokemon unit balance has also been
+            adjusted from same-star and randomized-star combat simulation results.
           </p>
         </div>
 
@@ -77,6 +78,110 @@ const version160Commits = [
             <div class="section-heading">
               <span class="marker balance"></span>
               <h3>Balance Changes</h3>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag nerf">Nerf</span>
+                <h4>Monkey D. Luffy</h4>
+              </div>
+              <p>
+                Gum Gum Pistol damage:
+                <span class="old-value">200/450/1000</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value nerf">175/400/1000</strong>. The 3★ value is unchanged.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag nerf">Nerf</span>
+                <h4>Sanji</h4>
+              </div>
+              <p>
+                Diable Jambe attack speed:
+                <span class="old-value">30/50/80%</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value nerf">25/45/75%</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Boa Hancock</h4>
+              </div>
+              <p>
+                Slave Arrow range:
+                <span class="old-value">3/3/3</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">4/4/4</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Tony Tony Chopper</h4>
+              </div>
+              <p>
+                Emergency Treatment healing:
+                <span class="old-value">150/300/600</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">300/600/1200</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Ivankov</h4>
+              </div>
+              <p>
+                Emporio Healing Hormone healing:
+                <span class="old-value">250/450/810</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">350/630/1134</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Marco</h4>
+              </div>
+              <p>
+                Phoenix Flames healing:
+                <span class="old-value">350/630/1134</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">450/810/1458</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Sengoku</h4>
+              </div>
+              <p>
+                Buddha Palm attack:
+                <span class="old-value">40/60/85%</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">45/70/100%</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Charlotte Katakuri</h4>
+              </div>
+              <p>
+                Mochi Thrust damage:
+                <span class="old-value">700/1260/2268</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">800/1440/2592</strong>.
+              </p>
             </div>
 
             <div class="balance-block">

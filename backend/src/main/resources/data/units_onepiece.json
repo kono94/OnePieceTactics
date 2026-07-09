@@ -52,11 +52,7 @@
             "description": "Stretches arm to deal $value damage. Executes enemies below 30% HP.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [
-                200,
-                450,
-                1000
-            ],
+            "values": [175, 400, 1000],
             "range": [
                 2,
                 2,
@@ -327,11 +323,7 @@
             "description": "Ignites legs, increasing allies' attack speed by $value%.",
             "type": "BUFF_SPD",
             "pattern": "SURROUND",
-            "values": [
-                30,
-                50,
-                80
-            ],
+            "values": [25, 45, 75],
             "range": [
                 2,
                 2,
@@ -392,11 +384,7 @@
             "description": "Heals the lowest HP ally for $value health.",
             "type": "HEAL",
             "pattern": "SINGLE",
-            "values": [
-                150,
-                300,
-                600
-            ],
+            "values": [300, 600, 1200],
             "range": [
                 3,
                 3,
@@ -1113,11 +1101,7 @@
             "description": "Giant palm increases all allies' attack by $value%.",
             "type": "BUFF_ATK",
             "pattern": "SURROUND",
-            "values": [
-                40,
-                60,
-                85
-            ],
+            "values": [45, 70, 100],
             "range": [
                 5,
                 5,
@@ -1720,11 +1704,7 @@
             "type": "STUN",
             "pattern": "SURROUND",
             "values": [1, 1, 2],
-            "range": [
-                3,
-                3,
-                3
-            ]
+            "range": [4, 4, 4]
         }
     },
     {
@@ -2794,11 +2774,7 @@
             "description": "Piercing strike deals $value damage. Executes low HP enemies.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [
-                700,
-                1260,
-                2268
-            ],
+            "values": [800, 1440, 2592],
             "range": [
                 3,
                 3,
@@ -3146,11 +3122,7 @@
             "description": "Heals all allies in range for $value.",
             "type": "HEAL",
             "pattern": "SURROUND",
-            "values": [
-                250,
-                450,
-                810
-            ],
+            "values": [350, 630, 1134],
             "range": [
                 3,
                 3,
@@ -3603,11 +3575,7 @@
             "description": "Blue flames heal all allies in range for $value.",
             "type": "HEAL",
             "pattern": "SURROUND",
-            "values": [
-                350,
-                630,
-                1134
-            ],
+            "values": [450, 810, 1458],
             "range": [
                 3,
                 3,
