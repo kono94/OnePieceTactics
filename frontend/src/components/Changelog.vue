@@ -38,7 +38,7 @@ const version160Commits = [
     <button class="back-button" type="button" @click="$emit('back')">Back</button>
 
     <div class="release-history">
-      <section class="release-section">
+      <section class="release-section latest-release">
         <div class="release-header">
           <p class="eyebrow">Latest</p>
           <h2>Version 1.6.2</h2>
@@ -49,32 +49,32 @@ const version160Commits = [
           </p>
         </div>
 
-        <div class="release-grid">
-          <article class="release-panel">
-            <div class="section-heading">
-              <span class="marker release"></span>
-              <h3>Development</h3>
-            </div>
-            <ul class="commit-list">
-              <li v-for="commit in version162Commits" :key="commit.hash">
-                <span class="hash">{{ commit.hash }}</span>
-                <span>{{ commit.title }}</span>
-              </li>
-            </ul>
-          </article>
+        <div class="release-grid latest-release-grid">
+          <div class="release-sidebar">
+            <article class="release-panel">
+              <div class="section-heading">
+                <span class="marker release"></span>
+                <h3>Development</h3>
+              </div>
+              <ul class="commit-list">
+                <li v-for="commit in version162Commits" :key="commit.hash">
+                  <span class="hash">{{ commit.hash }}</span>
+                  <span>{{ commit.title }}</span>
+                </li>
+              </ul>
+            </article>
 
-          <article class="release-panel">
-            <div class="section-heading">
-              <span class="marker release"></span>
-              <h3>Simulation</h3>
-            </div>
-            <p>
-              Backend balance tooling can now run deterministic tick-based combat simulations and generate Pokemon-first
-              Markdown reports for 100k cost-profile board matchups, randomized-star and fully randomized-board modes,
-              split unit rankings by star level, board-size unit and trait rankings, and trait impact tables, with sample
-              coverage diagnostics, console progress, and configurable parallel workers during long runs.
-            </p>
-          </article>
+            <aside class="simulation-note">
+              <div class="section-heading compact-heading">
+                <span class="marker release"></span>
+                <h3>Simulation</h3>
+              </div>
+              <p>
+                Balance tooling now supports deterministic tick-based reports, randomized-star and randomized-board
+                modes, board-size rankings, trait impact tables, coverage diagnostics, and parallel workers.
+              </p>
+            </aside>
+          </div>
 
           <article class="balance-panel">
             <div class="section-heading">
@@ -1217,6 +1217,10 @@ const version160Commits = [
     margin: 0 auto;
 }
 
+.latest-release {
+    max-width: 1400px;
+}
+
 .release-header {
     margin-bottom: 18px;
 }
@@ -1241,8 +1245,19 @@ const version160Commits = [
     margin: 0;
 }
 
+.latest-release-grid {
+    grid-template-columns: minmax(280px, 340px) minmax(620px, 1fr);
+    align-items: start;
+}
+
+.release-sidebar {
+    display: grid;
+    gap: 16px;
+}
+
 .release-panel,
-.balance-panel {
+.balance-panel,
+.simulation-note {
     border: 1px solid rgba(148, 163, 184, 0.22);
     border-radius: 8px;
     background: rgba(15, 23, 42, 0.72);
@@ -1257,6 +1272,18 @@ const version160Commits = [
     padding: 24px;
 }
 
+.simulation-note {
+    padding: 16px;
+    background: rgba(15, 23, 42, 0.54);
+}
+
+.simulation-note p {
+    margin: 0;
+    color: #cbd5e1;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
 .section-heading,
 .balance-title {
     display: flex;
@@ -1268,6 +1295,10 @@ const version160Commits = [
     margin-bottom: 18px;
 }
 
+.compact-heading {
+    margin-bottom: 10px;
+}
+
 .section-heading h3,
 .balance-title h4 {
     margin: 0;
@@ -1275,6 +1306,10 @@ const version160Commits = [
 
 .section-heading h3 {
     font-size: 22px;
+}
+
+.compact-heading h3 {
+    font-size: 16px;
 }
 
 .balance-title h4 {
@@ -1393,6 +1428,10 @@ const version160Commits = [
 
 @media (max-width: 820px) {
     .release-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .latest-release-grid {
         grid-template-columns: 1fr;
     }
 
