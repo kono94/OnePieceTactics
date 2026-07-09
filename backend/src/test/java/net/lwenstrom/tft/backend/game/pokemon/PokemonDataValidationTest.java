@@ -153,7 +153,7 @@ class PokemonDataValidationTest {
     }
 
     @Test
-    void raichuThunderKeepsTwoSecondThirdStarStunButCapsTargets() throws Exception {
+    void raichuThunderCapsTargetsAndThirdStarStun() throws Exception {
         var pikachu = find(loadPokemonUnits(), "pikachu");
         var raichuForms = pikachu.forms().stream()
                 .filter(form -> form.definitionId().equals("raichu"))
@@ -163,7 +163,7 @@ class PokemonDataValidationTest {
         raichuForms.forEach(form -> {
             var ability = form.ability();
             assertEquals(
-                    List.of(1, 1, 2),
+                    List.of(1, 1, 1),
                     ability.modifiers().stream()
                             .filter(net.lwenstrom.tft.backend.core.model.StunModifier.class::isInstance)
                             .map(net.lwenstrom.tft.backend.core.model.StunModifier.class::cast)

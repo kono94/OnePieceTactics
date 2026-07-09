@@ -4,13 +4,13 @@
         "lineId": "bulbasaur",
         "name": "Bulbasaur",
         "cost": 1,
-        "maxHealth": [532, 958, 1723],
-        "maxMana": [55, 55, 55],
-        "attackDamage": [47, 84, 151],
+        "maxHealth": [600, 1080, 1945],
+        "maxMana": [45, 45, 45],
+        "attackDamage": [52, 94, 170],
         "abilityPower": [0, 0, 0],
         "armor": [20, 20, 20],
         "magicResist": [20, 20, 20],
-        "attackSpeed": [0.62, 0.62, 0.62],
+        "attackSpeed": [0.68, 0.68, 0.68],
         "range": [1, 1, 1],
         "traits": ["Grass", "Poison"],
         "ability": {
@@ -18,7 +18,7 @@
             "description": "Whips enemies in a line for $value damage.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [143, 322, 692],
+            "values": [180, 405, 870],
             "range": [2, 2, 3]
         },
         "forms": [
@@ -32,7 +32,7 @@
                     "description": "Whips enemies in a line for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [143, 322, 692],
+                    "values": [180, 405, 870],
                     "range": [2, 2, 3]
                 }
             },
@@ -46,13 +46,13 @@
                     "description": "Scatters sharp leaves for $value damage and poison.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [128, 287, 617],
+                    "values": [160, 360, 775],
                     "range": [1, 1, 2],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [18, 38, 78],
+                            "damagePerTick": [24, 50, 102],
                             "durationSeconds": [3, 4, 4],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -69,8 +69,8 @@
                     "description": "Covers the board in grass, healing allies for $value.",
                     "type": "HEAL",
                     "pattern": "SURROUND",
-                    "values": [156, 334, 710],
-                    "range": [3, 3, 3]
+                    "values": [195, 420, 1000],
+                    "range": [3, 3, 4]
                 }
             }
         ]
@@ -80,13 +80,13 @@
         "lineId": "charmander",
         "name": "Charmander",
         "cost": 1,
-        "maxHealth": [580, 1044, 1785],
-        "maxMana": [55, 55, 55],
-        "attackDamage": [61, 110, 188],
+        "maxHealth": [580, 1044, 2200],
+        "maxMana": [55, 55, 45],
+        "attackDamage": [61, 110, 225],
         "abilityPower": [0, 0, 0],
         "armor": [20, 20, 20],
         "magicResist": [20, 20, 20],
-        "attackSpeed": [0.64, 0.64, 0.64],
+        "attackSpeed": [0.64, 0.64, 0.72],
         "range": [1, 1, 1],
         "traits": ["Fire"],
         "ability": {
@@ -167,13 +167,13 @@
                     "description": "Sweeps a blazing line for $value damage and burn.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [143, 322, 692],
-                    "range": [3, 4, 5],
+                    "values": [143, 322, 1000],
+                    "range": [3, 4, 6],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [28, 58, 118],
+                            "damagePerTick": [28, 58, 160],
                             "durationSeconds": [3, 4, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -260,13 +260,13 @@
         "lineId": "caterpie",
         "name": "Caterpie",
         "cost": 1,
-        "maxHealth": [570, 1026, 1755],
-        "maxMana": [75, 75, 75],
-        "attackDamage": [35, 63, 107],
+        "maxHealth": [570, 1026, 2200],
+        "maxMana": [75, 75, 60],
+        "attackDamage": [35, 63, 140],
         "abilityPower": [0, 0, 0],
         "armor": [18, 18, 18],
         "magicResist": [28, 28, 28],
-        "attackSpeed": [0.62, 0.62, 0.62],
+        "attackSpeed": [0.62, 0.62, 0.75],
         "range": [3, 3, 3],
         "traits": ["Bug"],
         "ability": {
@@ -316,8 +316,8 @@
                     "description": "Dusts nearby enemies, stunning them for $value seconds.",
                     "type": "STUN",
                     "pattern": "SURROUND",
-                    "values": [1, 1, 2],
-                    "range": [2, 3, 3]
+                    "values": [1, 1, 3],
+                    "range": [2, 3, 4]
                 }
             }
         ]
@@ -327,9 +327,9 @@
         "lineId": "weedle",
         "name": "Weedle",
         "cost": 1,
-        "maxHealth": [428, 770, 1385],
-        "maxMana": [55, 55, 55],
-        "attackDamage": [50, 90, 163],
+        "maxHealth": [470, 850, 1530],
+        "maxMana": [50, 50, 50],
+        "attackDamage": [54, 98, 176],
         "abilityPower": [0, 0, 0],
         "armor": [14, 14, 14],
         "magicResist": [16, 16, 16],
@@ -341,13 +341,13 @@
             "description": "Stings for $value damage and poison.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [173, 387, 832],
+            "values": [195, 440, 945],
             "range": [2, 2, 3],
             "modifiers": [
                 {
                     "type": "DOT",
                     "dotType": "POISON",
-                    "damagePerTick": [20, 44, 88],
+                    "damagePerTick": [24, 52, 104],
                     "durationSeconds": [3, 3, 4],
                     "tickIntervalMs": [1000, 1000, 1000]
                 }
@@ -364,13 +364,13 @@
                     "description": "Stings for $value damage and poison.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [173, 387, 832],
+                    "values": [195, 440, 945],
                     "range": [2, 2, 3],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [20, 44, 88],
+                            "damagePerTick": [24, 52, 104],
                             "durationSeconds": [3, 3, 4],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -387,7 +387,7 @@
                     "description": "Fortifies its shell, gaining $value shield.",
                     "type": "SHIELD",
                     "pattern": "SINGLE",
-                    "values": [164, 350, 732],
+                    "values": [185, 400, 850],
                     "range": [1, 1, 1]
                 }
             },
@@ -401,13 +401,13 @@
                     "description": "Pierces for $value damage, executing wounded targets.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [173, 387, 832],
+                    "values": [195, 440, 945],
                     "range": [1, 1, 2],
                     "modifiers": [
                         {
                             "type": "EXECUTE",
-                            "hpThreshold": [0.25, 0.3, 0.35],
-                            "bonusDamageMultiplier": [0.25, 0.35, 0.5]
+                            "hpThreshold": [0.27, 0.33, 0.4],
+                            "bonusDamageMultiplier": [0.3, 0.42, 0.6]
                         }
                     ]
                 }
@@ -493,9 +493,9 @@
         "lineId": "rattata",
         "name": "Rattata",
         "cost": 1,
-        "maxHealth": [450, 810, 1458],
-        "maxMana": [55, 55, 55],
-        "attackDamage": [53, 95, 172],
+        "maxHealth": [485, 875, 1575],
+        "maxMana": [50, 50, 50],
+        "attackDamage": [57, 103, 185],
         "abilityPower": [0, 0, 0],
         "armor": [14, 14, 14],
         "magicResist": [16, 16, 16],
@@ -507,13 +507,13 @@
             "description": "Darts in for $value damage.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [173, 387, 832],
+            "values": [195, 440, 945],
             "range": [1, 1, 2],
             "modifiers": [
                 {
                     "type": "EXECUTE",
                     "hpThreshold": [0.3, 0.34, 0.4],
-                    "bonusDamageMultiplier": [0.2, 0.28, 0.4]
+                    "bonusDamageMultiplier": [0.24, 0.34, 0.48]
                 }
             ]
         },
@@ -528,13 +528,13 @@
                     "description": "Darts in for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [173, 387, 832],
+                    "values": [195, 440, 945],
                     "range": [1, 1, 2],
                     "modifiers": [
                         {
                             "type": "EXECUTE",
                             "hpThreshold": [0.3, 0.34, 0.4],
-                            "bonusDamageMultiplier": [0.2, 0.28, 0.4]
+                            "bonusDamageMultiplier": [0.24, 0.34, 0.48]
                         }
                     ]
                 }
@@ -549,7 +549,7 @@
                     "description": "Bites hard for $value damage and a short stun.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [173, 387, 832],
+                    "values": [195, 440, 945],
                     "range": [1, 1, 1],
                     "modifiers": [
                         {
@@ -569,13 +569,13 @@
                     "description": "Rips into a target for $value damage, scaling with max health.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [173, 387, 832],
+                    "values": [195, 440, 945],
                     "range": [1, 1, 2],
                     "modifiers": [
                         {
                             "type": "SCALING",
                             "scalingType": "TARGET_MAX_HP_PERCENT",
-                            "factor": [0.025, 0.035, 0.05]
+                            "factor": [0.03, 0.04, 0.06]
                         }
                     ]
                 }
@@ -667,9 +667,9 @@
         "lineId": "nidoran_f",
         "name": "Nidoran-F",
         "cost": 1,
-        "maxHealth": [700, 1260, 2155],
-        "maxMana": [55, 55, 55],
-        "attackDamage": [37, 67, 114],
+        "maxHealth": [700, 1325, 2600],
+        "maxMana": [55, 50, 45],
+        "attackDamage": [37, 70, 140],
         "abilityPower": [0, 0, 0],
         "armor": [34, 34, 34],
         "magicResist": [28, 28, 28],
@@ -727,13 +727,13 @@
                     "description": "Spreads toxic spikes for $value damage and poison.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [128, 287, 617],
+                    "values": [128, 320, 850],
                     "range": [1, 2, 2],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [18, 40, 84],
+                            "damagePerTick": [18, 46, 110],
                             "durationSeconds": [4, 4, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -750,8 +750,8 @@
                     "description": "Breaks the ground for $value damage and knockback.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [128, 287, 617],
-                    "range": [2, 2, 3],
+                    "values": [128, 287, 850],
+                    "range": [2, 2, 4],
                     "modifiers": [
                         {
                             "type": "KNOCKBACK",
@@ -767,9 +767,9 @@
         "lineId": "nidoran_m",
         "name": "Nidoran-M",
         "cost": 1,
-        "maxHealth": [540, 972, 1662],
-        "maxMana": [55, 55, 55],
-        "attackDamage": [57, 103, 176],
+        "maxHealth": [540, 1020, 2100],
+        "maxMana": [55, 50, 45],
+        "attackDamage": [57, 108, 220],
         "abilityPower": [0, 0, 0],
         "armor": [18, 18, 18],
         "magicResist": [18, 18, 18],
@@ -809,13 +809,13 @@
                     "description": "Jabs for $value damage and poison.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [173, 387, 832],
+                    "values": [173, 430, 832],
                     "range": [1, 1, 2],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [24, 50, 102],
+                            "damagePerTick": [24, 56, 130],
                             "durationSeconds": [3, 3, 4],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -832,13 +832,13 @@
                     "description": "Skewers enemies in a line for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [143, 322, 692],
-                    "range": [2, 3, 3],
+                    "values": [143, 322, 950],
+                    "range": [2, 3, 4],
                     "modifiers": [
                         {
                             "type": "EXECUTE",
-                            "hpThreshold": [0.25, 0.3, 0.35],
-                            "bonusDamageMultiplier": [0.25, 0.35, 0.5]
+                            "hpThreshold": [0.25, 0.3, 0.45],
+                            "bonusDamageMultiplier": [0.25, 0.35, 0.7]
                         }
                     ]
                 }
@@ -850,13 +850,13 @@
         "lineId": "oddish",
         "name": "Oddish",
         "cost": 1,
-        "maxHealth": [461, 829, 1492],
-        "maxMana": [75, 75, 75],
-        "attackDamage": [35, 64, 114],
+        "maxHealth": [550, 990, 1700],
+        "maxMana": [60, 60, 65],
+        "attackDamage": [42, 76, 137],
         "abilityPower": [0, 0, 0],
         "armor": [18, 18, 18],
         "magicResist": [28, 28, 28],
-        "attackSpeed": [0.62, 0.62, 0.62],
+        "attackSpeed": [0.7, 0.7, 0.7],
         "range": [3, 3, 3],
         "traits": ["Grass", "Poison"],
         "ability": {
@@ -864,12 +864,12 @@
             "description": "Drains $value damage and heals itself.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [173, 387, 832],
+            "values": [220, 495, 1060],
             "range": [3, 3, 4],
             "modifiers": [
                 {
                     "type": "LIFESTEAL",
-                    "lifestealPercent": [0.3, 0.38, 0.48]
+                    "lifestealPercent": [0.4, 0.5, 0.65]
                 }
             ]
         },
@@ -884,12 +884,12 @@
                     "description": "Drains $value damage and heals itself.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [173, 387, 832],
+                    "values": [220, 495, 1060],
                     "range": [3, 3, 4],
                     "modifiers": [
                         {
                             "type": "LIFESTEAL",
-                            "lifestealPercent": [0.3, 0.38, 0.48]
+                            "lifestealPercent": [0.4, 0.5, 0.65]
                         }
                     ]
                 }
@@ -904,8 +904,8 @@
                     "description": "Releases spores, stunning enemies for $value seconds.",
                     "type": "STUN",
                     "pattern": "SURROUND",
-                    "values": [1, 1, 2],
-                    "range": [2, 2, 3]
+                    "values": [1, 2, 2],
+                    "range": [2, 3, 3]
                 }
             },
             {
@@ -918,13 +918,13 @@
                     "description": "Spins petals for $value damage and poison.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [128, 287, 617],
-                    "range": [2, 3, 3],
+                    "values": [160, 360, 800],
+                    "range": [2, 3, 4],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [20, 46, 92],
+                            "damagePerTick": [26, 60, 120],
                             "durationSeconds": [4, 4, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -938,9 +938,9 @@
         "lineId": "poliwag",
         "name": "Poliwag",
         "cost": 1,
-        "maxHealth": [450, 810, 1385],
-        "maxMana": [55, 55, 55],
-        "attackDamage": [53, 95, 163],
+        "maxHealth": [485, 875, 1500],
+        "maxMana": [50, 50, 50],
+        "attackDamage": [57, 103, 180],
         "abilityPower": [0, 0, 0],
         "armor": [14, 14, 14],
         "magicResist": [16, 16, 16],
@@ -952,7 +952,7 @@
             "description": "Streams bubbles for $value damage and slows with a stun.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [143, 322, 692],
+            "values": [160, 365, 800],
             "range": [3, 3, 4],
             "modifiers": [
                 {
@@ -972,7 +972,7 @@
                     "description": "Streams bubbles for $value damage and slows with a stun.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [143, 322, 692],
+                    "values": [160, 365, 800],
                     "range": [3, 3, 4],
                     "modifiers": [
                         {
@@ -992,7 +992,7 @@
                     "description": "Hypnotizes a target for $value seconds.",
                     "type": "STUN",
                     "pattern": "SINGLE",
-                    "values": [1, 1, 2],
+                    "values": [1, 2, 2],
                     "range": [2, 3, 3]
                 }
             },
@@ -1006,7 +1006,7 @@
                     "description": "Punches for $value damage and stuns.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [173, 387, 832],
+                    "values": [195, 440, 950],
                     "range": [1, 1, 1],
                     "modifiers": [
                         {
@@ -1079,13 +1079,13 @@
                     "description": "Calls thunder for $value damage and a short stun.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [146, 329, 699],
+                    "values": [146, 329, 620],
                     "range": [2, 2, 3],
                     "targetLimit": [3, 3, 3],
                     "modifiers": [
                         {
                             "type": "STUN",
-                            "stunSeconds": [1, 1, 2]
+                            "stunSeconds": [1, 1, 1]
                         }
                     ]
                 }
@@ -1100,13 +1100,13 @@
                     "description": "Calls a focused thunder burst for $value damage and stun.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [146, 329, 699],
+                    "values": [146, 329, 620],
                     "range": [2, 3, 3],
                     "targetLimit": [3, 3, 3],
                     "modifiers": [
                         {
                             "type": "STUN",
-                            "stunSeconds": [1, 1, 2]
+                            "stunSeconds": [1, 1, 1]
                         }
                     ]
                 }
@@ -1209,13 +1209,13 @@
         "lineId": "vulpix",
         "name": "Vulpix",
         "cost": 2,
-        "maxHealth": [595, 1071, 1928],
-        "maxMana": [80, 80, 80],
-        "attackDamage": [48, 86, 156],
+        "maxHealth": [625, 1125, 2350],
+        "maxMana": [65, 65, 50],
+        "attackDamage": [48, 86, 185],
         "abilityPower": [0, 0, 0],
         "armor": [24, 24, 24],
         "magicResist": [34, 34, 34],
-        "attackSpeed": [0.65, 0.65, 0.65],
+        "attackSpeed": [0.7, 0.7, 0.78],
         "range": [3, 3, 3],
         "traits": ["Fire"],
         "ability": {
@@ -1223,13 +1223,13 @@
             "description": "Sends ghostly flames for $value damage and burn.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [146, 329, 699],
+            "values": [175, 395, 840],
             "range": [2, 2, 3],
             "modifiers": [
                 {
                     "type": "DOT",
                     "dotType": "BURN",
-                    "damagePerTick": [24, 52, 106],
+                    "damagePerTick": [32, 68, 138],
                     "durationSeconds": [4, 4, 5],
                     "tickIntervalMs": [1000, 1000, 1000]
                 }
@@ -1246,13 +1246,13 @@
                     "description": "Sends ghostly flames for $value damage and burn.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [146, 329, 699],
+                    "values": [175, 395, 840],
                     "range": [2, 2, 3],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [24, 52, 106],
+                            "damagePerTick": [32, 68, 138],
                             "durationSeconds": [4, 4, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -1269,13 +1269,13 @@
                     "description": "Traps enemies in spinning fire for $value damage and burn.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [146, 329, 699],
-                    "range": [2, 2, 3],
+                    "values": [175, 460, 840],
+                    "range": [2, 3, 3],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [28, 60, 120],
+                            "damagePerTick": [36, 90, 152],
                             "durationSeconds": [4, 5, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -1292,13 +1292,13 @@
                     "description": "Unleashes mystic fire for $value damage and burn.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [161, 364, 774],
+                    "values": [200, 450, 1200],
                     "range": [4, 4, 5],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [28, 60, 122],
+                            "damagePerTick": [36, 76, 190],
                             "durationSeconds": [4, 5, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -1312,13 +1312,13 @@
         "lineId": "jigglypuff",
         "name": "Jigglypuff",
         "cost": 2,
-        "maxHealth": [680, 1224, 2203],
-        "maxMana": [80, 80, 80],
-        "attackDamage": [46, 83, 149],
+        "maxHealth": [680, 1450, 2600],
+        "maxMana": [70, 55, 55],
+        "attackDamage": [46, 83, 180],
         "abilityPower": [0, 0, 0],
         "armor": [24, 24, 24],
         "magicResist": [34, 34, 34],
-        "attackSpeed": [0.65, 0.65, 0.65],
+        "attackSpeed": [0.7, 0.75, 0.75],
         "range": [3, 3, 3],
         "traits": ["Normal"],
         "ability": {
@@ -1354,8 +1354,8 @@
                     "description": "Cheers allies, increasing attack by $value%.",
                     "type": "BUFF_ATK",
                     "pattern": "SURROUND",
-                    "values": [16, 24, 36],
-                    "range": [3, 3, 3]
+                    "values": [16, 45, 42],
+                    "range": [3, 4, 3]
                 }
             },
             {
@@ -1368,12 +1368,12 @@
                     "description": "Slams a target for $value damage and stun.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [191, 429, 914],
+                    "values": [191, 429, 1300],
                     "range": [1, 1, 2],
                     "modifiers": [
                         {
                             "type": "STUN",
-                            "stunSeconds": [1, 1, 2]
+                            "stunSeconds": [1, 1, 3]
                         }
                     ]
                 }
@@ -1385,13 +1385,13 @@
         "lineId": "zubat",
         "name": "Zubat",
         "cost": 2,
-        "maxHealth": [532, 958, 1723],
-        "maxMana": [60, 60, 60],
-        "attackDamage": [61, 109, 197],
+        "maxHealth": [532, 958, 2100],
+        "maxMana": [60, 60, 50],
+        "attackDamage": [61, 109, 230],
         "abilityPower": [0, 0, 0],
         "armor": [20, 20, 20],
         "magicResist": [22, 22, 22],
-        "attackSpeed": [0.79, 0.79, 0.79],
+        "attackSpeed": [0.79, 0.79, 0.85],
         "range": [1, 1, 1],
         "traits": ["Poison", "Flying"],
         "ability": {
@@ -1462,20 +1462,20 @@
                     "description": "Cross-slashes for $value damage and poison.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [161, 364, 774],
+                    "values": [161, 364, 1050],
                     "range": [3, 4, 5],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [30, 64, 128],
+                            "damagePerTick": [30, 64, 160],
                             "durationSeconds": [4, 5, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         },
                         {
                             "type": "EXECUTE",
-                            "hpThreshold": [0.25, 0.3, 0.35],
-                            "bonusDamageMultiplier": [0.25, 0.35, 0.5]
+                            "hpThreshold": [0.25, 0.3, 0.42],
+                            "bonusDamageMultiplier": [0.25, 0.35, 0.65]
                         }
                     ]
                 }
@@ -1659,13 +1659,13 @@
         "lineId": "growlithe",
         "name": "Growlithe",
         "cost": 2,
-        "maxHealth": [650, 1170, 2106],
-        "maxMana": [60, 60, 60],
-        "attackDamage": [68, 122, 220],
+        "maxHealth": [650, 1300, 2500],
+        "maxMana": [60, 50, 45],
+        "attackDamage": [68, 135, 260],
         "abilityPower": [0, 0, 0],
         "armor": [24, 24, 24],
         "magicResist": [24, 24, 24],
-        "attackSpeed": [0.67, 0.67, 0.67],
+        "attackSpeed": [0.67, 0.72, 0.78],
         "range": [1, 1, 1],
         "traits": ["Fire"],
         "ability": {
@@ -1719,13 +1719,13 @@
                     "description": "Blurs through enemies for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [161, 364, 774],
+                    "values": [161, 500, 774],
                     "range": [3, 4, 5],
                     "modifiers": [
                         {
                             "type": "EXECUTE",
-                            "hpThreshold": [0.25, 0.32, 0.4],
-                            "bonusDamageMultiplier": [0.2, 0.3, 0.45]
+                            "hpThreshold": [0.25, 0.38, 0.4],
+                            "bonusDamageMultiplier": [0.2, 0.45, 0.45]
                         }
                     ]
                 }
@@ -1740,14 +1740,14 @@
                     "description": "Blitzes through a line for $value damage, burn, and knockback.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [161, 364, 774],
-                    "range": [4, 4, 5],
+                    "values": [161, 364, 1100],
+                    "range": [4, 4, 6],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [30, 64, 130],
-                            "durationSeconds": [3, 4, 4],
+                            "damagePerTick": [30, 64, 180],
+                            "durationSeconds": [3, 4, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         },
                         {
@@ -1867,13 +1867,13 @@
         "lineId": "geodude",
         "name": "Geodude",
         "cost": 2,
-        "maxHealth": [770, 1385, 2493],
-        "maxMana": [60, 60, 60],
-        "attackDamage": [46, 82, 148],
+        "maxHealth": [770, 1500, 2900],
+        "maxMana": [60, 50, 45],
+        "attackDamage": [46, 90, 180],
         "abilityPower": [0, 0, 0],
         "armor": [40, 40, 40],
         "magicResist": [34, 34, 34],
-        "attackSpeed": [0.62, 0.62, 0.62],
+        "attackSpeed": [0.62, 0.66, 0.7],
         "range": [1, 1, 1],
         "traits": ["Rock", "Ground"],
         "ability": {
@@ -1921,12 +1921,12 @@
                     "description": "Rolls through enemies for $value damage and knockback.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [161, 364, 774],
-                    "range": [2, 3, 4],
+                    "values": [161, 450, 774],
+                    "range": [2, 4, 4],
                     "modifiers": [
                         {
                             "type": "KNOCKBACK",
-                            "cells": [1, 1, 2]
+                            "cells": [1, 2, 2]
                         }
                     ]
                 }
@@ -1941,13 +1941,13 @@
                     "description": "Raises jagged stones for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [146, 329, 699],
-                    "range": [2, 2, 3],
+                    "values": [146, 329, 1000],
+                    "range": [2, 2, 4],
                     "modifiers": [
                         {
                             "type": "EXECUTE",
-                            "hpThreshold": [0.25, 0.3, 0.35],
-                            "bonusDamageMultiplier": [0.2, 0.28, 0.4]
+                            "hpThreshold": [0.25, 0.3, 0.42],
+                            "bonusDamageMultiplier": [0.2, 0.28, 0.55]
                         }
                     ]
                 }
@@ -1959,9 +1959,9 @@
         "lineId": "ponyta",
         "name": "Ponyta",
         "cost": 2,
-        "maxHealth": [560, 1008, 1814],
-        "maxMana": [60, 60, 60],
-        "attackDamage": [64, 115, 207],
+        "maxHealth": [590, 1100, 2200],
+        "maxMana": [55, 55, 50],
+        "attackDamage": [68, 122, 235],
         "abilityPower": [0, 0, 0],
         "armor": [20, 20, 20],
         "magicResist": [22, 22, 22],
@@ -1973,7 +1973,7 @@
             "description": "Ignites momentum, increasing allied attack speed by $value%.",
             "type": "BUFF_SPD",
             "pattern": "SURROUND",
-            "values": [16, 24, 36],
+            "values": [18, 28, 45],
             "range": [3, 3, 3]
         },
         "forms": [
@@ -1987,7 +1987,7 @@
                     "description": "Ignites momentum, increasing allied attack speed by $value%.",
                     "type": "BUFF_SPD",
                     "pattern": "SURROUND",
-                    "values": [16, 24, 36],
+                    "values": [18, 28, 45],
                     "range": [3, 3, 3]
                 }
             },
@@ -2001,13 +2001,13 @@
                     "description": "Rings enemies with fire for $value damage and burn.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [146, 329, 699],
+                    "values": [146, 400, 699],
                     "range": [2, 2, 3],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [28, 60, 120],
+                            "damagePerTick": [28, 75, 120],
                             "durationSeconds": [4, 5, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -2024,13 +2024,13 @@
                     "description": "Charges with its horn for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [161, 364, 774],
+                    "values": [161, 364, 1050],
                     "range": [3, 4, 5],
                     "modifiers": [
                         {
                             "type": "EXECUTE",
-                            "hpThreshold": [0.25, 0.3, 0.35],
-                            "bonusDamageMultiplier": [0.25, 0.35, 0.5]
+                            "hpThreshold": [0.25, 0.3, 0.45],
+                            "bonusDamageMultiplier": [0.25, 0.35, 0.7]
                         }
                     ]
                 }
@@ -2109,13 +2109,13 @@
         "lineId": "magnemite",
         "name": "Magnemite",
         "cost": 2,
-        "maxHealth": [565, 1017, 1832],
-        "maxMana": [80, 80, 80],
+        "maxHealth": [565, 1125, 2200],
+        "maxMana": [80, 65, 60],
         "attackDamage": [46, 82, 148],
         "abilityPower": [0, 0, 0],
         "armor": [24, 24, 24],
         "magicResist": [34, 34, 34],
-        "attackSpeed": [0.65, 0.65, 0.65],
+        "attackSpeed": [0.65, 0.7, 0.75],
         "range": [3, 3, 3],
         "traits": ["Electric", "Steel"],
         "ability": {
@@ -2163,13 +2163,13 @@
                     "description": "Fires three beams for $value damage with burn and stun.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [161, 364, 774],
+                    "values": [161, 430, 774],
                     "range": [4, 4, 5],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [20, 46, 92],
+                            "damagePerTick": [20, 58, 92],
                             "durationSeconds": [3, 3, 4],
                             "tickIntervalMs": [1000, 1000, 1000]
                         },
@@ -2190,8 +2190,8 @@
                     "description": "Projects a field, shielding allies for $value.",
                     "type": "SHIELD",
                     "pattern": "SURROUND",
-                    "values": [198, 420, 874],
-                    "range": [3, 3, 3]
+                    "values": [198, 420, 1150],
+                    "range": [3, 3, 4]
                 }
             }
         ]
@@ -2365,13 +2365,13 @@
         "lineId": "bellsprout",
         "name": "Bellsprout",
         "cost": 3,
-        "maxHealth": [708, 1274, 2293],
-        "maxMana": [90, 90, 90],
-        "attackDamage": [59, 106, 191],
+        "maxHealth": [708, 1274, 2800],
+        "maxMana": [90, 90, 65],
+        "attackDamage": [59, 106, 230],
         "abilityPower": [0, 0, 0],
         "armor": [30, 30, 30],
         "magicResist": [40, 40, 40],
-        "attackSpeed": [0.68, 0.68, 0.68],
+        "attackSpeed": [0.68, 0.68, 0.75],
         "range": [3, 3, 3],
         "traits": ["Grass", "Poison"],
         "ability": {
@@ -2442,13 +2442,13 @@
                     "description": "Cracks a vine for $value damage, executing wounded targets.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [209, 471, 996],
-                    "range": [2, 2, 3],
+                    "values": [209, 471, 1350],
+                    "range": [2, 2, 4],
                     "modifiers": [
                         {
                             "type": "EXECUTE",
-                            "hpThreshold": [0.3, 0.35, 0.45],
-                            "bonusDamageMultiplier": [0.28, 0.4, 0.58]
+                            "hpThreshold": [0.3, 0.35, 0.5],
+                            "bonusDamageMultiplier": [0.28, 0.4, 0.75]
                         }
                     ]
                 }
@@ -2461,8 +2461,8 @@
         "name": "Doduo",
         "cost": 3,
         "maxHealth": [674, 1214, 2185],
-        "maxMana": [70, 70, 70],
-        "attackDamage": [74, 133, 240],
+        "maxMana": [60, 60, 60],
+        "attackDamage": [78, 140, 252],
         "abilityPower": [0, 0, 0],
         "armor": [26, 26, 26],
         "magicResist": [28, 28, 28],
@@ -2474,7 +2474,7 @@
             "description": "Hits twice for $value damage.",
             "type": "DAMAGE",
             "pattern": "SINGLE",
-            "values": [209, 471, 996],
+            "values": [230, 520, 1100],
             "range": [1, 1, 2]
         },
         "forms": [
@@ -2488,7 +2488,7 @@
                     "description": "Hits twice for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [209, 471, 996],
+                    "values": [230, 520, 1100],
                     "range": [1, 1, 2]
                 }
             },
@@ -2502,7 +2502,7 @@
                     "description": "Strikes with three heads for $value damage and stun.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [179, 406, 856],
+                    "values": [200, 460, 1000],
                     "range": [3, 4, 5],
                     "modifiers": [
                         {
@@ -2522,7 +2522,7 @@
                     "description": "Accelerates allies, increasing attack speed by $value%.",
                     "type": "BUFF_SPD",
                     "pattern": "SURROUND",
-                    "values": [18, 27, 40],
+                    "values": [18, 27, 50],
                     "range": [3, 3, 3]
                 }
             }
@@ -2534,7 +2534,7 @@
         "name": "Seel",
         "cost": 3,
         "maxHealth": [830, 1419, 2555],
-        "maxMana": [90, 90, 90],
+        "maxMana": [90, 90, 70],
         "attackDamage": [60, 103, 184],
         "abilityPower": [0, 0, 0],
         "armor": [30, 30, 30],
@@ -2589,8 +2589,8 @@
                     "description": "Sings an icy dirge, stunning enemies for $value seconds.",
                     "type": "STUN",
                     "pattern": "SURROUND",
-                    "values": [1, 2, 2],
-                    "range": [2, 3, 3]
+                    "values": [1, 2, 3],
+                    "range": [2, 3, 4]
                 }
             }
         ]
@@ -2694,9 +2694,9 @@
         "lineId": "shellder",
         "name": "Shellder",
         "cost": 3,
-        "maxHealth": [960, 1642, 2954],
-        "maxMana": [70, 70, 70],
-        "attackDamage": [62, 106, 191],
+        "maxHealth": [960, 1642, 3300],
+        "maxMana": [70, 70, 55],
+        "attackDamage": [62, 106, 220],
         "abilityPower": [0, 0, 0],
         "armor": [46, 46, 46],
         "magicResist": [40, 40, 40],
@@ -2769,8 +2769,8 @@
                     "description": "Breaks its shell open, increasing allied attack by $value%.",
                     "type": "BUFF_ATK",
                     "pattern": "SURROUND",
-                    "values": [18, 27, 40],
-                    "range": [3, 3, 3]
+                    "values": [18, 27, 55],
+                    "range": [3, 3, 4]
                 }
             }
         ]
@@ -2780,13 +2780,13 @@
         "lineId": "gastly",
         "name": "Gastly",
         "cost": 3,
-        "maxHealth": [708, 1274, 2293],
-        "maxMana": [90, 90, 90],
-        "attackDamage": [59, 106, 191],
+        "maxHealth": [708, 1350, 2800],
+        "maxMana": [90, 80, 65],
+        "attackDamage": [59, 112, 230],
         "abilityPower": [0, 0, 0],
         "armor": [30, 30, 30],
         "magicResist": [40, 40, 40],
-        "attackSpeed": [0.68, 0.68, 0.68],
+        "attackSpeed": [0.68, 0.68, 0.75],
         "range": [3, 3, 3],
         "traits": ["Ghost", "Poison"],
         "ability": {
@@ -2835,7 +2835,7 @@
                     "type": "STUN",
                     "pattern": "SINGLE",
                     "values": [1, 2, 2],
-                    "range": [3, 3, 4]
+                    "range": [3, 4, 4]
                 }
             },
             {
@@ -2848,16 +2848,16 @@
                     "description": "Consumes a dream for $value damage and healing.",
                     "type": "DAMAGE",
                     "pattern": "SINGLE",
-                    "values": [209, 471, 996],
-                    "range": [3, 4, 4],
+                    "values": [209, 471, 1350],
+                    "range": [3, 4, 5],
                     "modifiers": [
                         {
                             "type": "STUN",
-                            "stunSeconds": [1, 1, 1]
+                            "stunSeconds": [1, 1, 2]
                         },
                         {
                             "type": "LIFESTEAL",
-                            "lifestealPercent": [0.35, 0.45, 0.6]
+                            "lifestealPercent": [0.35, 0.45, 0.75]
                         }
                     ]
                 }
@@ -3364,7 +3364,7 @@
         "name": "Ditto",
         "cost": 4,
         "maxHealth": [1030, 1854, 3337],
-        "maxMana": [95, 95, 95],
+        "maxMana": [75, 75, 75],
         "attackDamage": [74, 133, 240],
         "abilityPower": [0, 0, 0],
         "armor": [38, 38, 38],
@@ -3377,7 +3377,7 @@
             "description": "Copies battle rhythm, increasing allied attack by $value%.",
             "type": "BUFF_ATK",
             "pattern": "SURROUND",
-            "values": [20, 30, 44],
+            "values": [24, 36, 52],
             "range": [4, 4, 4]
         }
     },
@@ -3387,7 +3387,7 @@
         "name": "Porygon",
         "cost": 4,
         "maxHealth": [945, 1701, 3062],
-        "maxMana": [95, 95, 95],
+        "maxMana": [75, 75, 75],
         "attackDamage": [76, 137, 246],
         "abilityPower": [0, 0, 0],
         "armor": [38, 38, 38],
@@ -3400,7 +3400,7 @@
             "description": "Rewrites code, increasing allied attack speed by $value%.",
             "type": "BUFF_SPD",
             "pattern": "SURROUND",
-            "values": [20, 30, 44],
+            "values": [22, 34, 50],
             "range": [4, 4, 4]
         }
     },
@@ -3409,8 +3409,8 @@
         "lineId": "lickitung",
         "name": "Lickitung",
         "cost": 4,
-        "maxHealth": [1160, 2088, 3758],
-        "maxMana": [75, 75, 75],
+        "maxHealth": [1220, 2196, 3953],
+        "maxMana": [60, 60, 60],
         "attackDamage": [76, 137, 246],
         "abilityPower": [0, 0, 0],
         "armor": [54, 54, 54],
@@ -3423,7 +3423,7 @@
             "description": "Wraps the target for $value seconds.",
             "type": "STUN",
             "pattern": "SINGLE",
-            "values": [1, 2, 2],
+            "values": [2, 2, 3],
             "range": [1, 1, 2]
         }
     },
@@ -3455,8 +3455,8 @@
         "lineId": "snorlax",
         "name": "Snorlax",
         "cost": 5,
-        "maxHealth": [1430, 2574, 4633],
-        "maxMana": [85, 85, 85],
+        "maxHealth": [1500, 2700, 4860],
+        "maxMana": [75, 75, 75],
         "attackDamage": [96, 173, 311],
         "abilityPower": [0, 0, 0],
         "armor": [64, 64, 64],
@@ -3469,8 +3469,8 @@
             "description": "Crashes down for $value damage and knockback.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [200, 455, 945],
-            "range": [1, 2, 2],
+            "values": [240, 545, 1135],
+            "range": [2, 2, 3],
             "modifiers": [
                 {
                     "type": "KNOCKBACK",
@@ -3485,7 +3485,7 @@
         "name": "Aerodactyl",
         "cost": 5,
         "maxHealth": [1121, 2018, 3632],
-        "maxMana": [85, 85, 85],
+        "maxMana": [75, 75, 75],
         "attackDamage": [106, 192, 345],
         "abilityPower": [0, 0, 0],
         "armor": [44, 44, 44],
@@ -3498,13 +3498,13 @@
             "description": "Rakes stone edges for $value damage and execute pressure.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [215, 490, 1020],
+            "values": [250, 565, 1175],
             "range": [4, 5, 6],
             "modifiers": [
                 {
                     "type": "EXECUTE",
-                    "hpThreshold": [0.28, 0.35, 0.45],
-                    "bonusDamageMultiplier": [0.35, 0.5, 0.75]
+                    "hpThreshold": [0.3, 0.38, 0.48],
+                    "bonusDamageMultiplier": [0.4, 0.6, 0.9]
                 }
             ]
         }
@@ -3538,7 +3538,7 @@
         "name": "Zapdos",
         "cost": 5,
         "maxHealth": [1358, 2445, 4401],
-        "maxMana": [85, 85, 85],
+        "maxMana": [95, 95, 95],
         "attackDamage": [118, 212, 382],
         "abilityPower": [0, 0, 0],
         "armor": [58, 58, 58],
@@ -3551,12 +3551,12 @@
             "description": "Turns the board into a thunderstorm for $value damage and stun.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [200, 455, 945],
-            "range": [3, 4, 4],
+            "values": [150, 340, 700],
+            "range": [3, 3, 4],
             "modifiers": [
                 {
                     "type": "STUN",
-                    "stunSeconds": [1, 2, 2]
+                    "stunSeconds": [1, 1, 1]
                 }
             ]
         }
@@ -3580,13 +3580,13 @@
             "description": "Unfurls burning wings for $value damage and burn.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [200, 455, 945],
+            "values": [190, 430, 900],
             "range": [3, 3, 4],
             "modifiers": [
                 {
                     "type": "DOT",
                     "dotType": "BURN",
-                    "damagePerTick": [42, 90, 180],
+                    "damagePerTick": [40, 85, 170],
                     "durationSeconds": [4, 5, 6],
                     "tickIntervalMs": [1000, 1000, 1000]
                 }

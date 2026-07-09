@@ -6,6 +6,7 @@ defineOptions({
 defineEmits(['back'])
 
 const versionXXXCommits = [
+  { hash: 'pending', title: 'Rebalance Pokemon units from combat simulation results' },
   { hash: 'pending', title: 'Add backend combat simulation reports and randomized board modes' },
   { hash: 'pending', title: 'Upgrade third-party dependencies' }
 ]
@@ -40,7 +41,8 @@ const version160Commits = [
           <h2>Version X.X.X</h2>
           <p>
             Frontend and backend dependencies have been refreshed for the current security baseline, including Vite 8,
-            Spring Boot 4.1, Vue 3.5, and updated build tooling.
+            Spring Boot 4.1, Vue 3.5, and updated build tooling. Pokemon unit balance has also been adjusted from
+            same-star and randomized-star combat simulation results.
           </p>
         </div>
 
@@ -69,6 +71,713 @@ const version160Commits = [
               split unit rankings by star level, board-size unit and trait rankings, and trait impact tables, with sample
               coverage diagnostics, console progress, and configurable parallel workers during long runs.
             </p>
+          </article>
+
+          <article class="balance-panel">
+            <div class="section-heading">
+              <span class="marker balance"></span>
+              <h3>Balance Changes</h3>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag nerf">Nerf</span>
+                <h4>Zapdos</h4>
+              </div>
+              <p>
+                Mana:
+                <span class="old-value">85</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value nerf">95</strong>. Thunderstorm damage:
+                <span class="old-value">200/455/945</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value nerf">150/340/700</strong>. Range:
+                <span class="old-value">3/4/4</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value nerf">3/3/4</strong>. Stun:
+                <span class="old-value">1/2/2s</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value nerf">1/1/1s</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag nerf">Nerf</span>
+                <h4>Moltres</h4>
+              </div>
+              <p>
+                Inferno Wing damage:
+                <span class="old-value">200/455/945</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value nerf">190/430/900</strong>. Burn per tick:
+                <span class="old-value">42/90/180</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value nerf">40/85/170</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag nerf">Nerf</span>
+                <h4>3★ Raichu</h4>
+              </div>
+              <p>
+                Thunder damage:
+                <span class="old-value">699</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value nerf">620</strong>. Stun:
+                <span class="old-value">2s</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value nerf">1s</strong>. Pikachu and 2★ Raichu are unchanged.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Bulbasaur Line</h4>
+              </div>
+              <p>
+                Health:
+                <span class="old-value">532/958/1723</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">600/1080/1945</strong>. Mana:
+                <span class="old-value">55</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">45</strong>. Attack Damage:
+                <span class="old-value">47/84/151</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">52/94/170</strong>. Attack Speed:
+                <span class="old-value">0.62</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">0.68</strong>. Vine Whip:
+                <span class="old-value">143/322/692</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">180/405/870</strong>. 2★ Razor Leaf:
+                <span class="old-value">287 damage + 38 poison</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">360 damage + 50 poison</strong>. 3★ Grassy Terrain:
+                <span class="old-value">710 healing at 3 range</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">1000 healing at 4 range</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Weedle Line</h4>
+              </div>
+              <p>
+                Health:
+                <span class="old-value">428/770/1385</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">470/850/1530</strong>. Mana:
+                <span class="old-value">55</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">50</strong>. Attack Damage:
+                <span class="old-value">50/90/163</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">54/98/176</strong>. 1★ Poison Sting:
+                <span class="old-value">173 damage + 20 poison</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">195 damage + 24 poison</strong>. 2★ Iron Defense:
+                <span class="old-value">350 shield</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">400 shield</strong>. 3★ Fell Stinger:
+                <span class="old-value">832 damage, 35% threshold, 50% bonus</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">945 damage, 40% threshold, 60% bonus</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Rattata Line</h4>
+              </div>
+              <p>
+                Health:
+                <span class="old-value">450/810/1458</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">485/875/1575</strong>. Mana:
+                <span class="old-value">55</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">50</strong>. Attack Damage:
+                <span class="old-value">53/95/172</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">57/103/185</strong>. Ability damage:
+                <span class="old-value">173/387/832</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">195/440/945</strong>. Quick Attack execute bonus:
+                <span class="old-value">20/28/40%</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">24/34/48%</strong>. 3★ Super Fang max-health scaling:
+                <span class="old-value">5%</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">6%</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Nidoran Lines</h4>
+              </div>
+              <p>
+                Nidoran-F Health:
+                <span class="old-value">700/1260/2155</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">700/1325/2600</strong>. Attack Damage:
+                <span class="old-value">37/67/114</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">37/70/140</strong>. 2★ Toxic Spikes:
+                <span class="old-value">287 damage + 40 poison</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">320 damage + 46 poison</strong>. 3★ Earth Power:
+                <span class="old-value">617 damage at 3 range</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">850 damage at 4 range</strong>. Nidoran-M Health:
+                <span class="old-value">540/972/1662</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">540/1020/2100</strong>. Attack Damage:
+                <span class="old-value">57/103/176</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">57/108/220</strong>. 2★ Poison Jab:
+                <span class="old-value">387 damage + 50 poison</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">430 damage + 56 poison</strong>. 3★ Megahorn:
+                <span class="old-value">692 damage, 35% threshold, 50% bonus</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">950 damage, 45% threshold, 70% bonus</strong>. Both lines' Mana:
+                <span class="old-value">55/55/55</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">55/50/45</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag mixed">Mixed</span>
+                <h4>Oddish Line</h4>
+              </div>
+              <p>
+                Health:
+                <span class="old-value">461/829/1492</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">550/990/1700</strong>. Mana:
+                <span class="old-value">75/75/75</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">60/60/65</strong>. Attack Damage:
+                <span class="old-value">35/64/114</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">42/76/137</strong>. Attack Speed:
+                <span class="old-value">0.62</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">0.70</strong>. Absorb:
+                <span class="old-value">173/387/832 damage, 30/38/48% healing</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">220/495/1060 damage, 40/50/65% healing</strong>. 2★ Stun Spore:
+                <span class="old-value">1s at 2 range</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">2s at 3 range</strong>. 3★ Petal Dance:
+                <span class="old-value">617 damage + 92 poison at 3 range</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">800 damage + 120 poison at 4 range</strong>. Follow-up 3★ tuning:
+                <span class="old-value">1785 health, 60 mana, 850 damage + 130 poison</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value nerf">1700 health, 65 mana, 800 damage + 120 poison</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Poliwag Line</h4>
+              </div>
+              <p>
+                Health:
+                <span class="old-value">450/810/1385</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">485/875/1500</strong>. Mana:
+                <span class="old-value">55</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">50</strong>. Attack Damage:
+                <span class="old-value">53/95/163</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">57/103/180</strong>. Bubble Beam:
+                <span class="old-value">143/322/692</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">160/365/800</strong>. 2★ Hypnosis:
+                <span class="old-value">1s</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">2s</strong>. 3★ Dynamic Punch:
+                <span class="old-value">832</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">950</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>3★ Butterfree</h4>
+              </div>
+              <p>
+                Health:
+                <span class="old-value">1755</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">2200</strong>. Mana:
+                <span class="old-value">75</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">60</strong>. Attack Damage:
+                <span class="old-value">107</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">140</strong>. Attack Speed:
+                <span class="old-value">0.62</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">0.75</strong>. Sleep Powder stun:
+                <span class="old-value">2s at 3 range</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">3s at 4 range</strong>. Caterpie and Metapod remain unchanged.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Vulpix Line</h4>
+              </div>
+              <p>
+                Health:
+                <span class="old-value">595/1071/1928</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">625/1125/2350</strong>. Mana:
+                <span class="old-value">80/80/80</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">65/65/50</strong>. Attack Damage:
+                <span class="old-value">48/86/156</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">48/86/185</strong>. Attack Speed:
+                <span class="old-value">0.65</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">0.70/0.70/0.78</strong>. Will-O-Wisp damage:
+                <span class="old-value">146/329/699</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">175/395/840</strong>. 2★ Fire Spin:
+                <span class="old-value">329 damage + 60 burn at 2 range</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">460 damage + 90 burn at 3 range</strong>. Mystical Fire damage:
+                <span class="old-value">161/364/774</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">200/450/1200</strong>. 3★ Mystical Fire burn:
+                <span class="old-value">122</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">190</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Jigglypuff Line</h4>
+              </div>
+              <p>
+                Health:
+                <span class="old-value">680/1224/2203</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">680/1450/2600</strong>. Mana:
+                <span class="old-value">80/80/80</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">70/55/55</strong>. Attack Damage:
+                <span class="old-value">46/83/149</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">46/83/180</strong>. Attack Speed:
+                <span class="old-value">0.65</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">0.70/0.75/0.75</strong>. 2★ Helping Hand:
+                <span class="old-value">24% at 3 range</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">45% at 4 range</strong>. 3★ Play Rough damage:
+                <span class="old-value">914</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">1300</strong>. 3★ Play Rough stun:
+                <span class="old-value">2s</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">3s</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Doduo Line</h4>
+              </div>
+              <p>
+                Mana:
+                <span class="old-value">70</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">60</strong>. Attack Damage:
+                <span class="old-value">74/133/240</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">78/140/252</strong>. Double Hit:
+                <span class="old-value">209/471/996</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">230/520/1100</strong>. Tri Attack:
+                <span class="old-value">179/406/856</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">200/460/1000</strong>. 3★ Agility:
+                <span class="old-value">40%</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">50%</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Ponyta Line</h4>
+              </div>
+              <p>
+                Health:
+                <span class="old-value">560/1008/1814</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">590/1100/2200</strong>. Mana:
+                <span class="old-value">60/60/60</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">55/55/50</strong>. Attack Damage:
+                <span class="old-value">64/115/207</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">68/122/235</strong>. Flame Charge:
+                <span class="old-value">16/24/36%</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">18/28/45%</strong>. 2★ Fire Spin:
+                <span class="old-value">329 damage + 60 burn</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">400 damage + 75 burn</strong>. 3★ Megahorn:
+                <span class="old-value">774 damage, 35% threshold, 50% bonus</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">1050 damage, 45% threshold, 70% bonus</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Magnemite Line</h4>
+              </div>
+              <p>
+                Health:
+                <span class="old-value">565/1017/1832</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">565/1125/2200</strong>. Mana:
+                <span class="old-value">80/80/80</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">80/65/60</strong>. Attack Speed:
+                <span class="old-value">0.65/0.65/0.65</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">0.65/0.70/0.75</strong>. 2★ Tri Attack:
+                <span class="old-value">364 damage + 46 burn</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">430 damage + 58 burn</strong>. 3★ Magnetic Field:
+                <span class="old-value">874 shield at 3 range</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">1150 shield at 4 range</strong>. 1★ Magnemite is unchanged.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Growlithe Line</h4>
+              </div>
+              <p>
+                Health:
+                <span class="old-value">650/1170/2106</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">650/1300/2500</strong>. Mana:
+                <span class="old-value">60/60/60</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">60/50/45</strong>. Attack Damage:
+                <span class="old-value">68/122/220</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">68/135/260</strong>. Attack Speed:
+                <span class="old-value">0.67/0.67/0.67</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">0.67/0.72/0.78</strong>. 2★ Extreme Speed:
+                <span class="old-value">364 damage, 32% threshold, 30% bonus</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">500 damage, 38% threshold, 45% bonus</strong>. 3★ Flare Blitz:
+                <span class="old-value">774 damage + 130 burn for 4s at 5 range</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">1100 damage + 180 burn for 5s at 6 range</strong>. 1★ Growlithe is unchanged.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>3★ Cloyster</h4>
+              </div>
+              <p>
+                Health:
+                <span class="old-value">2954</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">3300</strong>. Mana:
+                <span class="old-value">70</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">55</strong>. Attack Damage:
+                <span class="old-value">191</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">220</strong>. Shell Smash:
+                <span class="old-value">40% at 3 range</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">55% at 4 range</strong>. Shellder and 2★ Cloyster are unchanged.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>3★ Charizard</h4>
+              </div>
+              <p>
+                Health:
+                <span class="old-value">1785</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">2200</strong>. Mana:
+                <span class="old-value">55</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">45</strong>. Attack Damage:
+                <span class="old-value">188</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">225</strong>. Attack Speed:
+                <span class="old-value">0.64</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">0.72</strong>. Flamethrower:
+                <span class="old-value">692 damage + 118 burn at 5 range</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">1000 damage + 160 burn at 6 range</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>3★ Crobat</h4>
+              </div>
+              <p>
+                Health:
+                <span class="old-value">1723</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">2100</strong>. Mana:
+                <span class="old-value">60</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">50</strong>. Attack Damage:
+                <span class="old-value">197</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">230</strong>. Attack Speed:
+                <span class="old-value">0.79</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">0.85</strong>. Cross Poison:
+                <span class="old-value">774 damage + 128 poison, 35% threshold, 50% bonus</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">1050 damage + 160 poison, 42% threshold, 65% bonus</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Geodude Line</h4>
+              </div>
+              <p>
+                Health:
+                <span class="old-value">770/1385/2493</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">770/1500/2900</strong>. Mana:
+                <span class="old-value">60/60/60</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">60/50/45</strong>. Attack Damage:
+                <span class="old-value">46/82/148</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">46/90/180</strong>. Attack Speed:
+                <span class="old-value">0.62/0.62/0.62</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">0.62/0.66/0.70</strong>. 2★ Rollout:
+                <span class="old-value">364 damage, 1-cell knockback at 3 range</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">450 damage, 2-cell knockback at 4 range</strong>. 3★ Stealth Rock:
+                <span class="old-value">699 damage, 35% threshold, 40% bonus at 3 range</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">1000 damage, 42% threshold, 55% bonus at 4 range</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>3★ Victreebel</h4>
+              </div>
+              <p>
+                Health:
+                <span class="old-value">2293</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">2800</strong>. Mana:
+                <span class="old-value">90</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">65</strong>. Attack Damage:
+                <span class="old-value">191</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">230</strong>. Attack Speed:
+                <span class="old-value">0.68</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">0.75</strong>. Power Whip:
+                <span class="old-value">996 damage, 45% threshold, 58% bonus at 3 range</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">1350 damage, 50% threshold, 75% bonus at 4 range</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Gastly Line</h4>
+              </div>
+              <p>
+                Health:
+                <span class="old-value">708/1274/2293</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">708/1350/2800</strong>. Mana:
+                <span class="old-value">90/90/90</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">90/80/65</strong>. Attack Damage:
+                <span class="old-value">59/106/191</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">59/112/230</strong>. Attack Speed:
+                <span class="old-value">0.68/0.68/0.68</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">0.68/0.68/0.75</strong>. 2★ Nightmare range:
+                <span class="old-value">3</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">4</strong>. 3★ Dream Eater:
+                <span class="old-value">996 damage, 1s stun, 60% healing at 4 range</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">1350 damage, 2s stun, 75% healing at 5 range</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>3★ Dewgong</h4>
+              </div>
+              <p>
+                Mana:
+                <span class="old-value">90</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">70</strong>. Perish Song stun:
+                <span class="old-value">2s at 3 range</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">3s at 4 range</strong>. Seel and 2★ Dewgong are unchanged.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Porygon</h4>
+              </div>
+              <p>
+                Mana:
+                <span class="old-value">95</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">75</strong>. Conversion Attack Speed:
+                <span class="old-value">20/30/44%</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">22/34/50%</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Ditto</h4>
+              </div>
+              <p>
+                Mana:
+                <span class="old-value">95</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">75</strong>. Transform Attack Damage:
+                <span class="old-value">20/30/44%</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">24/36/52%</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Lickitung</h4>
+              </div>
+              <p>
+                Health:
+                <span class="old-value">1160/2088/3758</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">1220/2196/3953</strong>. Mana:
+                <span class="old-value">75</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">60</strong>. Wrap stun:
+                <span class="old-value">1/2/2s</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">2/2/3s</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Snorlax</h4>
+              </div>
+              <p>
+                Health:
+                <span class="old-value">1430/2574/4633</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">1500/2700/4860</strong>. Mana:
+                <span class="old-value">85</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">75</strong>. Heavy Slam damage:
+                <span class="old-value">200/455/945</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">240/545/1135</strong>. Range:
+                <span class="old-value">1/2/2</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">2/2/3</strong>.
+              </p>
+            </div>
+
+            <div class="balance-block">
+              <div class="balance-title">
+                <span class="tag buff">Buff</span>
+                <h4>Aerodactyl</h4>
+              </div>
+              <p>
+                Mana:
+                <span class="old-value">85</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">75</strong>. Stone Edge damage:
+                <span class="old-value">215/490/1020</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">250/565/1175</strong>. Execute threshold:
+                <span class="old-value">28/35/45%</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">30/38/48%</strong>. Execute bonus:
+                <span class="old-value">35/50/75%</span>
+                <span class="change-arrow">&nbsp;=>&nbsp;</span>
+                <strong class="value buff">40/60/90%</strong>.
+              </p>
+            </div>
           </article>
         </div>
       </section>
