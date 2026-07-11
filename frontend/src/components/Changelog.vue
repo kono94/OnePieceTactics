@@ -6,6 +6,7 @@ defineOptions({
 defineEmits(['back'])
 
 const versionNextCommits = [
+  { hash: 'pending', title: 'Nerf three-star Geodude' },
   { hash: 'pending', title: 'Track human-vs-bot round results and finish bot-only rooms immediately' },
   { hash: 'pending', title: 'Fix post-game exit recovery and add confirmed game abandonment' },
   { hash: 'pending', title: 'Add gameplay analytics, production security, and match reconnection recovery' }
@@ -63,6 +64,36 @@ const version160Commits = [
               <span>{{ commit.title }}</span>
             </li>
           </ul>
+        </article>
+        <article class="release-panel">
+          <div class="section-heading">
+            <span class="marker balance"></span>
+            <h3>Balance Changes</h3>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag nerf">Nerf</span>
+              <h4>3★ Golem</h4>
+            </div>
+            <p>
+              Health:
+              <span class="old-value">2900</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value nerf">2600</strong>. Mana:
+              <span class="old-value">45</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value nerf">55</strong>. Attack Damage:
+              <span class="old-value">180</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value nerf">165</strong>. Stealth Rock damage:
+              <span class="old-value">1000</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value nerf">800</strong>. Execute threshold and bonus damage:
+              <span class="old-value">42% threshold, 55% bonus</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value nerf">35% threshold, 40% bonus</strong>.
+            </p>
+          </div>
         </article>
       </section>
 

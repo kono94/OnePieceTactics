@@ -1867,9 +1867,9 @@
         "lineId": "geodude",
         "name": "Geodude",
         "cost": 2,
-        "maxHealth": [770, 1500, 2900],
-        "maxMana": [60, 50, 45],
-        "attackDamage": [46, 90, 180],
+        "maxHealth": [770, 1500, 2600],
+        "maxMana": [60, 50, 55],
+        "attackDamage": [46, 90, 165],
         "abilityPower": [0, 0, 0],
         "armor": [40, 40, 40],
         "magicResist": [34, 34, 34],
@@ -1941,13 +1941,13 @@
                     "description": "Raises jagged stones for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [146, 329, 1000],
+                    "values": [146, 329, 800],
                     "range": [2, 2, 4],
                     "modifiers": [
                         {
                             "type": "EXECUTE",
-                            "hpThreshold": [0.25, 0.3, 0.42],
-                            "bonusDamageMultiplier": [0.2, 0.28, 0.55]
+                            "hpThreshold": [0.25, 0.3, 0.35],
+                            "bonusDamageMultiplier": [0.2, 0.28, 0.4]
                         }
                     ]
                 }
