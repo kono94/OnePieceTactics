@@ -3,6 +3,7 @@ package net.lwenstrom.tft.backend.core;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import net.lwenstrom.tft.backend.core.engine.GameEngine;
@@ -84,6 +85,22 @@ class GameControllerSessionGuardTest {
     }
 
     @Test
+    void abandonRoom_EliminatesPlayerAndPreventsReconnect() {
+        controller.createRoom(
+                new GameController.RoomRequest("abandon-room", "Host", "browser-id", "reconnect-secret"),
+                "host-session");
+        var room = gameEngine.getRoom("abandon-room");
+        var host = findPlayer(room, "Host");
+        controller.startRoom(new GameController.RoomRequest(room.getId(), "Host"), "host-session");
+
+        controller.abandonRoom(new GameController.RoomRequest(room.getId(), "Host"), "host-session");
+
+        assertEquals(0, host.getHealth());
+        assertTrue(host.isAbandoned());
+        assertTrue(room.reconnectPlayer("reconnect-secret").isEmpty());
+    }
+
+    @Test
     void startRoom_DoesNotAllowNonHostToSpoofHostName() {
         var room = createRoomWithHost();
         controller.joinRoom(new GameController.RoomRequest(room.getId(), "Guest"), "guest-session");
@@ -127,6 +144,31 @@ class GameControllerSessionGuardTest {
 
         assertEquals(playerCount, room.getPlayers().size());
         assertNotNull(findPlayer(room, "Host"));
+    }
+
+    @Test
+    void joinRoom_RebindsActivePlayerWithReconnectToken() {
+        controller.createRoom(
+                new GameController.RoomRequest("reconnect-room", "Host", "browser-id", "reconnect-secret"),
+                "old-session");
+        var room = gameEngine.getRoom("reconnect-room");
+        var host = findPlayer(room, "Host");
+        controller.startRoom(new GameController.RoomRequest(room.getId(), "Host"), "old-session");
+
+        controller.leaveRoom(new GameController.RoomRequest(room.getId(), "Host"), "old-session");
+
+        assertNotNull(room.getPlayer(host.getId()));
+        assertNotNull(host.getDisconnectedAt());
+
+        controller.joinRoom(
+                new GameController.RoomRequest(room.getId(), "Host", "browser-id", "reconnect-secret"), "new-session");
+        controller.handleAction(
+                room.getId(),
+                new GameAction(ActionType.EXP, host.getId(), null, null, null, null, null, null),
+                "new-session");
+
+        assertNull(host.getDisconnectedAt());
+        assertEquals(2, host.getLevel());
     }
 
     @Test

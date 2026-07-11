@@ -18,7 +18,7 @@ const props = defineProps<{
   currentPlayerName: string
 }>()
 
-const emit = defineEmits(['action', 'view-player'])
+const emit = defineEmits(['action', 'view-player', 'exit-game', 'abandon-game'])
 
 const myPlayer = computed((): PlayerState | null => {
     if (!props.state?.players) return null
@@ -113,6 +113,21 @@ const benchSlots = computed((): BenchSlot[] => {
 
 function returnHome() {
     viewedPlayerId.value = null
+}
+
+const isAbandonDialogVisible = ref(false)
+
+function requestAbandonGame() {
+    isAbandonDialogVisible.value = true
+}
+
+function cancelAbandonGame() {
+    isAbandonDialogVisible.value = false
+}
+
+function confirmAbandonGame() {
+    isAbandonDialogVisible.value = false
+    emit('abandon-game')
 }
 
 function selectViewedPlayer(playerId: string) {
@@ -448,7 +463,10 @@ watch(effectiveViewedPlayerId, (playerId) => {
 <template>
   <div class="game-interface">
     <PhaseAnnouncement v-if="state" :phase="state.phase" />
-    <EndScreen v-if="showEndScreen" :players="allPlayers" :my-player-id="myPlayer?.playerId" />
+    <EndScreen v-if="showEndScreen"
+               :players="allPlayers"
+               :my-player-id="myPlayer?.playerId"
+               @exit="emit('exit-game')" />
     <AugmentSelectionOverlay
         v-if="state?.phase === 'PLANNING' && hasPendingAugmentChoices"
         :choices="pendingAugmentChoices"
@@ -462,7 +480,20 @@ watch(effectiveViewedPlayerId, (playerId) => {
                 <span class="phase-name">{{ state.phase }}</span>
                 <div class="game-meta">
                     <span class="game-mode">{{ state.gameMode }}</span>
-                    <span class="room-id">Room: {{ state.roomId }}</span>
+                    <div class="room-details">
+                        <span class="room-id">Room: {{ state.roomId }}</span>
+                        <button v-if="myPlayer && state.phase !== 'END'"
+                                class="abandon-game-btn"
+                                type="button"
+                                aria-label="Abandon game"
+                                title="Abandon game"
+                                @click="requestAbandonGame">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M4 4.75A1.75 1.75 0 0 1 5.75 3h9.5A1.75 1.75 0 0 1 17 4.75v14.5A1.75 1.75 0 0 1 15.25 21h-9.5A1.75 1.75 0 0 1 4 19.25v-14.5Z" />
+                                <path d="M12 12h8m-3-3 3 3-3 3M8 12h4" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <div class="round-actions">
                     <span class="round-name">Round {{ state.round }}</span>
@@ -659,6 +690,17 @@ watch(effectiveViewedPlayerId, (playerId) => {
         Waiting for game state...
     </div>
 
+    <div v-if="isAbandonDialogVisible" class="abandon-dialog-backdrop" @click.self="cancelAbandonGame">
+        <section class="abandon-dialog" role="dialog" aria-modal="true" aria-labelledby="abandon-game-title">
+            <h2 id="abandon-game-title">Abandon this game?</h2>
+            <p>You will be removed from this match and returned to the home screen. This cannot be undone.</p>
+            <div class="abandon-dialog__actions">
+                <button class="abandon-dialog__cancel" type="button" @click="cancelAbandonGame">Cancel</button>
+                <button class="abandon-dialog__confirm" type="button" @click="confirmAbandonGame">Abandon Game</button>
+            </div>
+        </section>
+    </div>
+
     <!-- Global Tooltip Teleport -->
     <Teleport to="body">
         <transition name="fade">
@@ -743,6 +785,12 @@ watch(effectiveViewedPlayerId, (playerId) => {
     padding: 2px 8px;
     border-radius: 4px;
     letter-spacing: 0.5px;
+}
+
+.room-details {
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
 .round-actions {
@@ -1511,6 +1559,90 @@ watch(effectiveViewedPlayerId, (playerId) => {
         opacity: 0;
         transform: rotate(var(--angle)) translateY(-50px) scale(0.5);
     }
+}
+
+.abandon-game-btn {
+    display: grid;
+    width: 20px;
+    height: 20px;
+    padding: 3px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: #ef4444;
+    cursor: pointer;
+}
+
+.abandon-game-btn:hover {
+    background: rgba(239, 68, 68, 0.18);
+    color: #f87171;
+}
+
+.abandon-game-btn svg {
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+}
+
+.abandon-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(2, 6, 23, 0.78);
+    backdrop-filter: blur(4px);
+}
+
+.abandon-dialog {
+    width: min(100%, 430px);
+    padding: 28px;
+    border: 1px solid rgba(248, 113, 113, 0.45);
+    border-radius: 14px;
+    background: #0f172a;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.48);
+}
+
+.abandon-dialog h2 {
+    margin: 0;
+    color: #fee2e2;
+    font-size: 1.5rem;
+}
+
+.abandon-dialog p {
+    margin: 12px 0 24px;
+    color: #cbd5e1;
+    line-height: 1.5;
+}
+
+.abandon-dialog__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.abandon-dialog__actions button {
+    padding: 9px 14px;
+    border-radius: 7px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.abandon-dialog__cancel {
+    border: 1px solid #475569;
+    background: #1e293b;
+    color: #e2e8f0;
+}
+
+.abandon-dialog__confirm {
+    border: 1px solid #ef4444;
+    background: #b91c1c;
+    color: #fff;
 }
 </style>
 

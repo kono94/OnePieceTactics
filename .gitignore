@@ -7,3 +7,7 @@
 # Generated at runtime
 deployment/nginx/prod.conf
 deployment/certbot/
+
+# Local SQLite analytics data
+backend/data/*
+!backend/data/.gitkeep

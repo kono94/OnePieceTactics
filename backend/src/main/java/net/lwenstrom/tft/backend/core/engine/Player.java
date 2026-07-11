@@ -22,6 +22,10 @@ import net.lwenstrom.tft.backend.core.random.RandomProvider;
 public class Player {
     private final String id;
     private String name;
+    private String analyticsClientId;
+    private String reconnectTokenHash;
+    private Long disconnectedAt;
+    private boolean abandoned;
     private Integer place; // Null if still playing, 1-8 if finished
     private String combatSide; // "TOP" or "BOTTOM" during combat, null otherwise
 
@@ -53,11 +57,25 @@ public class Player {
     private GameMode gameMode;
 
     public Player(String name, GameMode gameMode, DataLoader dataLoader, RandomProvider randomProvider) {
+        this(name, gameMode, dataLoader, randomProvider, null, null);
+    }
+
+    public Player(
+            String name,
+            GameMode gameMode,
+            DataLoader dataLoader,
+            RandomProvider randomProvider,
+            String analyticsClientId,
+            String reconnectTokenHash) {
         this.id = UUID.randomUUID().toString();
         this.name = name;
         this.gameMode = gameMode;
         this.dataLoader = dataLoader;
         this.randomProvider = randomProvider;
+        this.analyticsClientId = analyticsClientId == null || analyticsClientId.isBlank()
+                ? UUID.randomUUID().toString()
+                : analyticsClientId;
+        this.reconnectTokenHash = reconnectTokenHash;
     }
 
     public void refreshShop() {
@@ -513,6 +531,7 @@ public class Player {
     public Player createGhost() {
         var ghostPlayer = new Player(this.name, this.gameMode, this.dataLoader, this.randomProvider);
         ghostPlayer.setGhost(true);
+        ghostPlayer.setBot(this.bot);
         ghostPlayer.setHealth(this.health);
         ghostPlayer.setLevel(this.level);
         ghostPlayer.selectedAugments.addAll(this.selectedAugments);

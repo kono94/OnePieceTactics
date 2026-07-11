@@ -11,7 +11,9 @@ The backend is the authoritative source for match state. It owns:
 - Real-time synchronization to the frontend through STOMP WebSocket topics.
 - A theme-agnostic engine with pluggable game modes: `onepiece` and `pokemon`.
 
-There is no database or persistence layer. `GameEngine` keeps all active rooms in memory until the match reaches `END`, then removes the room on the next tick.
+Live match state is not database-backed. `GameEngine` keeps active rooms in memory until a match reaches `END`, then
+removes the room on the next tick. The separate analytics subsystem writes anonymous match, player-run,
+and per-round snapshots to SQLite; it never restores or controls authoritative match state.
 
 Architecturally this is not a classic CRUD layered backend. It is a custom stateful game-loop architecture with Spring used for bootstrapping, REST config endpoints, scheduling, and WebSocket transport.
 
@@ -286,6 +288,11 @@ This is how Pokemon evolutions work. Three `Charmander` copies still combine by 
 | `/api/config` | GET | `{"defaultGameMode":"onepiece","availableModes":["onepiece","pokemon"]}` | Frontend config for default and selectable modes. |
 | `/api/traits?mode=onepiece` | GET | `TraitMetadata[]` | Trait metadata for requested mode; missing/unknown mode falls back through `GameMode.fromString` to `onepiece`. |
 | `/api/mode` | GET | `"onepiece"` or `"pokemon"` | Current global default mode, not a room's mode. |
+| `/api/admin/auth/login` | POST | Bearer token and expiry | Exchanges the configured analytics password for an eight-hour admin session. |
+| `/api/admin/auth/logout` | POST | Empty response | Revokes the current admin bearer token. |
+| `/api/admin/analytics/summary` | GET | Aggregate analytics | Protected match, run, abandonment, placement, mode, and outcome totals. |
+| `/api/admin/analytics/runs` | GET | Cursor-paginated runs | Protected anonymous player runs with date, mode, client, and abandonment filters. |
+| `/api/admin/analytics/runs/{runId}` | GET | Run and round snapshots | Protected round-by-round board and progression detail. |
 
 `/api/config` lives in `api/InfoController`. `/api/traits` and `/api/mode` live in `core/GameController`.
 
@@ -301,9 +308,9 @@ This is how Pokemon evolutions work. Three `Charmander` copies still combine by 
 
 | STOMP destination | Payload | Behavior |
 |-------------------|---------|----------|
-| `/app/create` | `RoomRequest` | Creates room id from payload, configures combat result listener, adds creator, and binds the STOMP session to that player id. |
-| `/app/join` | `RoomRequest` | Adds player by `playerName` to an existing room and binds the STOMP session to that player id. |
-| `/app/leave` | `RoomRequest` | Removes the player id bound to the sender's STOMP session, then clears that session binding. |
+| `/app/create` | `RoomRequest` | Creates a room, adds the creator with anonymous analytics/reconnect identity, and binds the STOMP session. |
+| `/app/join` | `RoomRequest` | Adds a lobby player or rebinds an active player presenting the matching reconnect token. |
+| `/app/leave` | `RoomRequest` | Removes lobby players; active players remain simulated and enter the disconnect grace period. |
 | `/app/start` | `RoomRequest` | Resolves player from the STOMP session and starts only if that player is host. Adds bots up to 8 players. |
 | `/app/room/{id}/add-bot` | no body required | Adds one bot to the room. |
 | `/app/room/{id}/mode` | `ModeChangeRequest` | Session-bound host-only LOBBY mode change; resets player mode data as described above. |
@@ -316,9 +323,15 @@ Action/start/mode authority is session-bound. `GameAction.playerId` must match t
 ```json
 {
   "roomId": "room-123",
-  "playerName": "Alice"
+  "playerName": "Alice",
+  "analyticsClientId": "anonymous-browser-uuid",
+  "reconnectToken": "secret-per-tab-room-token"
 }
 ```
+
+The reconnect token is hashed server-side and never appears in shared `GameState`. WebSocket disconnects and explicit
+active-game leaves start a 60-second grace period. After that the player run is marked abandoned, but its board keeps
+participating and remains eligible for round snapshots and final placement.
 
 `ModeChangeRequest`:
 

@@ -5,6 +5,12 @@ defineOptions({
 
 defineEmits(['back'])
 
+const versionNextCommits = [
+  { hash: 'pending', title: 'Track human-vs-bot round results and finish bot-only rooms immediately' },
+  { hash: 'pending', title: 'Fix post-game exit recovery and add confirmed game abandonment' },
+  { hash: 'pending', title: 'Add gameplay analytics, production security, and match reconnection recovery' }
+]
+
 const version162Commits = [
   { hash: '4a5c569', title: 'Nerf Pokemon bot board size' },
   { hash: 'e7b41c5', title: 'Improve README' },
@@ -39,6 +45,27 @@ const version160Commits = [
     <button class="back-button" type="button" @click="$emit('back')">Back</button>
 
     <div class="release-history">
+      <section class="release-section latest-release">
+        <div class="release-header">
+          <p class="eyebrow">Next</p>
+          <h2>Version X.X.X</h2>
+          <p>
+            Gameplay analytics now persist anonymous match outcomes in SQLite, with a password-protected production
+            dashboard and human-vs-bot results broken down by round. Matches now complete as soon as every human has
+            been eliminated, rather than continuing with bots only. Active matches can also recover from a same-tab
+            reconnect, return safely to the lobby after a game, and be explicitly abandoned from the in-game controls.
+          </p>
+        </div>
+        <article class="release-panel">
+          <ul class="commit-list">
+            <li v-for="commit in versionNextCommits" :key="commit.hash">
+              <span class="hash">{{ commit.hash }}</span>
+              <span>{{ commit.title }}</span>
+            </li>
+          </ul>
+        </article>
+      </section>
+
       <section class="release-section latest-release">
         <div class="release-header">
           <p class="eyebrow">Latest</p>

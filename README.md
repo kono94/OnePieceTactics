@@ -33,7 +33,7 @@ For detailed architectural information, refer to the context documents:
 - **Advanced ability system** — Damage, Stun, Shield, Heal, Buff with modifiers (Lifesteal, Execute, Scaling, Conditional, Knockback)
 - **Data-driven trait system** — All trait effects loaded from JSON configuration (no hardcoded logic)
 - **TFT-style shop odds** — Level-based probability distribution for unit costs (1★-5★)
-- **In-memory game state** — no database required
+- **In-memory game state** — live matches remain memory-only; SQLite analytics persist production outcomes
 
 ### Combat & Progression
 - **Ghost/clone matchmaking** — Odd player count creates AI clones for balanced combat
@@ -114,6 +114,7 @@ For detailed architectural information, refer to the context documents:
 |------------|---------|
 | Docker & Docker Compose | Containerization |
 | Nginx | Reverse proxy |
+| SQLite | Production gameplay analytics |
 
 ---
 
@@ -186,6 +187,13 @@ Augment choices are included in each player's `GameState` snapshot as `augmentCh
 | `/api/config` | GET | Default game mode and available lobby modes |
 | `/api/mode` | GET | Default game mode |
 | `/api/traits?mode={mode}` | GET | Trait definitions for the selected mode |
+| `/api/admin/auth/login` | POST | Exchange the configured admin password for an eight-hour bearer token |
+| `/api/admin/analytics/summary` | GET | Protected aggregate gameplay analytics |
+| `/api/admin/analytics/runs` | GET | Protected, paginated player runs |
+
+The production analytics dashboard is available at `/#/admin/analytics`. Match state remains backend-authoritative and
+in memory; only anonymous analytics snapshots are written to SQLite. See the deployment guide for password and storage
+configuration.
 
 ---
 

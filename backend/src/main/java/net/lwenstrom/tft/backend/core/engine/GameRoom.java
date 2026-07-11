@@ -1,5 +1,7 @@
 package net.lwenstrom.tft.backend.core.engine;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -14,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.lwenstrom.tft.backend.core.DataLoader;
 import net.lwenstrom.tft.backend.core.GameConstants;
 import net.lwenstrom.tft.backend.core.GameModeRegistry;
+import net.lwenstrom.tft.backend.core.analytics.GameplayAnalyticsRecorder;
 import net.lwenstrom.tft.backend.core.combat.BfsUnitMover;
 import net.lwenstrom.tft.backend.core.combat.DefaultAbilityCaster;
 import net.lwenstrom.tft.backend.core.combat.NearestEnemyTargetSelector;
@@ -32,6 +35,7 @@ import net.lwenstrom.tft.backend.core.time.Clock;
 @Slf4j
 public class GameRoom {
     private final String id;
+    private final String analyticsMatchKey = UUID.randomUUID().toString();
     private String hostId;
     private GameState currentState;
 
@@ -52,6 +56,8 @@ public class GameRoom {
     private final RandomProvider randomProvider;
     private final TraitManager traitManager;
     private final CombatSystem combatSystem;
+    private final GameplayAnalyticsRecorder analyticsRecorder;
+    private boolean matchCompletedRecorded;
     private AugmentManager augmentManager;
     private final List<GameState.CombatEvent> lastTickEvents = new ArrayList<>();
     private final Map<String, CombatSystem.DamageEntry> currentRoundDamageLog = new ConcurrentHashMap<>();
@@ -90,12 +96,24 @@ public class GameRoom {
             Clock clock,
             RandomProvider randomProvider,
             GameMode gameMode) {
+        this(id, dataLoader, gameModeRegistry, clock, randomProvider, gameMode, GameplayAnalyticsRecorder.NO_OP);
+    }
+
+    public GameRoom(
+            String id,
+            DataLoader dataLoader,
+            GameModeRegistry gameModeRegistry,
+            Clock clock,
+            RandomProvider randomProvider,
+            GameMode gameMode,
+            GameplayAnalyticsRecorder analyticsRecorder) {
         this.id = id;
         this.dataLoader = dataLoader;
         this.gameModeRegistry = gameModeRegistry;
         this.clock = clock;
         this.randomProvider = randomProvider;
         this.gameMode = gameMode;
+        this.analyticsRecorder = analyticsRecorder;
 
         this.traitManager = new TraitManager();
         gameModeRegistry.getProvider(this.gameMode).registerTraitEffects(this.traitManager);
@@ -172,11 +190,16 @@ public class GameRoom {
     }
 
     public Optional<Player> tryAddPlayer(String name) {
+        return tryAddPlayer(name, null, null);
+    }
+
+    public Optional<Player> tryAddPlayer(String name, String analyticsClientId, String reconnectToken) {
         if (!canAcceptPlayers()) {
             return Optional.empty();
         }
 
-        var player = new Player(name, gameMode, dataLoader, randomProvider);
+        var player = new Player(
+                name, gameMode, dataLoader, randomProvider, analyticsClientId, hashReconnectToken(reconnectToken));
         players.put(player.getId(), player);
 
         if (hostId == null) {
@@ -206,7 +229,75 @@ public class GameRoom {
             addBot();
         }
 
+        recordAnalytics(() ->
+                analyticsRecorder.matchStarted(analyticsMatchKey, gameMode, clock.currentTimeMillis(), humanPlayers()));
         startPhase(GamePhase.PLANNING);
+    }
+
+    public Optional<Player> reconnectPlayer(String reconnectToken) {
+        var reconnectTokenHash = hashReconnectToken(reconnectToken);
+        if (reconnectTokenHash == null || phase == GamePhase.LOBBY || phase == GamePhase.END) {
+            return Optional.empty();
+        }
+        return players.values().stream()
+                .filter(player -> !player.isBot() && !player.isGhost())
+                .filter(player -> constantTimeEquals(player.getReconnectTokenHash(), reconnectTokenHash))
+                .findFirst()
+                .map(player -> {
+                    abandonIfGraceExpired(player, clock.currentTimeMillis());
+                    player.setDisconnectedAt(null);
+                    return player;
+                });
+    }
+
+    public void disconnectPlayer(String playerId) {
+        var player = players.get(playerId);
+        if (player == null) {
+            return;
+        }
+        if (phase == GamePhase.LOBBY) {
+            removePlayer(playerId);
+            return;
+        }
+        if (phase != GamePhase.END && player.getDisconnectedAt() == null) {
+            player.setDisconnectedAt(clock.currentTimeMillis());
+        }
+    }
+
+    public boolean abandonPlayer(String playerId) {
+        var player = players.get(playerId);
+        if (player == null || player.isBot() || player.isGhost()) {
+            return false;
+        }
+        if (phase == GamePhase.LOBBY) {
+            removePlayer(playerId);
+            return true;
+        }
+
+        if (player.getHealth() > 0) {
+            var remainingAlivePlayers = players.values().stream()
+                    .filter(otherPlayer -> !otherPlayer.getId().equals(playerId))
+                    .filter(otherPlayer -> otherPlayer.getHealth() > 0)
+                    .count();
+            player.setHealth(0);
+            player.setPlace((int) remainingAlivePlayers + 1);
+        }
+        player.setDisconnectedAt(null);
+        player.setReconnectTokenHash(null);
+        if (!player.isAbandoned()) {
+            player.setAbandoned(true);
+            recordAnalytics(() ->
+                    analyticsRecorder.playerAbandoned(analyticsMatchKey, player.getId(), clock.currentTimeMillis()));
+        }
+
+        if (phase != GamePhase.END
+                && phase != GamePhase.END_CELEBRATION
+                && aliveHumanPlayers().isEmpty()) {
+            startPhase(GamePhase.END_CELEBRATION);
+        } else {
+            updateGameState(phaseEndTime - clock.currentTimeMillis());
+        }
+        return true;
     }
 
     public Optional<Player> addBot() {
@@ -272,7 +363,12 @@ public class GameRoom {
     }
 
     public void tick() {
+        markAbandonedPlayers();
         if (phase == GamePhase.LOBBY || phase == GamePhase.END) {
+            return;
+        }
+        if (aliveHumanPlayers().isEmpty() && phase != GamePhase.END_CELEBRATION) {
+            finishWhenNoHumansRemain();
             return;
         }
 
@@ -347,6 +443,12 @@ public class GameRoom {
         this.phase = newPhase;
         log.info("Starting phase: {}", newPhase);
 
+        if (newPhase == GamePhase.END_CELEBRATION && !matchCompletedRecorded) {
+            matchCompletedRecorded = true;
+            recordAnalytics(() -> analyticsRecorder.matchCompleted(
+                    analyticsMatchKey, round, clock.currentTimeMillis(), humanPlayers()));
+        }
+
         if (phase == GamePhase.PLANNING) {
             var alivePlayers =
                     players.values().stream().filter(p -> p.getHealth() > 0).toList();
@@ -408,6 +510,9 @@ public class GameRoom {
                 p.setInCombat(true);
                 p.autoFillBoard();
             });
+
+            recordAnalytics(() -> analyticsRecorder.roundStarted(
+                    analyticsMatchKey, round, clock.currentTimeMillis(), aliveHumanPlayers()));
 
             currentRoundDamageLog.clear();
 
@@ -795,6 +900,15 @@ public class GameRoom {
             applyDamageToLoser(outcome.winner(), outcome.loser());
         }
 
+        recordAnalytics(() -> analyticsRecorder.combatResolved(
+                analyticsMatchKey,
+                round,
+                clock.currentTimeMillis(),
+                outcome.winner() != null && !outcome.isDraw() ? outcome.winner().getId() : null,
+                outcome.loser() != null && !outcome.isDraw() ? outcome.loser().getId() : null,
+                outcome.isDraw(),
+                participants));
+
         checkAndTriggerGameEnd();
 
         notifyCombatResult(outcome, result, participants);
@@ -865,6 +979,10 @@ public class GameRoom {
     }
 
     private void checkAndTriggerGameEnd() {
+        if (aliveHumanPlayers().isEmpty()) {
+            finishWhenNoHumansRemain();
+            return;
+        }
         var alivePlayers =
                 players.values().stream().filter(p -> p.getHealth() > 0).toList();
         if (alivePlayers.size() <= 1) {
@@ -872,6 +990,69 @@ public class GameRoom {
                 alivePlayers.get(0).setPlace(1);
             }
             startPhase(GamePhase.END_CELEBRATION);
+        }
+    }
+
+    private void finishWhenNoHumansRemain() {
+        var alivePlayers = players.values().stream()
+                .filter(player -> player.getHealth() > 0)
+                .count();
+        humanPlayers().stream()
+                .filter(player -> player.getHealth() <= 0)
+                .filter(player -> player.getPlace() == null)
+                .forEach(player -> player.setPlace((int) alivePlayers + 1));
+        startPhase(GamePhase.END_CELEBRATION);
+    }
+
+    private void markAbandonedPlayers() {
+        var now = clock.currentTimeMillis();
+        players.values().stream()
+                .filter(player -> !player.isBot() && !player.isGhost())
+                .forEach(player -> abandonIfGraceExpired(player, now));
+    }
+
+    private void abandonIfGraceExpired(Player player, long now) {
+        if (player.isAbandoned() || player.getDisconnectedAt() == null || now - player.getDisconnectedAt() < 60_000L) {
+            return;
+        }
+        player.setAbandoned(true);
+        recordAnalytics(() -> analyticsRecorder.playerAbandoned(analyticsMatchKey, player.getId(), now));
+    }
+
+    private List<Player> humanPlayers() {
+        return players.values().stream()
+                .filter(player -> !player.isBot() && !player.isGhost())
+                .toList();
+    }
+
+    private List<Player> aliveHumanPlayers() {
+        return humanPlayers().stream().filter(player -> player.getHealth() > 0).toList();
+    }
+
+    private static String hashReconnectToken(String reconnectToken) {
+        if (reconnectToken == null || reconnectToken.isBlank()) {
+            return null;
+        }
+        try {
+            var digest = MessageDigest.getInstance("SHA-256");
+            return java.util.HexFormat.of().formatHex(digest.digest(reconnectToken.getBytes(StandardCharsets.UTF_8)));
+        } catch (java.security.NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is unavailable", exception);
+        }
+    }
+
+    private static boolean constantTimeEquals(String first, String second) {
+        if (first == null || second == null) {
+            return false;
+        }
+        return MessageDigest.isEqual(first.getBytes(StandardCharsets.UTF_8), second.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private void recordAnalytics(Runnable operation) {
+        try {
+            operation.run();
+        } catch (RuntimeException exception) {
+            log.error("Gameplay analytics recording failed for room {}", id, exception);
         }
     }
 

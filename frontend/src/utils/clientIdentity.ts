@@ -1,0 +1,38 @@
+const ANALYTICS_ID_KEY = 'tactics.analytics.clientId'
+const ACTIVE_ROOM_KEY = 'tactics.activeRoom'
+
+export interface ActiveRoomSession {
+    roomId: string
+    playerName: string
+    reconnectToken: string
+}
+
+const randomId = () => crypto.randomUUID()
+
+export const getAnalyticsClientId = () => {
+    const existing = localStorage.getItem(ANALYTICS_ID_KEY)
+    if (existing) return existing
+    const id = randomId()
+    localStorage.setItem(ANALYTICS_ID_KEY, id)
+    return id
+}
+
+export const createActiveRoomSession = (roomId: string, playerName: string): ActiveRoomSession => {
+    const session = { roomId, playerName, reconnectToken: randomId() }
+    sessionStorage.setItem(ACTIVE_ROOM_KEY, JSON.stringify(session))
+    return session
+}
+
+export const loadActiveRoomSession = (): ActiveRoomSession | null => {
+    const raw = sessionStorage.getItem(ACTIVE_ROOM_KEY)
+    if (!raw) return null
+    try {
+        const value = JSON.parse(raw) as ActiveRoomSession
+        return value.roomId && value.playerName && value.reconnectToken ? value : null
+    } catch {
+        sessionStorage.removeItem(ACTIVE_ROOM_KEY)
+        return null
+    }
+}
+
+export const clearActiveRoomSession = () => sessionStorage.removeItem(ACTIVE_ROOM_KEY)

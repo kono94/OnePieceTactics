@@ -14,6 +14,7 @@ import net.lwenstrom.tft.backend.core.model.GameAction;
 import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GamePhase;
 import net.lwenstrom.tft.backend.core.model.TraitMetadata;
+import org.springframework.context.event.EventListener;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -60,7 +62,8 @@ public class GameController {
     public void createRoom(@Payload RoomRequest request, @Header("simpSessionId") String sessionId) {
         var room = gameEngine.createRoom(request.roomId());
         configureCombatResultListener(room);
-        addPlayerForSession(room, request.playerName(), sessionId);
+        addPlayerForSession(
+                room, request.playerName(), request.analyticsClientId(), request.reconnectToken(), sessionId);
         broadcastRoomState(room);
     }
 
@@ -127,7 +130,15 @@ public class GameController {
             return;
         }
 
-        if (!addPlayerForSession(room, request.playerName(), sessionId)) {
+        var rejoiningPlayer = room.reconnectPlayer(request.reconnectToken());
+        if (rejoiningPlayer.isPresent()) {
+            bindSession(room.getId(), rejoiningPlayer.get().getId(), sessionId);
+            broadcastRoomState(room);
+            return;
+        }
+
+        if (!addPlayerForSession(
+                room, request.playerName(), request.analyticsClientId(), request.reconnectToken(), sessionId)) {
             log.info("Rejected join for room {} because it is not accepting players.", room.getId());
             return;
         }
@@ -142,10 +153,27 @@ public class GameController {
 
         var room = gameEngine.getRoom(sessionPlayer.roomId());
         if (room != null) {
-            room.removePlayer(sessionPlayer.playerId());
             sessionPlayers.remove(sessionId);
+            room.disconnectPlayer(sessionPlayer.playerId());
             broadcastRoomState(room);
         }
+    }
+
+    @MessageMapping("/abandon")
+    public void abandonRoom(@Payload RoomRequest request, @Header("simpSessionId") String sessionId) {
+        var sessionPlayer = resolveSessionPlayer(request.roomId(), sessionId);
+        if (sessionPlayer == null) return;
+
+        sessionPlayers.remove(sessionId);
+        var room = gameEngine.getRoom(sessionPlayer.roomId());
+        if (room != null && room.abandonPlayer(sessionPlayer.playerId())) {
+            broadcastRoomState(room);
+        }
+    }
+
+    @EventListener
+    public void handleSessionDisconnect(SessionDisconnectEvent event) {
+        disconnectSession(event.getSessionId());
     }
 
     @MessageMapping("/start")
@@ -279,10 +307,31 @@ public class GameController {
         messagingTemplate.convertAndSend("/topic/room/" + room.getId(), room.getState());
     }
 
-    private boolean addPlayerForSession(GameRoom room, String playerName, String sessionId) {
-        var player = room.tryAddPlayer(playerName);
-        player.ifPresent(p -> sessionPlayers.put(sessionId, new SessionPlayer(room.getId(), p.getId())));
+    private boolean addPlayerForSession(
+            GameRoom room, String playerName, String analyticsClientId, String reconnectToken, String sessionId) {
+        var player = room.tryAddPlayer(playerName, analyticsClientId, reconnectToken);
+        player.ifPresent(p -> bindSession(room.getId(), p.getId(), sessionId));
         return player.isPresent();
+    }
+
+    private void bindSession(String roomId, String playerId, String sessionId) {
+        sessionPlayers
+                .entrySet()
+                .removeIf(entry -> entry.getValue().roomId().equals(roomId)
+                        && entry.getValue().playerId().equals(playerId));
+        sessionPlayers.put(sessionId, new SessionPlayer(roomId, playerId));
+    }
+
+    private void disconnectSession(String sessionId) {
+        var sessionPlayer = sessionPlayers.remove(sessionId);
+        if (sessionPlayer == null) {
+            return;
+        }
+        var room = gameEngine.getRoom(sessionPlayer.roomId());
+        if (room != null) {
+            room.disconnectPlayer(sessionPlayer.playerId());
+            broadcastRoomState(room);
+        }
     }
 
     private SessionPlayer resolveSessionPlayer(String roomId, String sessionId) {
@@ -301,7 +350,11 @@ public class GameController {
         return room.getPlayer(sessionPlayer.playerId());
     }
 
-    public record RoomRequest(String roomId, String playerName) {}
+    public record RoomRequest(String roomId, String playerName, String analyticsClientId, String reconnectToken) {
+        public RoomRequest(String roomId, String playerName) {
+            this(roomId, playerName, null, null);
+        }
+    }
 
     public record ModeChangeRequest(String playerName, GameMode gameMode) {}
 

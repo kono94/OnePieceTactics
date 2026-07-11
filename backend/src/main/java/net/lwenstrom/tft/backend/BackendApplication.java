@@ -3,7 +3,10 @@ package net.lwenstrom.tft.backend;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication
+@SpringBootApplication(
+        exclude = {
+            org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration.class,
+        })
 @org.springframework.scheduling.annotation.EnableScheduling
 public class BackendApplication {
 

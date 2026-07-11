@@ -10,9 +10,16 @@ import GameInterface from './components/GameInterface.vue'
 import OutcomeOverlay from './components/game/OutcomeOverlay.vue'
 import DamageReport from './components/game/DamageReport.vue'
 import VersionDisplay from './components/VersionDisplay.vue'
+import AdminAnalytics from './components/admin/AdminAnalytics.vue'
 
 import { setTraitData } from './data/traitData'
 import type { GameState, GameAction, CombatResultPayload, GameMode } from './types'
+import {
+    clearActiveRoomSession,
+    createActiveRoomSession,
+    getAnalyticsClientId,
+    loadActiveRoomSession,
+} from './utils/clientIdentity'
 
 const isConnected = ref(false)
 const gameState = ref<GameState | null>(null)
@@ -26,19 +33,22 @@ const activeTraitMode = ref<GameMode | null>(null)
 const roomSubscription = ref<StompSubscription | null>(null)
 const eventSubscription = ref<StompSubscription | null>(null)
 const isUltimateGallery = ref(false)
+const isAdminAnalytics = ref(false)
 const ultimateGalleryMode = ref<GameMode>('onepiece')
 const UltimateGallery = shallowRef<Component | null>(null)
 const viewedPlayerId = ref<string | null>(null)
 const pendingJoinRoomId = ref<string | null>(null)
 const lobbyError = ref('')
+let restoredRoomTimeout: number | null = null
 
-// Random player name for now
-const PLAYER_NAME = "Player_" + Math.floor(Math.random() * 10000)
+const restoredRoom = loadActiveRoomSession()
+const PLAYER_NAME = restoredRoom?.playerName ?? "Player_" + Math.floor(Math.random() * 10000)
+const analyticsClientId = getAnalyticsClientId()
 
 onMounted(async () => {
     updateStandaloneRoute()
     window.addEventListener('hashchange', updateStandaloneRoute)
-    if (isUltimateGallery.value) return
+    if (isUltimateGallery.value || isAdminAnalytics.value) return
 
     document.title = 'Tactics Arena'
     try {
@@ -67,11 +77,30 @@ onMounted(async () => {
         onConnect: () => {
             isConnected.value = true
             console.log("Connected to WebSocket")
+            const activeRoom = loadActiveRoomSession()
+            if (activeRoom) {
+                gameState.value = null
+                currentRoomId.value = activeRoom.roomId
+                pendingJoinRoomId.value = activeRoom.roomId
+                subscribeToRoom(activeRoom.roomId)
+                client.value?.publish({
+                    destination: '/app/join',
+                    body: JSON.stringify({
+                        roomId: activeRoom.roomId,
+                        playerName: activeRoom.playerName,
+                        analyticsClientId,
+                        reconnectToken: activeRoom.reconnectToken,
+                    }),
+                })
+                currentView.value = 'game'
+                startRestoredRoomTimeout(activeRoom.roomId)
+            }
         },
         onDisconnect: () => {
             isConnected.value = false
             console.log("Disconnected")
-        }
+        },
+        reconnectDelay: 5000,
     })
     
     client.value.activate()
@@ -79,6 +108,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
     window.removeEventListener('hashchange', updateStandaloneRoute)
+    clearRestoredRoomTimeout()
     client.value?.deactivate()
 })
 
@@ -136,6 +166,10 @@ const subscribeToRoom = (roomId: string) => {
         try {
             gameState.value = JSON.parse(message.body)
             if (!gameState.value) return;
+            clearRestoredRoomTimeout()
+            if (gameState.value.phase === 'END_CELEBRATION' || gameState.value.phase === 'END') {
+                clearActiveRoomSession()
+            }
             
             // Check Game Mode and Update Title
             const mode = gameState.value.gameMode;
@@ -190,7 +224,9 @@ const clearRoomSubscriptions = () => {
 }
 
 const rejectPendingJoin = (message: string) => {
+    clearRestoredRoomTimeout()
     clearRoomSubscriptions()
+    clearActiveRoomSession()
     pendingJoinRoomId.value = null
     currentView.value = 'lobby'
     gameState.value = null
@@ -199,6 +235,22 @@ const rejectPendingJoin = (message: string) => {
     viewedPlayerId.value = null
     lobbyError.value = message
     applyThemeMeta(null)
+}
+
+const clearRestoredRoomTimeout = () => {
+    if (restoredRoomTimeout !== null) {
+        window.clearTimeout(restoredRoomTimeout)
+        restoredRoomTimeout = null
+    }
+}
+
+const startRestoredRoomTimeout = (roomId: string) => {
+    clearRestoredRoomTimeout()
+    restoredRoomTimeout = window.setTimeout(() => {
+        if (pendingJoinRoomId.value === roomId && !gameState.value) {
+            rejectPendingJoin('Your previous game is no longer available.')
+        }
+    }, 5000)
 }
 
 const handleCombatResult = (payload: CombatResultPayload) => {
@@ -240,12 +292,18 @@ const handleCreate = (roomId: string) => {
     lobbyError.value = ''
     pendingJoinRoomId.value = null
     currentRoomId.value = roomId
+    const roomSession = createActiveRoomSession(roomId, PLAYER_NAME)
     
     subscribeToRoom(roomId)
     
     client.value.publish({ 
         destination: '/app/create', 
-        body: JSON.stringify({ roomId: roomId, playerName: PLAYER_NAME }) 
+        body: JSON.stringify({
+            roomId,
+            playerName: PLAYER_NAME,
+            analyticsClientId,
+            reconnectToken: roomSession.reconnectToken,
+        })
     })
     
     currentView.value = 'game'
@@ -256,12 +314,18 @@ const handleJoin = (roomId: string) => {
     lobbyError.value = ''
     pendingJoinRoomId.value = roomId
     currentRoomId.value = roomId
+    const roomSession = createActiveRoomSession(roomId, PLAYER_NAME)
     
     subscribeToRoom(roomId)
     
     client.value.publish({ 
         destination: '/app/join', 
-        body: JSON.stringify({ roomId: roomId, playerName: PLAYER_NAME }) 
+        body: JSON.stringify({
+            roomId,
+            playerName: PLAYER_NAME,
+            analyticsClientId,
+            reconnectToken: roomSession.reconnectToken,
+        })
     })
     
     currentView.value = 'game'
@@ -310,27 +374,47 @@ const handleModeChange = (mode: GameMode) => {
     })
 }
 
-const handleLeaveLobby = () => {
-    if (client.value && isConnected.value) {
+const resetToLobby = () => {
+    clearRoomSubscriptions()
+    clearRestoredRoomTimeout()
+    clearActiveRoomSession()
+
+    currentView.value = 'lobby'
+    gameState.value = null
+    currentRoomId.value = ''
+    activeTraitMode.value = null
+    viewedPlayerId.value = null
+    pendingJoinRoomId.value = null
+
+    applyThemeMeta(null)
+}
+
+const leaveCurrentGame = () => {
+    if (client.value && isConnected.value && currentRoomId.value) {
         client.value.publish({
             destination: '/app/leave',
             body: JSON.stringify({ roomId: currentRoomId.value, playerName: PLAYER_NAME })
         })
     }
-    
-    clearRoomSubscriptions()
-    
-	    currentView.value = 'lobby'
-	    gameState.value = null
-	    currentRoomId.value = ''
-	    activeTraitMode.value = null
-	    viewedPlayerId.value = null
-	    pendingJoinRoomId.value = null
+    resetToLobby()
+}
 
-	    applyThemeMeta(null);
-	}
+const abandonCurrentGame = () => {
+    if (client.value && isConnected.value && currentRoomId.value) {
+        client.value.publish({
+            destination: '/app/abandon',
+            body: JSON.stringify({ roomId: currentRoomId.value, playerName: PLAYER_NAME })
+        })
+    }
+    resetToLobby()
+}
+
+const handleLeaveLobby = () => {
+    leaveCurrentGame()
+}
 
 const themeClass = computed(() => {
+    if (isAdminAnalytics.value) return 'theme-generic'
     if (isUltimateGallery.value) return `theme-${ultimateGalleryMode.value}`
     if (currentView.value === 'lobby' || !gameState.value) return 'theme-generic'
     return `theme-${gameState.value.gameMode}`
@@ -345,6 +429,20 @@ const loadUltimateGallery = async () => {
 }
 
 const updateStandaloneRoute = () => {
+    const wasAdmin = isAdminAnalytics.value
+    const isAdmin = window.location.hash.startsWith('#/admin/analytics')
+    isAdminAnalytics.value = isAdmin
+    if (isAdmin) {
+        const validAdminRoute = /^#\/admin\/analytics(?:\/runs\/[^/?#]+)?$/.test(window.location.hash)
+        if (!validAdminRoute) window.location.hash = '#/admin/analytics'
+        document.title = 'Gameplay Analytics'
+        client.value?.deactivate()
+        return
+    }
+    if (wasAdmin) {
+        window.location.reload()
+        return
+    }
     const isGallery = import.meta.env.DEV && window.location.hash.startsWith('#/ultimate-gallery')
     isUltimateGallery.value = isGallery
     if (isGallery) {
@@ -374,7 +472,8 @@ const applyThemeMeta = (mode: GameMode | null) => {
 </script>
 
 <template>
-  <div :class="['app-container', themeClass]">
+  <AdminAnalytics v-if="isAdminAnalytics" />
+  <div v-else :class="['app-container', themeClass]">
     <button v-if="showVersion && currentView === 'lobby'"
             class="changelog-dock"
             type="button"
@@ -417,7 +516,9 @@ const applyThemeMeta = (mode: GameMode | null) => {
 	                                    :current-player-name="PLAYER_NAME"
 	                                    :is-connected="isConnected"
 	                                    @action="handleGameAction"
-	                                    @view-player="(playerId) => viewedPlayerId = playerId" />
+	                                    @view-player="(playerId) => viewedPlayerId = playerId"
+	                                    @exit-game="leaveCurrentGame"
+	                                    @abandon-game="abandonCurrentGame" />
 	                     <Transition name="outcome">
 	                        <OutcomeOverlay v-if="encounterResult" :type="encounterResult" />
 	                     </Transition>

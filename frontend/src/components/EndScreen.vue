@@ -66,6 +66,8 @@ const props = defineProps<{
   myPlayerId: string | undefined;
 }>();
 
+const emit = defineEmits(['exit']);
+
 const sortedPlayers = computed(() => {
     return [...props.players].sort((a, b) => {
         const pA = a.place || 99;
@@ -100,11 +102,11 @@ function getPlaceTitle(place: number | string | null | undefined) {
 }
 
 function reloadGame() {
-    window.location.reload();
+    emit('exit');
 }
 
 function returnHome() {
-    window.location.href = '/';
+    emit('exit');
 }
 
 // === GOLDEN BURST & CONFETTI ===

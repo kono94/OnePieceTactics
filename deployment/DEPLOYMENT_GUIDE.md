@@ -12,6 +12,8 @@ Simple GitOps deployment to Hetzner VPS.
 | `docker compose --profile prod up -d` | Production (HTTPS) |
 | `git tag 1.0.0 && git push origin 1.0.0` | Trigger GitOps deploy |
 
+The analytics dashboard is available at `https://<your-domain>/#/admin/analytics` after production setup.
+
 ---
 
 ## Files
@@ -81,6 +83,25 @@ ssh -p 2222 deployer@<SERVER_IP> -i ~/.ssh/id_tft_admin
 bash /opt/tft/deployment/initial-setup.sh
 ```
 
+The wizard requires an admin dashboard password of at least 6 letters, digits, dots, underscores, or hyphens and
+creates the persistent SQLite data directory at `/var/lib/one-piece-tactics/analytics`.
+
+### Upgrade an existing server
+
+Servers initialized before analytics was added need a one-time configuration update before the next deployment:
+
+```bash
+sudo mkdir -p /var/lib/one-piece-tactics/analytics
+sudo chmod 0700 /var/lib/one-piece-tactics/analytics
+```
+
+Add the password to `/opt/tft/.env`:
+
+```dotenv
+SPRING_PROFILES_ACTIVE=prod
+ANALYTICS_ADMIN_PASSWORD=choose-a-strong-password
+```
+
 ---
 
 ## Deploy Updates
@@ -94,6 +115,18 @@ git push origin 1.0.0
 ---
 
 ## Troubleshooting
+
+### Access the analytics dashboard
+
+Open `https://<your-domain>/#/admin/analytics` and enter the password stored as
+`ANALYTICS_ADMIN_PASSWORD` in `/opt/tft/.env`. Successful login creates an eight-hour bearer session in that browser
+tab. Logging out, closing the tab, restarting the backend, or allowing the session to expire requires another login.
+
+To change the password, edit `/opt/tft/.env` and recreate the backend container:
+
+```bash
+docker compose --profile prod up -d --force-recreate backend
+```
 
 ### GitHub deploy fails with `insufficient permission for adding an object`
 

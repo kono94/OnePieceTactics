@@ -13,6 +13,10 @@
 **Primary Goal:**  
 Deliver a responsive, visually rich UI that reflects backend-authoritative game state while providing smooth drag-and-drop unit management, real-time combat animations, and multi-theme support (One Piece, Pokemon).
 
+The production hash route `#/admin/analytics` is a separate password-gated analytics surface. It skips game/STOMP
+bootstrap, exchanges the configured password for a bearer token stored in `sessionStorage`, and renders aggregate and
+round-level data from the protected backend API.
+
 ---
 
 ## 2. Tech Stack
@@ -24,7 +28,7 @@ Deliver a responsive, visually rich UI that reflects backend-authoritative game 
 | **Vite** | 8.1+ | Build tool and dev server with HMR |
 | **Pinia** | N/A | **NOT USED** — Removed from dependencies; state is managed via reactive `ref()` in `App.vue` |
 | **@stomp/stompjs** | 7.3+ | WebSocket client for STOMP protocol |
-| **No Router** | N/A | Single-page app with reactive view switching; hash-only standalone route for animation gallery |
+| **No Router** | N/A | Single-page app with reactive view switching and manual hash routes for analytics administration and the animation gallery |
 | **No UI Framework** | N/A | Vanilla CSS with scoped styles (no Tailwind) |
 | **ESLint** | 9.x | Vue/TypeScript linting via `eslint.config.ts` |
 
@@ -132,6 +136,10 @@ const viewedPlayerId = ref<string | null>(null)      // Local board spectating t
 8. `GameCanvas` renders selected augment chips for the viewed player and their current opponent from `selectedAugments`
 9. `GameInterface` emits local viewed-player changes upward so `App.vue` can point the damage report at the spectated combat.
 10. User actions emit events upward, which `App.vue` publishes to backend via WebSocket
+
+`App.vue` also maintains a random anonymous analytics identifier in `localStorage` and a per-room reconnect credential
+in `sessionStorage`. Same-tab refreshes can rebind to an active match; closing the tab eventually marks the retained
+backend player as abandoned without losing subsequent server-authored progress.
 
 **Why This Approach?**
 - **Backend Authority:** All game logic lives on the server; frontend is a "dumb renderer"

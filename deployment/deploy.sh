@@ -24,18 +24,22 @@ if [ ! -f "deployment/nginx/prod.conf" ]; then
     exit 1
 fi
 
-# Load environment for logging
-export $(grep -v '^#' .env | xargs)
-echo "[$(date)] Domain: $DOMAIN"
 
 # Get git version info
 GIT_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "dev")
 GIT_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 BUILD_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+export APP_GIT_TAG="$GIT_TAG"
+export APP_GIT_COMMIT="$GIT_COMMIT"
+export APP_BUILD_TIME="$BUILD_TIME"
+export SPRING_PROFILES_ACTIVE=prod
 
 # Deploy with prod profile
 echo "[$(date)] Building with version: $GIT_TAG ($GIT_COMMIT)"
 docker compose --profile prod build \
+  --build-arg APP_GIT_TAG="$GIT_TAG" \
+  --build-arg APP_GIT_COMMIT="$GIT_COMMIT" \
+  --build-arg APP_BUILD_TIME="$BUILD_TIME" \
   --build-arg VITE_GIT_TAG="$GIT_TAG" \
   --build-arg VITE_GIT_COMMIT="$GIT_COMMIT" \
   --build-arg VITE_BUILD_TIME="$BUILD_TIME"

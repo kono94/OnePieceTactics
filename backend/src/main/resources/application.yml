@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: one-piece-tft-backend
+  datasource:
+    url: "jdbc:sqlite:data/analytics.db?foreign_keys=on&journal_mode=WAL&synchronous=FULL&busy_timeout=5000"
+    hikari:
+      maximum-pool-size: 1
+
+server:
+  port: 8080
+  forward-headers-strategy: framework
+
+# Local development default. Production overrides this in application-prod.yml.
+analytics:
+  admin:
+    password: tft123
