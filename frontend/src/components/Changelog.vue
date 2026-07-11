@@ -7,6 +7,7 @@ defineEmits(['back'])
 
 const versionNextCommits = [
   { hash: 'pending', title: 'Nerf three-star Geodude' },
+  { hash: 'pending', title: 'Nerf bot star-level scaling' },
   { hash: 'pending', title: 'Track human-vs-bot round results and finish bot-only rooms immediately' },
   { hash: 'pending', title: 'Fix post-game exit recovery and add confirmed game abandonment' },
   { hash: 'pending', title: 'Add gameplay analytics, production security, and match reconnection recovery' }
@@ -55,6 +56,7 @@ const version160Commits = [
             dashboard and human-vs-bot results broken down by round. Matches now complete as soon as every human has
             been eliminated, rather than continuing with bots only. Active matches can also recover from a same-tab
             reconnect, return safely to the lobby after a game, and be explicitly abandoned from the in-game controls.
+            Bot 3★ units now follow a cost-based round progression rather than appearing at any stage.
           </p>
         </div>
         <article class="release-panel">
@@ -69,6 +71,19 @@ const version160Commits = [
           <div class="section-heading">
             <span class="marker balance"></span>
             <h3>Balance Changes</h3>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag nerf">Nerf</span>
+              <h4>Bot 3★ Scaling</h4>
+            </div>
+            <p>
+              3★ round gate for 1-4 cost units:
+              <span class="old-value">no cost-based cap</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value nerf">1-cost: round 6, 2-cost: round 8, 3-cost: round 12, 4-cost: round 16</strong>.
+              5-cost bots remain capped at 2★.
+            </p>
           </div>
           <div class="balance-block">
             <div class="balance-title">

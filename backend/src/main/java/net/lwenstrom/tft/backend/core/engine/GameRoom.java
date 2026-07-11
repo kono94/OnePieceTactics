@@ -569,8 +569,22 @@ public class GameRoom {
             var def = rollBotUnitDefinition(i, botLevel, available, profile);
             var starLevel = rollBotStarLevel(i, def.cost(), profile, isGuaranteedThreeStarSlot(i, def.cost(), profile));
 
-            bot.addUnitToBoard(def, i, Grid.PLAYER_ROWS - 1, starLevel);
+            bot.addUnitToBoard(def, i, Grid.PLAYER_ROWS - 1, Math.min(starLevel, getMaxBotStarLevel(def.cost())));
         }
+    }
+
+    private int getMaxBotStarLevel(int unitCost) {
+        if (round <= 5) {
+            return 2;
+        }
+
+        return switch (unitCost) {
+            case 1 -> 3;
+            case 2 -> round >= 8 ? 3 : 2;
+            case 3 -> round >= 12 ? 3 : 2;
+            case 4 -> round >= 16 ? 3 : 2;
+            default -> 2;
+        };
     }
 
     private BotRosterProfile getBotRosterProfile() {

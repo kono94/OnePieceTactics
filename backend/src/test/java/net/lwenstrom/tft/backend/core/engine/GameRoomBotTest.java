@@ -203,6 +203,30 @@ class GameRoomBotTest {
     }
 
     @Test
+    void botRosterPreventsThreeStarsThroughRoundFive() {
+        var unit = TestHelpers.createUnitDef("one-cost", "One Cost", 1, 100, 10);
+        var room = createRoomWithUnits(List.of(unit), new FixedRandomProvider(0));
+        var bot = room.addBot().orElseThrow();
+
+        refreshBotAtRound(room, bot, 5);
+
+        assertTrue(bot.getBoardUnits().stream().allMatch(boardUnit -> boardUnit.getStarLevel() == 2));
+    }
+
+    @Test
+    void botRosterDelaysExpensiveThreeStars() {
+        var fourCost = TestHelpers.createUnitDef("four-cost", "Four Cost", 4, 100, 10);
+        var room = createRoomWithUnits(List.of(fourCost), new FixedRandomProvider(0));
+        var bot = room.addBot().orElseThrow();
+
+        refreshBotAtRound(room, bot, 15);
+        assertTrue(bot.getBoardUnits().stream().allMatch(boardUnit -> boardUnit.getStarLevel() == 2));
+
+        refreshBotAtRound(room, bot, 16);
+        assertTrue(bot.getBoardUnits().stream().allMatch(boardUnit -> boardUnit.getStarLevel() == 3));
+    }
+
+    @Test
     void roundTenBotRosterCapsUnitCountAndGuaranteesCheapThreeStars() {
         var unit = TestHelpers.createUnitDef("one-cost", "One Cost", 1, 100, 10);
         var room = createRoomWithUnits(List.of(unit), new FixedRandomProvider(99));
