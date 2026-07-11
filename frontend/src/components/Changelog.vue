@@ -6,11 +6,9 @@ defineOptions({
 defineEmits(['back'])
 
 const versionNextCommits = [
-  { hash: 'pending', title: 'Nerf three-star Geodude' },
-  { hash: 'pending', title: 'Nerf bot star-level scaling' },
-  { hash: 'pending', title: 'Track human-vs-bot round results and finish bot-only rooms immediately' },
-  { hash: 'pending', title: 'Fix post-game exit recovery and add confirmed game abandonment' },
-  { hash: 'pending', title: 'Add gameplay analytics, production security, and match reconnection recovery' }
+  { hash: '87beff9', title: 'Nerf bot star-level scaling' },
+  { hash: '843830d', title: 'Nerf three-star Geodude' },
+  { hash: 'ff96dae', title: 'Add analytics, SQLite storage, and reconnect recovery' }
 ]
 
 const version162Commits = [
@@ -49,8 +47,8 @@ const version160Commits = [
     <div class="release-history">
       <section class="release-section latest-release">
         <div class="release-header">
-          <p class="eyebrow">Next</p>
-          <h2>Version X.X.X</h2>
+          <p class="eyebrow">Latest</p>
+          <h2>Version 1.7.0</h2>
           <p>
             Gameplay analytics now persist anonymous match outcomes in SQLite, with a password-protected production
             dashboard and human-vs-bot results broken down by round. Matches now complete as soon as every human has
@@ -114,7 +112,7 @@ const version160Commits = [
 
       <section class="release-section latest-release">
         <div class="release-header">
-          <p class="eyebrow">Latest</p>
+          <p class="eyebrow">Previous</p>
           <h2>Version 1.6.2</h2>
           <p>
             Frontend and backend dependencies have been refreshed for the current security baseline, including Vite 8,
