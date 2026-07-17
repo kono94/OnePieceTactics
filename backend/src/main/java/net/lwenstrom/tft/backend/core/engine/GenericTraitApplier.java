@@ -77,6 +77,7 @@ public class GenericTraitApplier implements TraitEffect {
             case HP_AND_AS -> applyHpAndAs(recipients, values);
             case AS -> applyAs(recipients, values);
             case ARMOR_AND_MR -> applyArmorAndMr(recipients, values);
+            case DAMAGE_REDUCTION -> applyDamageReduction(recipients, values);
             case ATK_BUFF -> applyAtkBuff(recipients, values);
             case START_MANA -> applyStartMana(recipients, values);
             case START_MANA_PERCENT -> applyStartManaPercent(recipients, values);
@@ -112,7 +113,7 @@ public class GenericTraitApplier implements TraitEffect {
                 ? (float) values.get("abilityDamage").asDouble()
                 : 0f;
         for (GameUnit unit : units) {
-            unit.setAbilityDamageMultiplier(1.0f + multiplier);
+            unit.setAbilityDamageMultiplier(unit.getAbilityDamageMultiplier() * (1.0f + multiplier));
         }
     }
 
@@ -239,7 +240,17 @@ public class GenericTraitApplier implements TraitEffect {
         if (bonusAs <= 0) return;
 
         for (GameUnit unit : units) {
-            unit.setAttackSpeed(unit.getAttackSpeed() + bonusAs);
+            unit.setAttackSpeed(unit.getAttackSpeed() * (1.0f + bonusAs));
+        }
+    }
+
+    private void applyDamageReduction(List<GameUnit> units, JsonNode values) {
+        int reduction =
+                values.has("damageReduction") ? values.get("damageReduction").asInt() : 0;
+        if (reduction <= 0) return;
+
+        for (GameUnit unit : units) {
+            unit.setDamageReduction(Math.min(40, unit.getDamageReduction() + reduction));
         }
     }
 
@@ -264,7 +275,7 @@ public class GenericTraitApplier implements TraitEffect {
 
         for (GameUnit unit : units) {
             if (atkBuff > 0) {
-                unit.setAtkBuff(unit.getAtkBuff() * (1f + atkBuff));
+                unit.setAtkBuff(unit.getAtkBuff() * (1.0f + atkBuff));
             }
             if (shieldOnDeath) {
                 unit.setShieldOnDeath(true);

@@ -6,6 +6,10 @@ defineOptions({
 defineEmits(['back'])
 
 const versionNextCommits = [
+  { hash: 'pending', title: 'Rebalance AoE abilities, progression, Pokemon traits, and augments' }
+]
+
+const version170Commits = [
   { hash: '87beff9', title: 'Nerf bot star-level scaling' },
   { hash: '843830d', title: 'Nerf three-star Geodude' },
   { hash: 'ff96dae', title: 'Add analytics, SQLite storage, and reconnect recovery' }
@@ -47,6 +51,147 @@ const version160Commits = [
     <div class="release-history">
       <section class="release-section latest-release">
         <div class="release-header">
+          <p class="eyebrow">Next</p>
+          <h2>Version X.X.X</h2>
+          <p>
+            Multi-target abilities are less capable of erasing entire boards, late levels are substantially easier to
+            reach, Pokemon type traits have more meaningful team-wide effects, and combat augments compete more
+            effectively with economy choices.
+          </p>
+        </div>
+        <article class="release-panel">
+          <ul class="commit-list">
+            <li v-for="commit in versionNextCommits" :key="commit.hash">
+              <span class="hash">{{ commit.hash }}</span>
+              <span>{{ commit.title }}</span>
+            </li>
+          </ul>
+        </article>
+        <article class="release-panel">
+          <div class="section-heading">
+            <span class="marker balance"></span>
+            <h3>Balance Changes</h3>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag nerf">Nerf</span>
+              <h4>Area Effects</h4>
+            </div>
+            <p>
+              LINE and SURROUND ability strength:
+              <span class="old-value">100%</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value nerf">70%</strong>. This applies to damage, healing, shielding, buffs, and control in
+              both modes. Golem Stealth Rock:
+              <span class="old-value">146/329/800</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value nerf">102/230/560</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Leveling</h4>
+            </div>
+            <p>
+              XP requirements from levels 1 through 9:
+              <span class="old-value">2/6/10/20/36/56/80/100</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">2/6/10/20/26/36/44/50</strong>. Level 9 is now the maximum level.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag mixed">Mixed</span>
+              <h4>Pokemon Traits</h4>
+            </div>
+            <p>
+              Grass Health:
+              <span class="old-value">40/150/260</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">100/300/500</strong>. Ground Damage Reduction:
+              <span class="old-value">5/18/32/50 unused Armor/MR</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">3/7/11/20%</strong>. Rock:
+              <span class="old-value">6/24 unused Armor/MR</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">3/10% Damage Reduction</strong>. Ice:
+              <span class="old-value">4/14/26/42 unused Armor/MR</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">3/8/14/22% Damage Reduction</strong>. Poison:
+              <span class="old-value">3/7/11/16% ATK per tick</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">5/10/18/30%</strong>. Ghost:
+              <span class="old-value">4/14% Lifesteal</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">6/20%</strong>. Steel:
+              <span class="old-value">12 unused Armor/MR</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">5% Damage Reduction</strong>. Normal ATK:
+              <span class="old-value">1/5/10/16%</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">2/7/14/22%</strong>. Fire Ability Damage:
+              <span class="old-value">4/14/23/34%</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value nerf">4/14/22/32%</strong>. Water Mana Gain:
+              <span class="old-value">10/30/50/70%</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">15/40/65/90%</strong>. Psychic Starting Mana:
+              <span class="old-value">5/18/28/40%</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value nerf">4/14/24/35%</strong>. Flying low-health Attack Speed:
+              <span class="old-value">4/12/24/36%</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value nerf">3/10/20/30%</strong>. Bug extra-attack chance:
+              <span class="old-value">3/10/17%</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">5/14/24%</strong>. Fighting ATK:
+              <span class="old-value">4/13/22/32%</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">5/15/25/38%</strong>. Dragon Ability Damage:
+              <span class="old-value">8/26%</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value nerf">8/24%</strong>. Electric remains
+              <strong>4/12/20%</strong>, but now scales as a true percentage. Overlapping traits now stack.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag mixed">Mixed</span>
+              <h4>Augments</h4>
+            </div>
+            <p>
+              Flat Gold:
+              <span class="old-value">15/25/35</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value nerf">10/16/24</strong>. Gold per empty bench slot:
+              <span class="old-value">3/5/8</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value nerf">1/2/3</strong>. Starting Mana:
+              <span class="old-value">10/20/35</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value nerf">10/15/20</strong>. Ranged Attack Damage:
+              <span class="old-value">7/12/18 One Piece, 5/8/12 Pokemon</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">9/15/24 One Piece, 7/11/16 Pokemon</strong>. Ability Damage remains
+              <strong>10/18/30%</strong>. Team Attack Damage:
+              <span class="old-value">6/10/16 One Piece, 4/7/10 Pokemon</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">8/14/22 One Piece, 6/10/15 Pokemon</strong>. Melee Lifesteal:
+              <span class="old-value">10/16/24%</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">12/20/30%</strong>. Mana Gain:
+              <span class="old-value">12/20/30%</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">15/25/40%</strong>. The previous unused Armor/MR bonus is now
+              <strong class="value buff">6/10/16% ability and damage-over-time resistance</strong>.
+            </p>
+          </div>
+        </article>
+      </section>
+
+      <section class="release-section latest-release">
+        <div class="release-header">
           <p class="eyebrow">Latest</p>
           <h2>Version 1.7.0</h2>
           <p>
@@ -59,7 +204,7 @@ const version160Commits = [
         </div>
         <article class="release-panel">
           <ul class="commit-list">
-            <li v-for="commit in versionNextCommits" :key="commit.hash">
+            <li v-for="commit in version170Commits" :key="commit.hash">
               <span class="hash">{{ commit.hash }}</span>
               <span>{{ commit.title }}</span>
             </li>

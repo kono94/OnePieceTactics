@@ -105,6 +105,23 @@ class AugmentCombatEffectsTest {
         assertEquals(80, defender.getBoardUnits().get(0).getCurrentHealth());
     }
 
+    @Test
+    void defensiveAugmentReducesAbilityDamageButNotBasicDamage() {
+        var player = TestHelpers.createTestPlayer("Player");
+        player.addUnitToBoard(TestHelpers.createUnitDef("unit", "Unit", 1, 200, 10), 0, 0);
+        player.addSelectedAugment(selected("iron-line", AugmentEffectType.TEAM_ARMOR_AND_MAGIC_RESIST, 16));
+        var manager = new AugmentManager(TestHelpers.createDefaultAugments(), TestHelpers.createSeededRandomProvider());
+
+        manager.applyCombatEffects(List.of(player));
+        var unit = player.getBoardUnits().getFirst();
+        unit.takeAbilityDamage(100);
+        assertEquals(116, unit.getCurrentHealth());
+
+        unit.setCurrentHealth(200);
+        unit.takeDamage(100);
+        assertEquals(100, unit.getCurrentHealth());
+    }
+
     private UnitDefinition createDamageCaster() {
         var ability = new AbilityDefinition(
                 "Strike",

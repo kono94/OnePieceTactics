@@ -329,6 +329,10 @@ public class Player {
     }
 
     public void gainXp(int amount) {
+        if (level >= GameConstants.MAX_PLAYER_LEVEL) {
+            xp = 0;
+            return;
+        }
         this.xp += amount;
         checkLevelUp();
     }
@@ -338,7 +342,7 @@ public class Player {
     }
 
     private void checkLevelUp() {
-        while (true) {
+        while (level < GameConstants.MAX_PLAYER_LEVEL) {
             int xpNeeded = getXpNeededForLevel(this.level);
             if (this.xp >= xpNeeded) {
                 this.xp -= xpNeeded;
@@ -346,6 +350,9 @@ public class Player {
             } else {
                 break;
             }
+        }
+        if (level >= GameConstants.MAX_PLAYER_LEVEL) {
+            xp = 0;
         }
     }
 
@@ -355,15 +362,23 @@ public class Player {
             case 2 -> 6;
             case 3 -> 10;
             case 4 -> 20;
-            case 5 -> 36;
-            case 6 -> 56;
-            case 7 -> 80;
-            default -> 100;
+            case 5 -> 26;
+            case 6 -> 36;
+            case 7 -> 44;
+            case 8 -> 50;
+            default -> 0;
         };
     }
 
     public int getNextLevelXp() {
         return getXpNeededForLevel(this.level);
+    }
+
+    public void setLevel(int level) {
+        this.level = Math.clamp(level, 1, GameConstants.MAX_PLAYER_LEVEL);
+        if (this.level >= GameConstants.MAX_PLAYER_LEVEL) {
+            xp = 0;
+        }
     }
 
     // ========== MOVE UNIT REFACTORED ==========

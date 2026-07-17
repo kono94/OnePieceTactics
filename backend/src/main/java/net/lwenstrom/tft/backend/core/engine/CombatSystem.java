@@ -388,7 +388,7 @@ public class CombatSystem {
                     continue;
                 }
 
-                target.takeDamage(effect.damagePerTick());
+                target.takeAbilityDamage(effect.damagePerTick());
                 accumulateDamage(
                         effect.sourceId(),
                         effect.sourceName(),

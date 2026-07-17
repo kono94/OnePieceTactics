@@ -3,7 +3,11 @@
     "id": "ranged-tempo",
     "name": "Ranged Tempo",
     "effectType": "TEAM_ATTACK_SPEED_PER_RANGED_UNIT",
-    "values": [3, 5, 8],
+    "values": [
+      3,
+      5,
+      8
+    ],
     "descriptions": [
       "Your team gains 3% Attack Speed for each ranged unit on your board.",
       "Your team gains 5% Attack Speed for each ranged unit on your board.",
@@ -15,7 +19,11 @@
     "id": "guarded-formation",
     "name": "Guarded Formation",
     "effectType": "TEAM_DAMAGE_REDUCTION",
-    "values": [5, 10, 15],
+    "values": [
+      5,
+      10,
+      15
+    ],
     "descriptions": [
       "Your team takes 5% reduced damage.",
       "Your team takes 10% reduced damage.",
@@ -27,7 +35,11 @@
     "id": "snowball-strike",
     "name": "Snowball Strike",
     "effectType": "TEAM_ATTACK_DAMAGE_ON_KILL",
-    "values": [6, 10, 15],
+    "values": [
+      6,
+      10,
+      15
+    ],
     "descriptions": [
       "When one of your units gets a kill, your team gains 6 Attack Damage for the rest of combat.",
       "When one of your units gets a kill, your team gains 10 Attack Damage for the rest of combat.",
@@ -39,11 +51,15 @@
     "id": "treasure-cache",
     "name": "Treasure Cache",
     "effectType": "GOLD",
-    "values": [15, 25, 35],
+    "values": [
+      10,
+      16,
+      24
+    ],
     "descriptions": [
-      "Gain 15 gold.",
-      "Gain 25 gold.",
-      "Gain 35 gold."
+      "Gain 10 gold.",
+      "Gain 16 gold.",
+      "Gain 24 gold."
     ],
     "image": null
   },
@@ -51,7 +67,11 @@
     "id": "training-arc",
     "name": "Training Arc",
     "effectType": "XP",
-    "values": [8, 16, 24],
+    "values": [
+      8,
+      16,
+      24
+    ],
     "descriptions": [
       "Gain 8 XP.",
       "Gain 16 XP.",
@@ -63,7 +83,11 @@
     "id": "battle-standard",
     "name": "Battle Standard",
     "effectType": "TEAM_MAX_HEALTH",
-    "values": [150, 275, 450],
+    "values": [
+      150,
+      275,
+      450
+    ],
     "descriptions": [
       "Your team gains 150 Health.",
       "Your team gains 275 Health.",
@@ -75,11 +99,15 @@
     "id": "sharpened-blades",
     "name": "Sharpened Blades",
     "effectType": "TEAM_ATTACK_DAMAGE",
-    "values": [6, 10, 16],
+    "values": [
+      8,
+      14,
+      22
+    ],
     "descriptions": [
-      "Your team gains 6 Attack Damage.",
-      "Your team gains 10 Attack Damage.",
-      "Your team gains 16 Attack Damage."
+      "Your team gains 8 Attack Damage.",
+      "Your team gains 14 Attack Damage.",
+      "Your team gains 22 Attack Damage."
     ],
     "image": null
   },
@@ -87,11 +115,15 @@
     "id": "focused-haki",
     "name": "Focused Haki",
     "effectType": "TEAM_ABILITY_POWER",
-    "values": [10, 18, 30],
+    "values": [
+      10,
+      18,
+      30
+    ],
     "descriptions": [
-      "Your team's damaging abilities deal 10% more damage.",
-      "Your team's damaging abilities deal 18% more damage.",
-      "Your team's damaging abilities deal 30% more damage."
+      "Your team’s damaging abilities deal 10% more damage.",
+      "Your team’s damaging abilities deal 18% more damage.",
+      "Your team’s damaging abilities deal 30% more damage."
     ],
     "image": null
   },
@@ -99,11 +131,15 @@
     "id": "iron-line",
     "name": "Iron Line",
     "effectType": "TEAM_ARMOR_AND_MAGIC_RESIST",
-    "values": [10, 18, 30],
+    "values": [
+      6,
+      10,
+      16
+    ],
     "descriptions": [
-      "Your team gains 10 Armor and Magic Resist.",
-      "Your team gains 18 Armor and Magic Resist.",
-      "Your team gains 30 Armor and Magic Resist."
+      "Your team takes 6% less damage from abilities and damage-over-time effects.",
+      "Your team takes 10% less damage from abilities and damage-over-time effects.",
+      "Your team takes 16% less damage from abilities and damage-over-time effects."
     ],
     "image": null
   },
@@ -111,11 +147,15 @@
     "id": "close-quarters",
     "name": "Close Quarters",
     "effectType": "MELEE_LIFESTEAL",
-    "values": [10, 16, 24],
+    "values": [
+      12,
+      20,
+      30
+    ],
     "descriptions": [
-      "Melee units gain 10% Lifesteal.",
-      "Melee units gain 16% Lifesteal.",
-      "Melee units gain 24% Lifesteal."
+      "Melee units gain 12% Lifesteal.",
+      "Melee units gain 20% Lifesteal.",
+      "Melee units gain 30% Lifesteal."
     ],
     "image": null
   },
@@ -123,11 +163,15 @@
     "id": "backline-barrage",
     "name": "Backline Barrage",
     "effectType": "RANGED_ATTACK_DAMAGE",
-    "values": [7, 12, 18],
+    "values": [
+      9,
+      15,
+      24
+    ],
     "descriptions": [
-      "Ranged units gain 7 Attack Damage.",
-      "Ranged units gain 12 Attack Damage.",
-      "Ranged units gain 18 Attack Damage."
+      "Ranged units gain 9 Attack Damage.",
+      "Ranged units gain 15 Attack Damage.",
+      "Ranged units gain 24 Attack Damage."
     ],
     "image": null
   },
@@ -135,11 +179,15 @@
     "id": "quick-study",
     "name": "Quick Study",
     "effectType": "TEAM_MANA_GAIN",
-    "values": [12, 20, 30],
+    "values": [
+      15,
+      25,
+      40
+    ],
     "descriptions": [
-      "Your team gains 12% more mana from attacks.",
-      "Your team gains 20% more mana from attacks.",
-      "Your team gains 30% more mana from attacks."
+      "Your team gains 15% more mana from attacks.",
+      "Your team gains 25% more mana from attacks.",
+      "Your team gains 40% more mana from attacks."
     ],
     "image": null
   },
@@ -147,11 +195,15 @@
     "id": "opening-burst",
     "name": "Opening Burst",
     "effectType": "TEAM_STARTING_MANA",
-    "values": [10, 20, 35],
+    "values": [
+      10,
+      15,
+      20
+    ],
     "descriptions": [
-      "Your units start combat with 10 Mana.",
-      "Your units start combat with 20 Mana.",
-      "Your units start combat with 35 Mana."
+      "Your team starts combat with 10 additional mana.",
+      "Your team starts combat with 15 additional mana.",
+      "Your team starts combat with 20 additional mana."
     ],
     "image": null
   },
@@ -159,11 +211,15 @@
     "id": "clean-bench",
     "name": "Clean Bench",
     "effectType": "GOLD_PER_EMPTY_BENCH_SLOT",
-    "values": [3, 5, 8],
+    "values": [
+      1,
+      2,
+      3
+    ],
     "descriptions": [
-      "Gain 3 gold for each empty bench slot.",
-      "Gain 5 gold for each empty bench slot.",
-      "Gain 8 gold for each empty bench slot."
+      "Gain 1 gold for each empty bench slot.",
+      "Gain 2 gold for each empty bench slot.",
+      "Gain 3 gold for each empty bench slot."
     ],
     "image": null
   },
@@ -171,7 +227,11 @@
     "id": "first-guard",
     "name": "First Guard",
     "effectType": "TEAM_STARTING_SHIELD",
-    "values": [125, 225, 375],
+    "values": [
+      125,
+      225,
+      375
+    ],
     "descriptions": [
       "Your team starts combat with a 125 shield.",
       "Your team starts combat with a 225 shield.",

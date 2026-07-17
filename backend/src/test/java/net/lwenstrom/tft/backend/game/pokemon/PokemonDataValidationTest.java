@@ -129,27 +129,44 @@ class PokemonDataValidationTest {
 
         var normal = effects(findTrait(traits, "normal"));
         assertEquals(1, minUnits(normal, 0));
-        assertEquals(0.01, doubleValue(normal, 0, "atkBuff"));
-        assertEquals(0.05, doubleValue(normal, 1, "atkBuff"));
-        assertEquals(0.10, doubleValue(normal, 2, "atkBuff"));
-        assertEquals(0.16, doubleValue(normal, 3, "atkBuff"));
+        assertEquals(0.02, doubleValue(normal, 0, "atkBuff"));
+        assertEquals(0.07, doubleValue(normal, 1, "atkBuff"));
+        assertEquals(0.14, doubleValue(normal, 2, "atkBuff"));
+        assertEquals(0.22, doubleValue(normal, 3, "atkBuff"));
 
         var flying = effects(findTrait(traits, "flying"));
         assertEquals(
                 List.of(1, 2, 3, 4),
                 flying.stream().map(effect -> minUnits(effect)).toList());
-        assertEquals(0.04, doubleValue(flying, 0, "as"));
-        assertEquals(0.12, doubleValue(flying, 1, "as"));
-        assertEquals(0.24, doubleValue(flying, 2, "as"));
-        assertEquals(0.36, doubleValue(flying, 3, "as"));
+        assertEquals(0.03, doubleValue(flying, 0, "as"));
+        assertEquals(0.10, doubleValue(flying, 1, "as"));
+        assertEquals(0.20, doubleValue(flying, 2, "as"));
+        assertEquals(0.30, doubleValue(flying, 3, "as"));
 
         var poison = effects(findTrait(traits, "poison"));
-        assertEquals(0.03, doubleValue(poison, 0, "damageRatio"));
-        assertEquals(0.07, doubleValue(poison, 1, "damageRatio"));
-        assertEquals(0.11, doubleValue(poison, 2, "damageRatio"));
-        assertEquals(0.16, doubleValue(poison, 3, "damageRatio"));
+        assertEquals(0.05, doubleValue(poison, 0, "damageRatio"));
+        assertEquals(0.10, doubleValue(poison, 1, "damageRatio"));
+        assertEquals(0.18, doubleValue(poison, 2, "damageRatio"));
+        assertEquals(0.30, doubleValue(poison, 3, "damageRatio"));
         assertTrue(poison.stream().allMatch(effect -> intValue(effect, "durationMs") == 3000));
         assertTrue(poison.stream().allMatch(effect -> intValue(effect, "tickIntervalMs") == 1000));
+
+        var grass = effects(findTrait(traits, "grass"));
+        assertEquals(
+                List.of(100, 300, 500),
+                grass.stream().map(effect -> intValue(effect, "hp")).toList());
+
+        var ground = effects(findTrait(traits, "ground"));
+        assertEquals(
+                List.of(3, 7, 11, 20),
+                ground.stream()
+                        .map(effect -> intValue(effect, "damageReduction"))
+                        .toList());
+
+        var ice = effects(findTrait(traits, "ice"));
+        assertEquals(
+                List.of(3, 8, 14, 22),
+                ice.stream().map(effect -> intValue(effect, "damageReduction")).toList());
     }
 
     @Test
@@ -173,6 +190,17 @@ class PokemonDataValidationTest {
             assertEquals(List.of(3, 3, 3), ability.targetLimit());
             assertEquals(3, ability.getTargetLimitForLevel(3));
         });
+    }
+
+    @Test
+    void golemAoeDamageUsesThirtyPercentReduction() throws Exception {
+        var geodude = find(loadPokemonUnits(), "geodude");
+        var golem = geodude.forms().stream()
+                .filter(form -> form.definitionId().equals("golem"))
+                .findFirst()
+                .orElseThrow();
+
+        assertEquals(List.of(102, 230, 560), golem.ability().values());
     }
 
     private List<UnitDefinition> loadPokemonUnits() throws Exception {

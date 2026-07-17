@@ -73,20 +73,18 @@ class DataLoaderAugmentTest {
                 mode == GameMode.ONEPIECE ? List.of(150, 275, 450) : List.of(120, 220, 360));
         values.put(
                 AugmentEffectType.TEAM_ATTACK_DAMAGE,
-                mode == GameMode.ONEPIECE ? List.of(6, 10, 16) : List.of(4, 7, 10));
+                mode == GameMode.ONEPIECE ? List.of(8, 14, 22) : List.of(6, 10, 15));
         values.put(AugmentEffectType.TEAM_ABILITY_POWER, List.of(10, 18, 30));
-        values.put(
-                AugmentEffectType.TEAM_ARMOR_AND_MAGIC_RESIST,
-                mode == GameMode.ONEPIECE ? List.of(10, 18, 30) : List.of(8, 14, 24));
-        values.put(AugmentEffectType.MELEE_LIFESTEAL, List.of(10, 16, 24));
+        values.put(AugmentEffectType.TEAM_ARMOR_AND_MAGIC_RESIST, List.of(6, 10, 16));
+        values.put(AugmentEffectType.MELEE_LIFESTEAL, List.of(12, 20, 30));
         values.put(
                 AugmentEffectType.RANGED_ATTACK_DAMAGE,
-                mode == GameMode.ONEPIECE ? List.of(7, 12, 18) : List.of(5, 8, 12));
-        values.put(AugmentEffectType.TEAM_MANA_GAIN, List.of(12, 20, 30));
-        values.put(AugmentEffectType.TEAM_STARTING_MANA, List.of(10, 20, 35));
-        values.put(AugmentEffectType.GOLD_PER_EMPTY_BENCH_SLOT, List.of(3, 5, 8));
+                mode == GameMode.ONEPIECE ? List.of(9, 15, 24) : List.of(7, 11, 16));
+        values.put(AugmentEffectType.TEAM_MANA_GAIN, List.of(15, 25, 40));
+        values.put(AugmentEffectType.TEAM_STARTING_MANA, List.of(10, 15, 20));
+        values.put(AugmentEffectType.GOLD_PER_EMPTY_BENCH_SLOT, List.of(1, 2, 3));
         values.put(AugmentEffectType.TEAM_STARTING_SHIELD, List.of(125, 225, 375));
-        values.put(AugmentEffectType.GOLD, List.of(15, 25, 35));
+        values.put(AugmentEffectType.GOLD, List.of(10, 16, 24));
         values.put(AugmentEffectType.XP, List.of(8, 16, 24));
         return values;
     }

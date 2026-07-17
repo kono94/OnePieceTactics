@@ -566,9 +566,9 @@ watch(effectiveViewedPlayerId, (playerId) => {
                             </div>
                         </transition>
                     </div>
-                    <div class="xp-bar" :title="`XP: ${myPlayer.xp} / ${myPlayer.nextLevelXp || 10}`">
-                        <div class="xp-fill" :style="{ width: (myPlayer.xp / (myPlayer.nextLevelXp || 10) * 100) + '%' }"></div>
-                        <span class="xp-text">{{ myPlayer.xp }} / {{ myPlayer.nextLevelXp || 10 }} XP</span>
+                    <div class="xp-bar" :title="myPlayer.level >= 9 ? 'Maximum level' : `XP: ${myPlayer.xp} / ${myPlayer.nextLevelXp}`">
+                        <div class="xp-fill" :style="{ width: myPlayer.level >= 9 ? '100%' : (myPlayer.xp / myPlayer.nextLevelXp * 100) + '%' }"></div>
+                        <span class="xp-text">{{ myPlayer.level >= 9 ? 'MAX' : `${myPlayer.xp} / ${myPlayer.nextLevelXp} XP` }}</span>
                     </div>
                 </div>
                 <div class="stats-row">
@@ -580,8 +580,8 @@ watch(effectiveViewedPlayerId, (playerId) => {
                         {{ myPlayerBoardUnits.length }}/{{ myPlayer.level }}
                     </div>
                 </div>
-                <button class="xp-btn" @click="buyXp" :disabled="myPlayer.gold < 4">
-                    XP (4g)
+                <button class="xp-btn" @click="buyXp" :disabled="myPlayer.gold < 4 || myPlayer.level >= 9">
+                    {{ myPlayer.level >= 9 ? 'MAX LEVEL' : 'XP (4g)' }}
                 </button>
             </div>
 

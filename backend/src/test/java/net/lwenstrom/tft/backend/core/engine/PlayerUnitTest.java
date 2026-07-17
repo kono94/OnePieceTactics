@@ -74,6 +74,33 @@ class PlayerUnitTest {
     }
 
     @Test
+    void lateGameXpCurveUsesReducedRequirements() {
+        var requirements = List.of(2, 6, 10, 20, 26, 36, 44, 50);
+
+        for (var level = 1; level <= requirements.size(); level++) {
+            var player = TestHelpers.createTestPlayer("Level " + level);
+            player.setLevel(level);
+
+            assertEquals(requirements.get(level - 1), player.getNextLevelXp());
+            player.gainXp(requirements.get(level - 1));
+            assertEquals(level + 1, player.getLevel());
+            assertEquals(0, player.getXp());
+        }
+    }
+
+    @Test
+    void levelNineDiscardsXpAndReportsNoNextLevel() {
+        var player = TestHelpers.createTestPlayer("Max Level");
+        player.setLevel(9);
+
+        player.gainXp(100);
+
+        assertEquals(9, player.getLevel());
+        assertEquals(0, player.getXp());
+        assertEquals(0, player.getNextLevelXp());
+    }
+
+    @Test
     void testBuyUnit_DeductsGold() {
         var dataLoader = TestHelpers.createMockDataLoader();
         var player = createTestPlayer("TestPlayer", dataLoader);

@@ -114,7 +114,9 @@ public class AugmentManager {
         switch (augment.effectType()) {
             case TEAM_ATTACK_SPEED_PER_RANGED_UNIT -> applyRangedAttackSpeed(player, augment.value());
             case TEAM_DAMAGE_REDUCTION ->
-                player.getBoardUnits().forEach(unit -> unit.setDamageReduction(augment.value()));
+                player.getBoardUnits()
+                        .forEach(unit ->
+                                unit.setDamageReduction(Math.min(40, unit.getDamageReduction() + augment.value())));
             case TEAM_ATTACK_DAMAGE_ON_KILL ->
                 player.getBoardUnits().forEach(unit -> unit.setTeamAttackDamageOnKill(augment.value()));
             case TEAM_MAX_HEALTH ->
@@ -129,10 +131,7 @@ public class AugmentManager {
                         .forEach(unit -> unit.setAbilityDamageMultiplier(
                                 unit.getAbilityDamageMultiplier() * (1.0f + augment.value() / 100.0f)));
             case TEAM_ARMOR_AND_MAGIC_RESIST ->
-                player.getBoardUnits().forEach(unit -> {
-                    unit.setArmor(unit.getArmor() + augment.value());
-                    unit.setMagicResist(unit.getMagicResist() + augment.value());
-                });
+                player.getBoardUnits().forEach(unit -> unit.setAbilityDamageReduction(augment.value()));
             case MELEE_LIFESTEAL ->
                 player.getBoardUnits().stream()
                         .filter(unit -> unit.getRange() <= 1)

@@ -18,7 +18,7 @@
             "description": "Whips enemies in a line for $value damage.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [180, 405, 870],
+            "values": [126, 284, 609],
             "range": [2, 2, 3]
         },
         "forms": [
@@ -32,7 +32,7 @@
                     "description": "Whips enemies in a line for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [180, 405, 870],
+                    "values": [126, 284, 609],
                     "range": [2, 2, 3]
                 }
             },
@@ -46,13 +46,13 @@
                     "description": "Scatters sharp leaves for $value damage and poison.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [160, 360, 775],
+                    "values": [112, 252, 543],
                     "range": [1, 1, 2],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [24, 50, 102],
+                            "damagePerTick": [17, 35, 71],
                             "durationSeconds": [3, 4, 4],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -69,7 +69,7 @@
                     "description": "Covers the board in grass, healing allies for $value.",
                     "type": "HEAL",
                     "pattern": "SURROUND",
-                    "values": [195, 420, 1000],
+                    "values": [137, 294, 700],
                     "range": [3, 3, 4]
                 }
             }
@@ -167,13 +167,13 @@
                     "description": "Sweeps a blazing line for $value damage and burn.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [143, 322, 1000],
+                    "values": [100, 225, 700],
                     "range": [3, 4, 6],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [28, 58, 160],
+                            "damagePerTick": [20, 41, 112],
                             "durationSeconds": [3, 4, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -201,7 +201,7 @@
             "description": "Fires pressurized water for $value damage.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [143, 322, 692],
+            "values": [100, 225, 484],
             "range": [3, 3, 4]
         },
         "forms": [
@@ -215,7 +215,7 @@
                     "description": "Fires pressurized water for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [143, 322, 692],
+                    "values": [100, 225, 484],
                     "range": [3, 3, 4]
                 }
             },
@@ -229,7 +229,7 @@
                     "description": "Raises shell defenses, shielding allies for $value.",
                     "type": "SHIELD",
                     "pattern": "SURROUND",
-                    "values": [164, 350, 732],
+                    "values": [115, 245, 512],
                     "range": [3, 3, 3]
                 }
             },
@@ -243,12 +243,12 @@
                     "description": "Launches a cannon blast for $value damage and knockback.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [143, 322, 692],
+                    "values": [100, 225, 484],
                     "range": [4, 5, 6],
                     "modifiers": [
                         {
                             "type": "KNOCKBACK",
-                            "cells": [1, 1, 2]
+                            "cells": [1, 1, 1]
                         }
                     ]
                 }
@@ -316,7 +316,7 @@
                     "description": "Dusts nearby enemies, stunning them for $value seconds.",
                     "type": "STUN",
                     "pattern": "SURROUND",
-                    "values": [1, 1, 3],
+                    "values": [1, 1, 2],
                     "range": [2, 3, 4]
                 }
             }
@@ -433,7 +433,7 @@
             "description": "Cuts a wind line for $value damage.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [143, 322, 692],
+            "values": [100, 225, 484],
             "range": [3, 3, 4]
         },
         "forms": [
@@ -447,7 +447,7 @@
                     "description": "Cuts a wind line for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [143, 322, 692],
+                    "values": [100, 225, 484],
                     "range": [3, 3, 4]
                 }
             },
@@ -461,7 +461,7 @@
                     "description": "Throws slicing air for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [143, 322, 692],
+                    "values": [100, 225, 484],
                     "range": [4, 4, 5],
                     "modifiers": [
                         {
@@ -482,7 +482,7 @@
                     "description": "Creates tailwind, increasing allied attack speed by $value%.",
                     "type": "BUFF_SPD",
                     "pattern": "SURROUND",
-                    "values": [14, 21, 32],
+                    "values": [10, 15, 22],
                     "range": [4, 4, 4]
                 }
             }
@@ -629,7 +629,7 @@
                     "description": "Drills through a line for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [143, 322, 692],
+                    "values": [100, 225, 484],
                     "range": [3, 4, 5],
                     "modifiers": [
                         {
@@ -650,12 +650,12 @@
                     "description": "Drills across the row for $value damage and knockback.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [143, 322, 692],
+                    "values": [100, 225, 484],
                     "range": [3, 4, 5],
                     "modifiers": [
                         {
                             "type": "KNOCKBACK",
-                            "cells": [1, 1, 2]
+                            "cells": [1, 1, 1]
                         }
                     ]
                 }
@@ -727,13 +727,13 @@
                     "description": "Spreads toxic spikes for $value damage and poison.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [128, 320, 850],
+                    "values": [90, 224, 595],
                     "range": [1, 2, 2],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [18, 46, 110],
+                            "damagePerTick": [13, 32, 77],
                             "durationSeconds": [4, 4, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -750,12 +750,12 @@
                     "description": "Breaks the ground for $value damage and knockback.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [128, 287, 850],
+                    "values": [90, 201, 595],
                     "range": [2, 2, 4],
                     "modifiers": [
                         {
                             "type": "KNOCKBACK",
-                            "cells": [1, 1, 2]
+                            "cells": [1, 1, 1]
                         }
                     ]
                 }
@@ -832,7 +832,7 @@
                     "description": "Skewers enemies in a line for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [143, 322, 950],
+                    "values": [100, 225, 665],
                     "range": [2, 3, 4],
                     "modifiers": [
                         {
@@ -904,7 +904,7 @@
                     "description": "Releases spores, stunning enemies for $value seconds.",
                     "type": "STUN",
                     "pattern": "SURROUND",
-                    "values": [1, 2, 2],
+                    "values": [1, 1, 1],
                     "range": [2, 3, 3]
                 }
             },
@@ -918,13 +918,13 @@
                     "description": "Spins petals for $value damage and poison.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [160, 360, 800],
+                    "values": [112, 252, 560],
                     "range": [2, 3, 4],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [26, 60, 120],
+                            "damagePerTick": [18, 42, 84],
                             "durationSeconds": [4, 4, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -952,7 +952,7 @@
             "description": "Streams bubbles for $value damage and slows with a stun.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [160, 365, 800],
+            "values": [112, 255, 560],
             "range": [3, 3, 4],
             "modifiers": [
                 {
@@ -972,7 +972,7 @@
                     "description": "Streams bubbles for $value damage and slows with a stun.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [160, 365, 800],
+                    "values": [112, 255, 560],
                     "range": [3, 3, 4],
                     "modifiers": [
                         {
@@ -1079,7 +1079,7 @@
                     "description": "Calls thunder for $value damage and a short stun.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [146, 329, 620],
+                    "values": [102, 230, 434],
                     "range": [2, 2, 3],
                     "targetLimit": [3, 3, 3],
                     "modifiers": [
@@ -1100,7 +1100,7 @@
                     "description": "Calls a focused thunder burst for $value damage and stun.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [146, 329, 620],
+                    "values": [102, 230, 434],
                     "range": [2, 3, 3],
                     "targetLimit": [3, 3, 3],
                     "modifiers": [
@@ -1172,12 +1172,12 @@
                     "description": "Shakes the board for $value damage and knockback.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [146, 329, 699],
+                    "values": [102, 230, 489],
                     "range": [2, 2, 3],
                     "modifiers": [
                         {
                             "type": "KNOCKBACK",
-                            "cells": [1, 1, 2]
+                            "cells": [1, 1, 1]
                         }
                     ]
                 }
@@ -1192,12 +1192,12 @@
                     "description": "Shakes the board for $value damage and knockback.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [146, 329, 699],
+                    "values": [102, 230, 489],
                     "range": [2, 2, 3],
                     "modifiers": [
                         {
                             "type": "KNOCKBACK",
-                            "cells": [1, 1, 2]
+                            "cells": [1, 1, 1]
                         }
                     ]
                 }
@@ -1223,13 +1223,13 @@
             "description": "Sends ghostly flames for $value damage and burn.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [175, 395, 840],
+            "values": [122, 277, 588],
             "range": [2, 2, 3],
             "modifiers": [
                 {
                     "type": "DOT",
                     "dotType": "BURN",
-                    "damagePerTick": [32, 68, 138],
+                    "damagePerTick": [22, 48, 97],
                     "durationSeconds": [4, 4, 5],
                     "tickIntervalMs": [1000, 1000, 1000]
                 }
@@ -1246,13 +1246,13 @@
                     "description": "Sends ghostly flames for $value damage and burn.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [175, 395, 840],
+                    "values": [122, 277, 588],
                     "range": [2, 2, 3],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [32, 68, 138],
+                            "damagePerTick": [22, 48, 97],
                             "durationSeconds": [4, 4, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -1269,13 +1269,13 @@
                     "description": "Traps enemies in spinning fire for $value damage and burn.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [175, 460, 840],
+                    "values": [122, 322, 588],
                     "range": [2, 3, 3],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [36, 90, 152],
+                            "damagePerTick": [25, 63, 106],
                             "durationSeconds": [4, 5, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -1292,13 +1292,13 @@
                     "description": "Unleashes mystic fire for $value damage and burn.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [200, 450, 1200],
+                    "values": [140, 315, 840],
                     "range": [4, 4, 5],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [36, 76, 190],
+                            "damagePerTick": [25, 53, 133],
                             "durationSeconds": [4, 5, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -1326,7 +1326,7 @@
             "description": "Sings enemies to sleep for $value seconds.",
             "type": "STUN",
             "pattern": "SURROUND",
-            "values": [1, 1, 2],
+            "values": [1, 1, 1],
             "range": [2, 2, 3]
         },
         "forms": [
@@ -1340,7 +1340,7 @@
                     "description": "Sings enemies to sleep for $value seconds.",
                     "type": "STUN",
                     "pattern": "SURROUND",
-                    "values": [1, 1, 2],
+                    "values": [1, 1, 1],
                     "range": [2, 2, 3]
                 }
             },
@@ -1354,7 +1354,7 @@
                     "description": "Cheers allies, increasing attack by $value%.",
                     "type": "BUFF_ATK",
                     "pattern": "SURROUND",
-                    "values": [16, 45, 42],
+                    "values": [11, 31, 29],
                     "range": [3, 4, 3]
                 }
             },
@@ -1462,13 +1462,13 @@
                     "description": "Cross-slashes for $value damage and poison.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [161, 364, 1050],
+                    "values": [113, 255, 735],
                     "range": [3, 4, 5],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [30, 64, 160],
+                            "damagePerTick": [21, 45, 112],
                             "durationSeconds": [4, 5, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         },
@@ -1529,7 +1529,7 @@
                     "description": "Surges forward for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [161, 364, 774],
+                    "values": [113, 255, 542],
                     "range": [3, 4, 4]
                 }
             },
@@ -1543,7 +1543,7 @@
                     "description": "Crushes nearby enemies for $value psychic damage.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [146, 329, 699],
+                    "values": [102, 230, 489],
                     "range": [2, 2, 3],
                     "modifiers": [
                         {
@@ -1673,13 +1673,13 @@
             "description": "Rolls fire through enemies for $value damage and burn.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [161, 364, 774],
+            "values": [113, 255, 542],
             "range": [2, 3, 3],
             "modifiers": [
                 {
                     "type": "DOT",
                     "dotType": "BURN",
-                    "damagePerTick": [26, 56, 112],
+                    "damagePerTick": [18, 39, 78],
                     "durationSeconds": [3, 3, 4],
                     "tickIntervalMs": [1000, 1000, 1000]
                 }
@@ -1696,13 +1696,13 @@
                     "description": "Rolls fire through enemies for $value damage and burn.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [161, 364, 774],
+                    "values": [113, 255, 542],
                     "range": [2, 3, 3],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [26, 56, 112],
+                            "damagePerTick": [18, 39, 78],
                             "durationSeconds": [3, 3, 4],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -1719,7 +1719,7 @@
                     "description": "Blurs through enemies for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [161, 500, 774],
+                    "values": [113, 350, 542],
                     "range": [3, 4, 5],
                     "modifiers": [
                         {
@@ -1740,19 +1740,19 @@
                     "description": "Blitzes through a line for $value damage, burn, and knockback.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [161, 364, 1100],
+                    "values": [113, 255, 770],
                     "range": [4, 4, 6],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [30, 64, 180],
+                            "damagePerTick": [21, 45, 126],
                             "durationSeconds": [3, 4, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         },
                         {
                             "type": "KNOCKBACK",
-                            "cells": [1, 1, 2]
+                            "cells": [1, 1, 1]
                         }
                     ]
                 }
@@ -1778,13 +1778,13 @@
             "description": "Sprays acid for $value damage and poison.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [161, 364, 774],
+            "values": [113, 255, 542],
             "range": [3, 3, 4],
             "modifiers": [
                 {
                     "type": "DOT",
                     "dotType": "POISON",
-                    "damagePerTick": [24, 52, 106],
+                    "damagePerTick": [17, 36, 74],
                     "durationSeconds": [3, 3, 4],
                     "tickIntervalMs": [1000, 1000, 1000]
                 }
@@ -1801,13 +1801,13 @@
                     "description": "Sprays acid for $value damage and poison.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [161, 364, 774],
+                    "values": [113, 255, 542],
                     "range": [3, 3, 4],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [24, 52, 106],
+                            "damagePerTick": [17, 36, 74],
                             "durationSeconds": [3, 3, 4],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -1824,13 +1824,13 @@
                     "description": "Floods the area with sludge for $value damage and poison.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [146, 329, 699],
+                    "values": [102, 230, 489],
                     "range": [2, 3, 3],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [28, 60, 122],
+                            "damagePerTick": [20, 42, 85],
                             "durationSeconds": [4, 5, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -1847,13 +1847,13 @@
                     "description": "Floods the area with sludge for $value damage and poison.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [146, 329, 699],
+                    "values": [102, 230, 489],
                     "range": [2, 3, 3],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [28, 60, 122],
+                            "damagePerTick": [20, 42, 85],
                             "durationSeconds": [4, 5, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -1921,12 +1921,12 @@
                     "description": "Rolls through enemies for $value damage and knockback.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [161, 450, 774],
+                    "values": [113, 315, 542],
                     "range": [2, 4, 4],
                     "modifiers": [
                         {
                             "type": "KNOCKBACK",
-                            "cells": [1, 2, 2]
+                            "cells": [1, 1, 1]
                         }
                     ]
                 }
@@ -1941,7 +1941,7 @@
                     "description": "Raises jagged stones for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [146, 329, 800],
+                    "values": [102, 230, 560],
                     "range": [2, 2, 4],
                     "modifiers": [
                         {
@@ -1973,7 +1973,7 @@
             "description": "Ignites momentum, increasing allied attack speed by $value%.",
             "type": "BUFF_SPD",
             "pattern": "SURROUND",
-            "values": [18, 28, 45],
+            "values": [13, 20, 31],
             "range": [3, 3, 3]
         },
         "forms": [
@@ -1987,7 +1987,7 @@
                     "description": "Ignites momentum, increasing allied attack speed by $value%.",
                     "type": "BUFF_SPD",
                     "pattern": "SURROUND",
-                    "values": [18, 28, 45],
+                    "values": [13, 20, 31],
                     "range": [3, 3, 3]
                 }
             },
@@ -2001,13 +2001,13 @@
                     "description": "Rings enemies with fire for $value damage and burn.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [146, 400, 699],
+                    "values": [102, 280, 489],
                     "range": [2, 2, 3],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [28, 75, 120],
+                            "damagePerTick": [20, 53, 84],
                             "durationSeconds": [4, 5, 5],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -2024,7 +2024,7 @@
                     "description": "Charges with its horn for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [161, 364, 1050],
+                    "values": [113, 255, 735],
                     "range": [3, 4, 5],
                     "modifiers": [
                         {
@@ -2098,7 +2098,7 @@
                     "description": "Creates psychic terrain, shielding allies for $value.",
                     "type": "SHIELD",
                     "pattern": "SURROUND",
-                    "values": [198, 420, 874],
+                    "values": [139, 294, 612],
                     "range": [3, 3, 3]
                 }
             }
@@ -2123,7 +2123,7 @@
             "description": "Shocks a line for $value damage.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [161, 364, 774],
+            "values": [113, 255, 542],
             "range": [3, 3, 4],
             "modifiers": [
                 {
@@ -2143,7 +2143,7 @@
                     "description": "Shocks a line for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [161, 364, 774],
+                    "values": [113, 255, 542],
                     "range": [3, 3, 4],
                     "modifiers": [
                         {
@@ -2163,13 +2163,13 @@
                     "description": "Fires three beams for $value damage with burn and stun.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [161, 430, 774],
+                    "values": [113, 301, 542],
                     "range": [4, 4, 5],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "BURN",
-                            "damagePerTick": [20, 58, 92],
+                            "damagePerTick": [14, 41, 64],
                             "durationSeconds": [3, 3, 4],
                             "tickIntervalMs": [1000, 1000, 1000]
                         },
@@ -2190,7 +2190,7 @@
                     "description": "Projects a field, shielding allies for $value.",
                     "type": "SHIELD",
                     "pattern": "SURROUND",
-                    "values": [198, 420, 1150],
+                    "values": [139, 294, 805],
                     "range": [3, 3, 4]
                 }
             }
@@ -2243,7 +2243,7 @@
                     "description": "Fires a psychic beam for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [179, 406, 856],
+                    "values": [125, 284, 599],
                     "range": [4, 4, 5],
                     "modifiers": [
                         {
@@ -2263,12 +2263,12 @@
                     "description": "Warps space for $value damage and a brief stun.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [164, 371, 781],
+                    "values": [115, 260, 547],
                     "range": [2, 3, 3],
                     "modifiers": [
                         {
                             "type": "STUN",
-                            "stunSeconds": [1, 1, 2]
+                            "stunSeconds": [1, 1, 1]
                         }
                     ]
                 }
@@ -2334,7 +2334,7 @@
                     "description": "Flexes power, increasing allied attack by $value%.",
                     "type": "BUFF_ATK",
                     "pattern": "SURROUND",
-                    "values": [18, 27, 40],
+                    "values": [13, 19, 28],
                     "range": [3, 3, 3]
                 }
             },
@@ -2348,12 +2348,12 @@
                     "description": "Throws a flurry for $value damage and stun.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [164, 371, 781],
+                    "values": [115, 260, 547],
                     "range": [1, 2, 2],
                     "modifiers": [
                         {
                             "type": "STUN",
-                            "stunSeconds": [1, 1, 2]
+                            "stunSeconds": [1, 1, 1]
                         }
                     ]
                 }
@@ -2379,7 +2379,7 @@
             "description": "Whips a line for $value damage.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [179, 406, 856],
+            "values": [125, 284, 599],
             "range": [3, 3, 4],
             "modifiers": [
                 {
@@ -2399,7 +2399,7 @@
                     "description": "Whips a line for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [179, 406, 856],
+                    "values": [125, 284, 599],
                     "range": [3, 3, 4],
                     "modifiers": [
                         {
@@ -2419,13 +2419,13 @@
                     "description": "Spits acid for $value damage and poison.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [179, 406, 856],
+                    "values": [125, 284, 599],
                     "range": [3, 4, 4],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [30, 64, 128],
+                            "damagePerTick": [21, 45, 90],
                             "durationSeconds": [3, 3, 4],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -2502,7 +2502,7 @@
                     "description": "Strikes with three heads for $value damage and stun.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [200, 460, 1000],
+                    "values": [140, 322, 700],
                     "range": [3, 4, 5],
                     "modifiers": [
                         {
@@ -2522,7 +2522,7 @@
                     "description": "Accelerates allies, increasing attack speed by $value%.",
                     "type": "BUFF_SPD",
                     "pattern": "SURROUND",
-                    "values": [18, 27, 50],
+                    "values": [13, 19, 35],
                     "range": [3, 3, 3]
                 }
             }
@@ -2575,7 +2575,7 @@
                     "description": "Freezes a line for $value seconds.",
                     "type": "STUN",
                     "pattern": "LINE",
-                    "values": [1, 2, 2],
+                    "values": [1, 1, 1],
                     "range": [3, 4, 5]
                 }
             },
@@ -2589,7 +2589,7 @@
                     "description": "Sings an icy dirge, stunning enemies for $value seconds.",
                     "type": "STUN",
                     "pattern": "SURROUND",
-                    "values": [1, 2, 3],
+                    "values": [1, 1, 2],
                     "range": [2, 3, 4]
                 }
             }
@@ -2660,7 +2660,7 @@
                     "description": "Melts into armor, shielding allies for $value.",
                     "type": "SHIELD",
                     "pattern": "SURROUND",
-                    "values": [232, 490, 1016],
+                    "values": [162, 343, 711],
                     "range": [3, 3, 3]
                 }
             },
@@ -2674,13 +2674,13 @@
                     "description": "Launches filth for $value damage and heavy poison.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [179, 406, 856],
+                    "values": [125, 284, 599],
                     "range": [3, 4, 5],
                     "modifiers": [
                         {
                             "type": "DOT",
                             "dotType": "POISON",
-                            "damagePerTick": [36, 76, 152],
+                            "damagePerTick": [25, 53, 106],
                             "durationSeconds": [4, 5, 6],
                             "tickIntervalMs": [1000, 1000, 1000]
                         }
@@ -2708,7 +2708,7 @@
             "description": "Fires icicles for $value damage.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [179, 406, 856],
+            "values": [125, 284, 599],
             "range": [3, 3, 4],
             "modifiers": [
                 {
@@ -2728,7 +2728,7 @@
                     "description": "Fires icicles for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [179, 406, 856],
+                    "values": [125, 284, 599],
                     "range": [3, 3, 4],
                     "modifiers": [
                         {
@@ -2748,7 +2748,7 @@
                     "description": "Launches shell spikes for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [179, 406, 856],
+                    "values": [125, 284, 599],
                     "range": [3, 4, 5],
                     "modifiers": [
                         {
@@ -2769,7 +2769,7 @@
                     "description": "Breaks its shell open, increasing allied attack by $value%.",
                     "type": "BUFF_ATK",
                     "pattern": "SURROUND",
-                    "values": [18, 27, 55],
+                    "values": [13, 19, 39],
                     "range": [3, 3, 4]
                 }
             }
@@ -2925,12 +2925,12 @@
                     "description": "Cuts with shell force for $value damage and knockback.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [179, 406, 856],
+                    "values": [125, 284, 599],
                     "range": [2, 3, 4],
                     "modifiers": [
                         {
                             "type": "KNOCKBACK",
-                            "cells": [1, 1, 2]
+                            "cells": [1, 1, 1]
                         }
                     ]
                 }
@@ -2977,7 +2977,7 @@
             "description": "Streams bubbles for $value damage and a short stun.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [179, 406, 856],
+            "values": [125, 284, 599],
             "range": [4, 4, 5],
             "modifiers": [
                 {
@@ -2997,7 +2997,7 @@
                     "description": "Streams bubbles for $value damage and a short stun.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [179, 406, 856],
+                    "values": [125, 284, 599],
                     "range": [4, 4, 5],
                     "modifiers": [
                         {
@@ -3017,12 +3017,12 @@
                     "description": "Pumps water for $value damage and knockback.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [179, 406, 856],
+                    "values": [125, 284, 599],
                     "range": [4, 5, 6],
                     "modifiers": [
                         {
                             "type": "KNOCKBACK",
-                            "cells": [1, 1, 2]
+                            "cells": [1, 1, 1]
                         }
                     ]
                 }
@@ -3037,7 +3037,7 @@
                     "description": "Drops dragon meteors for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [164, 371, 781],
+                    "values": [115, 260, 547],
                     "range": [2, 3, 3],
                     "modifiers": [
                         {
@@ -3068,7 +3068,7 @@
             "description": "Breathes dragon energy for $value damage.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [179, 406, 856],
+            "values": [125, 284, 599],
             "range": [4, 4, 5]
         },
         "forms": [
@@ -3082,7 +3082,7 @@
                     "description": "Breathes dragon energy for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [179, 406, 856],
+                    "values": [125, 284, 599],
                     "range": [4, 4, 5]
                 }
             },
@@ -3096,7 +3096,7 @@
                     "description": "Sweeps a water tail for $value damage and knockback.",
                     "type": "DAMAGE",
                     "pattern": "SURROUND",
-                    "values": [164, 371, 781],
+                    "values": [115, 260, 547],
                     "range": [2, 2, 3],
                     "modifiers": [
                         {
@@ -3116,7 +3116,7 @@
                     "description": "Fires a huge beam for $value damage.",
                     "type": "DAMAGE",
                     "pattern": "LINE",
-                    "values": [179, 406, 856],
+                    "values": [125, 284, 599],
                     "range": [5, 6, 7],
                     "modifiers": [
                         {
@@ -3148,7 +3148,7 @@
             "description": "Slashes with a leek blade for $value damage.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [197, 448, 938],
+            "values": [138, 314, 657],
             "range": [4, 4, 5],
             "modifiers": [
                 {
@@ -3207,13 +3207,13 @@
             "description": "Throws elemental punches for $value damage, burn, and stun.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [182, 413, 863],
+            "values": [127, 289, 604],
             "range": [1, 2, 2],
             "modifiers": [
                 {
                     "type": "DOT",
                     "dotType": "BURN",
-                    "damagePerTick": [34, 72, 144],
+                    "damagePerTick": [24, 50, 101],
                     "durationSeconds": [3, 3, 4],
                     "tickIntervalMs": [1000, 1000, 1000]
                 },
@@ -3272,7 +3272,7 @@
             "description": "Sets reflective walls, shielding allies for $value.",
             "type": "SHIELD",
             "pattern": "SURROUND",
-            "values": [266, 560, 1158],
+            "values": [186, 392, 811],
             "range": [4, 4, 4]
         }
     },
@@ -3295,7 +3295,7 @@
             "description": "Cross-cuts enemies for $value damage.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [197, 448, 938],
+            "values": [138, 314, 657],
             "range": [2, 3, 3],
             "modifiers": [
                 {
@@ -3325,7 +3325,7 @@
             "description": "Sings an icy dirge, stunning enemies for $value seconds.",
             "type": "STUN",
             "pattern": "SURROUND",
-            "values": [1, 2, 2],
+            "values": [1, 1, 1],
             "range": [2, 3, 3]
         }
     },
@@ -3348,12 +3348,12 @@
             "description": "Charges through enemies for $value damage and knockback.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [197, 448, 938],
+            "values": [138, 314, 657],
             "range": [3, 4, 5],
             "modifiers": [
                 {
                     "type": "KNOCKBACK",
-                    "cells": [1, 2, 2]
+                    "cells": [1, 1, 1]
                 }
             ]
         }
@@ -3377,7 +3377,7 @@
             "description": "Copies battle rhythm, increasing allied attack by $value%.",
             "type": "BUFF_ATK",
             "pattern": "SURROUND",
-            "values": [24, 36, 52],
+            "values": [17, 25, 36],
             "range": [4, 4, 4]
         }
     },
@@ -3400,7 +3400,7 @@
             "description": "Rewrites code, increasing allied attack speed by $value%.",
             "type": "BUFF_SPD",
             "pattern": "SURROUND",
-            "values": [22, 34, 50],
+            "values": [15, 24, 35],
             "range": [4, 4, 4]
         }
     },
@@ -3446,7 +3446,7 @@
             "description": "Charms nearby enemies for $value seconds.",
             "type": "STUN",
             "pattern": "SURROUND",
-            "values": [1, 2, 2],
+            "values": [1, 1, 1],
             "range": [3, 3, 4]
         }
     },
@@ -3469,12 +3469,12 @@
             "description": "Crashes down for $value damage and knockback.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [240, 545, 1135],
+            "values": [168, 382, 795],
             "range": [2, 2, 3],
             "modifiers": [
                 {
                     "type": "KNOCKBACK",
-                    "cells": [1, 2, 2]
+                    "cells": [1, 1, 1]
                 }
             ]
         }
@@ -3498,7 +3498,7 @@
             "description": "Rakes stone edges for $value damage and execute pressure.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [250, 565, 1175],
+            "values": [175, 396, 823],
             "range": [4, 5, 6],
             "modifiers": [
                 {
@@ -3528,7 +3528,7 @@
             "description": "Summons a freezing storm for $value seconds.",
             "type": "STUN",
             "pattern": "SURROUND",
-            "values": [1, 2, 3],
+            "values": [1, 1, 2],
             "range": [3, 4, 4]
         }
     },
@@ -3551,7 +3551,7 @@
             "description": "Turns the board into a thunderstorm for $value damage and stun.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [150, 340, 700],
+            "values": [105, 238, 490],
             "range": [3, 3, 4],
             "modifiers": [
                 {
@@ -3580,13 +3580,13 @@
             "description": "Unfurls burning wings for $value damage and burn.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [190, 430, 900],
+            "values": [133, 301, 630],
             "range": [3, 3, 4],
             "modifiers": [
                 {
                     "type": "DOT",
                     "dotType": "BURN",
-                    "damagePerTick": [40, 85, 170],
+                    "damagePerTick": [28, 59, 119],
                     "durationSeconds": [4, 5, 6],
                     "tickIntervalMs": [1000, 1000, 1000]
                 }
@@ -3612,7 +3612,7 @@
             "description": "Tears through minds for $value damage, scaling with max health.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [215, 490, 1020],
+            "values": [151, 343, 714],
             "range": [5, 6, 7],
             "modifiers": [
                 {
@@ -3642,7 +3642,7 @@
             "description": "Blesses allies with life dew, healing $value health.",
             "type": "HEAL",
             "pattern": "SURROUND",
-            "values": [300, 630, 1310],
+            "values": [210, 441, 917],
             "range": [4, 4, 4]
         }
     }

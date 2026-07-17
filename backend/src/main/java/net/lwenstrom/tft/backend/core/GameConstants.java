@@ -12,6 +12,7 @@ public final class GameConstants {
     public static final int XP_PER_PHASE = 2;
     public static final int XP_BUY_COST = 4;
     public static final int XP_BUY_AMOUNT = 4;
+    public static final int MAX_PLAYER_LEVEL = 9;
     public static final int REROLL_COST = 2;
     public static final int STARTING_GOLD = 10;
     public static final int BASE_INCOME = 5;

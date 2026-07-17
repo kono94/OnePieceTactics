@@ -91,6 +91,16 @@ class OnePieceDataValidationTest {
         assertEquals(0.1, ((Number) values.get("damagePerCell")).doubleValue());
     }
 
+    @Test
+    void akainuAoeDamageUsesThirtyPercentReduction() throws Exception {
+        var akainu = loadOnePieceUnits().stream()
+                .filter(unit -> unit.id().equals("akainu_v1"))
+                .findFirst()
+                .orElseThrow();
+
+        assertEquals(List.of(490, 882, 1588), akainu.ability().values());
+    }
+
     private List<UnitDefinition> loadOnePieceUnits() throws Exception {
         InputStream is = getClass().getResourceAsStream("/data/units_onepiece.json");
         assertNotNull(is);

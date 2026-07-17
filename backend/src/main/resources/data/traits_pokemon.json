@@ -10,34 +10,34 @@
         "effects": [
             {
                 "minUnits": 1,
-                "description": "+1% ATK",
+                "description": "+2% ATK",
                 "style": "bronze",
                 "values": {
-                    "atkBuff": 0.01
+                    "atkBuff": 0.02
                 }
             },
             {
                 "minUnits": 2,
-                "description": "+5% ATK",
+                "description": "+7% ATK",
                 "style": "silver",
                 "values": {
-                    "atkBuff": 0.05
+                    "atkBuff": 0.07
                 }
             },
             {
                 "minUnits": 3,
-                "description": "+10% ATK",
+                "description": "+14% ATK",
                 "style": "gold",
                 "values": {
-                    "atkBuff": 0.1
+                    "atkBuff": 0.14
                 }
             },
             {
                 "minUnits": 4,
-                "description": "+16% ATK",
+                "description": "+22% ATK",
                 "style": "prismatic",
                 "values": {
-                    "atkBuff": 0.16
+                    "atkBuff": 0.22
                 }
             }
         ]
@@ -69,18 +69,18 @@
             },
             {
                 "minUnits": 3,
-                "description": "+23% Ability Damage",
+                "description": "+22% Ability Damage",
                 "style": "gold",
                 "values": {
-                    "abilityDamage": 0.23
+                    "abilityDamage": 0.22
                 }
             },
             {
                 "minUnits": 4,
-                "description": "+34% Ability Damage",
+                "description": "+32% Ability Damage",
                 "style": "prismatic",
                 "values": {
-                    "abilityDamage": 0.34
+                    "abilityDamage": 0.32
                 }
             }
         ]
@@ -96,34 +96,34 @@
         "effects": [
             {
                 "minUnits": 1,
-                "description": "+10% Mana Gain",
+                "description": "+15% Mana Gain",
                 "style": "bronze",
                 "values": {
-                    "manaGain": 0.1
+                    "manaGain": 0.15
                 }
             },
             {
                 "minUnits": 2,
-                "description": "+30% Mana Gain",
+                "description": "+40% Mana Gain",
                 "style": "silver",
                 "values": {
-                    "manaGain": 0.3
+                    "manaGain": 0.4
                 }
             },
             {
                 "minUnits": 3,
-                "description": "+50% Mana Gain",
+                "description": "+65% Mana Gain",
                 "style": "gold",
                 "values": {
-                    "manaGain": 0.5
+                    "manaGain": 0.65
                 }
             },
             {
                 "minUnits": 4,
-                "description": "+70% Mana Gain",
+                "description": "+90% Mana Gain",
                 "style": "prismatic",
                 "values": {
-                    "manaGain": 0.7
+                    "manaGain": 0.9
                 }
             }
         ]
@@ -139,26 +139,26 @@
         "effects": [
             {
                 "minUnits": 1,
-                "description": "+40 HP",
+                "description": "+100 HP",
                 "style": "bronze",
                 "values": {
-                    "hp": 40
+                    "hp": 100
                 }
             },
             {
                 "minUnits": 2,
-                "description": "+150 HP",
+                "description": "+300 HP",
                 "style": "silver",
                 "values": {
-                    "hp": 150
+                    "hp": 300
                 }
             },
             {
                 "minUnits": 3,
-                "description": "+260 HP",
+                "description": "+500 HP",
                 "style": "gold",
                 "values": {
-                    "hp": 260
+                    "hp": 500
                 }
             }
         ]
@@ -209,34 +209,34 @@
         "effects": [
             {
                 "minUnits": 1,
-                "description": "+5% Max Mana at start",
+                "description": "+4% Max Mana at start",
                 "style": "bronze",
                 "values": {
-                    "manaPercent": 0.05
+                    "manaPercent": 0.04
                 }
             },
             {
                 "minUnits": 2,
-                "description": "+18% Max Mana at start",
+                "description": "+14% Max Mana at start",
                 "style": "silver",
                 "values": {
-                    "manaPercent": 0.18
+                    "manaPercent": 0.14
                 }
             },
             {
                 "minUnits": 3,
-                "description": "+28% Max Mana at start",
+                "description": "+24% Max Mana at start",
                 "style": "gold",
                 "values": {
-                    "manaPercent": 0.28
+                    "manaPercent": 0.24
                 }
             },
             {
                 "minUnits": 4,
-                "description": "+40% Max Mana at start",
+                "description": "+35% Max Mana at start",
                 "style": "prismatic",
                 "values": {
-                    "manaPercent": 0.4
+                    "manaPercent": 0.35
                 }
             }
         ]
@@ -246,44 +246,40 @@
         "name": "Ground",
         "type": "type",
         "targetScope": "TEAM",
-        "description": "Ground Pokemon reinforce team defenses.",
+        "description": "Ground Pokemon reduce damage taken by the whole team.",
         "iconColor": "#a16207",
-        "effectType": "ARMOR_AND_MR",
+        "effectType": "DAMAGE_REDUCTION",
         "effects": [
             {
                 "minUnits": 1,
-                "description": "+5 Armor/MR",
+                "description": "3% Damage Reduction",
                 "style": "bronze",
                 "values": {
-                    "armor": 5,
-                    "mr": 5
+                    "damageReduction": 3
                 }
             },
             {
                 "minUnits": 2,
-                "description": "+18 Armor/MR",
+                "description": "7% Damage Reduction",
                 "style": "silver",
                 "values": {
-                    "armor": 18,
-                    "mr": 18
+                    "damageReduction": 7
                 }
             },
             {
                 "minUnits": 3,
-                "description": "+32 Armor/MR",
+                "description": "11% Damage Reduction",
                 "style": "gold",
                 "values": {
-                    "armor": 32,
-                    "mr": 32
+                    "damageReduction": 11
                 }
             },
             {
                 "minUnits": 4,
-                "description": "+50 Armor/MR",
+                "description": "20% Damage Reduction",
                 "style": "prismatic",
                 "values": {
-                    "armor": 50,
-                    "mr": 50
+                    "damageReduction": 20
                 }
             }
         ]
@@ -293,26 +289,24 @@
         "name": "Rock",
         "type": "type",
         "targetScope": "TEAM",
-        "description": "Rock Pokemon grant sturdy team defenses.",
+        "description": "Rock Pokemon reduce damage taken by the whole team.",
         "iconColor": "#78716c",
-        "effectType": "ARMOR_AND_MR",
+        "effectType": "DAMAGE_REDUCTION",
         "effects": [
             {
                 "minUnits": 1,
-                "description": "+6 Armor/MR",
+                "description": "3% Damage Reduction",
                 "style": "bronze",
                 "values": {
-                    "armor": 6,
-                    "mr": 6
+                    "damageReduction": 3
                 }
             },
             {
                 "minUnits": 2,
-                "description": "+24 Armor/MR",
+                "description": "10% Damage Reduction",
                 "style": "silver",
                 "values": {
-                    "armor": 24,
-                    "mr": 24
+                    "damageReduction": 10
                 }
             }
         ]
@@ -328,37 +322,37 @@
         "effects": [
             {
                 "minUnits": 1,
-                "description": "+4% AS below 50% HP",
+                "description": "+3% AS below 50% HP",
                 "style": "bronze",
                 "values": {
-                    "as": 0.04,
+                    "as": 0.03,
                     "hpThreshold": 0.5
                 }
             },
             {
                 "minUnits": 2,
-                "description": "+12% AS below 50% HP",
+                "description": "+10% AS below 50% HP",
                 "style": "silver",
                 "values": {
-                    "as": 0.12,
+                    "as": 0.1,
                     "hpThreshold": 0.5
                 }
             },
             {
                 "minUnits": 3,
-                "description": "+24% AS below 50% HP",
+                "description": "+20% AS below 50% HP",
                 "style": "gold",
                 "values": {
-                    "as": 0.24,
+                    "as": 0.2,
                     "hpThreshold": 0.5
                 }
             },
             {
                 "minUnits": 4,
-                "description": "+36% AS below 50% HP",
+                "description": "+30% AS below 50% HP",
                 "style": "prismatic",
                 "values": {
-                    "as": 0.36,
+                    "as": 0.3,
                     "hpThreshold": 0.5
                 }
             }
@@ -375,40 +369,40 @@
         "effects": [
             {
                 "minUnits": 1,
-                "description": "3s DoT: 3% ATK per tick",
+                "description": "3s DoT: 5% ATK per tick",
                 "style": "bronze",
                 "values": {
-                    "damageRatio": 0.03,
+                    "damageRatio": 0.05,
                     "durationMs": 3000,
                     "tickIntervalMs": 1000
                 }
             },
             {
                 "minUnits": 2,
-                "description": "3s DoT: 7% ATK per tick",
+                "description": "3s DoT: 10% ATK per tick",
                 "style": "silver",
                 "values": {
-                    "damageRatio": 0.07,
+                    "damageRatio": 0.1,
                     "durationMs": 3000,
                     "tickIntervalMs": 1000
                 }
             },
             {
                 "minUnits": 3,
-                "description": "3s DoT: 11% ATK per tick",
+                "description": "3s DoT: 18% ATK per tick",
                 "style": "gold",
                 "values": {
-                    "damageRatio": 0.11,
+                    "damageRatio": 0.18,
                     "durationMs": 3000,
                     "tickIntervalMs": 1000
                 }
             },
             {
                 "minUnits": 4,
-                "description": "3s DoT: 16% ATK per tick",
+                "description": "3s DoT: 30% ATK per tick",
                 "style": "prismatic",
                 "values": {
-                    "damageRatio": 0.16,
+                    "damageRatio": 0.3,
                     "durationMs": 3000,
                     "tickIntervalMs": 1000
                 }
@@ -426,26 +420,26 @@
         "effects": [
             {
                 "minUnits": 1,
-                "description": "3% extra attack",
+                "description": "5% extra attack",
                 "style": "bronze",
                 "values": {
-                    "chance": 0.03
+                    "chance": 0.05
                 }
             },
             {
                 "minUnits": 2,
-                "description": "10% extra attack",
+                "description": "14% extra attack",
                 "style": "silver",
                 "values": {
-                    "chance": 0.1
+                    "chance": 0.14
                 }
             },
             {
                 "minUnits": 3,
-                "description": "17% extra attack",
+                "description": "24% extra attack",
                 "style": "gold",
                 "values": {
-                    "chance": 0.17
+                    "chance": 0.24
                 }
             }
         ]
@@ -461,34 +455,34 @@
         "effects": [
             {
                 "minUnits": 1,
-                "description": "+4% ATK",
+                "description": "+5% ATK",
                 "style": "bronze",
                 "values": {
-                    "atkBuff": 0.04
+                    "atkBuff": 0.05
                 }
             },
             {
                 "minUnits": 2,
-                "description": "+13% ATK",
+                "description": "+15% ATK",
                 "style": "silver",
                 "values": {
-                    "atkBuff": 0.13
+                    "atkBuff": 0.15
                 }
             },
             {
                 "minUnits": 3,
-                "description": "+22% ATK",
+                "description": "+25% ATK",
                 "style": "gold",
                 "values": {
-                    "atkBuff": 0.22
+                    "atkBuff": 0.25
                 }
             },
             {
                 "minUnits": 4,
-                "description": "+32% ATK",
+                "description": "+38% ATK",
                 "style": "prismatic",
                 "values": {
-                    "atkBuff": 0.32
+                    "atkBuff": 0.38
                 }
             }
         ]
@@ -498,44 +492,40 @@
         "name": "Ice",
         "type": "type",
         "targetScope": "TEAM",
-        "description": "Ice Pokemon shield the team with cold resilience.",
+        "description": "Ice Pokemon reduce damage taken by the whole team.",
         "iconColor": "#67e8f9",
-        "effectType": "ARMOR_AND_MR",
+        "effectType": "DAMAGE_REDUCTION",
         "effects": [
             {
                 "minUnits": 1,
-                "description": "+4 Armor/MR",
+                "description": "3% Damage Reduction",
                 "style": "bronze",
                 "values": {
-                    "armor": 4,
-                    "mr": 4
+                    "damageReduction": 3
                 }
             },
             {
                 "minUnits": 2,
-                "description": "+14 Armor/MR",
+                "description": "8% Damage Reduction",
                 "style": "silver",
                 "values": {
-                    "armor": 14,
-                    "mr": 14
+                    "damageReduction": 8
                 }
             },
             {
                 "minUnits": 3,
-                "description": "+26 Armor/MR",
+                "description": "14% Damage Reduction",
                 "style": "gold",
                 "values": {
-                    "armor": 26,
-                    "mr": 26
+                    "damageReduction": 14
                 }
             },
             {
                 "minUnits": 4,
-                "description": "+42 Armor/MR",
+                "description": "22% Damage Reduction",
                 "style": "prismatic",
                 "values": {
-                    "armor": 42,
-                    "mr": 42
+                    "damageReduction": 22
                 }
             }
         ]
@@ -559,10 +549,10 @@
             },
             {
                 "minUnits": 2,
-                "description": "+26% Ability Damage",
+                "description": "+24% Ability Damage",
                 "style": "silver",
                 "values": {
-                    "abilityDamage": 0.26
+                    "abilityDamage": 0.24
                 }
             }
         ]
@@ -578,18 +568,18 @@
         "effects": [
             {
                 "minUnits": 1,
-                "description": "4% Lifesteal",
+                "description": "6% Lifesteal",
                 "style": "bronze",
                 "values": {
-                    "lifesteal": 0.04
+                    "lifesteal": 0.06
                 }
             },
             {
                 "minUnits": 2,
-                "description": "14% Lifesteal",
+                "description": "20% Lifesteal",
                 "style": "silver",
                 "values": {
-                    "lifesteal": 0.14
+                    "lifesteal": 0.2
                 }
             }
         ]
@@ -599,17 +589,16 @@
         "name": "Steel",
         "type": "type",
         "targetScope": "TEAM",
-        "description": "Steel Pokemon harden the whole team.",
+        "description": "Steel Pokemon reduce damage taken by the whole team.",
         "iconColor": "#94a3b8",
-        "effectType": "ARMOR_AND_MR",
+        "effectType": "DAMAGE_REDUCTION",
         "effects": [
             {
                 "minUnits": 1,
-                "description": "+12 Armor/MR",
+                "description": "5% Damage Reduction",
                 "style": "bronze",
                 "values": {
-                    "armor": 12,
-                    "mr": 12
+                    "damageReduction": 5
                 }
             }
         ]

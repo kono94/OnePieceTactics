@@ -94,7 +94,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
 
         applyToTargets(source, allUnits, target, ability, u -> {
             int effectiveDamage = PokemonTypeEffectiveness.apply(source, u, finalDamage);
-            u.takeDamage(effectiveDamage);
+            u.takeAbilityDamage(effectiveDamage);
             if (isFinalKill(u)) {
                 AugmentManager.applyTeamAttackDamageOnKill(source, allUnits);
             }

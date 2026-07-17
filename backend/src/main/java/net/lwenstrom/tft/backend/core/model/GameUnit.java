@@ -58,6 +58,10 @@ public interface GameUnit {
 
     void takeDamage(int amount);
 
+    default void takeAbilityDamage(int amount) {
+        takeDamage(amount);
+    }
+
     void gainMana(int amount);
 
     int getStarLevel();
@@ -267,6 +271,12 @@ public interface GameUnit {
     }
 
     default void setDamageReduction(int reductionPercent) {}
+
+    default int getAbilityDamageReduction() {
+        return 0;
+    }
+
+    default void setAbilityDamageReduction(int reductionPercent) {}
 
     default int getTeamAttackDamageOnKill() {
         return 0;

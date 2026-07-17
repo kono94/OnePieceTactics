@@ -285,7 +285,7 @@ public class GameController {
     }
 
     private void handleExpPurchase(Player player) {
-        if (player.getGold() >= GameConstants.XP_BUY_COST) {
+        if (player.getLevel() < GameConstants.MAX_PLAYER_LEVEL && player.getGold() >= GameConstants.XP_BUY_COST) {
             player.gainGold(-GameConstants.XP_BUY_COST);
             player.gainXp(GameConstants.XP_BUY_AMOUNT);
         }

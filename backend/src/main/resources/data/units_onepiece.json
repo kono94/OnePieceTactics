@@ -128,11 +128,7 @@
             "description": "Lightning strikes enemies in a line, stunning for $value seconds.",
             "type": "STUN",
             "pattern": "LINE",
-            "values": [
-                2,
-                3,
-                4
-            ],
+            "values": [1, 2, 3],
             "range": [
                 4,
                 4,
@@ -193,11 +189,7 @@
             "description": "Inspires allies, increasing attack damage by $value%.",
             "type": "BUFF_ATK",
             "pattern": "SURROUND",
-            "values": [
-                25,
-                45,
-                80
-            ],
+            "values": [18, 31, 56],
             "range": [
                 2,
                 2,
@@ -258,11 +250,7 @@
             "description": "Powerful slash deals $value damage to all adjacent enemies.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [
-                100,
-                180,
-                324
-            ],
+            "values": [70, 126, 227],
             "range": [
                 1,
                 1,
@@ -323,7 +311,7 @@
             "description": "Ignites legs, increasing allies' attack speed by $value%.",
             "type": "BUFF_SPD",
             "pattern": "SURROUND",
-            "values": [25, 45, 75],
+            "values": [18, 31, 53],
             "range": [
                 2,
                 2,
@@ -520,11 +508,7 @@
             "description": "Fires a powerful beam dealing $value damage in a line.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [
-                400,
-                720,
-                1296
-            ],
+            "values": [280, 504, 907],
             "range": [
                 5,
                 5,
@@ -586,11 +570,7 @@
             "description": "Chilling slash freezes all adjacent enemies for $value seconds.",
             "type": "STUN",
             "pattern": "SURROUND",
-            "values": [
-                3,
-                4,
-                5
-            ],
+            "values": [2, 3, 4],
             "range": [
                 1,
                 1,
@@ -640,7 +620,7 @@
             "description": "Water blast deals $value damage and knocks enemies back.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [420, 760, 1368],
+            "values": [294, 532, 958],
             "range": [
                 2,
                 2,
@@ -649,11 +629,7 @@
             "modifiers": [
                 {
                     "type": "KNOCKBACK",
-                    "cells": [
-                        1,
-                        1,
-                        1
-                    ]
+                    "cells": [1, 1, 1]
                 }
             ]
         }
@@ -971,11 +947,7 @@
             "description": "Engulfs area in smoke, stunning enemies for $value seconds.",
             "type": "STUN",
             "pattern": "SURROUND",
-            "values": [
-                2,
-                3,
-                4
-            ],
+            "values": [1, 2, 3],
             "range": [
                 2,
                 2,
@@ -1101,7 +1073,7 @@
             "description": "Giant palm increases all allies' attack by $value%.",
             "type": "BUFF_ATK",
             "pattern": "SURROUND",
-            "values": [45, 70, 100],
+            "values": [31, 49, 70],
             "range": [
                 5,
                 5,
@@ -1162,11 +1134,7 @@
             "description": "Light beam pierces enemies in a line for $value damage.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [
-                800,
-                1440,
-                2592
-            ],
+            "values": [560, 1008, 1814],
             "range": [
                 7,
                 7,
@@ -1227,11 +1195,7 @@
             "description": "Rains magma dealing $value damage to all nearby enemies.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [
-                700,
-                1260,
-                2268
-            ],
+            "values": [490, 882, 1588],
             "range": [
                 3,
                 3,
@@ -1292,11 +1256,7 @@
             "description": "Body parts swirl dealing $value damage around self.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [
-                180,
-                324,
-                583
-            ],
+            "values": [126, 227, 408],
             "range": [
                 1,
                 1,
@@ -1432,11 +1392,7 @@
             "description": "Drains moisture dealing $value damage to enemies in area.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [
-                320,
-                576,
-                1036
-            ],
+            "values": [224, 403, 725],
             "range": [
                 2,
                 2,
@@ -1507,11 +1463,7 @@
             "description": "Compresses air into a bomb dealing $value damage.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [
-                380,
-                684,
-                1231
-            ],
+            "values": [266, 479, 862],
             "range": [
                 2,
                 2,
@@ -1573,11 +1525,7 @@
             "description": "Burning string whip deals $value damage in a line.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [
-                550,
-                990,
-                1782
-            ],
+            "values": [385, 693, 1247],
             "range": [
                 5,
                 5,
@@ -1638,11 +1586,7 @@
             "description": "Massive air blade deals $value damage across the battlefield.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [
-                600,
-                1080,
-                1944
-            ],
+            "values": [420, 756, 1361],
             "range": [
                 7,
                 7,
@@ -1703,7 +1647,7 @@
             "description": "Hearts of stone petrify enemies, stunning for $value seconds.",
             "type": "STUN",
             "pattern": "SURROUND",
-            "values": [1, 1, 2],
+            "values": [1, 1, 1],
             "range": [4, 4, 4]
         }
     },
@@ -1955,11 +1899,7 @@
             "description": "Increases allies' attack by $value%.",
             "type": "BUFF_ATK",
             "pattern": "SURROUND",
-            "values": [
-                20,
-                35,
-                55
-            ],
+            "values": [14, 25, 39],
             "range": [
                 2,
                 2,
@@ -2020,11 +1960,7 @@
             "description": "Charges forward dealing $value damage in a line.",
             "type": "DAMAGE",
             "pattern": "LINE",
-            "values": [
-                350,
-                630,
-                1134
-            ],
+            "values": [245, 441, 794],
             "range": [
                 3,
                 3,
@@ -2151,11 +2087,7 @@
             "description": "Toxic shot deals $value damage to enemies in area.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [
-                450,
-                810,
-                1458
-            ],
+            "values": [315, 567, 1021],
             "range": [
                 2,
                 2,
@@ -2217,11 +2149,7 @@
             "description": "Ignites dealing $value damage. More damage when wounded.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [
-                500,
-                900,
-                1620
-            ],
+            "values": [350, 630, 1134],
             "range": [
                 2,
                 2,
@@ -2294,11 +2222,7 @@
             "description": "Devastating club strike deals $value damage to all nearby and stuns.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [
-                750,
-                1350,
-                2430
-            ],
+            "values": [525, 945, 1701],
             "range": [
                 2,
                 2,
@@ -2374,11 +2298,7 @@
             "description": "Increases allies' attack by $value%.",
             "type": "BUFF_ATK",
             "pattern": "SURROUND",
-            "values": [
-                15,
-                25,
-                40
-            ],
+            "values": [11, 18, 28],
             "range": [
                 1,
                 1,
@@ -2439,11 +2359,7 @@
             "description": "Flames deal $value damage to nearby enemies.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [
-                160,
-                288,
-                518
-            ],
+            "values": [112, 202, 363],
             "range": [
                 1,
                 1,
@@ -2504,11 +2420,7 @@
             "description": "Heals allies in area for $value.",
             "type": "HEAL",
             "pattern": "SURROUND",
-            "values": [
-                150,
-                270,
-                486
-            ],
+            "values": [105, 189, 340],
             "range": [
                 2,
                 2,
@@ -2634,11 +2546,7 @@
             "description": "Powerful slash deals $value damage to all adjacent.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [
-                320,
-                576,
-                1036
-            ],
+            "values": [224, 403, 725],
             "range": [
                 1,
                 1,
@@ -2851,11 +2759,7 @@
             "description": "Steals souls dealing $value damage to all nearby enemies.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [
-                600,
-                1080,
-                1944
-            ],
+            "values": [420, 756, 1361],
             "range": [
                 2,
                 2,
@@ -2992,11 +2896,7 @@
             "description": "Increases allies' attack by $value%.",
             "type": "BUFF_ATK",
             "pattern": "SURROUND",
-            "values": [
-                25,
-                40,
-                60
-            ],
+            "values": [18, 28, 42],
             "range": [
                 2,
                 2,
@@ -3057,11 +2957,7 @@
             "description": "Rallies all allies, increasing attack by $value%.",
             "type": "BUFF_ATK",
             "pattern": "SURROUND",
-            "values": [
-                30,
-                50,
-                75
-            ],
+            "values": [21, 35, 53],
             "range": [
                 5,
                 5,
@@ -3122,7 +3018,7 @@
             "description": "Heals all allies in range for $value.",
             "type": "HEAL",
             "pattern": "SURROUND",
-            "values": [350, 630, 1134],
+            "values": [245, 441, 794],
             "range": [
                 3,
                 3,
@@ -3248,11 +3144,7 @@
             "description": "Summons storm dealing $value damage to all nearby enemies.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [
-                650,
-                1170,
-                2106
-            ],
+            "values": [455, 819, 1474],
             "range": [
                 3,
                 3,
@@ -3443,11 +3335,7 @@
             "description": "Rose petals slash dealing $value damage to all adjacent.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [
-                340,
-                612,
-                1101
-            ],
+            "values": [238, 428, 771],
             "range": [
                 1,
                 1,
@@ -3509,11 +3397,7 @@
             "description": "Blazing fist deals $value damage to all nearby enemies.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [
-                500,
-                900,
-                1620
-            ],
+            "values": [350, 630, 1134],
             "range": [
                 2,
                 2,
@@ -3575,7 +3459,7 @@
             "description": "Blue flames heal all allies in range for $value.",
             "type": "HEAL",
             "pattern": "SURROUND",
-            "values": [450, 810, 1458],
+            "values": [315, 567, 1021],
             "range": [
                 3,
                 3,
@@ -3636,11 +3520,7 @@
             "description": "Shatters air dealing $value damage to all nearby. More when wounded.",
             "type": "DAMAGE",
             "pattern": "SURROUND",
-            "values": [
-                700,
-                1260,
-                2268
-            ],
+            "values": [490, 882, 1588],
             "range": [
                 2,
                 2,
