@@ -14,6 +14,7 @@ public class StandardGameUnit extends AbstractGameUnit {
                 def.lineId(),
                 def.getName(starLevel),
                 def.cost(),
+                def.getRole(starLevel),
                 def.getAbility(starLevel),
                 def.getActiveRange(starLevel),
                 new HashSet<>(def.getTraits(starLevel)));
@@ -22,8 +23,7 @@ public class StandardGameUnit extends AbstractGameUnit {
         setMaxMana(def.getMaxMana(starLevel));
         setAttackDamage(def.getAttackDamage(starLevel));
         setAbilityPower(def.getAbilityPower(starLevel));
-        setArmor(def.getArmor(starLevel));
-        setMagicResist(def.getMagicResist(starLevel));
+        setDefense(def.getDefense(starLevel));
         setAttackSpeed(def.getAttackSpeed(starLevel));
         setCurrentHealth(def.getMaxHealth(starLevel));
     }

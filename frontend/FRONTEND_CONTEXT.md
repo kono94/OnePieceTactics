@@ -1,6 +1,6 @@
 # Frontend Context — OnePieceTactics Vue.js Implementation
 
-> **Last Updated:** 2026-06-30
+> **Last Updated:** 2026-07-17
 > **Purpose:** Comprehensive architectural blueprint and source of truth for AI developers working on the Vue.js 3 frontend.
 > **Recent Scope:** Reviewed frontend changes since `1.3.0` through `938a11e` (`Add loot pickup feedback`): owned shop-line highlights, augment selection/display, and loot pickup feedback.
 
@@ -350,6 +350,8 @@ setTraitData(traits)  // Populates global TRAIT_DATA object
 - `GameMode` is a strict union: `'onepiece' | 'pokemon'`.
 - Pokemon traits use `TraitDefinition.type = 'type'` in addition to One Piece-style `origin` and `class`; `targetScope` and `effectType` are available for richer tooltip/metadata display.
 - `TraitSidebar.vue` counts unique unit lines using `lineId || definitionId || name`, so evolved Pokemon forms do not over-count the same evolution line.
+- Units expose `role: 'DAMAGE' | 'TANK' | 'SUPPORT'` and `defense`; Pokemon forms may override the base role by star level.
+- `UnitTooltip.vue` shows a red Damage, blue Tank, or green Support badge, the current DEF value, and shop-only role progression when an evolution changes role.
 - `pokemonUltimateGalleryRoster.ts` imports `backend/src/main/resources/data/units_pokemon.json` and expands both base units and `forms` into gallery entries.
 
 
@@ -419,7 +421,7 @@ export const TEAM_COLORS = {
 
 | File | Key Exports |
 |------|------------|
-| [types/game.ts](src/types/game.ts) | `GameState`, `GameUnit`, `PlayerState`, `GameAction`, `GameEvent`, `UnitDefinition`, `ActiveTrait`, `LootOrb`, `AugmentOffer`, `SelectedAugment`, `PlanningPauseReason` |
+| [types/game.ts](src/types/game.ts) | `GameState`, `GameUnit`, `UnitRole`, `PlayerState`, `GameAction`, `GameEvent`, `UnitDefinition`, `ActiveTrait`, `LootOrb`, `AugmentOffer`, `SelectedAugment`, `PlanningPauseReason` |
 | [types/combatEffects.ts](src/types/combatEffects.ts) | `NormalizedCombatVisualEvent`, `EffectIntensity`, `RenderLayer`, canvas point contracts |
 
 **Type Sync:**  
@@ -707,8 +709,10 @@ Build-time environment variables (`VITE_GIT_TAG`, `VITE_GIT_COMMIT`) are injecte
 
 ## 9. Testing Strategy
 
-**⚠️ No Automated Tests**  
-The project currently has **no unit tests, integration tests, or E2E tests**.
+Vitest covers frontend utilities and focused components, including role badges, DEF rendering, and Pokemon role
+progression. Run the suite with `npm test`; `npm run build` performs strict TypeScript checking before bundling.
+The pending changelog imports `src/data/roleBalanceChangelog.ts`, an exhaustive 330-row 1.7.0-to-next-version
+comparison for every One Piece and Pokemon star form.
 
 **Manual Testing Checklist:**
 1. **WebSocket Connection:** Verify connection indicator turns green

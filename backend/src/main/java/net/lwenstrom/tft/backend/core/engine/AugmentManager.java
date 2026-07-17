@@ -101,7 +101,7 @@ public class AugmentManager {
                     TEAM_MAX_HEALTH,
                     TEAM_ATTACK_DAMAGE,
                     TEAM_ABILITY_POWER,
-                    TEAM_ARMOR_AND_MAGIC_RESIST,
+                    TEAM_DEFENSE,
                     MELEE_LIFESTEAL,
                     RANGED_ATTACK_DAMAGE,
                     TEAM_MANA_GAIN,
@@ -130,8 +130,8 @@ public class AugmentManager {
                 player.getBoardUnits()
                         .forEach(unit -> unit.setAbilityDamageMultiplier(
                                 unit.getAbilityDamageMultiplier() * (1.0f + augment.value() / 100.0f)));
-            case TEAM_ARMOR_AND_MAGIC_RESIST ->
-                player.getBoardUnits().forEach(unit -> unit.setAbilityDamageReduction(augment.value()));
+            case TEAM_DEFENSE ->
+                player.getBoardUnits().forEach(unit -> unit.setDefense(unit.getDefense() + augment.value()));
             case MELEE_LIFESTEAL ->
                 player.getBoardUnits().stream()
                         .filter(unit -> unit.getRange() <= 1)

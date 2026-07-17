@@ -76,7 +76,7 @@ public class GenericTraitApplier implements TraitEffect {
             case HP -> applyHp(recipients, values);
             case HP_AND_AS -> applyHpAndAs(recipients, values);
             case AS -> applyAs(recipients, values);
-            case ARMOR_AND_MR -> applyArmorAndMr(recipients, values);
+            case DEFENSE -> applyDefense(recipients, values);
             case DAMAGE_REDUCTION -> applyDamageReduction(recipients, values);
             case ATK_BUFF -> applyAtkBuff(recipients, values);
             case START_MANA -> applyStartMana(recipients, values);
@@ -254,18 +254,11 @@ public class GenericTraitApplier implements TraitEffect {
         }
     }
 
-    private void applyArmorAndMr(List<GameUnit> units, JsonNode values) {
-        int bonusArmor = values.has("armor") ? values.get("armor").asInt() : 0;
-        int bonusMr = values.has("mr") ? values.get("mr").asInt() : 0;
+    private void applyDefense(List<GameUnit> units, JsonNode values) {
+        int bonusDefense = values.has("defense") ? values.get("defense").asInt() : 0;
+        if (bonusDefense <= 0) return;
 
-        for (GameUnit unit : units) {
-            if (bonusArmor > 0) {
-                unit.setArmor(unit.getArmor() + bonusArmor);
-            }
-            if (bonusMr > 0) {
-                unit.setMagicResist(unit.getMagicResist() + bonusMr);
-            }
-        }
+        units.forEach(unit -> unit.setDefense(unit.getDefense() + bonusDefense));
     }
 
     private void applyAtkBuff(List<GameUnit> units, JsonNode values) {

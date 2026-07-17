@@ -11,6 +11,7 @@ import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
 import net.lwenstrom.tft.backend.core.model.DotEffect;
 import net.lwenstrom.tft.backend.core.model.GameItem;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
+import net.lwenstrom.tft.backend.core.model.UnitRole;
 
 public abstract class AbstractGameUnit implements GameUnit {
     private final String id = UUID.randomUUID().toString();
@@ -18,6 +19,7 @@ public abstract class AbstractGameUnit implements GameUnit {
     private final String lineId;
     private final String name;
     private final int cost;
+    private final UnitRole role;
     private final AbilityDefinition ability;
     private final int range;
     private final Set<String> traits;
@@ -27,8 +29,7 @@ public abstract class AbstractGameUnit implements GameUnit {
     private int maxMana;
     private int attackDamage;
     private int abilityPower;
-    private int armor;
-    private int magicResist;
+    private int defense;
     private float attackSpeed;
 
     // State
@@ -48,6 +49,8 @@ public abstract class AbstractGameUnit implements GameUnit {
     private int damageReduction = 0;
     private int abilityDamageReduction = 0;
     private int teamAttackDamageOnKill = 0;
+    private int temporaryDefenseBuff = 0;
+    private int temporaryDefenseShred = 0;
 
     // Planning position (saved before combat)
     private int planningX = -1;
@@ -57,8 +60,7 @@ public abstract class AbstractGameUnit implements GameUnit {
     private int savedMaxMana;
     private int savedAttackDamage;
     private int savedAbilityPower;
-    private int savedArmor;
-    private int savedMagicResist;
+    private int savedDefense;
     private float savedAttackSpeed;
     private int savedMana;
 
@@ -118,6 +120,7 @@ public abstract class AbstractGameUnit implements GameUnit {
             String lineId,
             String name,
             int cost,
+            UnitRole role,
             AbilityDefinition ability,
             int range,
             Set<String> traits) {
@@ -125,6 +128,7 @@ public abstract class AbstractGameUnit implements GameUnit {
         this.lineId = lineId == null || lineId.isBlank() ? definitionId : lineId;
         this.name = name;
         this.cost = cost;
+        this.role = role;
         this.ability = ability;
         this.range = range;
         this.traits = traits;
@@ -136,6 +140,7 @@ public abstract class AbstractGameUnit implements GameUnit {
         this.lineId = other.lineId;
         this.name = other.name;
         this.cost = other.cost;
+        this.role = other.role;
         this.ability = other.ability;
         this.range = other.range;
         this.traits = new HashSet<>(other.traits);
@@ -145,8 +150,7 @@ public abstract class AbstractGameUnit implements GameUnit {
         this.maxMana = other.maxMana;
         this.attackDamage = other.attackDamage;
         this.abilityPower = other.abilityPower;
-        this.armor = other.armor;
-        this.magicResist = other.magicResist;
+        this.defense = other.defense;
         this.attackSpeed = other.attackSpeed;
 
         // State
@@ -171,8 +175,7 @@ public abstract class AbstractGameUnit implements GameUnit {
         this.savedMaxMana = other.savedMaxMana;
         this.savedAttackDamage = other.savedAttackDamage;
         this.savedAbilityPower = other.savedAbilityPower;
-        this.savedArmor = other.savedArmor;
-        this.savedMagicResist = other.savedMagicResist;
+        this.savedDefense = other.savedDefense;
         this.savedAttackSpeed = other.savedAttackSpeed;
         this.savedMana = other.savedMana;
 
@@ -208,6 +211,8 @@ public abstract class AbstractGameUnit implements GameUnit {
         this.damageReduction = other.damageReduction;
         this.abilityDamageReduction = other.abilityDamageReduction;
         this.teamAttackDamageOnKill = other.teamAttackDamageOnKill;
+        this.temporaryDefenseBuff = other.temporaryDefenseBuff;
+        this.temporaryDefenseShred = other.temporaryDefenseShred;
     }
 
     // ========== GETTERS ==========
@@ -238,6 +243,11 @@ public abstract class AbstractGameUnit implements GameUnit {
     }
 
     @Override
+    public UnitRole getRole() {
+        return role;
+    }
+
+    @Override
     public AbilityDefinition getAbility() {
         return ability;
     }
@@ -263,13 +273,8 @@ public abstract class AbstractGameUnit implements GameUnit {
     }
 
     @Override
-    public int getArmor() {
-        return armor;
-    }
-
-    @Override
-    public int getMagicResist() {
-        return magicResist;
+    public int getDefense() {
+        return Math.max(0, defense + temporaryDefenseBuff - temporaryDefenseShred);
     }
 
     @Override
@@ -382,13 +387,18 @@ public abstract class AbstractGameUnit implements GameUnit {
     }
 
     @Override
-    public void setArmor(int armor) {
-        this.armor = armor;
+    public void setDefense(int defense) {
+        this.defense = defense;
     }
 
     @Override
-    public void setMagicResist(int magicResist) {
-        this.magicResist = magicResist;
+    public void applyTemporaryDefenseBuff(int defense) {
+        temporaryDefenseBuff = Math.max(temporaryDefenseBuff, Math.max(0, defense));
+    }
+
+    @Override
+    public void applyTemporaryDefenseShred(int defense) {
+        temporaryDefenseShred = Math.max(temporaryDefenseShred, Math.max(0, defense));
     }
 
     @Override
@@ -450,6 +460,18 @@ public abstract class AbstractGameUnit implements GameUnit {
 
     @Override
     public void takeDamage(int amount) {
+        applyDamage(calculateDefenseMitigatedDamage(amount), false);
+    }
+
+    @Override
+    public void takeAbilityDamage(int amount) {
+        applyDamage(calculateDefenseMitigatedDamage(amount), true);
+    }
+
+    private void applyDamage(int amount, boolean abilityDamage) {
+        if (abilityDamage && abilityDamageReduction > 0) {
+            amount = Math.max(0, Math.round(amount * (1.0f - abilityDamageReduction / 100.0f)));
+        }
         if (damageReduction > 0) {
             amount = Math.max(0, Math.round(amount * (1.0f - damageReduction / 100.0f)));
         }
@@ -463,14 +485,6 @@ public abstract class AbstractGameUnit implements GameUnit {
             }
         }
         this.currentHealth = Math.max(0, this.currentHealth - amount);
-    }
-
-    @Override
-    public void takeAbilityDamage(int amount) {
-        if (abilityDamageReduction > 0) {
-            amount = Math.max(0, Math.round(amount * (1.0f - abilityDamageReduction / 100.0f)));
-        }
-        takeDamage(amount);
     }
 
     @Override
@@ -493,8 +507,7 @@ public abstract class AbstractGameUnit implements GameUnit {
         this.savedMaxMana = maxMana;
         this.savedAttackDamage = attackDamage;
         this.savedAbilityPower = abilityPower;
-        this.savedArmor = armor;
-        this.savedMagicResist = magicResist;
+        this.savedDefense = defense;
         this.savedAttackSpeed = attackSpeed;
         this.savedMana = mana;
     }
@@ -510,8 +523,7 @@ public abstract class AbstractGameUnit implements GameUnit {
             this.maxMana = savedMaxMana;
             this.attackDamage = savedAttackDamage;
             this.abilityPower = savedAbilityPower;
-            this.armor = savedArmor;
-            this.magicResist = savedMagicResist;
+            this.defense = savedDefense;
             this.attackSpeed = savedAttackSpeed;
             this.currentHealth = this.maxHealth;
             this.mana = Math.min(savedMana, this.maxMana);
@@ -549,6 +561,8 @@ public abstract class AbstractGameUnit implements GameUnit {
         this.damageReduction = 0;
         this.abilityDamageReduction = 0;
         this.teamAttackDamageOnKill = 0;
+        this.temporaryDefenseBuff = 0;
+        this.temporaryDefenseShred = 0;
     }
 
     @Override

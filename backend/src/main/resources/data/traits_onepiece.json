@@ -51,35 +51,32 @@
         "name": "Marine",
         "type": "origin",
         "targetScope": "SELF",
-        "description": "Marines gain Armor and Magic Resist.",
+        "description": "Marines gain DEF.",
         "iconColor": "#1e40af",
-        "effectType": "ARMOR_AND_MR",
+        "effectType": "DEFENSE",
         "effects": [
             {
                 "minUnits": 2,
-                "description": "+25 Armor, +25 MR",
+                "description": "+15 DEF",
                 "style": "bronze",
                 "values": {
-                    "armor": 25,
-                    "mr": 25
+                    "defense": 15
                 }
             },
             {
                 "minUnits": 4,
-                "description": "+60 Armor, +60 MR",
+                "description": "+35 DEF",
                 "style": "silver",
                 "values": {
-                    "armor": 60,
-                    "mr": 60
+                    "defense": 35
                 }
             },
             {
                 "minUnits": 6,
-                "description": "+100 Armor, +100 MR",
+                "description": "+60 DEF",
                 "style": "gold",
                 "values": {
-                    "armor": 100,
-                    "mr": 100
+                    "defense": 60
                 }
             }
         ]

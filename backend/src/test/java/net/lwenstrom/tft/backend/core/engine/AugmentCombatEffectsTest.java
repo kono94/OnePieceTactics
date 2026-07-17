@@ -24,10 +24,10 @@ class AugmentCombatEffectsTest {
                 "ranged",
                 "Ranged",
                 1,
+                net.lwenstrom.tft.backend.core.model.UnitRole.DAMAGE,
                 List.of(100, 100, 100),
                 List.of(100, 100, 100),
                 List.of(10, 10, 10),
-                List.of(0, 0, 0),
                 List.of(0, 0, 0),
                 List.of(0, 0, 0),
                 List.of(1.0f, 1.0f, 1.0f),
@@ -106,20 +106,21 @@ class AugmentCombatEffectsTest {
     }
 
     @Test
-    void defensiveAugmentReducesAbilityDamageButNotBasicDamage() {
+    void defenseAugmentMitigatesAbilityAndBasicDamage() {
         var player = TestHelpers.createTestPlayer("Player");
         player.addUnitToBoard(TestHelpers.createUnitDef("unit", "Unit", 1, 200, 10), 0, 0);
-        player.addSelectedAugment(selected("iron-line", AugmentEffectType.TEAM_ARMOR_AND_MAGIC_RESIST, 16));
+        player.addSelectedAugment(selected("iron-line", AugmentEffectType.TEAM_DEFENSE, 16));
         var manager = new AugmentManager(TestHelpers.createDefaultAugments(), TestHelpers.createSeededRandomProvider());
 
         manager.applyCombatEffects(List.of(player));
         var unit = player.getBoardUnits().getFirst();
+        assertEquals(16, unit.getDefense());
         unit.takeAbilityDamage(100);
-        assertEquals(116, unit.getCurrentHealth());
+        assertEquals(114, unit.getCurrentHealth());
 
         unit.setCurrentHealth(200);
         unit.takeDamage(100);
-        assertEquals(100, unit.getCurrentHealth());
+        assertEquals(114, unit.getCurrentHealth());
     }
 
     private UnitDefinition createDamageCaster() {
@@ -135,10 +136,10 @@ class AugmentCombatEffectsTest {
                 "caster",
                 "Caster",
                 1,
+                net.lwenstrom.tft.backend.core.model.UnitRole.DAMAGE,
                 List.of(100, 100, 100),
                 List.of(100, 100, 100),
                 List.of(10, 10, 10),
-                List.of(0, 0, 0),
                 List.of(0, 0, 0),
                 List.of(0, 0, 0),
                 List.of(1.0f, 1.0f, 1.0f),

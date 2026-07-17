@@ -11,6 +11,8 @@ export type GamePhase = 'LOBBY' | 'PLANNING' | 'COMBAT' | 'END_CELEBRATION' | 'E
 
 export type GameMode = 'onepiece' | 'pokemon'
 
+export type UnitRole = 'DAMAGE' | 'TANK' | 'SUPPORT'
+
 export type ActionType =
     | 'BUY'
     | 'SELL'
@@ -46,6 +48,7 @@ export interface UnitFormDefinition {
     starLevel: number
     definitionId: string
     name: string
+    role?: UnitRole
     traits?: string[]
     range?: number[]
     ability?: AbilityDefinition | null
@@ -64,6 +67,7 @@ export interface GameUnit {
     lineId: string
     name: string
     cost: number
+    role: UnitRole
     maxHealth: number
     currentHealth: number
     shield: number
@@ -71,8 +75,7 @@ export interface GameUnit {
     maxMana: number
     attackDamage: number
     abilityPower: number
-    armor: number
-    magicResist: number
+    defense: number
     attackSpeed: number
     range: number
     traits: string[]
@@ -94,12 +97,12 @@ export interface UnitDefinition {
     lineId?: string
     name: string
     cost: number
+    role: UnitRole
     maxHealth: number
     maxMana: number
     attackDamage: number
     abilityPower: number
-    armor: number
-    magicResist: number
+    defense: number
     attackSpeed: number
     range: number
     traits: string[]

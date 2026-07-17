@@ -40,6 +40,8 @@ For detailed architectural information, refer to the context documents:
 - **Player elimination** — Ranked placement system with game-ending logic
 - **Loot orbs** — Gold and unit rewards spawn after combat rounds
 - **Pokemon type effectiveness** — Pokemon auto attacks and damage abilities apply type matchup modifiers
+- **Role-based unit identity** — Every form is labeled Damage, Tank, or Support; Pokemon evolutions can change roles
+- **Unified DEF combat stat** — DEF mitigates attacks, abilities, and damage-over-time and can be buffed or shredded
 - **Tabbed damage report** — Post-combat tracking for your units vs opponent with visual damage bars
 - **Per-unit attack animations** — Punch, slash, projectile with directional orientation
 - **Ability patterns** — Single-target, line, and AoE effects with range-based targeting
@@ -49,7 +51,7 @@ For detailed architectural information, refer to the context documents:
 - **Star-level visual effects** — Enhanced borders and top glows for 2★ and 3★ units
 - **Shop probability tooltip** — Hover over player level to see current unit cost distribution
 - **Git-based version display** — Build metadata (tag, commit, timestamp) in bottom-left corner
-- **Smart unit tooltips** — HTML-formatted ability descriptions with star-level value highlighting
+- **Smart unit tooltips** — Role badges, DEF, evolution-role previews, and star-level ability highlighting
 - **Player board spectating** — Click alive players in the right panel to view their board and combat from their perspective
 - **Keyboard shortcuts** — Enter key support for room creation/joining
 - **Bench reordering** — Swap and rearrange units even during combat phase
@@ -220,10 +222,14 @@ mvn -Dtest=BalanceSimulationReportTest -Dsimulation.report=true -Dsimulation.run
 
 # Randomize board sizes, units, star levels, and positions
 mvn -Dtest=BalanceSimulationReportTest -Dsimulation.report=true -Dsimulation.runs=1000000 -Dsimulation.threads=8 -Dsimulation.style=random-boards test
+
+# Compare equal-value balanced role boards against Damage-only boards
+mvn -Dtest=RoleBalanceSimulationTest -Dsimulation.role-report=true -Dsimulation.runs=100000 -Dsimulation.seed=42 test
 ```
 
 Reports are written to `backend/target/simulation-reports`. Every style also writes unit and trait rankings for board
-sizes 2–7.
+sizes 2–7. The role report keeps Damage-only boards viable at size 3, requires a balanced advantage from size 4, and
+raises the minimum balanced win-rate target to 65% for sizes 6–7.
 
 ### Build for Production
 ```bash
@@ -242,4 +248,4 @@ This project is for educational purposes.
 
 ---
 
-*Last updated: 2026-06-30*
+*Last updated: 2026-07-17*

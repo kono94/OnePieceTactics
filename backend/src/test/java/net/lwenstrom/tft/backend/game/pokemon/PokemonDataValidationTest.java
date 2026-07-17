@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import net.lwenstrom.tft.backend.core.engine.StandardGameUnit;
 import net.lwenstrom.tft.backend.core.engine.UnitDefinition;
+import net.lwenstrom.tft.backend.core.model.AbilityType;
+import net.lwenstrom.tft.backend.core.model.UnitRole;
 import org.junit.jupiter.api.Test;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.json.JsonMapper;
@@ -41,6 +43,54 @@ class PokemonDataValidationTest {
             assertTrue(unit.forms().isEmpty(), unit.name() + " should not evolve");
             assertEquals(unit.id(), new StandardGameUnit(unit, 3).getDefinitionId());
         });
+    }
+
+    @Test
+    void pokemonUnitsHaveRolesDefenseAndEvolutionOverrides() throws Exception {
+        var units = loadPokemonUnits();
+
+        assertEquals(
+                Map.of(UnitRole.DAMAGE, 30L, UnitRole.TANK, 10L, UnitRole.SUPPORT, 15L),
+                units.stream().collect(Collectors.groupingBy(UnitDefinition::role, Collectors.counting())));
+        units.forEach(unit -> {
+            assertEquals(3, unit.defense().size(), unit.name() + " should have three DEF values");
+            assertTrue(unit.defense().stream().allMatch(defense -> defense >= 0));
+            unit.forms().forEach(form -> assertNotNull(form.role(), form.name() + " should define its active role"));
+        });
+
+        var caterpie = find(units, "caterpie");
+        assertEquals(UnitRole.SUPPORT, caterpie.getRole(1));
+        assertEquals(UnitRole.TANK, caterpie.getRole(2));
+        assertEquals(UnitRole.SUPPORT, caterpie.getRole(3));
+
+        var charmander = find(units, "charmander");
+        assertEquals(UnitRole.DAMAGE, charmander.getRole(1));
+        assertEquals(UnitRole.DAMAGE, charmander.getRole(2));
+        assertEquals(UnitRole.DAMAGE, charmander.getRole(3));
+    }
+
+    @Test
+    void pokemonSupportKitsUseControlHealingAndDefenseEffects() throws Exception {
+        var units = loadPokemonUnits();
+
+        var bulbasaur = find(units, "bulbasaur");
+        assertEquals(AbilityType.STUN, bulbasaur.getAbility(1).type());
+        assertEquals(AbilityType.DEBUFF_DEF, bulbasaur.getAbility(2).type());
+        assertEquals(List.of(8, 16, 28), bulbasaur.getAbility(2).values());
+
+        var oddish = find(units, "oddish");
+        assertEquals(AbilityType.HEAL, oddish.getAbility(1).type());
+        assertEquals(AbilityType.STUN, oddish.getAbility(3).type());
+        assertEquals(List.of(1, 1, 2), oddish.getAbility(3).values());
+
+        var tentacool = find(units, "tentacool");
+        assertEquals(AbilityType.DEBUFF_DEF, tentacool.getAbility(1).type());
+        assertEquals(AbilityType.DEBUFF_DEF, tentacool.getAbility(2).type());
+        assertEquals(List.of(8, 18, 30), tentacool.getAbility(3).values());
+
+        var porygon = find(units, "porygon");
+        assertEquals(AbilityType.BUFF_DEF, porygon.ability().type());
+        assertEquals(List.of(12, 22, 36), porygon.ability().values());
     }
 
     @Test
@@ -158,15 +208,13 @@ class PokemonDataValidationTest {
 
         var ground = effects(findTrait(traits, "ground"));
         assertEquals(
-                List.of(3, 7, 11, 20),
-                ground.stream()
-                        .map(effect -> intValue(effect, "damageReduction"))
-                        .toList());
+                List.of(5, 12, 20, 35),
+                ground.stream().map(effect -> intValue(effect, "defense")).toList());
 
         var ice = effects(findTrait(traits, "ice"));
         assertEquals(
-                List.of(3, 8, 14, 22),
-                ice.stream().map(effect -> intValue(effect, "damageReduction")).toList());
+                List.of(5, 14, 25, 40),
+                ice.stream().map(effect -> intValue(effect, "defense")).toList());
     }
 
     @Test
@@ -193,14 +241,14 @@ class PokemonDataValidationTest {
     }
 
     @Test
-    void golemAoeDamageUsesThirtyPercentReduction() throws Exception {
+    void golemAoeDamageUsesTankRoleScaling() throws Exception {
         var geodude = find(loadPokemonUnits(), "geodude");
         var golem = geodude.forms().stream()
                 .filter(form -> form.definitionId().equals("golem"))
                 .findFirst()
                 .orElseThrow();
 
-        assertEquals(List.of(102, 230, 560), golem.ability().values());
+        assertEquals(List.of(66, 150, 364), golem.ability().values());
     }
 
     private List<UnitDefinition> loadPokemonUnits() throws Exception {

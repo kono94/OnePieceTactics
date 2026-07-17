@@ -58,6 +58,8 @@ public class DefaultAbilityCaster implements AbilityCaster {
             case HEAL -> castHealAbility(source, allUnits, ability, value, callback);
             case BUFF_ATK -> castBuffAtkAbility(source, allUnits, ability, value, callback, currentTime);
             case BUFF_SPD -> castBuffSpdAbility(source, allUnits, ability, value, callback);
+            case BUFF_DEF -> castBuffDefAbility(source, allUnits, ability, value, callback);
+            case DEBUFF_DEF -> castDebuffDefAbility(source, allUnits, targetSelector, ability, value, callback);
             case SHIELD -> castShieldAbility(source, allUnits, ability, value, callback);
         }
     }
@@ -246,6 +248,41 @@ public class DefaultAbilityCaster implements AbilityCaster {
                             callback.onShielding(source.getId(), source.getName(), u.getId(), shieldAmount);
                         });
         }
+    }
+
+    private void castBuffDefAbility(
+            GameUnit source,
+            List<GameUnit> allUnits,
+            AbilityDefinition ability,
+            int defense,
+            CombatStatCallback callback) {
+        var targets = ability.pattern() == net.lwenstrom.tft.backend.core.model.AbilityPattern.SINGLE
+                ? List.of(source)
+                : allUnits.stream()
+                        .filter(u -> u.getCurrentHealth() > 0)
+                        .filter(u -> CombatUtils.isAlly(source, u))
+                        .toList();
+        targets.forEach(unit -> {
+            unit.applyTemporaryDefenseBuff(defense);
+            callback.onSkill(source.getId(), source.getName(), unit.getId(), defense);
+        });
+    }
+
+    private void castDebuffDefAbility(
+            GameUnit source,
+            List<GameUnit> allUnits,
+            TargetSelector targetSelector,
+            AbilityDefinition ability,
+            int defense,
+            CombatStatCallback callback) {
+        var target = targetSelector.findTarget(source, allUnits);
+        if (target == null) {
+            return;
+        }
+        applyToTargets(source, allUnits, target, ability, unit -> {
+            unit.applyTemporaryDefenseShred(defense);
+            callback.onSkill(source.getId(), source.getName(), unit.getId(), defense);
+        });
     }
 
     private void applyToTargets(

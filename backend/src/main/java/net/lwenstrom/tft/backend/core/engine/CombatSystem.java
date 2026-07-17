@@ -388,20 +388,22 @@ public class CombatSystem {
                     continue;
                 }
 
-                target.takeAbilityDamage(effect.damagePerTick());
+                var source = allUnits.stream()
+                        .filter(unit -> unit.getId().equals(effect.sourceId()))
+                        .findFirst()
+                        .orElse(null);
+                var damage = source == null
+                        ? effect.damagePerTick()
+                        : PokemonTypeEffectiveness.apply(source, target, effect.damagePerTick());
+                target.takeAbilityDamage(damage);
                 accumulateDamage(
                         effect.sourceId(),
                         effect.sourceName(),
                         effect.sourceDefinitionId(),
                         effect.sourceOwnerId(),
-                        effect.damagePerTick());
+                        damage);
                 recentEvents.add(new GameState.CombatEvent(
-                        currentTime,
-                        "DAMAGE",
-                        effect.sourceId(),
-                        target.getId(),
-                        effect.damagePerTick(),
-                        effect.skillName()));
+                        currentTime, "DAMAGE", effect.sourceId(), target.getId(), damage, effect.skillName()));
 
                 iterator.remove();
                 if (target.getCurrentHealth() > 0 && currentTime + effect.tickIntervalMs() < effect.expiresAt()) {

@@ -39,7 +39,7 @@ class DataLoaderAugmentTest {
                         AugmentEffectType.TEAM_MAX_HEALTH,
                         AugmentEffectType.TEAM_ATTACK_DAMAGE,
                         AugmentEffectType.TEAM_ABILITY_POWER,
-                        AugmentEffectType.TEAM_ARMOR_AND_MAGIC_RESIST,
+                        AugmentEffectType.TEAM_DEFENSE,
                         AugmentEffectType.MELEE_LIFESTEAL,
                         AugmentEffectType.RANGED_ATTACK_DAMAGE,
                         AugmentEffectType.TEAM_MANA_GAIN,
@@ -75,7 +75,7 @@ class DataLoaderAugmentTest {
                 AugmentEffectType.TEAM_ATTACK_DAMAGE,
                 mode == GameMode.ONEPIECE ? List.of(8, 14, 22) : List.of(6, 10, 15));
         values.put(AugmentEffectType.TEAM_ABILITY_POWER, List.of(10, 18, 30));
-        values.put(AugmentEffectType.TEAM_ARMOR_AND_MAGIC_RESIST, List.of(6, 10, 16));
+        values.put(AugmentEffectType.TEAM_DEFENSE, List.of(8, 14, 22));
         values.put(AugmentEffectType.MELEE_LIFESTEAL, List.of(12, 20, 30));
         values.put(
                 AugmentEffectType.RANGED_ATTACK_DAMAGE,

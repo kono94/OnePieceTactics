@@ -246,40 +246,40 @@
         "name": "Ground",
         "type": "type",
         "targetScope": "TEAM",
-        "description": "Ground Pokemon reduce damage taken by the whole team.",
+        "description": "Ground Pokemon reinforce the whole team's defenses.",
         "iconColor": "#a16207",
-        "effectType": "DAMAGE_REDUCTION",
+        "effectType": "DEFENSE",
         "effects": [
             {
                 "minUnits": 1,
-                "description": "3% Damage Reduction",
+                "description": "+5 DEF",
                 "style": "bronze",
                 "values": {
-                    "damageReduction": 3
+                    "defense": 5
                 }
             },
             {
                 "minUnits": 2,
-                "description": "7% Damage Reduction",
+                "description": "+12 DEF",
                 "style": "silver",
                 "values": {
-                    "damageReduction": 7
+                    "defense": 12
                 }
             },
             {
                 "minUnits": 3,
-                "description": "11% Damage Reduction",
+                "description": "+20 DEF",
                 "style": "gold",
                 "values": {
-                    "damageReduction": 11
+                    "defense": 20
                 }
             },
             {
                 "minUnits": 4,
-                "description": "20% Damage Reduction",
+                "description": "+35 DEF",
                 "style": "prismatic",
                 "values": {
-                    "damageReduction": 20
+                    "defense": 35
                 }
             }
         ]
@@ -289,24 +289,24 @@
         "name": "Rock",
         "type": "type",
         "targetScope": "TEAM",
-        "description": "Rock Pokemon reduce damage taken by the whole team.",
+        "description": "Rock Pokemon reinforce the whole team's defenses.",
         "iconColor": "#78716c",
-        "effectType": "DAMAGE_REDUCTION",
+        "effectType": "DEFENSE",
         "effects": [
             {
                 "minUnits": 1,
-                "description": "3% Damage Reduction",
+                "description": "+5 DEF",
                 "style": "bronze",
                 "values": {
-                    "damageReduction": 3
+                    "defense": 5
                 }
             },
             {
                 "minUnits": 2,
-                "description": "10% Damage Reduction",
+                "description": "+18 DEF",
                 "style": "silver",
                 "values": {
-                    "damageReduction": 10
+                    "defense": 18
                 }
             }
         ]
@@ -492,40 +492,40 @@
         "name": "Ice",
         "type": "type",
         "targetScope": "TEAM",
-        "description": "Ice Pokemon reduce damage taken by the whole team.",
+        "description": "Ice Pokemon reinforce the whole team's defenses.",
         "iconColor": "#67e8f9",
-        "effectType": "DAMAGE_REDUCTION",
+        "effectType": "DEFENSE",
         "effects": [
             {
                 "minUnits": 1,
-                "description": "3% Damage Reduction",
+                "description": "+5 DEF",
                 "style": "bronze",
                 "values": {
-                    "damageReduction": 3
+                    "defense": 5
                 }
             },
             {
                 "minUnits": 2,
-                "description": "8% Damage Reduction",
+                "description": "+14 DEF",
                 "style": "silver",
                 "values": {
-                    "damageReduction": 8
+                    "defense": 14
                 }
             },
             {
                 "minUnits": 3,
-                "description": "14% Damage Reduction",
+                "description": "+25 DEF",
                 "style": "gold",
                 "values": {
-                    "damageReduction": 14
+                    "defense": 25
                 }
             },
             {
                 "minUnits": 4,
-                "description": "22% Damage Reduction",
+                "description": "+40 DEF",
                 "style": "prismatic",
                 "values": {
-                    "damageReduction": 22
+                    "defense": 40
                 }
             }
         ]
@@ -589,16 +589,16 @@
         "name": "Steel",
         "type": "type",
         "targetScope": "TEAM",
-        "description": "Steel Pokemon reduce damage taken by the whole team.",
+        "description": "Steel Pokemon reinforce the whole team's defenses.",
         "iconColor": "#94a3b8",
-        "effectType": "DAMAGE_REDUCTION",
+        "effectType": "DEFENSE",
         "effects": [
             {
                 "minUnits": 1,
-                "description": "5% Damage Reduction",
+                "description": "+8 DEF",
                 "style": "bronze",
                 "values": {
-                    "damageReduction": 5
+                    "defense": 8
                 }
             }
         ]

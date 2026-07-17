@@ -17,6 +17,7 @@ import net.lwenstrom.tft.backend.core.model.AugmentDefinition;
 import net.lwenstrom.tft.backend.core.model.AugmentEffectType;
 import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.TraitMetadata;
+import net.lwenstrom.tft.backend.core.model.UnitRole;
 import net.lwenstrom.tft.backend.core.random.RandomProvider;
 import net.lwenstrom.tft.backend.core.time.Clock;
 
@@ -96,7 +97,7 @@ public final class TestHelpers {
                 createAugment("battle-standard", AugmentEffectType.TEAM_MAX_HEALTH, List.of(120, 220, 360)),
                 createAugment("sharpened-blades", AugmentEffectType.TEAM_ATTACK_DAMAGE, List.of(4, 7, 10)),
                 createAugment("focused-haki", AugmentEffectType.TEAM_ABILITY_POWER, List.of(10, 18, 30)),
-                createAugment("iron-line", AugmentEffectType.TEAM_ARMOR_AND_MAGIC_RESIST, List.of(8, 14, 24)),
+                createAugment("iron-line", AugmentEffectType.TEAM_DEFENSE, List.of(8, 14, 22)),
                 createAugment("close-quarters", AugmentEffectType.MELEE_LIFESTEAL, List.of(10, 16, 24)),
                 createAugment("backline-barrage", AugmentEffectType.RANGED_ATTACK_DAMAGE, List.of(5, 8, 12)),
                 createAugment("quick-study", AugmentEffectType.TEAM_MANA_GAIN, List.of(12, 20, 30)),
@@ -115,10 +116,10 @@ public final class TestHelpers {
                 "test-unit-1",
                 "TestUnit",
                 1,
+                UnitRole.DAMAGE,
                 l(100),
                 l(100),
                 l(10),
-                l(0),
                 l(0),
                 l(0),
                 lf(1.0f),
@@ -129,13 +130,37 @@ public final class TestHelpers {
 
     public static UnitDefinition createUnitDef(String id, String name, int cost, int health, int attackDamage) {
         return new UnitDefinition(
-                id, name, cost, l(health), l(100), l(attackDamage), l(0), l(0), l(0), lf(1.0f), l(1), List.of(), null);
+                id,
+                name,
+                cost,
+                UnitRole.DAMAGE,
+                l(health),
+                l(100),
+                l(attackDamage),
+                l(0),
+                l(0),
+                lf(1.0f),
+                l(1),
+                List.of(),
+                null);
     }
 
     public static UnitDefinition createUnitDefWithAbility(
             String id, String name, int cost, int health, int maxMana, AbilityDefinition ability) {
         return new UnitDefinition(
-                id, name, cost, l(health), l(maxMana), l(10), l(0), l(0), l(0), lf(1.0f), l(1), List.of(), ability);
+                id,
+                name,
+                cost,
+                UnitRole.DAMAGE,
+                l(health),
+                l(maxMana),
+                l(10),
+                l(0),
+                l(0),
+                lf(1.0f),
+                l(1),
+                List.of(),
+                ability);
     }
 
     private static List<Integer> l(int val) {

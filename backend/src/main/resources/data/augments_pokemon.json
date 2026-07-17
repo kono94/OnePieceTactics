@@ -130,16 +130,12 @@
   {
     "id": "iron-line",
     "name": "Hardened Shell",
-    "effectType": "TEAM_ARMOR_AND_MAGIC_RESIST",
-    "values": [
-      6,
-      10,
-      16
-    ],
+    "effectType": "TEAM_DEFENSE",
+    "values": [8, 14, 22],
     "descriptions": [
-      "Your team takes 6% less damage from abilities and damage-over-time effects.",
-      "Your team takes 10% less damage from abilities and damage-over-time effects.",
-      "Your team takes 16% less damage from abilities and damage-over-time effects."
+      "Your team gains 8 DEF.",
+      "Your team gains 14 DEF.",
+      "Your team gains 22 DEF."
     ],
     "image": null
   },

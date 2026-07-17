@@ -8,6 +8,7 @@ import java.util.List;
 import net.lwenstrom.tft.backend.core.combat.BfsUnitMover;
 import net.lwenstrom.tft.backend.core.combat.UnitMover;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
+import net.lwenstrom.tft.backend.core.model.UnitRole;
 import net.lwenstrom.tft.backend.test.TestClock;
 import org.junit.jupiter.api.Test;
 
@@ -49,6 +50,11 @@ public class CombatPathingTest {
         }
 
         @Override
+        public UnitRole getRole() {
+            return UnitRole.DAMAGE;
+        }
+
+        @Override
         public int getMaxHealth() {
             return 100;
         }
@@ -79,12 +85,7 @@ public class CombatPathingTest {
         }
 
         @Override
-        public int getArmor() {
-            return 0;
-        }
-
-        @Override
-        public int getMagicResist() {
+        public int getDefense() {
             return 0;
         }
 

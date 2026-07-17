@@ -1,12 +1,22 @@
 <script setup lang="ts">
+import { roleBalanceChangelogRows } from '../data/roleBalanceChangelog'
+
 defineOptions({
   name: 'GameChangelog'
 })
 
 defineEmits(['back'])
 
+const onePieceRoleBalanceRows = roleBalanceChangelogRows.filter((row) => row.mode === 'One Piece')
+const pokemonRoleBalanceRows = roleBalanceChangelogRows.filter((row) => row.mode === 'Pokémon')
+const roleBalanceSections = [
+  { mode: 'One Piece', rows: onePieceRoleBalanceRows },
+  { mode: 'Pokémon', rows: pokemonRoleBalanceRows }
+]
+
 const versionNextCommits = [
-  { hash: 'pending', title: 'Rebalance AoE abilities, progression, Pokemon traits, and augments' }
+  { hash: 'pending', title: 'Add unit roles and unified DEF while rebalancing both sets' },
+  { hash: 'pending-balance', title: 'Rebalance AoE abilities, progression, Pokemon traits, and augments' }
 ]
 
 const version170Commits = [
@@ -54,9 +64,10 @@ const version160Commits = [
           <p class="eyebrow">Next</p>
           <h2>Version X.X.X</h2>
           <p>
-            Multi-target abilities are less capable of erasing entire boards, late levels are substantially easier to
-            reach, Pokemon type traits have more meaningful team-wide effects, and combat augments compete more
-            effectively with economy choices.
+            Every One Piece and Pokemon unit now has a Damage, Tank, or Support identity. Pokemon evolutions can change
+            roles as they upgrade, and the previously unused Armor and Magic Resist fields have been replaced by one
+            functional DEF stat. Multi-target abilities are also less capable of erasing entire boards, late levels are
+            easier to reach, and combat augments compete more effectively with economy choices.
           </p>
         </div>
         <article class="release-panel">
@@ -71,6 +82,183 @@ const version160Commits = [
           <div class="section-heading">
             <span class="marker balance"></span>
             <h3>Balance Changes</h3>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag mixed">All Units</span>
+              <h4>Complete 1.7.0 => X.X.X Unit and Form Values</h4>
+            </div>
+            <p>
+              Every star-level row below compares the tagged 1.7.0 value with the final role-calibrated value. Old
+              defense is shown as Armor/Magic Resist; the new value is unified DEF.
+            </p>
+            <details v-for="section in roleBalanceSections" :key="section.mode" class="balance-details">
+              <summary>{{ section.mode }} — {{ section.rows.length }} star-level entries</summary>
+              <div class="balance-table-wrap">
+                <table class="balance-table">
+                  <thead>
+                    <tr>
+                      <th>Unit / form</th>
+                      <th>Star</th>
+                      <th>Role</th>
+                      <th>HP</th>
+                      <th>Armor/MR => DEF</th>
+                      <th>ATK</th>
+                      <th>Mana</th>
+                      <th>Ability</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="row in section.rows" :key="`${row.unit}-${row.starLevel}`">
+                      <td>{{ row.unit }}</td>
+                      <td>{{ row.starLevel }}★</td>
+                      <td>
+                        <span class="role-value" :class="row.role.toLowerCase()">{{ row.role }}</span>
+                      </td>
+                      <td>{{ row.health }}</td>
+                      <td>{{ row.defense }}</td>
+                      <td>{{ row.attack }}</td>
+                      <td>{{ row.mana }}</td>
+                      <td>{{ row.ability }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag mixed">New</span>
+              <h4>Damage, Tank, and Support Roles</h4>
+            </div>
+            <p>
+              Unit role labels:
+              <span class="old-value">none</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">Damage, Tank, or Support on every unit tooltip</strong>. Damage baseline
+              Health/DEF/Attack/ability damage:
+              <span class="old-value">100%/100%/100%/100%</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value mixed">85%/75%/115%/115%</strong>. Tank baseline:
+              <span class="old-value">100%/100%/100%/100%</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value mixed">125%/140%/75%/65%</strong>. Support Attack/direct damage/utility/max mana:
+              <span class="old-value">100%/100%/100%/100%</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value mixed">75%/60%/120%/85%</strong>. Whitebeard keeps Tank durability but retains
+              <strong>100% Attack and 85% Quake damage</strong>. Fixed 5% primary-package corrections were then
+              applied from the deterministic simulation report; Damage output never falls below its pre-role baseline,
+              Tank durability never falls below the 125% HP/140% DEF route, and the complete final values are listed
+              below.
+            </p>
+            <p>
+              Pokemon role-changing upgrades:
+              <span class="old-value">one unlabeled identity per evolution line</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>
+                Caterpie Support/Tank/Support, Weedle Damage/Tank/Damage, Pidgey Damage/Damage/Support, Poliwag
+                Damage/Support/Damage, Jigglypuff Support/Support/Damage, Psyduck Support/Damage/Damage, Ponyta
+                Support/Damage/Damage, Magnemite Damage/Damage/Tank, Abra Support/Damage/Damage, Machop
+                Damage/Support/Damage, Doduo Damage/Damage/Support, Grimer Damage/Tank/Tank, and Gastly
+                Damage/Support/Damage
+              </strong>.
+            </p>
+            <p>
+              Fixed-seed role simulation, balanced win rate by board size 3/4/5/6/7:
+              <span class="old-value">unmeasured</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>One Piece 57.64/57.90/79.00/73.96/70.38%</strong> and
+              <strong>Pokemon 52.03/55.56/72.25/71.49/71.19%</strong>. Damage-only remains viable on three-unit boards,
+              while Tank/Support coverage becomes increasingly important from four units onward.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">New</span>
+              <h4>Unified DEF</h4>
+            </div>
+            <p>
+              Defensive stats:
+              <span class="old-value">Armor and Magic Resist displayed but unused</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">one DEF stat reducing attacks, abilities, and damage-over-time</strong>.
+              Damage multiplier:
+              <span class="old-value">100%</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>100 / (100 + DEF)</strong>. Marine bonuses:
+              <span class="old-value">25/60/100 unused Armor and MR</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">15/35/60 DEF</strong>. Ground:
+              <span class="old-value">5/18/32/50 unused Armor/MR</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">5/12/20/35 DEF</strong>. Rock:
+              <span class="old-value">6/24 unused Armor/MR</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">5/18 DEF</strong>. Ice:
+              <span class="old-value">4/14/26/42 unused Armor/MR</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">5/14/25/40 DEF</strong>. Steel:
+              <span class="old-value">12 unused Armor/MR</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">8 DEF</strong>. Iron Line:
+              <span class="old-value">5/8/12 unused Armor/MR</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">8/14/22 DEF</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag mixed">Rework</span>
+              <h4>Role-Defining Abilities</h4>
+            </div>
+            <p>
+              Sanji Diable Jambe:
+              <span class="old-value">18/31/53% team Attack Speed</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>280/504/907 damage</strong>. Robin Clutch:
+              <span class="old-value">350/630/1134 damage with control</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>1/2/3 second stun</strong>. Moria Shadow Steal:
+              <span class="old-value">220/396/712 damage</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>10/18/30 DEF shred</strong>. Page One Spinosaurus Shield:
+              <span class="old-value">14/25/39% Attack</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>12/22/35 DEF</strong>. Queen Plague Bullet:
+              <span class="old-value">315/567/1021 damage</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>12/22/35 DEF shred</strong>. Chess Soldiers Formation:
+              <span class="old-value">11/18/28% Attack</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>10/18/30 DEF</strong>. Cracker Biscuit Slash:
+              <span class="old-value">224/403/725 damage</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>Biscuit Guard with 20/35/60 DEF</strong>. Jozu Diamond Defense:
+              <span class="old-value">300/540/972 healing</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>18/32/55 DEF</strong>.
+            </p>
+            <p>
+              Bulbasaur Vine Whip:
+              <span class="old-value">126/284/609 damage</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>1/1/2 second line stun</strong>. Ivysaur Razor Leaf:
+              <span class="old-value">112/252/543 damage</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>8/16/28 DEF shred</strong>. Oddish Absorb:
+              <span class="old-value">220/495/1060 damage</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>healing</strong>. Vileplume Petal Dance:
+              <span class="old-value">112/252/560 damage</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>Sleep Powder with 1/1/2 second stun</strong>. Tentacool/Tentacruel:
+              <span class="old-value">Acid Spray and Sludge Wave damage</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>8/18/30 DEF shred</strong>. Porygon Conversion:
+              <span class="old-value">15/24/35% Attack Speed</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>12/22/36 DEF</strong>.
+            </p>
           </div>
           <div class="balance-block">
             <div class="balance-title">
@@ -109,16 +297,16 @@ const version160Commits = [
               Grass Health:
               <span class="old-value">40/150/260</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">100/300/500</strong>. Ground Damage Reduction:
+              <strong class="value buff">100/300/500</strong>. Ground defense:
               <span class="old-value">5/18/32/50 unused Armor/MR</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">3/7/11/20%</strong>. Rock:
+              <strong class="value buff">5/12/20/35 DEF</strong>. Rock:
               <span class="old-value">6/24 unused Armor/MR</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">3/10% Damage Reduction</strong>. Ice:
+              <strong class="value buff">5/18 DEF</strong>. Ice:
               <span class="old-value">4/14/26/42 unused Armor/MR</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">3/8/14/22% Damage Reduction</strong>. Poison:
+              <strong class="value buff">5/14/25/40 DEF</strong>. Poison:
               <span class="old-value">3/7/11/16% ATK per tick</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
               <strong class="value buff">5/10/18/30%</strong>. Ghost:
@@ -127,7 +315,7 @@ const version160Commits = [
               <strong class="value buff">6/20%</strong>. Steel:
               <span class="old-value">12 unused Armor/MR</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">5% Damage Reduction</strong>. Normal ATK:
+              <strong class="value buff">8 DEF</strong>. Normal ATK:
               <span class="old-value">1/5/10/16%</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
               <strong class="value buff">2/7/14/22%</strong>. Fire Ability Damage:
@@ -183,8 +371,10 @@ const version160Commits = [
               <strong class="value buff">12/20/30%</strong>. Mana Gain:
               <span class="old-value">12/20/30%</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">15/25/40%</strong>. The previous unused Armor/MR bonus is now
-              <strong class="value buff">6/10/16% ability and damage-over-time resistance</strong>.
+              <strong class="value buff">15/25/40%</strong>. Iron Line:
+              <span class="old-value">5/8/12 unused Armor/MR</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">8/14/22 DEF</strong>.
             </p>
           </div>
         </article>
@@ -1657,6 +1847,68 @@ const version160Commits = [
     color: #64748b;
     font-size: 13px;
     font-weight: 900;
+}
+
+.balance-details {
+    margin-top: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 6px;
+    background: rgba(15, 23, 42, 0.56);
+}
+
+.balance-details summary {
+    padding: 12px 14px;
+    color: #e2e8f0;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.balance-table-wrap {
+    overflow-x: auto;
+    border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.balance-table {
+    width: 100%;
+    min-width: 1120px;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.balance-table th,
+.balance-table td {
+    padding: 9px 10px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    color: #cbd5e1;
+    text-align: left;
+    vertical-align: top;
+}
+
+.balance-table th {
+    position: sticky;
+    top: 0;
+    background: #111827;
+    color: #f8fafc;
+}
+
+.balance-table td:last-child {
+    min-width: 310px;
+}
+
+.role-value {
+    font-weight: 900;
+}
+
+.role-value.damage {
+    color: #ef4444;
+}
+
+.role-value.tank {
+    color: #3b82f6;
+}
+
+.role-value.support {
+    color: #22c55e;
 }
 
 @media (max-width: 820px) {

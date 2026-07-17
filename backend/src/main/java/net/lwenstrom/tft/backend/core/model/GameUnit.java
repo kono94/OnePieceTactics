@@ -18,6 +18,8 @@ public interface GameUnit {
 
     int getCost();
 
+    UnitRole getRole();
+
     int getMaxHealth();
 
     int getCurrentHealth();
@@ -30,9 +32,7 @@ public interface GameUnit {
 
     int getAbilityPower();
 
-    int getArmor();
-
-    int getMagicResist();
+    int getDefense();
 
     float getAttackSpeed();
 
@@ -88,9 +88,18 @@ public interface GameUnit {
 
     default void setAbilityPower(int abilityPower) {}
 
-    default void setArmor(int armor) {}
+    default void setDefense(int defense) {}
 
-    default void setMagicResist(int magicResist) {}
+    default void applyTemporaryDefenseBuff(int defense) {}
+
+    default void applyTemporaryDefenseShred(int defense) {}
+
+    default int calculateDefenseMitigatedDamage(int amount) {
+        if (amount <= 0) {
+            return 0;
+        }
+        return Math.max(1, Math.round(amount * 100.0f / (100 + Math.max(0, getDefense()))));
+    }
 
     default void setAttackSpeed(float attackSpeed) {}
 

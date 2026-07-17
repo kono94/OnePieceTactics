@@ -7,20 +7,23 @@ import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
 import net.lwenstrom.tft.backend.core.model.DotEffect;
 import net.lwenstrom.tft.backend.core.model.GameItem;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
+import net.lwenstrom.tft.backend.core.model.UnitRole;
 
 public class MockUnit implements GameUnit {
     private String id;
     private String definitionId;
     private String name;
     private int cost = 1;
+    private UnitRole role = UnitRole.DAMAGE;
     private int maxHealth = 100;
     private int currentHealth = 100;
     private int mana = 0;
     private int maxMana = 100;
     private int attackDamage = 10;
     private int abilityPower = 0;
-    private int armor = 0;
-    private int magicResist = 0;
+    private int defense = 0;
+    private int temporaryDefenseBuff = 0;
+    private int temporaryDefenseShred = 0;
     private float attackSpeed = 1.0f;
     private int range = 1;
     private Set<String> traits = Set.of();
@@ -35,8 +38,7 @@ public class MockUnit implements GameUnit {
     private int savedMaxMana = 100;
     private int savedAttackDamage = 10;
     private int savedAbilityPower = 0;
-    private int savedArmor = 0;
-    private int savedMagicResist = 0;
+    private int savedDefense = 0;
     private float savedAttackSpeed = 1.0f;
     private int savedMana = 0;
     private long nextAttackTime = 0;
@@ -93,6 +95,11 @@ public class MockUnit implements GameUnit {
         return this;
     }
 
+    public MockUnit withDefense(int defense) {
+        this.defense = defense;
+        return this;
+    }
+
     public MockUnit withRange(int range) {
         this.range = range;
         return this;
@@ -145,6 +152,11 @@ public class MockUnit implements GameUnit {
     }
 
     @Override
+    public UnitRole getRole() {
+        return role;
+    }
+
+    @Override
     public int getMaxHealth() {
         return maxHealth;
     }
@@ -175,13 +187,8 @@ public class MockUnit implements GameUnit {
     }
 
     @Override
-    public int getArmor() {
-        return armor;
-    }
-
-    @Override
-    public int getMagicResist() {
-        return magicResist;
+    public int getDefense() {
+        return Math.max(0, defense + temporaryDefenseBuff - temporaryDefenseShred);
     }
 
     @Override
@@ -232,7 +239,7 @@ public class MockUnit implements GameUnit {
 
     @Override
     public void takeDamage(int amount) {
-        this.currentHealth = Math.max(0, this.currentHealth - amount);
+        this.currentHealth = Math.max(0, this.currentHealth - calculateDefenseMitigatedDamage(amount));
     }
 
     @Override
@@ -301,13 +308,18 @@ public class MockUnit implements GameUnit {
     }
 
     @Override
-    public void setArmor(int armor) {
-        this.armor = armor;
+    public void setDefense(int defense) {
+        this.defense = defense;
     }
 
     @Override
-    public void setMagicResist(int magicResist) {
-        this.magicResist = magicResist;
+    public void applyTemporaryDefenseBuff(int defense) {
+        this.temporaryDefenseBuff = Math.max(this.temporaryDefenseBuff, Math.max(0, defense));
+    }
+
+    @Override
+    public void applyTemporaryDefenseShred(int defense) {
+        this.temporaryDefenseShred = Math.max(this.temporaryDefenseShred, Math.max(0, defense));
     }
 
     @Override
@@ -323,8 +335,7 @@ public class MockUnit implements GameUnit {
         this.savedMaxMana = this.maxMana;
         this.savedAttackDamage = this.attackDamage;
         this.savedAbilityPower = this.abilityPower;
-        this.savedArmor = this.armor;
-        this.savedMagicResist = this.magicResist;
+        this.savedDefense = this.defense;
         this.savedAttackSpeed = this.attackSpeed;
         this.savedMana = this.mana;
     }
@@ -338,8 +349,9 @@ public class MockUnit implements GameUnit {
         this.maxMana = this.savedMaxMana;
         this.attackDamage = this.savedAttackDamage;
         this.abilityPower = this.savedAbilityPower;
-        this.armor = this.savedArmor;
-        this.magicResist = this.savedMagicResist;
+        this.defense = this.savedDefense;
+        this.temporaryDefenseBuff = 0;
+        this.temporaryDefenseShred = 0;
         this.attackSpeed = this.savedAttackSpeed;
         this.mana = Math.min(this.savedMana, this.maxMana);
         this.stunSecondsRemaining = 0;
@@ -618,14 +630,16 @@ public class MockUnit implements GameUnit {
         clone.definitionId = this.definitionId;
         clone.name = this.name;
         clone.cost = this.cost;
+        clone.role = this.role;
         clone.maxHealth = this.maxHealth;
         clone.currentHealth = this.currentHealth;
         clone.mana = this.mana;
         clone.maxMana = this.maxMana;
         clone.attackDamage = this.attackDamage;
         clone.abilityPower = this.abilityPower;
-        clone.armor = this.armor;
-        clone.magicResist = this.magicResist;
+        clone.defense = this.defense;
+        clone.temporaryDefenseBuff = this.temporaryDefenseBuff;
+        clone.temporaryDefenseShred = this.temporaryDefenseShred;
         clone.attackSpeed = this.attackSpeed;
         clone.range = this.range;
         clone.traits = this.traits;
@@ -639,8 +653,7 @@ public class MockUnit implements GameUnit {
         clone.savedMaxMana = this.savedMaxMana;
         clone.savedAttackDamage = this.savedAttackDamage;
         clone.savedAbilityPower = this.savedAbilityPower;
-        clone.savedArmor = this.savedArmor;
-        clone.savedMagicResist = this.savedMagicResist;
+        clone.savedDefense = this.savedDefense;
         clone.savedAttackSpeed = this.savedAttackSpeed;
         clone.savedMana = this.savedMana;
         clone.nextAttackTime = this.nextAttackTime;

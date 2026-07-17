@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { GameUnit, UnitDefinition } from '../types'
+import type { GameUnit, UnitDefinition, UnitRole } from '../types'
 
 type TooltipUnit = Partial<GameUnit & UnitDefinition> & {
     formattedAbilityDescription?: string
@@ -30,6 +30,7 @@ const stats = computed(() => {
     return {
         hp: `${curHp || 0}/${maxHp || 100}`,
         atk: getBaseValue(props.unit.attackDamage) || 0,
+        defense: getBaseValue(props.unit.defense) || 0,
         spd: parseFloat(String(getBaseValue(props.unit.attackSpeed) || 0)).toFixed(2),
         range: getBaseValue(props.unit.range) || 0,
         mana: `${curMana || 0}/${getBaseValue(props.unit.maxMana) || 100}`
@@ -38,6 +39,21 @@ const stats = computed(() => {
 
 const starLevel = computed(() => props.unit.starLevel || 1)
 const ability = computed(() => props.unit.ability)
+const role = computed<UnitRole>(() => props.unit.role || 'DAMAGE')
+
+const formatRole = (value: UnitRole): string =>
+    value.charAt(0) + value.slice(1).toLowerCase()
+
+const roleProgression = computed(() => {
+    if (!props.unit.forms?.length) return []
+
+    const roles = [1, 2, 3].map((level) => {
+        const form = props.unit.forms?.find((candidate) => candidate.starLevel === level)
+        return form?.role || role.value
+    })
+
+    return new Set(roles).size > 1 ? roles : []
+})
 
 const rarityColor = computed(() => {
     const cost = props.unit.cost || 1
@@ -60,6 +76,17 @@ const rarityColor = computed(() => {
               <span v-for="n in starLevel" :key="n">⭐</span>
           </span>
       </div>
+      <div class="role-section">
+          <span class="role-badge" :class="`role-${role.toLowerCase()}`">{{ formatRole(role) }}</span>
+          <span v-if="roleProgression.length" class="role-progression">
+              <template v-for="(progressionRole, index) in roleProgression" :key="index">
+                  <span :class="{ current: index + 1 === starLevel }">
+                      {{ index + 1 }}★ {{ formatRole(progressionRole) }}
+                  </span>
+                  <span v-if="index < roleProgression.length - 1" class="role-arrow">→</span>
+              </template>
+          </span>
+      </div>
       <div class="stats-grid">
           <div class="stat-row">
               <span class="label">HP:</span>
@@ -72,6 +99,10 @@ const rarityColor = computed(() => {
           <div class="stat-row">
               <span class="label">ATK:</span>
               <span class="value">{{ stats.atk }}</span>
+          </div>
+          <div class="stat-row">
+              <span class="label">DEF:</span>
+              <span class="value">{{ stats.defense }}</span>
           </div>
           <div class="stat-row">
               <span class="label">SPD:</span>
@@ -162,6 +193,56 @@ const rarityColor = computed(() => {
 
 .stars {
     font-size: 0.8em;
+}
+
+.role-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    margin-bottom: 8px;
+}
+
+.role-badge {
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 0.7em;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.role-damage {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.14);
+}
+
+.role-tank {
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.14);
+}
+
+.role-support {
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.14);
+}
+
+.role-progression {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    color: #94a3b8;
+    font-size: 0.68em;
+}
+
+.role-progression .current {
+    color: #f8fafc;
+    font-weight: 700;
+}
+
+.role-arrow {
+    color: #64748b;
 }
 
 .stats-grid {

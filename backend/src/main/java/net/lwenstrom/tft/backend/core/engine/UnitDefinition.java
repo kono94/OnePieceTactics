@@ -2,18 +2,20 @@ package net.lwenstrom.tft.backend.core.engine;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import java.util.Objects;
 import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
+import net.lwenstrom.tft.backend.core.model.UnitRole;
 
 public record UnitDefinition(
         String id,
         String name,
         int cost,
+        UnitRole role,
         List<Integer> maxHealth,
         List<Integer> maxMana,
         List<Integer> attackDamage,
         List<Integer> abilityPower,
-        List<Integer> armor,
-        List<Integer> magicResist,
+        List<Integer> defense,
         List<Float> attackSpeed,
         List<Integer> range,
         List<String> traits,
@@ -25,12 +27,12 @@ public record UnitDefinition(
             String id,
             String name,
             int cost,
+            UnitRole role,
             List<Integer> maxHealth,
             List<Integer> maxMana,
             List<Integer> attackDamage,
             List<Integer> abilityPower,
-            List<Integer> armor,
-            List<Integer> magicResist,
+            List<Integer> defense,
             List<Float> attackSpeed,
             List<Integer> range,
             List<String> traits,
@@ -39,18 +41,28 @@ public record UnitDefinition(
                 id,
                 name,
                 cost,
+                role,
                 maxHealth,
                 maxMana,
                 attackDamage,
                 abilityPower,
-                armor,
-                magicResist,
+                defense,
                 attackSpeed,
                 range,
                 traits,
                 ability,
                 null,
                 null);
+    }
+
+    public UnitDefinition {
+        Objects.requireNonNull(role, "Unit role is required");
+        if (defense == null || defense.size() != 3) {
+            throw new IllegalArgumentException("Unit defense must contain exactly three star-level values");
+        }
+        if (defense.stream().anyMatch(value -> value == null || value < 0)) {
+            throw new IllegalArgumentException("Unit defense values must be non-negative");
+        }
     }
 
     public String lineId() {
@@ -77,12 +89,8 @@ public record UnitDefinition(
         return getVal(abilityPower, level);
     }
 
-    public int getArmor(int level) {
-        return getVal(armor, level);
-    }
-
-    public int getMagicResist(int level) {
-        return getVal(magicResist, level);
+    public int getDefense(int level) {
+        return getVal(defense, level);
     }
 
     public float getAttackSpeed(int level) {
@@ -101,6 +109,11 @@ public record UnitDefinition(
     public String getName(int level) {
         var form = getForm(level);
         return form != null && form.name() != null ? form.name() : name;
+    }
+
+    public UnitRole getRole(int level) {
+        var form = getForm(level);
+        return form != null && form.role() != null ? form.role() : role;
     }
 
     public List<String> getTraits(int level) {
@@ -154,14 +167,9 @@ public record UnitDefinition(
         return getAbilityPower(1);
     }
 
-    @JsonProperty("armor")
-    public int baseArmor() {
-        return getArmor(1);
-    }
-
-    @JsonProperty("magicResist")
-    public int baseMagicResist() {
-        return getMagicResist(1);
+    @JsonProperty("defense")
+    public int baseDefense() {
+        return getDefense(1);
     }
 
     @JsonProperty("attackSpeed")

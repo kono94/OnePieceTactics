@@ -8,7 +8,7 @@ public enum EffectType {
     HP,
     HP_AND_AS,
     AS,
-    ARMOR_AND_MR,
+    DEFENSE,
     DAMAGE_REDUCTION,
     ATK_BUFF,
     START_MANA,

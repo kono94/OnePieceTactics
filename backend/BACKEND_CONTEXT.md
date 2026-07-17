@@ -74,8 +74,8 @@ src/main/java/net/lwenstrom/tft/backend/
 │   │   ├── AugmentManager.java          # Round-based augment offers, selection rewards, and combat effects.
 │   │   ├── TraitManager.java            # Counts unique unit lines and applies registered trait effects.
 │   │   ├── GenericTraitApplier.java     # Data-driven trait effect implementation.
-│   │   ├── UnitDefinition.java          # JSON unit blueprint with optional star-level forms.
-│   │   ├── UnitFormDefinition.java      # Star form override for id/name/traits/range/ability.
+│   │   ├── UnitDefinition.java          # JSON unit blueprint with role, DEF, and optional star-level forms.
+│   │   ├── UnitFormDefinition.java      # Star form override for id/name/role/traits/range/ability.
 │   │   ├── StandardGameUnit.java        # Runtime unit built from a UnitDefinition/star level.
 │   │   ├── AbstractGameUnit.java        # Mutable runtime stats, positions, buffs, shields, dots, trait fields.
 │   │   ├── Bench.java                   # Fixed 9-slot bench abstraction.
@@ -249,10 +249,11 @@ private final Map<GameMode, ModeData> modeDataCache = new ConcurrentHashMap<>();
 - `maxMana`
 - `attackDamage`
 - `abilityPower`
-- `armor`
-- `magicResist`
+- `defense`
 - `attackSpeed`
 - `range`
+
+Every definition also has a theme-agnostic `UnitRole`: `DAMAGE`, `TANK`, or `SUPPORT`.
 
 Optional form overrides are represented by `UnitFormDefinition`:
 
@@ -261,6 +262,7 @@ public record UnitFormDefinition(
     int starLevel,
     String definitionId,
     String name,
+    UnitRole role,
     List<String> traits,
     List<Integer> range,
     AbilityDefinition ability
@@ -270,12 +272,13 @@ public record UnitFormDefinition(
 When `new StandardGameUnit(def, starLevel)` is built, it uses:
 - `def.getDefinitionId(starLevel)`
 - `def.getName(starLevel)`
+- `def.getRole(starLevel)`
 - `def.getTraits(starLevel)`
 - `def.getAbility(starLevel)`
 - `def.getActiveRange(starLevel)`
 - Star-level stats from the stat lists.
 
-This is how Pokemon evolutions work. Three `Charmander` copies still combine by `lineId = "charmander"`, but the resulting 2-star runtime unit can become `definitionId = "charmeleon"` and `name = "Charmeleon"`. A 3-star form can similarly become the final evolution and can have different traits, range, and ability.
+This is how Pokemon evolutions work. Three `Charmander` copies still combine by `lineId = "charmander"`, but the resulting 2-star runtime unit can become `definitionId = "charmeleon"` and `name = "Charmeleon"`. A form can also change role; Caterpie resolves as Support at 1★, Tank at 2★, and Support at 3★.
 
 ---
 
@@ -631,7 +634,7 @@ Combat effects are applied after `CombatSystem.startCombat()`:
 - Team attack speed per ranged unit.
 - Team damage reduction.
 - Team attack damage on kill.
-- Team max health, attack damage, ability power, armor, and magic resist.
+- Team max health, attack damage, ability power, and DEF.
 - Melee lifesteal.
 - Ranged attack damage.
 - Team mana gain, starting mana, and starting shield.
@@ -679,7 +682,7 @@ Trait logic is data-driven and mode-specific.
 | `HP` | Adds max/current HP. |
 | `HP_AND_AS` | Adds HP and attack speed. |
 | `AS` | Adds attack speed. |
-| `ARMOR_AND_MR` | Adds armor and magic resist. |
+| `DEFENSE` | Adds flat DEF. |
 | `ATK_BUFF` | Multiplies attack damage buff and can mark shield-on-death. |
 | `START_MANA` | Adds flat starting mana. |
 | `START_MANA_PERCENT` | Adds starting mana from max mana percent. |
@@ -729,7 +732,13 @@ Ability types:
 - `HEAL`
 - `BUFF_ATK`
 - `BUFF_SPD`
+- `BUFF_DEF`
+- `DEBUFF_DEF`
 - `SHIELD`
+
+`BUFF_DEF` and `DEBUFF_DEF` keep only the strongest temporary value from repeated casts. Effective DEF is clamped at
+zero. Positive incoming damage is mitigated as `round(damage * 100 / (100 + DEF))`, with a minimum of 1, before
+percentage damage reduction and shields.
 
 Patterns:
 - `SINGLE`

@@ -234,9 +234,8 @@ class ShieldAndDotCombatTest {
     void traitStatBonusesDoNotStackAcrossRepeatedCombats() throws Exception {
         var traitManager = new TraitManager();
         traitManager.registerEffect(
-                "ground",
-                new GenericTraitApplier("ground", EffectType.ARMOR_AND_MR, TraitTargetScope.TEAM, effects("""
-                                [{"minUnits":1,"values":{"armor":18,"mr":18}}]
+                "ground", new GenericTraitApplier("ground", EffectType.DEFENSE, TraitTargetScope.TEAM, effects("""
+                                [{"minUnits":1,"values":{"defense":18}}]
                                 """)));
 
         var clock = createTestClock();
@@ -253,15 +252,15 @@ class ShieldAndDotCombatTest {
         TestHelpers.addUnitToPlayer(p1, normal);
 
         combatSystem.startCombat(List.of(p1));
-        assertEquals(18, ground.getArmor());
-        assertEquals(18, normal.getArmor());
+        assertEquals(18, ground.getDefense());
+        assertEquals(18, normal.getDefense());
         combatSystem.endCombat(List.of(p1));
-        assertEquals(0, ground.getArmor());
-        assertEquals(0, normal.getArmor());
+        assertEquals(0, ground.getDefense());
+        assertEquals(0, normal.getDefense());
 
         combatSystem.startCombat(List.of(p1));
-        assertEquals(18, ground.getArmor());
-        assertEquals(18, normal.getArmor());
+        assertEquals(18, ground.getDefense());
+        assertEquals(18, normal.getDefense());
     }
 
     private List<JsonNode> effects(String json) throws Exception {
