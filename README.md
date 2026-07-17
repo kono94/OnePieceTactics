@@ -210,16 +210,16 @@ cd backend && mvn spotless:apply
 cd backend
 
 # Existing same-star board simulation
-mvn -Dtest=BalanceSimulationReportTest -Dsimulation.report=true -Dsimulation.runs=100000 -Dsimulation.threads=8 test
+mvn -Dtest=BalanceSimulationReportTest -Dsimulation.report=true -Dsimulation.runs=1000000 -Dsimulation.threads=8 test
 
 # One piece
-mvn -Dtest=BalanceSimulationReportTest -Dsimulation.mode=onepiece -Dsimulation.report=true -Dsimulation.runs=100000 -Dsimulation.threads=8 test
+mvn -Dtest=BalanceSimulationReportTest -Dsimulation.mode=onepiece -Dsimulation.report=true -Dsimulation.runs=1000000 -Dsimulation.threads=8 test
 
 # Keep the same board-building rules, but randomize every unit's star level
-mvn -Dtest=BalanceSimulationReportTest -Dsimulation.report=true -Dsimulation.runs=100000 -Dsimulation.threads=8 -Dsimulation.style=random-stars test
+mvn -Dtest=BalanceSimulationReportTest -Dsimulation.report=true -Dsimulation.runs=1000000 -Dsimulation.threads=8 -Dsimulation.style=random-stars test
 
 # Randomize board sizes, units, star levels, and positions
-mvn -Dtest=BalanceSimulationReportTest -Dsimulation.report=true -Dsimulation.runs=100000 -Dsimulation.threads=8 -Dsimulation.style=random-boards test
+mvn -Dtest=BalanceSimulationReportTest -Dsimulation.report=true -Dsimulation.runs=1000000 -Dsimulation.threads=8 -Dsimulation.style=random-boards test
 ```
 
 Reports are written to `backend/target/simulation-reports`. Every style also writes unit and trait rankings for board
