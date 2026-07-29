@@ -41,6 +41,7 @@ export interface AbilityDefinition {
     pattern: string // 'SINGLE' | 'LINE' | 'SURROUND'
     range: number[]
     values: number[]
+    stunDurationSeconds?: number[]
     modifiers?: Record<string, unknown>[]
 }
 

@@ -50,11 +50,18 @@ public class DefaultAbilityCaster implements AbilityCaster {
         source.setActiveAbility(ability.name());
 
         var abilityType = ability.type();
-        int value = ability.getValueForLevel(source.getStarLevel());
+        var value = ability.getValueForLevel(source.getStarLevel());
 
         switch (abilityType) {
             case DAMAGE -> castDamageAbility(source, allUnits, targetSelector, ability, value, callback, currentTime);
-            case STUN -> castStunAbility(source, allUnits, targetSelector, ability, value, callback);
+            case STUN ->
+                castStunAbility(
+                        source,
+                        allUnits,
+                        targetSelector,
+                        ability,
+                        ability.getStunDurationForLevel(source.getStarLevel()),
+                        callback);
             case HEAL -> castHealAbility(source, allUnits, ability, value, callback);
             case BUFF_ATK -> castBuffAtkAbility(source, allUnits, ability, value, callback, currentTime);
             case BUFF_SPD -> castBuffSpdAbility(source, allUnits, ability, value, callback);
@@ -121,7 +128,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
             List<GameUnit> allUnits,
             TargetSelector targetSelector,
             AbilityDefinition ability,
-            int stunSeconds,
+            float stunSeconds,
             CombatStatCallback callback) {
         var target = targetSelector.findTarget(source, allUnits);
         if (target == null) {

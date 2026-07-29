@@ -15,6 +15,35 @@ import org.junit.jupiter.api.Test;
 class DefaultAbilityCasterTest {
 
     @Test
+    void primaryStunAbilitySupportsFractionalDurations() {
+        var ability = new AbilityDefinition(
+                "Silk Pin",
+                "Stuns for $value seconds.",
+                AbilityType.STUN,
+                AbilityPattern.SINGLE,
+                List.of(3, 3, 3),
+                List.of(1, 1, 2),
+                List.of(),
+                List.of(),
+                List.of(1.5f, 1.5f, 2.5f));
+        var source = MockUnit.create("source", "P1").withAbility(ability);
+        var target = MockUnit.create("target", "P2");
+
+        new DefaultAbilityCaster()
+                .castAbility(
+                        source,
+                        List.of(source, target),
+                        (unit, ignored) -> target,
+                        new AbilityCaster.CombatStatCallback() {},
+                        0L);
+
+        assertEquals(1.5f, target.getStunSecondsRemaining());
+        assertEquals(
+                "Stuns for <span class=\"active\">1.5</span>/<span class=\"inactive\">1.5</span>/<span class=\"inactive\">2.5</span> seconds.",
+                ability.getFormattedDescription(1));
+    }
+
+    @Test
     void lineDamageAbilityHitsOffAxisSelectedTarget() {
         var ability = lineDamageAbility();
         var source = MockUnit.create("source", "P1").withPosition(0, 5).withAbility(ability);

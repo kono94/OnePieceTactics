@@ -206,7 +206,7 @@
     "name": "Squirtle",
     "cost": 1,
     "role": "TANK",
-    "maxHealth": [962, 1748, 3118],
+    "maxHealth": [1020, 1748, 3400],
     "maxMana": [55, 55, 55],
     "attackDamage": [31, 56, 100],
     "abilityPower": [0, 0, 0],
@@ -221,7 +221,7 @@
       "description": "Fires pressurized water for $value damage.",
       "type": "DAMAGE",
       "pattern": "LINE",
-      "values": [65, 146, 315],
+      "values": [65, 146, 360],
       "range": [3, 3, 4]
     },
     "forms": [
@@ -238,7 +238,7 @@
           "description": "Fires pressurized water for $value damage.",
           "type": "DAMAGE",
           "pattern": "LINE",
-          "values": [65, 146, 315],
+          "values": [65, 146, 360],
           "range": [3, 3, 4]
         }
       },
@@ -272,7 +272,7 @@
           "description": "Launches a cannon blast for $value damage and knockback.",
           "type": "DAMAGE",
           "pattern": "LINE",
-          "values": [65, 146, 315],
+          "values": [65, 146, 360],
           "range": [4, 5, 6],
           "modifiers": [
             {
@@ -290,8 +290,8 @@
     "name": "Caterpie",
     "cost": 1,
     "role": "SUPPORT",
-    "maxHealth": [570, 1832, 2200],
-    "maxMana": [40, 75, 50],
+    "maxHealth": [630, 1832, 2200],
+    "maxMana": [40, 65, 50],
     "attackDamage": [26, 47, 105],
     "abilityPower": [0, 0, 0],
     "defense": [23, 45, 23],
@@ -306,6 +306,7 @@
       "type": "STUN",
       "pattern": "SINGLE",
       "values": [1, 1, 2],
+      "stunDurationSeconds": [2, 1, 2],
       "range": [3, 3, 4]
     },
     "forms": [
@@ -323,6 +324,7 @@
           "type": "STUN",
           "pattern": "SINGLE",
           "values": [1, 1, 2],
+          "stunDurationSeconds": [2, 1, 2],
           "range": [3, 3, 4]
         }
       },
@@ -339,7 +341,7 @@
           "description": "Hardens its shell, gaining $value shield.",
           "type": "SHIELD",
           "pattern": "SINGLE",
-          "values": [131, 245, 439],
+          "values": [131, 650, 439],
           "range": [1, 1, 1]
         }
       },
@@ -1258,7 +1260,7 @@
     "cost": 2,
     "role": "TANK",
     "maxHealth": [1054, 1969, 4461],
-    "maxMana": [60, 60, 60],
+    "maxMana": [45, 40, 40],
     "attackDamage": [36, 65, 117],
     "abilityPower": [0, 0, 0],
     "defense": [54, 56, 69],
@@ -1489,6 +1491,7 @@
       "type": "STUN",
       "pattern": "SURROUND",
       "values": [1, 1, 1],
+      "stunDurationSeconds": [1.5, 1, 1],
       "range": [2, 2, 3]
     },
     "forms": [
@@ -1506,6 +1509,7 @@
           "type": "STUN",
           "pattern": "SURROUND",
           "values": [1, 1, 1],
+          "stunDurationSeconds": [1.5, 1, 1],
           "range": [2, 2, 3]
         }
       },
@@ -2041,7 +2045,7 @@
           "description": "Corrodes enemies, reducing their DEF by $value.",
           "type": "DEBUFF_DEF",
           "pattern": "SURROUND",
-          "values": [8, 18, 30],
+          "values": [10, 22, 36],
           "range": [2, 3, 3]
         }
       },
@@ -2059,7 +2063,7 @@
           "description": "Corrodes enemies, reducing their DEF by $value.",
           "type": "DEBUFF_DEF",
           "pattern": "SURROUND",
-          "values": [8, 18, 30],
+          "values": [10, 22, 36],
           "range": [2, 3, 3]
         }
       }
@@ -2289,6 +2293,7 @@
       "type": "STUN",
       "pattern": "SINGLE",
       "values": [1, 1, 2],
+      "stunDurationSeconds": [2, 1, 2],
       "range": [2, 3, 3]
     },
     "forms": [
@@ -2307,6 +2312,7 @@
           "type": "STUN",
           "pattern": "SINGLE",
           "values": [1, 1, 2],
+          "stunDurationSeconds": [2, 1, 2],
           "range": [2, 3, 3]
         }
       },
@@ -2477,6 +2483,7 @@
       "type": "STUN",
       "pattern": "SINGLE",
       "values": [1, 2, 2],
+      "stunDurationSeconds": [2, 2, 2],
       "range": [3, 3, 4]
     },
     "forms": [
@@ -2494,6 +2501,7 @@
           "type": "STUN",
           "pattern": "SINGLE",
           "values": [1, 2, 2],
+          "stunDurationSeconds": [2, 2, 2],
           "range": [3, 3, 4]
         }
       },
@@ -3220,7 +3228,7 @@
             },
             {
               "type": "LIFESTEAL",
-              "lifestealPercent": [0.35, 0.45, 0.75]
+              "lifestealPercent": [0.35, 0.45, 0.5]
             }
           ]
         }
@@ -3549,7 +3557,7 @@
       "description": "Slashes with a leek blade for $value damage.",
       "type": "DAMAGE",
       "pattern": "LINE",
-      "values": [159, 361, 756],
+      "values": [152, 345, 723],
       "range": [4, 4, 5],
       "modifiers": [
         {
@@ -3612,13 +3620,13 @@
       "description": "Throws elemental punches for $value damage, burn, and stun.",
       "type": "DAMAGE",
       "pattern": "SURROUND",
-      "values": [168, 382, 799],
+      "values": [161, 365, 765],
       "range": [1, 2, 2],
       "modifiers": [
         {
           "type": "DOT",
           "dotType": "BURN",
-          "damagePerTick": [32, 67, 133],
+          "damagePerTick": [31, 64, 128],
           "durationSeconds": [3, 3, 4],
           "tickIntervalMs": [1000, 1000, 1000]
         },
@@ -3706,7 +3714,7 @@
       "description": "Cross-cuts enemies for $value damage.",
       "type": "DAMAGE",
       "pattern": "LINE",
-      "values": [199, 415, 869],
+      "values": [190, 397, 832],
       "range": [2, 3, 3],
       "modifiers": [
         {
@@ -3764,7 +3772,7 @@
       "description": "Charges through enemies for $value damage and knockback.",
       "type": "DAMAGE",
       "pattern": "LINE",
-      "values": [191, 434, 869],
+      "values": [183, 415, 832],
       "range": [3, 4, 5],
       "modifiers": [
         {
@@ -3806,7 +3814,7 @@
     "cost": 4,
     "role": "SUPPORT",
     "maxHealth": [945, 1701, 3062],
-    "maxMana": [55, 65, 65],
+    "maxMana": [45, 55, 55],
     "attackDamage": [57, 103, 185],
     "abilityPower": [0, 0, 0],
     "defense": [43, 43, 43],
@@ -3820,7 +3828,7 @@
       "description": "Rewrites allied defenses, increasing DEF by $value.",
       "type": "BUFF_DEF",
       "pattern": "SURROUND",
-      "values": [12, 22, 36],
+      "values": [24, 42, 65],
       "range": [4, 4, 4]
     }
   },
@@ -3872,6 +3880,7 @@
       "type": "STUN",
       "pattern": "SURROUND",
       "values": [1, 1, 1],
+      "stunDurationSeconds": [1.5, 2, 2],
       "range": [3, 3, 4]
     }
   },
@@ -3962,6 +3971,7 @@
       "type": "STUN",
       "pattern": "SURROUND",
       "values": [1, 1, 2],
+      "stunDurationSeconds": [1.25, 1.25, 2.25],
       "range": [3, 4, 4]
     }
   },

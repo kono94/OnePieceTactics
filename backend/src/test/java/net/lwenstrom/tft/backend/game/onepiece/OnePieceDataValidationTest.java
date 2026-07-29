@@ -104,9 +104,11 @@ class OnePieceDataValidationTest {
         var expectedAbilities = Map.of(
                 "sanji_v1", new AbilityExpectation(AbilityType.DAMAGE, List.of(280, 504, 907)),
                 "robin_v1", new AbilityExpectation(AbilityType.STUN, List.of(1, 2, 3)),
-                "moria_v1", new AbilityExpectation(AbilityType.DEBUFF_DEF, List.of(10, 18, 30)),
+                "moria_v1", new AbilityExpectation(AbilityType.DEBUFF_DEF, List.of(12, 21, 34)),
                 "page_one_v1", new AbilityExpectation(AbilityType.BUFF_DEF, List.of(12, 22, 35)),
-                "queen_v1", new AbilityExpectation(AbilityType.DEBUFF_DEF, List.of(12, 22, 35)),
+                "queen_v1", new AbilityExpectation(AbilityType.DEBUFF_DEF, List.of(14, 25, 40)),
+                "hancock_v1", new AbilityExpectation(AbilityType.STUN, List.of(1, 1, 2)),
+                "katakuri_v1", new AbilityExpectation(AbilityType.DAMAGE, List.of(966, 1739, 3130)),
                 "chess_soldiers_v1", new AbilityExpectation(AbilityType.BUFF_DEF, List.of(10, 18, 30)),
                 "cracker_v1", new AbilityExpectation(AbilityType.BUFF_DEF, List.of(20, 35, 60)),
                 "jozu_v1", new AbilityExpectation(AbilityType.BUFF_DEF, List.of(18, 32, 55)));
@@ -116,6 +118,8 @@ class OnePieceDataValidationTest {
             assertEquals(expected.type(), ability.type(), unitId);
             assertEquals(expected.values(), ability.values(), unitId);
         });
+        assertEquals(List.of(40, 35, 45), unitsById.get("robin_v1").maxMana());
+        assertEquals(1.75f, unitsById.get("hancock_v1").ability().getStunDurationForLevel(3));
     }
 
     @Test

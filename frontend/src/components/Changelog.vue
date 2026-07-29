@@ -9,6 +9,8 @@ const versionNextCommits = [
   { hash: 'ce65e88', title: 'Add unit roles and unified DEF while rebalancing both sets' },
   { hash: 'f618d8f', title: 'Update README simulation run counts' },
   { hash: '754a2db', title: 'Rebalance AoE abilities, progression, Pokemon traits, and augments' },
+  { hash: 'pending', title: 'Retune four-cost area damage and targeted unit outliers' },
+  { hash: 'pending', title: 'Raise Pokemon tank and support role-balance thresholds' },
   { hash: 'pending', title: 'Fix end celebration rendering for eliminated and winning players' },
   { hash: 'pending', title: 'Add emergency loot-drop presentation and clearer unit tooltip tags' }
 ]
@@ -78,6 +80,66 @@ const version160Commits = [
           <div class="section-heading">
             <span class="marker balance"></span>
             <h3>Balance Changes</h3>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag mixed">Role balance</span>
+              <h4>Pokémon Tank and Support Follow-up</h4>
+            </div>
+            <p>
+              Caterpie max HP and String Shot stun at 1★:
+              <span class="old-value">570 HP, 1.5 seconds</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">630 HP, 2 seconds</strong>. Metapod Harden at 2★:
+              <span class="old-value">75 max mana, 400 shield</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">65 max mana, 650 shield</strong>. The additional shield remains self-only;
+              area-shield values are unchanged. Sandshrew and Sandslash max mana:
+              <span class="old-value">60/60/60</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">45/40/40</strong>. Abra Kinesis stun at 1★:
+              <span class="old-value">1 second</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">2 seconds</strong>.
+            </p>
+            <p>
+              Squirtle and Blastoise max HP:
+              <span class="old-value">962/3118</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">1020/3400</strong>, and Blastoise Hydro Cannon damage at 3★:
+              <span class="old-value">315</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">360</strong>. Jigglypuff Sing stun at 1★:
+              <span class="old-value">1 second</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">1.5 seconds</strong>. Slowpoke Yawn stun at 1★:
+              <span class="old-value">1 second</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">2 seconds</strong>. Jynx Lovely Kiss stun:
+              <span class="old-value">1/1.5/2 seconds</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">1.5/2/2 seconds</strong>.
+            </p>
+            <p>
+              Porygon Conversion max mana and DEF:
+              <span class="old-value">55/65/65 mana, 14/25/40 DEF</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">45/55/55 mana, 24/42/65 DEF</strong>. Articuno Blizzard stun is pulled
+              back after overshooting:
+              <span class="old-value">1.5/1.5/2.5 seconds</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value nerf">1.25/1.25/2.25 seconds</strong>. Boa Hancock Slave Arrow stun at 3★:
+              <span class="old-value">2 seconds</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value nerf">1.75 seconds</strong>.
+            </p>
+            <p>
+              Fixed-seed Pokémon balanced-board win rate at sizes 3/4:
+              <span class="old-value">47.87%/53.17%</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">49.78%/55.12%</strong>, clearing the 55% size-4 threshold while keeping the
+              three-unit matchup effectively even.
+            </p>
           </div>
           <div class="balance-block">
             <div class="balance-title">
@@ -249,13 +311,17 @@ const version160Commits = [
               <h4>Premium Area Damage</h4>
             </div>
             <p>
-              Four- and five-cost DAMAGE abilities with LINE or SURROUND patterns receive a premium recovery after the
-              global area-effect nerf:
+              Five-cost DAMAGE abilities with LINE or SURROUND patterns retain their premium recovery after the global
+              area-effect nerf:
               <span class="old-value">70%</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
               <strong class="value buff">80.5% effective damage</strong>. Direct damage values and their damage-over-time
-              ticks are increased by 15% only for those premium area abilities; SINGLE abilities and lower-cost units are
-              unchanged. Akainu's magma damage is
+              ticks remain 15% above the post-area-nerf baseline. The equivalent four-cost recovery was reduced after
+              follow-up simulation:
+              <span class="old-value">80.5% effective damage, +15%</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value nerf">77% effective damage, +10%</strong>. SINGLE abilities and lower-cost units are
+              unchanged. Five-cost Akainu's magma damage remains
               <span class="old-value">564/1014/1826</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
               <strong class="value buff">649/1166/2100</strong>.
@@ -278,6 +344,54 @@ const version160Commits = [
               <span class="old-value">0% max HP and 0 DEF</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
               <strong class="value buff">+5% max HP and +3 DEF</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag mixed">Follow-up</span>
+              <h4>Simulation-Driven Unit Tuning</h4>
+            </div>
+            <p>
+              Caterpie String Shot at 1★:
+              <span class="old-value">1 second</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">1.5 seconds</strong>. Metapod's self-only Harden shield at 2★:
+              <span class="old-value">245</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">400</strong>; area shields keep their reduced values. Jynx Lovely Kiss stun:
+              <span class="old-value">1/1/1 seconds</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">1/1.5/2 seconds</strong>. Porygon Conversion DEF:
+              <span class="old-value">12/22/36</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">14/25/40</strong>. Tentacruel Sludge Wave DEF shred:
+              <span class="old-value">8/18/30</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">10/22/36</strong>. Articuno Blizzard stun:
+              <span class="old-value">1/1/2 seconds</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">1.5/1.5/2.5 seconds</strong>. Gengar Dream Eater lifesteal at 3★:
+              <span class="old-value">75%</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value nerf">50%</strong>.
+            </p>
+            <p>
+              Boa Hancock Slave Arrow stun:
+              <span class="old-value">1/1/1 seconds</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">1/1/2 seconds</strong>. Queen Plague Bullet DEF shred:
+              <span class="old-value">12/22/35</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">14/25/40</strong>. Nico Robin max mana:
+              <span class="old-value">45/40/50</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">40/35/45</strong>. Moria Shadow Steal DEF shred:
+              <span class="old-value">10/18/30</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">12/21/34</strong>. Charlotte Katakuri Mochi Thrust damage:
+              <span class="old-value">920/1656/2981</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">966/1739/3130</strong>.
             </p>
           </div>
           <div class="balance-block">

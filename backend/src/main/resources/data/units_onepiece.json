@@ -162,7 +162,7 @@
     "cost": 3,
     "role": "SUPPORT",
     "maxHealth": [750, 1350, 2430],
-    "maxMana": [45, 40, 50],
+    "maxMana": [40, 35, 45],
     "attackDamage": [41, 74, 134],
     "abilityPower": [100, 100, 100],
     "defense": [28, 28, 28],
@@ -254,7 +254,7 @@
       "description": "Water blast deals $value damage and knocks enemies back.",
       "type": "DAMAGE",
       "pattern": "SURROUND",
-      "values": [220, 398, 716],
+      "values": [210, 381, 685],
       "range": [2, 2, 2],
       "modifiers": [
         {
@@ -543,7 +543,7 @@
       "description": "Steals the target’s shadow, reducing DEF by $value for the rest of combat.",
       "type": "DEBUFF_DEF",
       "pattern": "SINGLE",
-      "values": [10, 18, 30],
+      "values": [12, 21, 34],
       "range": [4, 4, 4]
     }
   },
@@ -625,7 +625,7 @@
       "description": "Burning string whip deals $value damage in a line.",
       "type": "DAMAGE",
       "pattern": "LINE",
-      "values": [443, 797, 1434],
+      "values": [424, 762, 1372],
       "range": [5, 5, 5]
     }
   },
@@ -650,7 +650,7 @@
       "description": "Massive air blade deals $value damage across the battlefield.",
       "type": "DAMAGE",
       "pattern": "LINE",
-      "values": [725, 1129, 2034],
+      "values": [693, 1080, 1946],
       "range": [7, 7, 7]
     }
   },
@@ -675,7 +675,8 @@
       "description": "Hearts of stone petrify enemies, stunning for $value seconds.",
       "type": "STUN",
       "pattern": "SURROUND",
-      "values": [1, 1, 1],
+      "values": [1, 1, 2],
+      "stunDurationSeconds": [1, 1, 1.75],
       "range": [4, 4, 4]
     }
   },
@@ -851,7 +852,7 @@
       "description": "Weakens nearby enemies, reducing DEF by $value for the rest of combat.",
       "type": "DEBUFF_DEF",
       "pattern": "SURROUND",
-      "values": [12, 22, 35],
+      "values": [14, 25, 40],
       "range": [2, 2, 2]
     }
   },
@@ -877,7 +878,7 @@
       "description": "Ignites dealing $value damage. More damage when wounded.",
       "type": "DAMAGE",
       "pattern": "SURROUND",
-      "values": [463, 834, 1500],
+      "values": [443, 798, 1434],
       "range": [2, 2, 2],
       "modifiers": [
         {
@@ -1098,7 +1099,7 @@
       "description": "Piercing strike deals $value damage. Executes low HP enemies.",
       "type": "DAMAGE",
       "pattern": "SINGLE",
-      "values": [920, 1656, 2981],
+      "values": [966, 1739, 3130],
       "range": [3, 3, 3],
       "modifiers": [
         {
@@ -1389,7 +1390,7 @@
       "description": "Blazing fist deals $value damage to all nearby enemies.",
       "type": "DAMAGE",
       "pattern": "SURROUND",
-      "values": [403, 761, 1370],
+      "values": [385, 728, 1310],
       "range": [2, 2, 2]
     }
   },

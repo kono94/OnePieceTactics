@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import net.lwenstrom.tft.backend.core.engine.StandardGameUnit;
 import net.lwenstrom.tft.backend.core.engine.UnitDefinition;
 import net.lwenstrom.tft.backend.core.model.AbilityType;
+import net.lwenstrom.tft.backend.core.model.LifestealModifier;
 import net.lwenstrom.tft.backend.core.model.UnitRole;
 import org.junit.jupiter.api.Test;
 import tools.jackson.core.type.TypeReference;
@@ -86,11 +87,46 @@ class PokemonDataValidationTest {
         var tentacool = find(units, "tentacool");
         assertEquals(AbilityType.DEBUFF_DEF, tentacool.getAbility(1).type());
         assertEquals(AbilityType.DEBUFF_DEF, tentacool.getAbility(2).type());
-        assertEquals(List.of(8, 18, 30), tentacool.getAbility(3).values());
+        assertEquals(List.of(10, 22, 36), tentacool.getAbility(3).values());
 
         var porygon = find(units, "porygon");
         assertEquals(AbilityType.BUFF_DEF, porygon.ability().type());
-        assertEquals(List.of(12, 22, 36), porygon.ability().values());
+        assertEquals(List.of(24, 42, 65), porygon.ability().values());
+        assertEquals(List.of(45, 55, 55), porygon.maxMana());
+
+        var caterpie = find(units, "caterpie");
+        assertEquals(2f, caterpie.getAbility(1).getStunDurationForLevel(1));
+        assertEquals(650, caterpie.getAbility(2).getValueForLevel(2));
+        assertEquals(List.of(630, 1832, 2200), caterpie.maxHealth());
+        assertEquals(List.of(40, 65, 50), caterpie.maxMana());
+
+        var jynx = find(units, "jynx");
+        assertEquals(1.5f, jynx.ability().getStunDurationForLevel(1));
+        assertEquals(2f, jynx.ability().getStunDurationForLevel(2));
+        assertEquals(2f, jynx.ability().getStunDurationForLevel(3));
+
+        var articuno = find(units, "articuno");
+        assertEquals(1.25f, articuno.ability().getStunDurationForLevel(1));
+        assertEquals(1.25f, articuno.ability().getStunDurationForLevel(2));
+        assertEquals(2.25f, articuno.ability().getStunDurationForLevel(3));
+
+        var squirtle = find(units, "squirtle");
+        assertEquals(List.of(1020, 1748, 3400), squirtle.maxHealth());
+        assertEquals(360, squirtle.getAbility(3).getValueForLevel(3));
+
+        var sandshrew = find(units, "sandshrew");
+        assertEquals(List.of(45, 40, 40), sandshrew.maxMana());
+
+        assertEquals(1.5f, find(units, "jigglypuff").getAbility(1).getStunDurationForLevel(1));
+        assertEquals(2f, find(units, "slowpoke").getAbility(1).getStunDurationForLevel(1));
+        assertEquals(2f, find(units, "abra").getAbility(1).getStunDurationForLevel(1));
+
+        var gengarLifesteal = find(units, "gastly").getAbility(3).modifiers().stream()
+                .filter(LifestealModifier.class::isInstance)
+                .map(LifestealModifier.class::cast)
+                .findFirst()
+                .orElseThrow();
+        assertEquals(0.5f, gengarLifesteal.lifestealPercent().get(2));
     }
 
     @Test

@@ -1,5 +1,6 @@
 package net.lwenstrom.tft.backend.core.model;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 
@@ -11,7 +12,8 @@ public record AbilityDefinition(
         List<Integer> range,
         List<Integer> values, // Exactly 3 values [lvl1, lvl2, lvl3]
         List<AbilityModifier> modifiers,
-        List<Integer> targetLimit) {
+        List<Integer> targetLimit,
+        List<Float> stunDurationSeconds) {
     public AbilityDefinition {
         if (modifiers == null) {
             modifiers = Collections.emptyList();
@@ -25,6 +27,9 @@ public record AbilityDefinition(
         if (targetLimit == null) {
             targetLimit = Collections.emptyList();
         }
+        if (stunDurationSeconds == null) {
+            stunDurationSeconds = Collections.emptyList();
+        }
     }
 
     public AbilityDefinition(
@@ -35,7 +40,28 @@ public record AbilityDefinition(
             List<Integer> range,
             List<Integer> values,
             List<AbilityModifier> modifiers) {
-        this(name, description, type, pattern, range, values, modifiers, Collections.emptyList());
+        this(
+                name,
+                description,
+                type,
+                pattern,
+                range,
+                values,
+                modifiers,
+                Collections.emptyList(),
+                Collections.emptyList());
+    }
+
+    public AbilityDefinition(
+            String name,
+            String description,
+            AbilityType type,
+            AbilityPattern pattern,
+            List<Integer> range,
+            List<Integer> values,
+            List<AbilityModifier> modifiers,
+            List<Integer> targetLimit) {
+        this(name, description, type, pattern, range, values, modifiers, targetLimit, Collections.emptyList());
     }
 
     // Get value for a specific star level (1-indexed)
@@ -45,6 +71,14 @@ public record AbilityDefinition(
         }
         int index = Math.min(starLevel - 1, values.size() - 1);
         return values.get(index);
+    }
+
+    public float getStunDurationForLevel(int starLevel) {
+        if (stunDurationSeconds.isEmpty()) {
+            return getValueForLevel(starLevel);
+        }
+        var index = Math.min(starLevel - 1, stunDurationSeconds.size() - 1);
+        return stunDurationSeconds.get(index);
     }
 
     // Get range for a specific star level (1-indexed)
@@ -78,8 +112,10 @@ public record AbilityDefinition(
         var formatted = description;
 
         // Format $value as "v1/v2/v3" with highlighting
-        if (values != null && !values.isEmpty()) {
-            formatted = formatted.replace("$value", formatList(values, starLevel));
+        var descriptionValues =
+                type == AbilityType.STUN && !stunDurationSeconds.isEmpty() ? stunDurationSeconds : values;
+        if (descriptionValues != null && !descriptionValues.isEmpty()) {
+            formatted = formatted.replace("$value", formatList(descriptionValues, starLevel));
         }
 
         // Format $range as "r1/r2/r3" with highlighting
@@ -94,16 +130,19 @@ public record AbilityDefinition(
         return formatted;
     }
 
-    private String formatList(List<Integer> list, int starLevel) {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < list.size(); i++) {
+    private String formatList(List<? extends Number> list, int starLevel) {
+        var builder = new StringBuilder();
+        for (var i = 0; i < list.size(); i++) {
             if (i > 0) builder.append("/");
 
-            int level = i + 1;
+            var level = i + 1;
+            var value = BigDecimal.valueOf(list.get(i).doubleValue())
+                    .stripTrailingZeros()
+                    .toPlainString();
             if (level == starLevel) {
-                builder.append("<span class=\"active\">").append(list.get(i)).append("</span>");
+                builder.append("<span class=\"active\">").append(value).append("</span>");
             } else {
-                builder.append("<span class=\"inactive\">").append(list.get(i)).append("</span>");
+                builder.append("<span class=\"inactive\">").append(value).append("</span>");
             }
         }
         return builder.toString();
