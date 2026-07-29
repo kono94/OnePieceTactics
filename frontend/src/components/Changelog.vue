@@ -15,8 +15,10 @@ const roleBalanceSections = [
 ]
 
 const versionNextCommits = [
-  { hash: 'pending', title: 'Add unit roles and unified DEF while rebalancing both sets' },
-  { hash: 'pending-balance', title: 'Rebalance AoE abilities, progression, Pokemon traits, and augments' }
+  { hash: 'ce65e88', title: 'Add unit roles and unified DEF while rebalancing both sets' },
+  { hash: 'f618d8f', title: 'Update README simulation run counts' },
+  { hash: '754a2db', title: 'Rebalance AoE abilities, progression, Pokemon traits, and augments' },
+  { hash: 'pending', title: 'Fix end celebration rendering for eliminated and winning players' }
 ]
 
 const version170Commits = [

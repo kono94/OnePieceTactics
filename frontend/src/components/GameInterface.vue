@@ -416,24 +416,11 @@ function readyForCombat() {
     emit('action', { type: 'READY_FOR_COMBAT', playerId: myPlayer.value.playerId })
 }
 
-// ========== END SCREEN DELAY ==========
+// ========== END SCREEN ==========
 const showEndScreen = ref(false)
-const endScreenTimer = ref<number | null>(null)
 
-watch([() => props.state?.phase, isDead], ([newPhase, dead]) => {
-    if (newPhase === 'END_CELEBRATION' || newPhase === 'END' || dead) {
-        if (!showEndScreen.value && endScreenTimer.value === null) {
-            endScreenTimer.value = window.setTimeout(() => {
-                showEndScreen.value = true
-            }, 4000) // 4 seconds delay to watch the animation and 0 HP
-        }
-    } else {
-        showEndScreen.value = false
-        if (endScreenTimer.value !== null) {
-            clearTimeout(endScreenTimer.value)
-            endScreenTimer.value = null
-        }
-    }
+watch(() => props.state?.phase, (newPhase) => {
+    showEndScreen.value = newPhase === 'END_CELEBRATION' || newPhase === 'END'
 }, { immediate: true })
 
 watch(() => props.state, () => {
