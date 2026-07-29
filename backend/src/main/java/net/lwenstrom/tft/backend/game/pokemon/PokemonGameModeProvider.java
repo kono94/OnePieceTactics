@@ -1,5 +1,6 @@
 package net.lwenstrom.tft.backend.game.pokemon;
 
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import net.lwenstrom.tft.backend.core.GameModeProvider;
 import net.lwenstrom.tft.backend.core.engine.TraitManager;
@@ -30,6 +31,11 @@ public class PokemonGameModeProvider implements GameModeProvider {
     @Override
     public String getAugmentsPath() {
         return "/data/augments_pokemon.json";
+    }
+
+    @Override
+    public Optional<String> getAffinitiesPath() {
+        return Optional.of("/data/affinities_pokemon.json");
     }
 
     @Override

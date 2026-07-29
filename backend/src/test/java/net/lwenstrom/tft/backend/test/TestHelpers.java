@@ -6,6 +6,7 @@ import net.lwenstrom.tft.backend.core.GameModeProvider;
 import net.lwenstrom.tft.backend.core.GameModeRegistry;
 import net.lwenstrom.tft.backend.core.combat.BfsUnitMover;
 import net.lwenstrom.tft.backend.core.combat.DefaultAbilityCaster;
+import net.lwenstrom.tft.backend.core.combat.ElementalAffinityLoader;
 import net.lwenstrom.tft.backend.core.combat.NearestEnemyTargetSelector;
 import net.lwenstrom.tft.backend.core.engine.CombatSystem;
 import net.lwenstrom.tft.backend.core.engine.GameRoom;
@@ -207,6 +208,19 @@ public final class TestHelpers {
                 new BfsUnitMover(clock),
                 new DefaultAbilityCaster(),
                 createSeededRandomProvider());
+    }
+
+    public static CombatSystem createPokemonCombatSystem() {
+        var clock = createTestClock();
+        return new CombatSystem(
+                new TraitManager(),
+                clock,
+                new NearestEnemyTargetSelector(),
+                new BfsUnitMover(clock),
+                new DefaultAbilityCaster(),
+                createSeededRandomProvider(),
+                GameMode.POKEMON,
+                new ElementalAffinityLoader().load("/data/affinities_pokemon.json"));
     }
 
     public static GameRoom createTestGameRoom() {

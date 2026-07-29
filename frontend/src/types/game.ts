@@ -9,7 +9,7 @@
 
 export type GamePhase = 'LOBBY' | 'PLANNING' | 'COMBAT' | 'END_CELEBRATION' | 'END'
 
-export type GameMode = 'onepiece' | 'pokemon'
+export type GameMode = 'onepiece' | 'pokemon' | 'palworld'
 
 export type UnitRole = 'DAMAGE' | 'TANK' | 'SUPPORT'
 
@@ -35,12 +35,15 @@ export type PlanningPauseReason = 'AUGMENT_SELECTION' | 'SOLO_READY' | null
 // ============================================================================
 
 export interface AbilityDefinition {
+    [metadata: string]: unknown
     name: string
     description: string
     type: string // 'DAMAGE' | 'STUN' | 'HEAL' | 'BUFF_ATK' | 'BUFF_SPD' (future)
     pattern: string // 'SINGLE' | 'LINE' | 'SURROUND'
     range: number[]
     values: number[]
+    targeting?: unknown
+    effects?: Record<string, unknown>[]
     stunDurationSeconds?: number[]
     modifiers?: Record<string, unknown>[]
 }
@@ -87,6 +90,7 @@ export interface GameUnit {
     ownerId: string
     ability: AbilityDefinition | null
     activeAbility: string | null
+    activeStatuses?: ActiveStatusView[]
     // Combat status effects
     stunSecondsRemaining: number
     atkBuff: number  // 1.0 = no buff
@@ -121,6 +125,14 @@ export interface ActiveTrait {
     description: string
     count: number // Number of units contributing
     activeLevel: number // Which breakpoint is active
+}
+
+export interface ActiveStatusView {
+    id: string
+    name: string
+    remainingSeconds: number
+    stacks?: number
+    description?: string
 }
 
 export type LootType = 'GOLD' | 'UNIT'
@@ -190,11 +202,27 @@ export interface PlayerState {
 
 export interface CombatEvent {
     timestamp: number
-    type: 'DAMAGE' | 'SKILL' | 'DEATH' | 'MOVE' | 'HEAL' | 'SHIELD'
+    type:
+        | 'ATTACK'
+        | 'CAST'
+        | 'DAMAGE'
+        | 'SKILL'
+        | 'DEATH'
+        | 'MOVE'
+        | 'HEAL'
+        | 'SHIELD'
+        | 'STATUS_APPLY'
+        | 'STATUS_REMOVE'
+        | 'ZONE_START'
+        | 'ZONE_END'
     sourceId: string
     targetId: string
     value: number
     skillName?: string
+    castId?: string
+    hitIndex?: number
+    statusId?: string
+    zoneId?: string
 }
 
 export interface DamageEntry {

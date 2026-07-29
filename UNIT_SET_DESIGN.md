@@ -1,4 +1,4 @@
-# One Piece Tactics - Unit Set Design
+# One Piece Unit Set Design
 
 > **55 units** | **7 Origins** | Abilities balanced for implementation effort
 

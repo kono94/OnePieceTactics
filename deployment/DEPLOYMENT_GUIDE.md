@@ -84,15 +84,15 @@ bash /opt/tft/deployment/initial-setup.sh
 ```
 
 The wizard requires an admin dashboard password of at least 6 letters, digits, dots, underscores, or hyphens and
-creates the persistent SQLite data directory at `/var/lib/one-piece-tactics/analytics`.
+creates the persistent SQLite data directory at `/var/lib/tft/analytics`.
 
 ### Upgrade an existing server
 
 Servers initialized before analytics was added need a one-time configuration update before the next deployment:
 
 ```bash
-sudo mkdir -p /var/lib/one-piece-tactics/analytics
-sudo chmod 0700 /var/lib/one-piece-tactics/analytics
+sudo mkdir -p /var/lib/tft/analytics
+sudo chmod 0700 /var/lib/tft/analytics
 ```
 
 Add the password to `/opt/tft/.env`:

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { TRAIT_DATA, normalizeTraitId, type TraitDefinition, type TraitEffect } from '../data/traitData'
+import { getTraitGlyph, TRAIT_DATA, normalizeTraitId, type TraitDefinition, type TraitEffect } from '../data/traitData'
 import type { GameUnit } from '../types'
 
 const props = defineProps<{
@@ -109,9 +109,8 @@ function getNextBreakpoint(trait: TraitDefinition, count: number): number | null
            @mouseenter="hoveredTraitId = item.id"
            @mouseleave="hoveredTraitId = null">
            
-           <div class="trait-icon" :style="{ backgroundColor: item.def.iconColor }">
-               {{ item.def.name[0] }}
-               <!-- Using first letter as icon placeholder -->
+           <div class="trait-icon" :style="{ backgroundColor: item.def.iconColor || '#94a3b8' }">
+               {{ getTraitGlyph(item.def) }}
            </div>
            
            <div class="trait-info">

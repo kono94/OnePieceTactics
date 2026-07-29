@@ -82,8 +82,8 @@ if [[ ! "$ANALYTICS_ADMIN_PASSWORD" =~ ^[A-Za-z0-9._-]{6,}$ ]]; then
     exit 1
 fi
 
-mkdir -p /var/lib/one-piece-tactics/analytics
-chmod 0700 /var/lib/one-piece-tactics/analytics
+mkdir -p /var/lib/tft/analytics
+chmod 0700 /var/lib/tft/analytics
 
 # -----------------------------------------------------------------------------
 # Create .env

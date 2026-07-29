@@ -13,6 +13,12 @@ import VersionDisplay from './components/VersionDisplay.vue'
 import AdminAnalytics from './components/admin/AdminAnalytics.vue'
 
 import { setTraitData } from './data/traitData'
+import {
+    getGameModeMetadata,
+    isGameMode,
+    parseGalleryModeHash,
+    sortGameModes,
+} from './data/gameModeMetadata'
 import type {
     CombatResultPayload,
     EmergencyDropPayload,
@@ -33,8 +39,8 @@ const gameState = ref<GameState | null>(null)
 const client = ref<Client | null>(null)
 const currentView = ref<'lobby' | 'game' | 'changelog'>('lobby')
 const currentRoomId = ref('')
-const gameTitle = ref('Tactics Arena')
-const availableModes = ref<GameMode[]>(['onepiece', 'pokemon'])
+const fallbackModes = sortGameModes(['onepiece', 'pokemon', 'palworld'])
+const availableModes = ref<GameMode[]>(fallbackModes)
 const defaultMode = ref<GameMode>('onepiece')
 const activeTraitMode = ref<GameMode | null>(null)
 const roomSubscription = ref<StompSubscription | null>(null)
@@ -46,7 +52,11 @@ const UltimateGallery = shallowRef<Component | null>(null)
 const viewedPlayerId = ref<string | null>(null)
 const pendingJoinRoomId = ref<string | null>(null)
 const lobbyError = ref('')
+let traitRequestGeneration = 0
 let restoredRoomTimeout: number | null = null
+
+const activeVisualMode = computed<GameMode>(() => gameState.value?.gameMode ?? defaultMode.value)
+const gameTitle = computed(() => getGameModeMetadata(activeVisualMode.value).documentTitle)
 
 const restoredRoom = loadActiveRoomSession()
 const PLAYER_NAME = restoredRoom?.playerName ?? "Player_" + Math.floor(Math.random() * 10000)
@@ -57,19 +67,32 @@ onMounted(async () => {
     window.addEventListener('hashchange', updateStandaloneRoute)
     if (isUltimateGallery.value || isAdminAnalytics.value) return
 
-    document.title = 'Tactics Arena'
+    applyThemeMeta(defaultMode.value)
     try {
         const configRes = await fetch('/api/config');
 
         if (configRes.ok) {
             const data = await configRes.json();
-            const fallbackModes = Array.isArray(data.availableModes) ? data.availableModes : [];
-            if (fallbackModes.length > 0) {
-                availableModes.value = fallbackModes as GameMode[];
+            const configuredModes = Array.isArray(data.availableModes)
+                ? data.availableModes.filter((mode: unknown): mode is GameMode => {
+                    if (!isGameMode(mode)) {
+                        console.warn('Ignoring unknown game mode from config', mode)
+                        return false
+                    }
+                    return true
+                })
+                : []
+            if (configuredModes.length > 0) {
+                availableModes.value = sortGameModes(configuredModes)
             }
-            if (data.defaultGameMode) {
-                defaultMode.value = data.defaultGameMode as GameMode;
+            if (data.defaultGameMode !== undefined) {
+                if (isGameMode(data.defaultGameMode)) {
+                    defaultMode.value = data.defaultGameMode
+                } else {
+                    console.warn('Unknown default game mode from config; using One Piece', data.defaultGameMode)
+                }
             }
+            applyThemeMeta(defaultMode.value)
         }
     } catch (e) {
         console.error("Failed to fetch initial data", e);
@@ -250,7 +273,7 @@ const rejectPendingJoin = (message: string) => {
     activeTraitMode.value = null
     viewedPlayerId.value = null
     lobbyError.value = message
-    applyThemeMeta(null)
+    applyThemeMeta(defaultMode.value)
 }
 
 const clearRestoredRoomTimeout = () => {
@@ -422,10 +445,18 @@ const handleStartGame = () => {
 }
 
 const fetchTraitsForMode = async (mode: GameMode) => {
+    const requestGeneration = ++traitRequestGeneration
     try {
         const traitsRes = await fetch(`/api/traits?mode=${mode}`);
         if (traitsRes.ok) {
             const traits = await traitsRes.json();
+            if (
+                requestGeneration !== traitRequestGeneration
+                || activeTraitMode.value !== mode
+                || gameState.value?.gameMode !== mode
+            ) {
+                return
+            }
             setTraitData(traits);
         }
     } catch (e) {
@@ -451,10 +482,11 @@ const resetToLobby = () => {
     gameState.value = null
     currentRoomId.value = ''
     activeTraitMode.value = null
+    traitRequestGeneration += 1
     viewedPlayerId.value = null
     pendingJoinRoomId.value = null
 
-    applyThemeMeta(null)
+    applyThemeMeta(defaultMode.value)
 }
 
 const leaveCurrentGame = () => {
@@ -481,11 +513,13 @@ const handleLeaveLobby = () => {
     leaveCurrentGame()
 }
 
+const activeThemeClass = computed(() => getGameModeMetadata(activeVisualMode.value).themeClass)
+
 const themeClass = computed(() => {
     if (isAdminAnalytics.value) return 'theme-generic'
-    if (isUltimateGallery.value) return `theme-${ultimateGalleryMode.value}`
-    if (currentView.value === 'lobby' || !gameState.value) return 'theme-generic'
-    return `theme-${gameState.value.gameMode}`
+    if (isUltimateGallery.value) return getGameModeMetadata(ultimateGalleryMode.value).themeClass
+    if (currentView.value === 'lobby' || gameState.value?.phase === 'LOBBY') return activeThemeClass.value
+    return 'theme-generic'
 })
 
 const loadUltimateGallery = async () => {
@@ -511,30 +545,31 @@ const updateStandaloneRoute = () => {
         window.location.reload()
         return
     }
-    const isGallery = import.meta.env.DEV && window.location.hash.startsWith('#/ultimate-gallery')
+    const parsedGalleryMode = parseGalleryModeHash(window.location.hash)
+    const isGallery = import.meta.env.DEV && parsedGalleryMode !== null
     isUltimateGallery.value = isGallery
-    if (isGallery) {
-        ultimateGalleryMode.value = window.location.hash.includes('/pokemon') ? 'pokemon' : 'onepiece'
+    if (isGallery && parsedGalleryMode) {
+        ultimateGalleryMode.value = parsedGalleryMode
         applyThemeMeta(ultimateGalleryMode.value)
         void loadUltimateGallery()
+    } else if (!isGallery) {
+        applyThemeMeta(gameState.value?.gameMode ?? defaultMode.value)
     }
 }
 
-const applyThemeMeta = (mode: GameMode | null) => {
-    const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
-    if (!mode) {
-        document.title = 'Tactics Arena';
-        if (link && !link.href.includes('favicon.svg')) link.href = '/favicon.svg';
-        return;
+const applyThemeMeta = (mode: GameMode) => {
+    const iconLinks = Array.from(document.querySelectorAll("link[rel~='icon']")) as HTMLLinkElement[]
+    const link = iconLinks[0] ?? document.createElement('link')
+    if (!link.parentElement) {
+        document.head.appendChild(link)
     }
+    iconLinks.slice(1).forEach((duplicate) => duplicate.remove())
 
-    if (mode === 'pokemon') {
-        if (document.title !== 'Pokemon TFT') document.title = 'Pokemon TFT';
-        if (link && !link.href.includes('pokeball.png')) link.href = '/pokeball.png';
-    } else {
-        if (document.title !== 'OnePieceTactics') document.title = 'OnePieceTactics';
-        if (link && !link.href.includes('favicon.svg')) link.href = '/favicon.svg';
-    }
+    const metadata = getGameModeMetadata(mode)
+    link.rel = 'icon'
+    link.type = metadata.favicon.endsWith('.svg') ? 'image/svg+xml' : 'image/png'
+    link.href = metadata.favicon
+    document.title = metadata.documentTitle
 }
 
 </script>
@@ -559,6 +594,7 @@ const applyThemeMeta = (mode: GameMode | null) => {
     <template v-else>
         <Lobby v-if="currentView === 'lobby'" 
                :title="gameTitle"
+               :theme-class="activeThemeClass"
                :error="lobbyError"
                @create="handleCreate" 
                @join="handleJoin" />
@@ -574,6 +610,7 @@ const applyThemeMeta = (mode: GameMode | null) => {
                               :current-player-name="PLAYER_NAME"
                               :available-modes="availableModes"
                               :default-mode="defaultMode"
+                              :theme-class="activeThemeClass"
                               @start="handleStartGame"
                               @leave="handleLeaveLobby"
                               @mode-change="handleModeChange" />

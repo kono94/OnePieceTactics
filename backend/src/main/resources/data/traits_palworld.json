@@ -1,0 +1,137 @@
+[
+  {
+    "id": "neutral",
+    "name": "Neutral",
+    "type": "element",
+    "targetScope": "TEAM",
+    "description": "Neutral Pals rally the entire team.",
+    "iconColor": "#A8A29E",
+    "effectType": "ATK_BUFF",
+    "effects": [
+      {"minUnits": 1, "description": "+2% ATK", "style": "bronze", "values": {"atkBuff": 0.02}},
+      {"minUnits": 2, "description": "+7% ATK", "style": "silver", "values": {"atkBuff": 0.07}},
+      {"minUnits": 3, "description": "+14% ATK", "style": "gold", "values": {"atkBuff": 0.14}},
+      {"minUnits": 4, "description": "+22% ATK", "style": "prismatic", "values": {"atkBuff": 0.22}}
+    ]
+  },
+  {
+    "id": "fire",
+    "name": "Fire",
+    "type": "element",
+    "targetScope": "TEAM",
+    "description": "Fire Pals empower team ability damage.",
+    "iconColor": "#F97316",
+    "effectType": "ABILITY_DAMAGE",
+    "effects": [
+      {"minUnits": 1, "description": "+4% Ability Damage", "style": "bronze", "values": {"abilityDamage": 0.04}},
+      {"minUnits": 2, "description": "+14% Ability Damage", "style": "silver", "values": {"abilityDamage": 0.14}},
+      {"minUnits": 3, "description": "+22% Ability Damage", "style": "gold", "values": {"abilityDamage": 0.22}},
+      {"minUnits": 4, "description": "+32% Ability Damage", "style": "prismatic", "values": {"abilityDamage": 0.32}}
+    ]
+  },
+  {
+    "id": "water",
+    "name": "Water",
+    "type": "element",
+    "targetScope": "TEAM",
+    "description": "Water Pals help the team gain mana faster.",
+    "iconColor": "#3B82F6",
+    "effectType": "MANA_GAIN",
+    "effects": [
+      {"minUnits": 1, "description": "+15% Mana Gain", "style": "bronze", "values": {"manaGain": 0.15}},
+      {"minUnits": 2, "description": "+40% Mana Gain", "style": "silver", "values": {"manaGain": 0.40}},
+      {"minUnits": 3, "description": "+65% Mana Gain", "style": "gold", "values": {"manaGain": 0.65}},
+      {"minUnits": 4, "description": "+90% Mana Gain", "style": "prismatic", "values": {"manaGain": 0.90}}
+    ]
+  },
+  {
+    "id": "electric",
+    "name": "Electric",
+    "type": "element",
+    "targetScope": "TEAM",
+    "description": "Electric Pals accelerate team attacks.",
+    "iconColor": "#FACC15",
+    "effectType": "AS",
+    "effects": [
+      {"minUnits": 1, "description": "+4% AS", "style": "bronze", "values": {"as": 0.04}},
+      {"minUnits": 2, "description": "+12% AS", "style": "silver", "values": {"as": 0.12}},
+      {"minUnits": 3, "description": "+20% AS", "style": "gold", "values": {"as": 0.20}},
+      {"minUnits": 4, "description": "+30% AS", "style": "prismatic", "values": {"as": 0.30}}
+    ]
+  },
+  {
+    "id": "grass",
+    "name": "Grass",
+    "type": "element",
+    "targetScope": "TEAM",
+    "description": "Grass Pals toughen the whole team.",
+    "iconColor": "#22C55E",
+    "effectType": "HP",
+    "effects": [
+      {"minUnits": 1, "description": "+100 HP", "style": "bronze", "values": {"hp": 100}},
+      {"minUnits": 2, "description": "+275 HP", "style": "silver", "values": {"hp": 275}},
+      {"minUnits": 3, "description": "+500 HP", "style": "gold", "values": {"hp": 500}},
+      {"minUnits": 4, "description": "+800 HP", "style": "prismatic", "values": {"hp": 800}}
+    ]
+  },
+  {
+    "id": "ice",
+    "name": "Ice",
+    "type": "element",
+    "targetScope": "TEAM",
+    "description": "Ice Pals reduce damage taken by the team.",
+    "iconColor": "#67E8F9",
+    "effectType": "DAMAGE_REDUCTION",
+    "effects": [
+      {"minUnits": 1, "description": "3% Damage Reduction", "style": "bronze", "values": {"damageReduction": 0.03}},
+      {"minUnits": 2, "description": "8% Damage Reduction", "style": "silver", "values": {"damageReduction": 0.08}},
+      {"minUnits": 3, "description": "13% Damage Reduction", "style": "gold", "values": {"damageReduction": 0.13}},
+      {"minUnits": 4, "description": "20% Damage Reduction", "style": "prismatic", "values": {"damageReduction": 0.20}}
+    ]
+  },
+  {
+    "id": "ground",
+    "name": "Ground",
+    "type": "element",
+    "targetScope": "TEAM",
+    "description": "Ground Pals reinforce team DEF.",
+    "iconColor": "#A16207",
+    "effectType": "DEFENSE",
+    "effects": [
+      {"minUnits": 1, "description": "+5 DEF", "style": "bronze", "values": {"defense": 5}},
+      {"minUnits": 2, "description": "+12 DEF", "style": "silver", "values": {"defense": 12}},
+      {"minUnits": 3, "description": "+20 DEF", "style": "gold", "values": {"defense": 20}},
+      {"minUnits": 4, "description": "+30 DEF", "style": "prismatic", "values": {"defense": 30}}
+    ]
+  },
+  {
+    "id": "dark",
+    "name": "Dark",
+    "type": "element",
+    "targetScope": "TEAM",
+    "description": "Dark Pals drain health from their attacks.",
+    "iconColor": "#7C3AED",
+    "effectType": "LIFESTEAL",
+    "effects": [
+      {"minUnits": 1, "description": "+3% Lifesteal", "style": "bronze", "values": {"lifesteal": 0.03}},
+      {"minUnits": 2, "description": "+8% Lifesteal", "style": "silver", "values": {"lifesteal": 0.08}},
+      {"minUnits": 3, "description": "+14% Lifesteal", "style": "gold", "values": {"lifesteal": 0.14}},
+      {"minUnits": 4, "description": "+22% Lifesteal", "style": "prismatic", "values": {"lifesteal": 0.22}}
+    ]
+  },
+  {
+    "id": "dragon",
+    "name": "Dragon",
+    "type": "element",
+    "targetScope": "TEAM",
+    "description": "Dragon Pals begin combat with extra mana.",
+    "iconColor": "#6366F1",
+    "effectType": "START_MANA_PERCENT",
+    "effects": [
+      {"minUnits": 1, "description": "+4% Starting Mana", "style": "bronze", "values": {"manaPercent": 0.04}},
+      {"minUnits": 2, "description": "+12% Starting Mana", "style": "silver", "values": {"manaPercent": 0.12}},
+      {"minUnits": 3, "description": "+22% Starting Mana", "style": "gold", "values": {"manaPercent": 0.22}},
+      {"minUnits": 4, "description": "+35% Starting Mana", "style": "prismatic", "values": {"manaPercent": 0.35}}
+    ]
+  }
+]

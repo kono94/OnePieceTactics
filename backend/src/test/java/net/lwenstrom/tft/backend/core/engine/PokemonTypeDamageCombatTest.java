@@ -2,8 +2,8 @@ package net.lwenstrom.tft.backend.core.engine;
 
 import static net.lwenstrom.tft.backend.test.TestHelpers.addUnitToPlayer;
 import static net.lwenstrom.tft.backend.test.TestHelpers.createMockDataLoader;
+import static net.lwenstrom.tft.backend.test.TestHelpers.createPokemonCombatSystem;
 import static net.lwenstrom.tft.backend.test.TestHelpers.createSeededRandomProvider;
-import static net.lwenstrom.tft.backend.test.TestHelpers.createTestCombatSystem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
@@ -19,7 +19,7 @@ class PokemonTypeDamageCombatTest {
 
     @Test
     void autoAttacksApplyPokemonTypeEffectiveness() {
-        var combatSystem = createTestCombatSystem();
+        var combatSystem = createPokemonCombatSystem();
         var p1 = new Player("P1", GameMode.POKEMON, createMockDataLoader(), createSeededRandomProvider());
         var p2 = new Player("P2", GameMode.POKEMON, createMockDataLoader(), createSeededRandomProvider());
         var attacker = MockUnit.create("squirtle", p1.getId())
@@ -44,7 +44,7 @@ class PokemonTypeDamageCombatTest {
     void damageAbilitiesApplyPokemonTypeEffectiveness() {
         var ability = new AbilityDefinition(
                 "Water Gun", "Damage", AbilityType.DAMAGE, AbilityPattern.SINGLE, List.of(1), List.of(100), List.of());
-        var combatSystem = createTestCombatSystem();
+        var combatSystem = createPokemonCombatSystem();
         var p1 = new Player("P1", GameMode.POKEMON, createMockDataLoader(), createSeededRandomProvider());
         var p2 = new Player("P2", GameMode.POKEMON, createMockDataLoader(), createSeededRandomProvider());
         var caster = MockUnit.create("squirtle", p1.getId())

@@ -1,0 +1,17 @@
+{
+  "defaultMultiplier": 1.0,
+  "strongMultiplier": 1.2,
+  "resistedMultiplier": 0.8,
+  "elements": ["neutral", "fire", "water", "electric", "grass", "ice", "ground", "dark", "dragon"],
+  "relationships": [
+    { "attacking": "neutral", "strongAgainst": [], "resistedBy": ["dark"] },
+    { "attacking": "fire", "strongAgainst": ["grass", "ice"], "resistedBy": ["water"] },
+    { "attacking": "water", "strongAgainst": ["fire"], "resistedBy": ["electric"] },
+    { "attacking": "electric", "strongAgainst": ["water"], "resistedBy": ["ground"] },
+    { "attacking": "grass", "strongAgainst": ["ground"], "resistedBy": ["fire"] },
+    { "attacking": "ice", "strongAgainst": ["dragon"], "resistedBy": ["fire"] },
+    { "attacking": "ground", "strongAgainst": ["electric"], "resistedBy": ["grass"] },
+    { "attacking": "dark", "strongAgainst": ["neutral"], "resistedBy": ["dragon"] },
+    { "attacking": "dragon", "strongAgainst": ["dark"], "resistedBy": ["ice"] }
+  ]
+}

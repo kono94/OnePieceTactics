@@ -1,4 +1,4 @@
-# Project Guidelines
+# Theme Fusion Tactics (TFT) Project Guidelines
 
 ## Project Context
 - Start with [README.md](README.md) for project overview, quick start, architecture, and API reference.
@@ -41,7 +41,7 @@
 
 ### Clean Abstract Core
 - The core game engine **MUST** be theme-agnostic.
-- "One Piece" is a skin/theme configuration, not hardcoded into the engine core.
+- One Piece, Pokemon, and Palworld are skin/theme configurations, not hardcoded into the engine core.
 - Use generic terms like `GameUnit`, `Trait`, `Origin` in the core, and load specific data (Luffy, Pirate) from config/factories.
 
 ### State Management
@@ -60,7 +60,7 @@
 ## 4. Game Mechanics Constraints
 - **Grid**: Square grid logic (Backend checks neighbors using Manhattan/Chebyshev distance as appropriate).
 - **Combat**: Simplified Auto-Battler mechanics (Move to nearest -> Attack).
-- **Theme**: One Piece (Initial implementation), but capable of hot-swapping to Pokemon/etc via config.
+- **Themes**: One Piece (default), Pokemon, and Palworld; capable of hot-swapping via config.
 
 ## 5. Misc
 - when defining units in the .json files. When you define multiple values in an array and its just 3 numbers, keep them in one line and not multiple line

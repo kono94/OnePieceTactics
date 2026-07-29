@@ -1,4 +1,4 @@
-# Backend Context - One Piece Tactics
+# Backend Context - Theme Fusion Tactics (TFT)
 
 ## 1. System Overview
 
@@ -9,7 +9,9 @@ The backend is the authoritative source for match state. It owns:
 - A scheduled round loop: `LOBBY -> PLANNING -> COMBAT -> END_CELEBRATION -> END`.
 - Auto-battle simulation, movement, damage, mana, abilities, traits, augments, loot, bots, and elimination.
 - Real-time synchronization to the frontend through STOMP WebSocket topics.
-- A theme-agnostic engine with pluggable game modes: `onepiece` and `pokemon`.
+- A theme-agnostic engine with pluggable game modes: `onepiece`, `pokemon`, and `palworld`.
+
+Palworld is the third mode provider. It supplies its own units, traits, augments, and elemental-affinity data while using the same room lifecycle, shop, trait applier, combat loop, and STOMP contracts as the existing modes. Theme-specific names and balance live in resources; the core resolves generic elements, abilities, statuses, and combat contexts without importing a franchise package.
 
 Live match state is not database-backed. `GameEngine` keeps active rooms in memory until a match reaches `END`, then
 removes the room on the next tick. The separate analytics subsystem writes anonymous match, player-run,
@@ -65,7 +67,9 @@ src/main/java/net/lwenstrom/tft/backend/
 │   │   ├── UnitMover.java               # Movement strategy interface.
 │   │   ├── BfsUnitMover.java            # BFS pathing on the combat grid.
 │   │   ├── CombatUtils.java             # Ally/enemy and distance helpers.
-│   │   └── PokemonTypeEffectiveness.java # Pokemon type damage modifier.
+│   │   ├── CombatRules.java             # Immutable mode-owned combat configuration.
+│   │   ├── DamageResolver.java           # Trait-derived affinity, damage, and DEF resolution.
+│   │   └── ElementalAffinityLoader.java # Data-loaded affinity graph validation/loading.
 │   ├── engine/
 │   │   ├── GameEngine.java              # In-memory room registry and room tick orchestration.
 │   │   ├── GameRoom.java                # One match instance: phase state, players, matchups, combat pairs, room mode.
@@ -84,7 +88,7 @@ src/main/java/net/lwenstrom/tft/backend/
 │   ├── model/
 │   │   ├── GameState.java               # Full snapshot sent to /topic/room/{roomId}.
 │   │   ├── GameAction.java              # Client action payload.
-│   │   ├── GameMode.java                # JSON values: onepiece, pokemon.
+│   │   ├── GameMode.java                # JSON values: onepiece, pokemon, palworld.
 │   │   ├── GamePhase.java               # LOBBY, PLANNING, COMBAT, END_CELEBRATION, END.
 │   │   ├── ActionType.java              # BUY, SELL, MOVE, REROLL, EXP, LOCK, COLLECT_ORB, READY_FOR_COMBAT, SELECT_AUGMENT.
 │   │   ├── AugmentDefinition.java       # Data-loaded augment blueprint.
@@ -105,9 +109,12 @@ src/main/java/net/lwenstrom/tft/backend/
     ├── onepiece/
     │   ├── OnePieceGameModeProvider.java # One Piece units/traits provider.
     │   └── OnePieceTraitLoader.java      # Registers generic trait appliers from traits_onepiece.json.
-    └── pokemon/
+    ├── pokemon/
         ├── PokemonGameModeProvider.java  # Pokemon units/traits provider.
         └── PokemonTraitLoader.java       # Registers generic trait appliers from traits_pokemon.json.
+    └── palworld/
+        ├── PalworldGameModeProvider.java # Palworld units/traits/affinity provider.
+        └── PalworldTraitLoader.java      # Registers generic trait appliers from traits_palworld.json.
 
 src/main/resources/data/
 ├── units_onepiece.json                  # 55 One Piece units.
@@ -115,7 +122,11 @@ src/main/resources/data/
 ├── augments_onepiece.json               # 15 One Piece augment definitions.
 ├── units_pokemon.json                   # 55 Pokemon unit lines with evolution forms.
 ├── traits_pokemon.json                  # 16 Pokemon type traits.
-└── augments_pokemon.json                # 15 Pokemon augment definitions.
+├── augments_pokemon.json                # 15 Pokemon augment definitions.
+├── units_palworld.json                   # 55 Palworld unit lines.
+├── traits_palworld.json                  # Nine Palworld elemental traits.
+├── augments_palworld.json                # 15 Palworld augment definitions.
+└── affinities_palworld.json               # Palworld nine-element relationship graph.
 ```
 
 ---
@@ -209,7 +220,7 @@ Payload:
 ```json
 {
   "playerName": "Host name",
-  "gameMode": "pokemon"
+  "gameMode": "palworld"
 }
 ```
 
@@ -237,9 +248,9 @@ private final Map<GameMode, ModeData> modeDataCache = new ConcurrentHashMap<>();
 
 - `@PostConstruct` preloads only the default mode.
 - Other modes are lazy-loaded on first use with `computeIfAbsent`.
-- `ModeData` contains a unit registry, trait metadata list, and augment definitions.
-- `getAllUnits(mode)`, `getUnitDefinition(mode, id)`, `findUnitDefinition(mode, idOrLineIdOrName)`, `getTraitMetadata(mode)`, and `getAugments(mode)` always resolve through the mode cache.
-- Each mode provider supplies units, traits, and augments resource paths. The default augment path convention is `/data/augments_{mode}.json`, with explicit paths in the One Piece and Pokemon providers.
+- `ModeData` contains a unit registry, trait metadata list, augment definitions, and an optional `ElementalAffinityConfig`.
+- `getAllUnits(mode)`, `getUnitDefinition(mode, id)`, `findUnitDefinition(mode, idOrLineIdOrName)`, `getTraitMetadata(mode)`, `getAugments(mode)`, and `getAffinityConfig(mode)` always resolve through the mode cache.
+- Each mode provider supplies units, traits, augments, and, when needed, an affinity resource path. The default augment path convention is `/data/augments_{mode}.json`; Pokemon and Palworld load their own affinity graphs while One Piece remains neutral without one.
 
 ### Unit Definitions and Forms
 
@@ -254,6 +265,8 @@ private final Map<GameMode, ModeData> modeDataCache = new ConcurrentHashMap<>();
 - `range`
 
 Every definition also has a theme-agnostic `UnitRole`: `DAMAGE`, `TANK`, or `SUPPORT`.
+
+Definitions do not require separate `basicElement`, ability `element`, `attackAnimationKey`, or JSON `animationKey` fields. Pokemon and Palworld derive offensive typing from the caster's traits using the best-attacker-trait rule against the target's defensive traits; One Piece remains neutral when no affinity config is present. Frontend animation lookup uses the stable definition id and, when needed, the resolved ability identity.
 
 Optional form overrides are represented by `UnitFormDefinition`:
 
@@ -288,9 +301,9 @@ This is how Pokemon evolutions work. Three `Charmander` copies still combine by 
 
 | Endpoint | Method | Response | Purpose |
 |----------|--------|----------|---------|
-| `/api/config` | GET | `{"defaultGameMode":"onepiece","availableModes":["onepiece","pokemon"]}` | Frontend config for default and selectable modes. |
+| `/api/config` | GET | `{"defaultGameMode":"onepiece","availableModes":["onepiece","pokemon","palworld"]}` | Frontend config for default and selectable modes. |
 | `/api/traits?mode=onepiece` | GET | `TraitMetadata[]` | Trait metadata for requested mode; missing/unknown mode falls back through `GameMode.fromString` to `onepiece`. |
-| `/api/mode` | GET | `"onepiece"` or `"pokemon"` | Current global default mode, not a room's mode. |
+| `/api/mode` | GET | `"onepiece"`, `"pokemon"`, or `"palworld"` | Current global default mode, not a room's mode. |
 | `/api/admin/auth/login` | POST | Bearer token and expiry | Exchanges the configured analytics password for an eight-hour admin session. |
 | `/api/admin/auth/logout` | POST | Empty response | Revokes the current admin bearer token. |
 | `/api/admin/analytics/summary` | GET | Aggregate analytics | Protected match, run, abandonment, placement, mode, and outcome totals. |
@@ -770,20 +783,20 @@ Modifiers are backend-only behavior extensions through the sealed `AbilityModifi
 - `KNOCKBACK`
 - `DOT`
 
-`DefaultAbilityCaster` applies Pokemon type effectiveness to `DAMAGE` abilities and `CombatSystem` applies it to auto-attacks.
+`DefaultAbilityCaster` and `CombatSystem` pass damaging abilities, basics, and damage-over-time effects through the shared affinity resolver. The resolver selects the best attacking trait for the target; abilities do not carry an independent configured element.
 
 ---
 
 ## 12. Pokemon-Specific Combat Rules
 
-`PokemonTypeEffectiveness` reads Pokemon types from unit traits. It is called for all units, but only changes damage when attacker and defender traits match known Pokemon type names.
+`DamageResolver` reads configured elements from unit traits and applies the mode's loaded affinity graph. `PokemonTypeEffectiveness` remains only as a compatibility facade for callers that used the former Pokemon-specific API.
 
 Rules:
 - Super effective multiplier: `1.2`.
 - Resisted multiplier: `0.8`.
 - Immunities are treated as resisted damage, not zero damage.
 - Defender dual-type matchups multiply together.
-- Dual-type attackers use the best attacking type.
+- Dual-type attackers use the best attacking type for each target; the same rule applies to basics, abilities, and damage-over-time effects.
 - Minimum positive damage after applying effectiveness is `1`.
 
 Examples covered by tests:
@@ -863,20 +876,20 @@ Planning board is 9x3. Combat board is 9x6.
 
 | Purpose | Path |
 |---------|------|
-| Main application | `/Users/jan/Projects/OnePieceTactics-1/backend/src/main/java/net/lwenstrom/tft/backend/BackendApplication.java` |
-| WebSocket config | `/Users/jan/Projects/OnePieceTactics-1/backend/src/main/java/net/lwenstrom/tft/backend/config/WebSocketConfig.java` |
-| Message handlers and scheduled tick | `/Users/jan/Projects/OnePieceTactics-1/backend/src/main/java/net/lwenstrom/tft/backend/core/GameController.java` |
-| Room manager | `/Users/jan/Projects/OnePieceTactics-1/backend/src/main/java/net/lwenstrom/tft/backend/core/engine/GameEngine.java` |
-| Single room state machine | `/Users/jan/Projects/OnePieceTactics-1/backend/src/main/java/net/lwenstrom/tft/backend/core/engine/GameRoom.java` |
-| Player/economy/bench/upgrades | `/Users/jan/Projects/OnePieceTactics-1/backend/src/main/java/net/lwenstrom/tft/backend/core/engine/Player.java` |
-| Combat simulation | `/Users/jan/Projects/OnePieceTactics-1/backend/src/main/java/net/lwenstrom/tft/backend/core/engine/CombatSystem.java` |
-| Augment selection/effects | `/Users/jan/Projects/OnePieceTactics-1/backend/src/main/java/net/lwenstrom/tft/backend/core/engine/AugmentManager.java` |
-| Ability casting | `/Users/jan/Projects/OnePieceTactics-1/backend/src/main/java/net/lwenstrom/tft/backend/core/combat/DefaultAbilityCaster.java` |
-| Pokemon type rules | `/Users/jan/Projects/OnePieceTactics-1/backend/src/main/java/net/lwenstrom/tft/backend/core/combat/PokemonTypeEffectiveness.java` |
-| Data loader | `/Users/jan/Projects/OnePieceTactics-1/backend/src/main/java/net/lwenstrom/tft/backend/core/DataLoader.java` |
-| Mode registry | `/Users/jan/Projects/OnePieceTactics-1/backend/src/main/java/net/lwenstrom/tft/backend/core/GameModeRegistry.java` |
-| REST config endpoint | `/Users/jan/Projects/OnePieceTactics-1/backend/src/main/java/net/lwenstrom/tft/backend/api/InfoController.java` |
-| Data files | `/Users/jan/Projects/OnePieceTactics-1/backend/src/main/resources/data/*.json` |
+| Main application | `backend/src/main/java/net/lwenstrom/tft/backend/BackendApplication.java` |
+| WebSocket config | `backend/src/main/java/net/lwenstrom/tft/backend/config/WebSocketConfig.java` |
+| Message handlers and scheduled tick | `backend/src/main/java/net/lwenstrom/tft/backend/core/GameController.java` |
+| Room manager | `backend/src/main/java/net/lwenstrom/tft/backend/core/engine/GameEngine.java` |
+| Single room state machine | `backend/src/main/java/net/lwenstrom/tft/backend/core/engine/GameRoom.java` |
+| Player/economy/bench/upgrades | `backend/src/main/java/net/lwenstrom/tft/backend/core/engine/Player.java` |
+| Combat simulation | `backend/src/main/java/net/lwenstrom/tft/backend/core/engine/CombatSystem.java` |
+| Augment selection/effects | `backend/src/main/java/net/lwenstrom/tft/backend/core/engine/AugmentManager.java` |
+| Ability casting | `backend/src/main/java/net/lwenstrom/tft/backend/core/combat/DefaultAbilityCaster.java` |
+| Pokemon type rules | `backend/src/main/java/net/lwenstrom/tft/backend/core/combat/PokemonTypeEffectiveness.java` |
+| Data loader | `backend/src/main/java/net/lwenstrom/tft/backend/core/DataLoader.java` |
+| Mode registry | `backend/src/main/java/net/lwenstrom/tft/backend/core/GameModeRegistry.java` |
+| REST config endpoint | `backend/src/main/java/net/lwenstrom/tft/backend/api/InfoController.java` |
+| Data files | `backend/src/main/resources/data/*.json` |
 
 ---
 
@@ -886,12 +899,12 @@ Planning board is 9x3. Combat board is 9x6.
 |---------------------|---------|---------|
 | `game.mode` / `GAME_MODE` | `onepiece` | Global default mode used for newly created rooms and REST default mode. |
 | `server.port` | `8080` | HTTP/WebSocket port. |
-| `spring.application.name` | `one-piece-tft-backend` | Spring app name. |
+| `spring.application.name` | `tft-backend` | Spring app name. |
 
 Run backend:
 
 ```bash
-cd /Users/jan/Projects/OnePieceTactics-1/backend
+cd backend
 GAME_MODE=onepiece mvn spring-boot:run
 ```
 

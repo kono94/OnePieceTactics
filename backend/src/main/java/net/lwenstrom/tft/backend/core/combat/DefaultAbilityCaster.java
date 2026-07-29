@@ -23,6 +23,12 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class DefaultAbilityCaster implements AbilityCaster {
+    private DamageResolver damageResolver = new DamageResolver();
+
+    @Override
+    public void setDamageResolver(DamageResolver damageResolver) {
+        this.damageResolver = damageResolver == null ? new DamageResolver() : damageResolver;
+    }
 
     @Override
     public void castAbility(GameUnit source, List<GameUnit> allUnits, TargetSelector targetSelector) {
@@ -102,7 +108,7 @@ public class DefaultAbilityCaster implements AbilityCaster {
         var totalDamageDealt = new int[] {0};
 
         applyToTargets(source, allUnits, target, ability, u -> {
-            int effectiveDamage = PokemonTypeEffectiveness.apply(source, u, finalDamage);
+            int effectiveDamage = damageResolver.apply(source, u, finalDamage);
             u.takeAbilityDamage(effectiveDamage);
             if (isFinalKill(u)) {
                 AugmentManager.applyTeamAttackDamageOnKill(source, allUnits);

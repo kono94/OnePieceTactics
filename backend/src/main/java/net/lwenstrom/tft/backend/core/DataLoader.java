@@ -3,25 +3,41 @@ package net.lwenstrom.tft.backend.core;
 import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.lwenstrom.tft.backend.core.combat.ElementalAffinityConfig;
+import net.lwenstrom.tft.backend.core.combat.ElementalAffinityLoader;
 import net.lwenstrom.tft.backend.core.engine.UnitDefinition;
 import net.lwenstrom.tft.backend.core.model.AugmentDefinition;
 import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.TraitMetadata;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.json.JsonMapper;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class DataLoader {
 
     private final GameModeRegistry gameModeRegistry;
     private final JsonMapper jsonMapper;
+    private final ElementalAffinityLoader affinityLoader;
+    private final Map<GameMode, Optional<ElementalAffinityConfig>> affinityCache = new ConcurrentHashMap<>();
+
+    @Autowired
+    public DataLoader(GameModeRegistry gameModeRegistry, JsonMapper jsonMapper) {
+        this(gameModeRegistry, jsonMapper, new ElementalAffinityLoader(jsonMapper));
+    }
+
+    public DataLoader(
+            GameModeRegistry gameModeRegistry, JsonMapper jsonMapper, ElementalAffinityLoader affinityLoader) {
+        this.gameModeRegistry = gameModeRegistry;
+        this.jsonMapper = jsonMapper;
+        this.affinityLoader = affinityLoader;
+    }
 
     private record ModeData(
             Map<String, UnitDefinition> unitRegistry,
@@ -46,6 +62,36 @@ public class DataLoader {
         var traits = loadTraits(provider.getTraitsPath());
         var augments = loadAugments(provider.getAugmentsPath());
         return new ModeData(units, traits, augments);
+    }
+
+    public ElementalAffinityConfig getAffinityConfig(GameMode mode) {
+        return getElementalAffinity(mode).orElseGet(ElementalAffinityConfig::neutral);
+    }
+
+    public Optional<ElementalAffinityConfig> getElementalAffinity(GameMode mode) {
+        return affinityCache.computeIfAbsent(mode, this::loadAffinityData);
+    }
+
+    private Optional<ElementalAffinityConfig> loadAffinityData(GameMode mode) {
+        try {
+            return gameModeRegistry.getProvider(mode).getAffinitiesPath().map(this::loadAffinities);
+        } catch (IllegalStateException e) {
+            return Optional.empty();
+        }
+    }
+
+    private ElementalAffinityConfig loadAffinities(String path) {
+        try (var inputStream = getClass().getResourceAsStream(path)) {
+            if (inputStream == null) {
+                log.warn("Could not find affinity data at {}", path);
+                return null;
+            }
+            var config = affinityLoader.load(inputStream);
+            log.info("Loaded {} elemental affinities from {}", config.elements().size(), path);
+            return config;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load affinity data: " + path, e);
+        }
     }
 
     private Map<String, UnitDefinition> loadUnits(String path) {

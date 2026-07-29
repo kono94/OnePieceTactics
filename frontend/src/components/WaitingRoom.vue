@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import type { GameMode, GameState, PlayerState } from '../types'
+import { getGameModeMetadata, sortGameModes } from '../data/gameModeMetadata'
 
 const props = defineProps<{
   gameState: GameState
   currentPlayerName: string
   availableModes: GameMode[]
   defaultMode: GameMode
+  themeClass?: string
 }>()
 
 const emit = defineEmits(['start', 'leave', 'mode-change'])
@@ -35,19 +37,14 @@ watch(
 
 const modeOptions = computed((): GameMode[] => {
     return props.availableModes && props.availableModes.length > 0
-        ? props.availableModes
-        : ['onepiece', 'pokemon']
+        ? sortGameModes(props.availableModes)
+        : ['onepiece', 'pokemon', 'palworld']
 })
 
-const modeLabel = (mode: GameMode) => {
-    if (mode === 'pokemon') return 'Pokemon'
-    if (mode === 'onepiece') return 'One Piece'
-    return mode
-}
+const modeMetadata = (mode: GameMode) => getGameModeMetadata(mode)
 
 const themeClass = computed(() => {
-    if (!props.gameState?.gameMode) return 'theme-generic'
-    return `theme-${props.gameState.gameMode}`
+    return props.themeClass ?? getGameModeMetadata(props.gameState?.gameMode ?? props.defaultMode).themeClass
 })
 
 function selectMode(mode: GameMode) {
@@ -92,7 +89,7 @@ function selectMode(mode: GameMode) {
 
     <div class="mode-panel">
         <div class="mode-label">Theme</div>
-        <div v-if="isHost" class="mode-control" role="group" aria-label="Select game theme">
+        <div class="mode-control" role="group" aria-label="Select game theme">
             <button
                 v-for="mode in modeOptions"
                 :key="mode"
@@ -100,19 +97,23 @@ function selectMode(mode: GameMode) {
                 class="mode-option"
                 :class="{ active: selectedMode === mode }"
                 :aria-pressed="selectedMode === mode"
+                :aria-label="`Select ${modeMetadata(mode).label} mode`"
+                :aria-disabled="!isHost"
+                :disabled="!isHost"
                 @click="selectMode(mode)"
             >
-                    {{ modeLabel(mode) }}
+                <span class="mode-motif" :class="`motif-${mode}`" aria-hidden="true">
+                    <span v-if="mode === 'palworld'" class="mode-motif-button" />
+                    <span v-else>{{ modeMetadata(mode).shortLabel.charAt(0) }}</span>
+                </span>
+                <span>{{ modeMetadata(mode).label }}</span>
             </button>
-        </div>
-        <div v-else class="mode-display">
-            {{ modeLabel(selectedMode) }}
         </div>
     </div>
 
     <div class="actions">
         <button class="leave-btn" @click="$emit('leave')">Leave Lobby</button>
-        <button v-if="isHost" class="start-btn" @click="() => { console.log('Start clicked in WaitingRoom'); $emit('start'); }">START GAME</button>
+        <button v-if="isHost" class="start-btn" @click="$emit('start')">START GAME</button>
         <div v-else class="waiting-msg">Waiting for host to start...</div>
     </div>
   </div>
@@ -120,6 +121,8 @@ function selectMode(mode: GameMode) {
 
 <style scoped>
 .waiting-room {
+    position: relative;
+    isolation: isolate;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -128,6 +131,7 @@ function selectMode(mode: GameMode) {
     color: var(--room-fg);
     background: var(--room-bg);
     transition: background 0.4s ease, color 0.4s ease;
+    overflow: auto;
 }
 
 .header {
@@ -249,6 +253,8 @@ function selectMode(mode: GameMode) {
 .mode-control {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
     gap: 4px;
     padding: 4px;
     border-radius: 8px;
@@ -258,7 +264,9 @@ function selectMode(mode: GameMode) {
 }
 
 .mode-option {
-    min-width: 96px;
+    display: inline-flex;
+    min-width: 108px;
+    min-height: 44px;
     padding: 10px 14px;
     border-radius: 6px;
     border: none;
@@ -272,6 +280,53 @@ function selectMode(mode: GameMode) {
     user-select: none;
 }
 
+.mode-option:focus-visible {
+    outline: 3px solid #fbbf24;
+    outline-offset: 2px;
+}
+
+.mode-option:disabled {
+    cursor: default;
+    opacity: 0.9;
+}
+
+.mode-motif {
+    position: relative;
+    display: inline-flex;
+    width: 22px;
+    height: 22px;
+    align-items: center;
+    justify-content: center;
+    margin-right: 7px;
+    border: 2px solid currentColor;
+    border-radius: 50%;
+    font-size: 0.7em;
+    line-height: 1;
+}
+
+.motif-palworld {
+    overflow: hidden;
+    border-color: #173443;
+    background: linear-gradient(180deg, #ff7f6e 0 44%, #173443 44% 56%, #f5feff 56%);
+    color: #173443;
+}
+
+.mode-motif-button {
+    width: 7px;
+    height: 7px;
+    border: 2px solid #173443;
+    border-radius: 50%;
+    background: #f5feff;
+}
+
+.motif-onepiece {
+    color: #fbbf24;
+}
+
+.motif-pokemon {
+    color: #f97316;
+}
+
 .mode-option:hover {
     background: rgba(255, 255, 255, 0.12);
 }
@@ -280,12 +335,6 @@ function selectMode(mode: GameMode) {
     color: #0f172a;
     background: var(--room-accent);
     box-shadow: 0 0 18px rgba(255, 255, 255, 0.18);
-}
-
-.mode-display {
-    font-size: 1.1em;
-    font-weight: 600;
-    color: var(--room-fg);
 }
 
 .actions {
@@ -337,5 +386,122 @@ button {
     0% { opacity: 0.6; }
     50% { opacity: 1; }
     100% { opacity: 0.6; }
+}
+
+.waiting-room.theme-palworld {
+    --pw-sky: #5bc9e8;
+    --pw-sky-deep: #1888a6;
+    --pw-teal: #187c6b;
+    --pw-leaf: #48a868;
+    --pw-sand: #f0d59a;
+    --pw-coral: #ff7f6e;
+    --pw-gold: #d9a441;
+    --pw-ink: #173443;
+    --pw-cloud: #f5feff;
+    --room-bg: linear-gradient(180deg, var(--pw-sky) 0%, #bfefff 48%, var(--pw-sand) 100%);
+    --room-fg: var(--pw-ink);
+    --room-muted: #285767;
+    --room-accent: var(--pw-teal);
+    --room-accent-contrast: var(--pw-cloud);
+    --room-avatar: var(--pw-leaf);
+    color: var(--pw-ink);
+}
+
+.waiting-room.theme-palworld::before {
+    position: absolute;
+    inset: 0 0 42%;
+    z-index: -1;
+    background:
+        radial-gradient(ellipse at 16% 25%, rgba(245, 254, 255, 0.9) 0 9%, transparent 10%),
+        radial-gradient(ellipse at 80% 17%, rgba(245, 254, 255, 0.78) 0 12%, transparent 13%),
+        linear-gradient(180deg, rgba(91, 201, 232, 0.9), rgba(191, 239, 255, 0.5));
+    content: '';
+    pointer-events: none;
+}
+
+.waiting-room.theme-palworld .header h2 {
+    color: var(--pw-teal);
+}
+
+.waiting-room.theme-palworld .player-card,
+.waiting-room.theme-palworld .mode-panel {
+    border-color: rgba(245, 254, 255, 0.78);
+    background: rgba(245, 254, 255, 0.78);
+    box-shadow: 0 10px 24px rgba(24, 136, 166, 0.14);
+}
+
+.waiting-room.theme-palworld .player-card.empty {
+    border-color: rgba(24, 124, 107, 0.4);
+}
+
+.waiting-room.theme-palworld .mode-control {
+    border-color: rgba(24, 124, 107, 0.35);
+    background: rgba(23, 52, 67, 0.82);
+}
+
+.waiting-room.theme-palworld .mode-option.active {
+    color: var(--pw-ink);
+    background: var(--pw-sand);
+    border: 1px solid var(--pw-teal);
+    box-shadow: 0 0 0 2px var(--pw-coral), 0 0 16px rgba(217, 164, 65, 0.55);
+}
+
+.waiting-room.theme-palworld .mode-option.active .motif-palworld {
+    border-color: var(--pw-coral);
+}
+
+.waiting-room.theme-palworld .host-badge {
+    background: var(--pw-gold);
+    color: var(--pw-ink);
+}
+
+.waiting-room.theme-palworld .me-badge {
+    background: var(--pw-leaf);
+    color: var(--pw-ink);
+}
+
+.waiting-room.theme-palworld .start-btn {
+    background: var(--pw-teal);
+    color: var(--pw-cloud);
+    box-shadow: 0 0 20px rgba(24, 124, 107, 0.3);
+}
+
+.waiting-room.theme-palworld .leave-btn {
+    border-color: rgba(23, 52, 67, 0.26);
+    background: rgba(245, 254, 255, 0.65);
+    color: var(--pw-ink);
+}
+
+@media (max-width: 720px) {
+    .waiting-room {
+        padding: 28px 14px;
+    }
+
+    .players-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .mode-panel {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .mode-control {
+        width: 100%;
+    }
+
+    .mode-option {
+        flex: 1 1 120px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .waiting-room *,
+    .waiting-room *::before,
+    .waiting-room *::after {
+        animation: none !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 </style>

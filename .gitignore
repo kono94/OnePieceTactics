@@ -11,3 +11,6 @@ deployment/certbot/
 # Local SQLite analytics data
 backend/data/*
 !backend/data/.gitkeep
+
+# Palworld generated batch scratch grids
+frontend/public/assets/units/palworld/_generated_batches/

@@ -1,4 +1,4 @@
-# One Piece TFT Clone - Phase 2 Implementation Plan
+# Theme Fusion Tactics (TFT) - Phase 2 Implementation Plan
 
 ## Goal Description
 The backend skeleton runs, but lacks gameplay logic. Phase 2 focuses on implementing the **Core Game Loop** and **Combat System**, and initializing the **Frontend**.
@@ -11,18 +11,18 @@ The backend skeleton runs, but lacks gameplay logic. Phase 2 focuses on implemen
 ## Proposed Changes
 
 ### Backend (Logic Implementation)
-#### [MODIFY] [GameRoom.java](file:///home/kono/projects/tft-clone/backend/src/main/java/net/lwenstrom/tft/backend/engine/GameRoom.java)
+#### [MODIFY] [GameRoom.java](../backend/src/main/java/net/lwenstrom/tft/backend/core/engine/GameRoom.java)
 - Implement State Machine: `WAITING_FOR_PLAYERS` -> `PLANNING` -> `COMBAT` -> `ROUND_END`.
 - Add timer logic for phases.
 
-#### [NEW] [CombatSystem.java](file:///home/kono/projects/tft-clone/backend/src/main/java/net/lwenstrom/tft/backend/engine/CombatSystem.java)
+#### [NEW] [CombatSystem.java](../backend/src/main/java/net/lwenstrom/tft/backend/core/engine/CombatSystem.java)
 - Implement `simulateTick()`:
     - Iterate all units.
     - Find target (nearest enemy).
     - Move or Attack.
     - Update HP/Mana.
 
-#### [MODIFY] [StandardGameUnit.java](file:///home/kono/projects/tft-clone/backend/src/main/java/net/lwenstrom/tft/backend/core/impl/StandardGameUnit.java)
+#### [MODIFY] [StandardGameUnit.java](../backend/src/main/java/net/lwenstrom/tft/backend/core/engine/StandardGameUnit.java)
 - Add combat stats (current HP, mana, targetId).
 - Implement `attack(GameUnit target)`.
 

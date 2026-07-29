@@ -1,13 +1,17 @@
-/**
- * Resolves the icon path for a unit based on its definitionId and the game mode.
- * @param definitionId The unit's definitionId (e.g., 'luffy_v1', 'charmander')
- * @param gameMode The current game mode ('onepiece' or 'pokemon')
- * @returns The relative path to the unit icon
- */
-export function getUnitIconPath(definitionId: string, gameMode: string = 'onepiece'): string {
-    if (!definitionId) return '/assets/units/onepiece/luffy_v1.png';
+import { getGameModeMetadata, isGameMode } from '../data/gameModeMetadata'
+import type { GameMode } from '../types'
 
-    // Use the gameMode to determine the subfolder
-    const subfolder = gameMode === 'pokemon' ? 'pokemon' : 'onepiece';
-    return `/assets/units/${subfolder}/${definitionId}.png`;
+export const UNIT_ICON_PLACEHOLDER = '/assets/units/placeholder.svg'
+
+export function getUnitIconPath(definitionId: string | null | undefined, gameMode: GameMode | string = 'onepiece'): string {
+    if (!definitionId?.trim() || !isGameMode(gameMode)) {
+        if (import.meta.env.DEV) {
+            console.warn('Missing unit icon identity', { gameMode, definitionId })
+        }
+        return UNIT_ICON_PLACEHOLDER
+    }
+
+    const metadata = getGameModeMetadata(gameMode)
+    const filename = gameMode === 'palworld' ? `${definitionId}_v1.png` : `${definitionId}.png`
+    return `/assets/units/${metadata.unitAssetFolder}/${filename}`
 }

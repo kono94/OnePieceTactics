@@ -5,6 +5,15 @@ defineOptions({
 
 defineEmits(['back'])
 
+const nextVersionCommits = [
+  { hash: 'working-tree', title: 'Add the first 44 processed Palworld unit portraits from batches 1–11' },
+  { hash: 'working-tree', title: 'Add Palworld mode planning and documentation' },
+  { hash: 'working-tree', title: 'Use one star-scaled root ability per Pal with Pokemon-style trait-derived damage typing' },
+  { hash: 'working-tree', title: 'Add 55 Palworld attack and ability previews without required JSON animation keys' },
+  { hash: 'working-tree', title: 'Externalize Pokemon affinity relationships into the shared data-driven resolver' },
+  { hash: 'working-tree', title: 'Rename the product to Theme Fusion Tactics (TFT)' }
+]
+
 const version180Commits = [
   { hash: '2baa71c', title: 'Retune four-cost area damage and combat-unit outliers across both sets' },
   { hash: '99d9336', title: 'Add emergency drops, combat follow-up balance, and clearer tooltip tags' },
@@ -54,6 +63,29 @@ const version160Commits = [
     <button class="back-button" type="button" @click="$emit('back')">Back</button>
 
     <div class="release-history">
+      <section class="release-section latest-release">
+        <div class="release-header">
+          <p class="eyebrow">Next</p>
+          <h2>Version X.X.X</h2>
+          <p>
+            Palworld is planned as a third lobby-selectable mode with 55 Pals, nine team-wide elemental traits, 15
+            augments, and one root ability per Pal whose values scale across 1★/2★/3★. Basic attacks and abilities
+            derive their offensive element from the Pal's traits using the existing Pokemon-style best-attacker-trait
+            behavior, while the traits remain the defensive elements and team synergies. The animation gallery uses
+            stable definition and ability identities for 55 attack previews and 55 ability previews; Palworld JSON
+            does not require separate basic-element, ability-element, or animation-key fields.
+          </p>
+        </div>
+        <article class="release-panel">
+          <ul class="commit-list">
+            <li v-for="commit in nextVersionCommits" :key="`${commit.hash}-${commit.title}`">
+              <span class="hash">{{ commit.hash }}</span>
+              <span>{{ commit.title }}</span>
+            </li>
+          </ul>
+        </article>
+      </section>
+
       <section class="release-section latest-release">
         <div class="release-header">
           <p class="eyebrow">Latest</p>

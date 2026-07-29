@@ -4,6 +4,8 @@ import java.util.List;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 
 public interface AbilityCaster {
+    default void setDamageResolver(DamageResolver damageResolver) {}
+
     void castAbility(GameUnit source, List<GameUnit> allUnits, TargetSelector targetSelector);
 
     void castAbility(

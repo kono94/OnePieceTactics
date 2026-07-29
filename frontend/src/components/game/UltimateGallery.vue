@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import CombatEffectsCanvas from './CombatEffectsCanvas.vue'
-import { ULTIMATE_GALLERY_ROSTER, type UltimateGalleryUnit } from '../../data/ultimateGalleryRoster'
-import { POKEMON_ULTIMATE_GALLERY_ROSTER } from '../../data/pokemonUltimateGalleryRoster'
+import { getGalleryAbilityRoster, getGalleryAttackRoster } from '../../animations/galleryRegistry'
+import { getAnimationRenderPolicy, getAttackParticleBudget } from '../../animations/renderPolicy'
+import { getGalleryEntryKey, type GalleryGameMode, type UltimateGalleryUnit } from '../../data/ultimateGalleryRoster'
 import { getAbilityConfig, getAttackConfig } from '../../data/animationConfig'
 import type { AbilityDefinition, RenderedUnit } from '../../types'
-import type { GameMode } from '../../types'
 import type { NormalizedCombatVisualEvent } from '../../types/combatEffects'
 import { getUnitIconPath } from '../../utils/iconUtils'
 
@@ -14,43 +14,71 @@ const GRID_ROWS = 6
 const CELL_SIZE = 78
 
 const props = defineProps<{
-    mode?: GameMode
+    mode?: GalleryGameMode
 }>()
 
-const galleryMode = computed<GameMode>(() => props.mode ?? 'onepiece')
-const roster = computed(() => galleryMode.value === 'pokemon' ? POKEMON_ULTIMATE_GALLERY_ROSTER : ULTIMATE_GALLERY_ROSTER)
-const defaultSelectedKey = computed(() => galleryKey(roster.value.find(unit => unit.id === (galleryMode.value === 'pokemon' ? 'pikachu' : 'whitebeard_v1')) ?? roster.value[0]))
-
-const selectedKey = ref(defaultSelectedKey.value)
+const galleryMode = computed<GalleryGameMode>(() => props.mode ?? 'onepiece')
 const starLevel = ref(3)
 const autoReplay = ref(true)
 const previewType = ref<'ultimate' | 'attack'>('ultimate')
+const costFilter = ref(0)
+const elementFilter = ref('all')
+const crowded = ref(false)
+const reducedMotion = ref(false)
+const playbackSpeed = ref(1)
+const darkBoard = ref(true)
 const events = ref<NormalizedCombatVisualEvent[]>([])
+
+const roster = computed(() => previewType.value === 'attack'
+    ? getGalleryAttackRoster(galleryMode.value)
+    : getGalleryAbilityRoster(galleryMode.value))
+const defaultSelectedKey = computed(() => galleryKey(roster.value.find(unit => unit.id === (galleryMode.value === 'pokemon' ? 'pikachu' : galleryMode.value === 'palworld' ? 'jetragon' : 'whitebeard_v1')) ?? roster.value[0]))
+const selectedKey = ref(defaultSelectedKey.value)
 
 let nextEventId = 1
 let replayTimer: number | null = null
 
 const selectedUnit = computed(() => roster.value.find(unit => galleryKey(unit) === selectedKey.value) ?? roster.value[0])
-const selectedAbilityConfig = computed(() => getAbilityConfig(selectedUnit.value.id))
+const selectedAbilityConfig = computed(() => resolveAbilityConfig(selectedUnit.value))
 const selectedTargetIsAlly = computed(() => isSupportAbility(selectedUnit.value.abilityType))
-const pageTitle = computed(() => galleryMode.value === 'pokemon' ? 'Pokemon Animation Lab' : 'Ultimate Gallery')
-const modeLabel = computed(() => galleryMode.value === 'pokemon' ? 'Pokemon' : 'One Piece')
+const pageTitle = computed(() => galleryMode.value === 'pokemon' ? 'Pokemon Animation Lab' : galleryMode.value === 'palworld' ? 'Palworld Animation Lab' : 'Ultimate Gallery')
+const modeLabel = computed(() => galleryMode.value === 'pokemon' ? 'Pokemon' : galleryMode.value === 'palworld' ? 'Palworld' : 'One Piece')
 const sourcePortraitMode = computed(() => galleryMode.value)
 
 const sourceUnit = computed(() => createRenderedUnit(selectedUnit.value, 'gallery-source', 2, 4, 'PLAYER', true))
-const enemyUnit = computed(() => createRenderedUnit(createDummyUnit('Training Target', galleryMode.value === 'pokemon' ? 'snorlax' : 'kaido_v1', 3), 'gallery-target', 6, 1, 'ENEMY', false))
-const allyUnit = computed(() => createRenderedUnit(createDummyUnit('Ally Preview', galleryMode.value === 'pokemon' ? 'bulbasaur' : 'luffy_v1', 3), 'gallery-ally', 5, 4, 'PLAYER', true))
+const enemyUnit = computed(() => createRenderedUnit(createDummyUnit('Training Target', galleryMode.value === 'pokemon' ? 'snorlax' : galleryMode.value === 'palworld' ? 'lamball' : 'kaido_v1', 3), 'gallery-target', 6, 1, 'ENEMY', false))
+const allyUnit = computed(() => createRenderedUnit(createDummyUnit('Ally Preview', galleryMode.value === 'pokemon' ? 'bulbasaur' : galleryMode.value === 'palworld' ? 'lifmunk' : 'luffy_v1', 3), 'gallery-ally', 5, 4, 'PLAYER', true))
 const targetUnit = computed(() => selectedTargetIsAlly.value ? allyUnit.value : enemyUnit.value)
 const renderedUnits = computed(() => selectedTargetIsAlly.value
     ? [sourceUnit.value, allyUnit.value]
     : [sourceUnit.value, enemyUnit.value]
 )
 
-const filteredRoster = computed(() => roster.value)
+const filteredRoster = computed(() => roster.value.filter((unit) => {
+    if (costFilter.value > 0 && unit.cost !== costFilter.value) return false
+    if (elementFilter.value !== 'all') {
+        const unitElements = unit.traits ?? (unit.element ? [unit.element] : [])
+        if (!unitElements.some((element) => element.toLowerCase() === elementFilter.value)) return false
+    }
+    return true
+}))
+const selectedAttackConfig = computed(() => resolveAttackConfig(selectedUnit.value))
+const missingConfigCount = computed(() => Number(Boolean(selectedAbilityConfig.value.diagnostic)) + Number(Boolean(selectedAttackConfig.value.diagnostic)))
 
 function galleryKey(unit: UltimateGalleryUnit | undefined) {
-    if (!unit) return ''
-    return `${unit.id}:${unit.abilityName}`
+    return unit ? getGalleryEntryKey(unit) : ''
+}
+
+function resolveAbilityConfig(unit: UltimateGalleryUnit) {
+    return galleryMode.value === 'palworld' && unit.abilityAnimationKey
+        ? getAbilityConfig('palworld', unit.abilityAnimationKey, { traits: unit.traits })
+        : getAbilityConfig(unit.id)
+}
+
+function resolveAttackConfig(unit: UltimateGalleryUnit) {
+    return galleryMode.value === 'palworld' && unit.attackAnimationKey
+        ? getAttackConfig('palworld', unit.attackAnimationKey, { traits: unit.traits })
+        : getAttackConfig(unit.id)
 }
 
 function createDummyUnit(name: string, id: string, cost: number): UltimateGalleryUnit {
@@ -73,6 +101,11 @@ function createRenderedUnit(unit: UltimateGalleryUnit, instanceId: string, x: nu
         range: [1, 2, 3],
         values: unit.abilityType === 'HEAL' ? [-80, -140, -220] : [120, 190, 300]
     }
+    if (galleryMode.value !== 'palworld' && unit.abilityAnimationKey) {
+        ability.key = unit.abilityAnimationKey
+        ability.animationKey = unit.abilityAnimationKey
+    }
+    if (galleryMode.value !== 'palworld' && unit.element) ability.element = unit.element
 
     return {
         id: instanceId,
@@ -91,7 +124,7 @@ function createRenderedUnit(unit: UltimateGalleryUnit, instanceId: string, x: nu
         defense: 30,
         attackSpeed: 0.8,
         range: 1,
-        traits: [],
+        traits: unit.traits ?? [],
         items: [],
         x,
         y,
@@ -117,14 +150,16 @@ function pointFor(unit: RenderedUnit) {
 }
 
 function isSupportAbility(type: string) {
-    return type === 'HEAL' || type.startsWith('BUFF')
+    return type === 'HEAL' || type === 'SHIELD' || type.startsWith('BUFF')
 }
 
 function replayUltimate() {
     const source = sourceUnit.value
     const target = targetUnit.value
-    const abilityConfig = getAbilityConfig(source.definitionId)
-    const value = source.ability?.type === 'HEAL' ? -180 : (source.ability?.type.startsWith('BUFF') ? 0 : 240)
+    const abilityConfig = resolveAbilityConfig(selectedUnit.value)
+    const attackConfig = resolveAttackConfig(selectedUnit.value)
+    const abilityRenderPolicy = getAnimationRenderPolicy(abilityConfig, { reducedMotion: reducedMotion.value })
+    const value = source.ability?.type === 'HEAL' ? -180 : (isSupportAbility(source.ability?.type ?? '') ? 0 : 240)
     const isUltimate = previewType.value === 'ultimate'
 
     events.value = [
@@ -142,13 +177,21 @@ function replayUltimate() {
             start: pointFor(source),
             end: pointFor(target),
             definitionId: source.definitionId,
-            attack: getAttackConfig(source.definitionId),
-            ability: abilityConfig,
+            attack: {
+                ...attackConfig,
+                particles: getAttackParticleBudget(attackConfig, { reducedMotion: reducedMotion.value })
+            },
+            ability: {
+                ...abilityConfig,
+                particleScale: abilityRenderPolicy.particleScale,
+                screenShake: abilityRenderPolicy.screenShake,
+                durationScale: abilityRenderPolicy.durationScale
+            },
             pattern: source.ability?.pattern ?? 'SINGLE',
             starLevel: starLevel.value,
             intensity: isUltimate ? 'ultimate' : 'normal',
             batchSize: 1,
-            crowded: false
+            crowded: crowded.value
         }
     ]
 }
@@ -164,11 +207,11 @@ function scheduleReplay() {
         replayTimer = null
     }
     if (autoReplay.value) {
-        replayTimer = window.setInterval(replayUltimate, 2200)
+        replayTimer = window.setInterval(replayUltimate, 2200 / playbackSpeed.value)
     }
 }
 
-watch([selectedKey, starLevel, galleryMode, previewType], () => {
+watch([selectedKey, starLevel, galleryMode, previewType, costFilter, elementFilter, crowded, reducedMotion], () => {
     if (!roster.value.some(unit => galleryKey(unit) === selectedKey.value)) {
         selectedKey.value = defaultSelectedKey.value
         return
@@ -177,6 +220,7 @@ watch([selectedKey, starLevel, galleryMode, previewType], () => {
 })
 
 watch(autoReplay, scheduleReplay)
+watch(playbackSpeed, scheduleReplay)
 
 watch(pageTitle, (title) => {
     document.title = title
@@ -201,6 +245,9 @@ onUnmounted(() => {
           <a href="#" class="back-link">Back to game</a>
           <h1>{{ pageTitle }}</h1>
           <p>{{ modeLabel }} · {{ selectedUnit.name }} · {{ selectedAbilityConfig.signature || selectedUnit.abilityName }}</p>
+          <p v-if="galleryMode === 'palworld'" class="gallery-counts">
+            {{ filteredRoster.length }} {{ previewType === 'attack' ? 'attack previews' : 'ability previews' }} · {{ missingConfigCount }} missing explicit configs
+          </p>
         </div>
         <div class="preview-controls">
           <button
@@ -237,9 +284,34 @@ onUnmounted(() => {
         </div>
       </div>
 
+      <div v-if="galleryMode === 'palworld'" class="gallery-filters" aria-label="Palworld gallery filters">
+        <label>Cost
+          <select v-model.number="costFilter">
+            <option :value="0">All</option>
+            <option v-for="cost in [1, 2, 3, 4, 5]" :key="cost" :value="cost">{{ cost }}g</option>
+          </select>
+        </label>
+        <label>Element
+          <select v-model="elementFilter">
+            <option value="all">All</option>
+            <option v-for="element in ['neutral', 'fire', 'water', 'electric', 'grass', 'ice', 'ground', 'dark', 'dragon']" :key="element" :value="element">{{ element }}</option>
+          </select>
+        </label>
+        <label class="filter-toggle"><input v-model="crowded" type="checkbox"> Crowded</label>
+        <label class="filter-toggle"><input v-model="reducedMotion" type="checkbox"> Reduced motion</label>
+        <label class="filter-toggle"><input v-model="darkBoard" type="checkbox"> Dark board</label>
+        <label>Speed
+          <select v-model.number="playbackSpeed">
+            <option :value="1">1×</option>
+            <option :value="0.75">0.75×</option>
+          </select>
+        </label>
+      </div>
+
       <div class="board-shell">
         <div
           class="gallery-board"
+          :class="{ 'light-board': !darkBoard }"
           :style="{ width: `${GRID_COLS * CELL_SIZE}px`, height: `${GRID_ROWS * CELL_SIZE}px` }"
         >
           <div
@@ -292,7 +364,7 @@ onUnmounted(() => {
       >
         <img :src="getUnitIconPath(unit.id, galleryMode)" :alt="unit.name" draggable="false">
         <span class="roster-name">{{ unit.name }}</span>
-        <span class="roster-meta">{{ getAbilityConfig(unit.id).signature || unit.abilityName }} · {{ unit.cost }}g</span>
+        <span class="roster-meta">{{ (galleryMode === 'palworld' && unit.abilityAnimationKey ? getAbilityConfig('palworld', unit.abilityAnimationKey, { traits: unit.traits }) : getAbilityConfig(unit.id)).signature || unit.abilityName }} · {{ unit.cost }}g</span>
       </button>
     </section>
   </main>
@@ -408,6 +480,45 @@ p {
     font-weight: 800;
 }
 
+.gallery-counts {
+    color: #fbbf24;
+    font-size: 12px;
+}
+
+.gallery-filters {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 4px 10px;
+    color: #cbd5e1;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.gallery-filters label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.gallery-filters select {
+    min-height: 28px;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    background: #111827;
+    color: #f8fafc;
+    font-weight: 700;
+}
+
+.filter-toggle {
+    min-height: 28px;
+    padding: 0 7px;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    background: #111827;
+}
+
 .board-shell {
     display: flex;
     justify-content: center;
@@ -427,6 +538,11 @@ p {
     border-radius: 8px;
     background: linear-gradient(180deg, rgba(53, 39, 55, 0.56) 0 50%, rgba(15, 23, 42, 0.88) 50% 100%);
     overflow: hidden;
+}
+
+.gallery-board.light-board {
+    border-color: #94a3b8;
+    background: linear-gradient(180deg, rgba(226, 232, 240, 0.92) 0 50%, rgba(148, 163, 184, 0.92) 50% 100%);
 }
 
 .mode-pokemon .gallery-board {

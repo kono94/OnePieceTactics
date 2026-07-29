@@ -10,8 +10,8 @@
     <groupId>net.lwenstrom.tft</groupId>
     <artifactId>backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>One Piece TFT Backend</name>
-    <description>Backend for One Piece TFT Clone</description>
+    <name>Theme Fusion Tactics Backend</name>
+    <description>Backend for Theme Fusion Tactics (TFT)</description>
     <properties>
         <java.version>25</java.version>
         <maven.compiler.source>25</maven.compiler.source>

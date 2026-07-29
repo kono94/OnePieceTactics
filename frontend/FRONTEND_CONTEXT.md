@@ -1,4 +1,4 @@
-# Frontend Context — OnePieceTactics Vue.js Implementation
+# Frontend Context — Theme Fusion Tactics (TFT) Vue.js Implementation
 
 > **Last Updated:** 2026-07-17
 > **Purpose:** Comprehensive architectural blueprint and source of truth for AI developers working on the Vue.js 3 frontend.
@@ -8,7 +8,7 @@
 
 ## 1. High-Level Summary
 
-**OnePieceTactics** is a **real-time multiplayer auto-battler** game frontend built with **Vue 3** + **TypeScript** + **Vite**. It renders live game state received from a Spring Boot backend via **STOMP WebSockets**, allowing players to build teams, position units, and spectate automated combat rounds.
+**Theme Fusion Tactics (TFT)** is a **real-time multiplayer auto-battler** game frontend built with **Vue 3** + **TypeScript** + **Vite**. It renders live game state received from a Spring Boot backend via **STOMP WebSockets**, allowing players to build teams, position units, and spectate automated combat rounds.
 
 **Primary Goal:**  
 Deliver a responsive, visually rich UI that reflects backend-authoritative game state while providing smooth drag-and-drop unit management, real-time combat animations, and multi-theme support (One Piece, Pokemon).
@@ -51,10 +51,12 @@ frontend/
 │   │   │   └── placeholder.svg # Default icon when an augment has no image
 │   │   └── units/              # Unit character icons organized by theme
 │   │       ├── onepiece/       # One Piece character portraits
-│   │       └── pokemon/        # Pokemon character portraits + generation prompt
+│   │       ├── pokemon/        # Pokemon character portraits + generation prompt
+│   │       └── palworld/       # Palworld character portraits
 │   │           └── _generated_batches/  # Ignored scratch output for batch icon work
 │   ├── favicon.svg             # Default favicon (One Piece theme)
-│   └── pokeball.png            # Pokemon theme favicon
+│   ├── pokeball.png            # Pokemon theme favicon
+│   └── pal-sphere.png          # Palworld theme favicon
 │
 ├── src/
 │   ├── main.ts                 # App entry point (minimal - mounts App.vue)
@@ -89,12 +91,15 @@ frontend/
 │   │   ├── iconUtils.ts        # Unit icon path resolution (theme-aware)
 │   │   └── colorUtils.ts       # Rarity colors, team colors
 │   │
-│   └── data/                   # Static/semi-static data and configs
+│   ├── data/                   # Static/semi-static data and configs
 │       ├── traitData.ts        # Trait definitions fetched from backend
 │       ├── shopOdds.ts         # Shop probability tables (by level)
-│       ├── animationConfig.ts  # Animation styles for One Piece and Pokemon attacks/abilities
+│       ├── animationConfig.ts  # Compatibility re-export for mode-aware animation registries
 │       ├── ultimateGalleryRoster.ts        # One Piece gallery roster
-│       └── pokemonUltimateGalleryRoster.ts # Pokemon gallery roster derived from backend units JSON
+│       ├── pokemonUltimateGalleryRoster.ts # Pokemon gallery roster derived from backend units JSON
+│       └── palworldUltimateGalleryRoster.ts # Palworld root-ability and attack previews
+│
+│   └── animations/             # Mode-aware attack/ability/status animation registries and families
 │
 ├── vite.config.ts              # Vite build config + proxy rules
 ├── tsconfig.json               # TypeScript compiler options
@@ -120,7 +125,7 @@ const gameState = ref<GameState | null>(null)  // Backend-authoritative game sta
 const isConnected = ref(false)                 // WebSocket connection status
 const currentView = ref<'lobby' | 'game'>('lobby')  // View router
 const encounterResult = ref<'WON' | 'LOST' | 'DRAW' | null>(null)  // Combat outcome
-const availableModes = ref<GameMode[]>(['onepiece', 'pokemon'])
+const availableModes = ref<GameMode[]>(['onepiece', 'pokemon', 'palworld'])
 const activeTraitMode = ref<GameMode | null>(null)
 const viewedPlayerId = ref<string | null>(null)      // Local board spectating target
 ```
@@ -208,7 +213,7 @@ The backend binds create/join to the STOMP session id and rejects later action/s
 
 **REST Bootstrap:**
 - `GET /api/config` returns `availableModes` and `defaultGameMode` for the waiting room.
-- `GET /api/traits?mode={onepiece|pokemon}` hydrates `TRAIT_DATA` for the active mode.
+- `GET /api/traits?mode={onepiece|pokemon|palworld}` hydrates `TRAIT_DATA` for the active mode.
 - The Vite dev server rewrites `/ws` to backend `/tft-websocket` and proxies `/api` unchanged.
 
 **GameAction Structure:**
@@ -278,8 +283,8 @@ The current board and standalone gallery use `CombatEffectsCanvas.vue` for layer
 5. `GameCanvas.vue` still owns DOM unit feedback: hit flash, caster glow, attacking lunge, floating skill names, floating heals, death fade, and star-up celebrations.
 
 **Canvas Effect Behavior:**
-- Auto-attacks use `getAttackConfig(definitionId)` from `animationConfig.ts`; Pokemon attacks fall back through type/style maps such as grass, fire, water, electric, psychic, poison, ground, ice, ghost, bug, fighting, dragon, steel, normal.
-- Ultimates use `getAbilityConfig(definitionId)`, including One Piece signature styles and Pokemon `POKEMON_*` ability effect styles.
+- Auto-attacks use `getAttackConfig(gameMode, definitionId)` from the animation registry; the resolved attacking trait supplies the runtime element color, while existing Pokemon type/style maps remain available for legacy visuals.
+- Ultimates use `getAbilityConfig(gameMode, definitionId, abilityIdentity?)`, including One Piece signature styles, Pokemon ability effect styles, and Palworld's 55 root-ability styles. Star level scales the same ability preview; it never selects a star-specific ability.
 - Expensive effects scale by unit cost and star level, with particle and active-effect caps (`MAX_PARTICLES`, `MAX_ACTIVE_EFFECTS`) plus simplified rendering on crowded boards.
 - Healing, shield, and death are first-class canvas events, not just floating text.
 - Screen shake is driven by ability config and dampened when the board is crowded.
@@ -336,7 +341,8 @@ const themeClass = computed(() => `theme-${gameState.value?.gameMode ?? 'generic
 // utils/iconUtils.ts
 export function getUnitIconPath(definitionId: string, gameMode?: string): string {
   const theme = gameMode || 'onepiece'
-  return `/assets/units/${theme}/${definitionId}.png`
+  const fileName = theme === 'palworld' ? `${definitionId}_v1.png` : `${definitionId}.png`
+  return `/assets/units/${theme}/${fileName}`
 }
 ```
 
@@ -350,14 +356,16 @@ setTraitData(traits)  // Populates global TRAIT_DATA object
 
 **Mode-Specific Mechanics:**
 - `WaitingRoom.vue` receives `availableModes` and `defaultMode` from `/api/config`; mode changes publish to `/app/room/{id}/mode`.
-- `theme-generic`, `theme-onepiece`, and `theme-pokemon` CSS custom properties live in `App.vue`.
-- `GameMode` is a strict union: `'onepiece' | 'pokemon'`.
+- `theme-generic`, `theme-onepiece`, `theme-pokemon`, and `theme-palworld` CSS custom properties live in `App.vue`; Palworld styling is limited to the public lobby and waiting room.
+- `GameMode` is a strict union: `'onepiece' | 'pokemon' | 'palworld'`.
 - Pokemon traits use `TraitDefinition.type = 'type'` in addition to One Piece-style `origin` and `class`; `targetScope` and `effectType` are available for richer tooltip/metadata display.
 - `TraitSidebar.vue` counts unique unit lines using `lineId || definitionId || name`, so evolved Pokemon forms do not over-count the same evolution line.
 - Units expose `role: 'DAMAGE' | 'TANK' | 'SUPPORT'` and `defense`; Pokemon forms may override the base role by star level.
 - `UnitTooltip.vue` shows a red Damage, blue Tank, or green Support badge, the current DEF value, an amber MELEE or
   fuchsia RANGED badge based on attack range, and trait tags colored with `TraitDefinition.iconColor` (neutral fallback).
 - `pokemonUltimateGalleryRoster.ts` imports `backend/src/main/resources/data/units_pokemon.json` and expands both base units and `forms` into gallery entries.
+- `palworldUltimateGalleryRoster.ts` imports `backend/src/main/resources/data/units_palworld.json`, creates one root-ability entry and one attack preview per Pal, and reuses each ability at 1/2/3 stars with scaled values.
+- Palworld traits are team-wide defensive elements. Damage visuals use the best attacking trait selected by backend affinity resolution; the frontend does not calculate or persist an independent basic/ability element.
 
 
 ### 4.7 Styling Approach
@@ -419,7 +427,7 @@ export const TEAM_COLORS = {
 | [GameCanvas.vue](src/components/GameCanvas.vue) | ~1100 | 9×6 board rendering, unit positioning, event normalization, DOM feedback, loot orbs, augment chips, tooltips |
 | [AugmentSelectionOverlay.vue](src/components/AugmentSelectionOverlay.vue) | ~400 | Full-screen augment choice overlay with tier-specific silver/gold/diamond styling |
 | [CombatEffectsCanvas.vue](src/components/game/CombatEffectsCanvas.vue) | ~2000 | Canvas renderer for attack, ultimate, heal, shield, death, particle, and shake effects |
-| [UltimateGallery.vue](src/components/game/UltimateGallery.vue) | ~600 | Standalone hash route for previewing One Piece/Pokemon attacks and ultimates |
+| [UltimateGallery.vue](src/components/game/UltimateGallery.vue) | ~600 | Standalone hash route for previewing One Piece/Pokemon/Palworld attacks and root abilities |
 | [AttackAnimation.vue](src/components/game/AttackAnimation.vue) | legacy | Older DOM attack/ability effect component; currently not imported by the live board |
 
 ### 5.3 Type Definitions
@@ -528,12 +536,16 @@ public/assets/units/
 │   ├── luffy_v1.png
 │   ├── zoro_v1.png
 │   └── nami_v1.png
-└── pokemon/            # Pokemon theme icons
+├── pokemon/            # Pokemon theme icons
     ├── ICON_GENERATION_PROMPT.md
     ├── _generated_batches/  # ignored scratch output
     ├── pikachu.png
     ├── charizard.png
     └── mewtwo.png
+└── palworld/           # Palworld theme icons
+    ├── lamball_v1.png
+    ├── chillet_v1.png
+    └── panthalus_v1.png
 ```
 
 **Icon Resolution:**
@@ -541,7 +553,8 @@ public/assets/units/
 // utils/iconUtils.ts
 export function getUnitIconPath(definitionId: string, gameMode?: string): string {
   const theme = gameMode || 'onepiece'
-  return `/assets/units/${theme}/${definitionId}.png`
+  const fileName = theme === 'palworld' ? `${definitionId}_v1.png` : `${definitionId}.png`
+  return `/assets/units/${theme}/${fileName}`
 }
 ```
 
@@ -552,8 +565,8 @@ export function getUnitIconPath(definitionId: string, gameMode?: string): string
 > 1. Use the **4-Quadrant Prompt Template** to generate 4 characters at once
 > 2. Ensure each quadrant specifies the correct HEX background color based on unit cost
 > 3. Use `scripts/quadrant_cutter.py` to split the generated image
-> 4. Rename `_qN.png` files to match `definitionId` from `units_{theme}.json`
-> 5. Move to `public/assets/units/{theme}/{definitionId}.png`
+> 4. Rename `_qN.png` files to match `definitionId` from `units_{theme}.json`; use the Palworld `_v1.png` suffix.
+> 5. Move to `public/assets/units/{theme}/{definitionId}[_v1].png` according to the mode metadata.
 > 6. Compress large PNGs before committing
 > 7. Verify consistency: background color, pixel art style, centering
 

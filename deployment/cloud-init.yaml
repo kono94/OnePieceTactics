@@ -127,7 +127,7 @@ runcmd:
   - ufw --force enable
 
   # Clone repository
-  - git clone https://github.com/kono94/OnePieceTactics.git /opt/tft
+  - git clone https://github.com/kono94/theme-fusion-tactics.git /opt/tft
   - chown -R github-deployer:github-deployer /opt/tft
 
   # Reboot to apply SSH changes

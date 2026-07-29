@@ -53,7 +53,9 @@ public class CombatSimulator {
                     new NearestEnemyTargetSelector(),
                     new BfsUnitMover(clock),
                     new DefaultAbilityCaster(),
-                    randomProvider);
+                    randomProvider,
+                    request.mode(),
+                    dataLoader.getAffinityConfig(request.mode()));
             var boardOne = createPlayer(request.boardOne(), request, randomProvider);
             var boardTwo = createPlayer(request.boardTwo(), request, randomProvider);
 

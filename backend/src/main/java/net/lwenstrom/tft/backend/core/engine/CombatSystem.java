@@ -9,10 +9,12 @@ import lombok.extern.slf4j.Slf4j;
 import net.lwenstrom.tft.backend.core.GameConstants;
 import net.lwenstrom.tft.backend.core.combat.AbilityCaster;
 import net.lwenstrom.tft.backend.core.combat.CombatUtils;
-import net.lwenstrom.tft.backend.core.combat.PokemonTypeEffectiveness;
+import net.lwenstrom.tft.backend.core.combat.DamageResolver;
+import net.lwenstrom.tft.backend.core.combat.ElementalAffinityConfig;
 import net.lwenstrom.tft.backend.core.combat.TargetSelector;
 import net.lwenstrom.tft.backend.core.combat.UnitMover;
 import net.lwenstrom.tft.backend.core.model.DotEffect;
+import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GameState;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 import net.lwenstrom.tft.backend.core.random.DefaultRandomProvider;
@@ -28,6 +30,7 @@ public class CombatSystem {
     private final UnitMover unitMover;
     private final AbilityCaster abilityCaster;
     private final RandomProvider randomProvider;
+    private DamageResolver damageResolver;
 
     private Map<String, DamageEntry> damageLog = new HashMap<>();
     private List<GameState.CombatEvent> recentEvents = new ArrayList<>();
@@ -41,7 +44,15 @@ public class CombatSystem {
             TargetSelector targetSelector,
             UnitMover unitMover,
             AbilityCaster abilityCaster) {
-        this(traitManager, clock, targetSelector, unitMover, abilityCaster, new DefaultRandomProvider());
+        this(
+                traitManager,
+                clock,
+                targetSelector,
+                unitMover,
+                abilityCaster,
+                new DefaultRandomProvider(),
+                GameMode.ONEPIECE,
+                ElementalAffinityConfig.neutral());
     }
 
     public CombatSystem(
@@ -51,12 +62,61 @@ public class CombatSystem {
             UnitMover unitMover,
             AbilityCaster abilityCaster,
             RandomProvider randomProvider) {
+        this(
+                traitManager,
+                clock,
+                targetSelector,
+                unitMover,
+                abilityCaster,
+                randomProvider,
+                GameMode.ONEPIECE,
+                ElementalAffinityConfig.neutral());
+    }
+
+    public CombatSystem(
+            TraitManager traitManager,
+            Clock clock,
+            TargetSelector targetSelector,
+            UnitMover unitMover,
+            AbilityCaster abilityCaster,
+            RandomProvider randomProvider,
+            GameMode mode,
+            ElementalAffinityConfig affinityConfig) {
         this.traitManager = traitManager;
         this.clock = clock;
         this.targetSelector = targetSelector;
         this.unitMover = unitMover;
         this.abilityCaster = abilityCaster;
         this.randomProvider = randomProvider;
+        configureAffinity(mode, affinityConfig);
+    }
+
+    public CombatSystem(
+            TraitManager traitManager,
+            Clock clock,
+            TargetSelector targetSelector,
+            UnitMover unitMover,
+            AbilityCaster abilityCaster,
+            RandomProvider randomProvider,
+            ElementalAffinityConfig affinityConfig) {
+        this(
+                traitManager,
+                clock,
+                targetSelector,
+                unitMover,
+                abilityCaster,
+                randomProvider,
+                GameMode.PALWORLD,
+                affinityConfig);
+    }
+
+    public void configureAffinity(GameMode mode, ElementalAffinityConfig affinityConfig) {
+        this.damageResolver = new DamageResolver(mode, affinityConfig);
+        this.abilityCaster.setDamageResolver(this.damageResolver);
+    }
+
+    public void configureAffinity(ElementalAffinityConfig affinityConfig) {
+        configureAffinity(damageResolver == null ? GameMode.ONEPIECE : damageResolver.mode(), affinityConfig);
     }
 
     private void accumulateDamage(String unitId, String unitName, String defId, String ownerId, int damage) {
@@ -268,7 +328,7 @@ public class CombatSystem {
                     }
 
                     int effectiveDamage = (int) (baseDamage * multiplier);
-                    effectiveDamage = PokemonTypeEffectiveness.apply(unit, target, effectiveDamage);
+                    effectiveDamage = damageResolver.apply(unit, target, effectiveDamage);
                     log.debug("{} attacks {} for {}", unit.getName(), target.getName(), effectiveDamage);
 
                     // Handle Revive (Big Mom Pirates)
@@ -394,7 +454,7 @@ public class CombatSystem {
                         .orElse(null);
                 var damage = source == null
                         ? effect.damagePerTick()
-                        : PokemonTypeEffectiveness.apply(source, target, effect.damagePerTick());
+                        : damageResolver.apply(source, target, effect.damagePerTick());
                 target.takeAbilityDamage(damage);
                 accumulateDamage(
                         effect.sourceId(),

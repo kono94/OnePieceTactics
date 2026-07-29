@@ -11,9 +11,10 @@ export interface TraitDefinition {
     name: string; // "Straw Hat", "Fighter"
     description: string;
     effects: TraitEffect[];
-    type: 'origin' | 'class' | 'type';
+    type: string;
     targetScope?: 'SELF' | 'TEAM';
     iconColor: string; // Simple hex for placeholder
+    iconGlyph?: string;
     effectType?: string;
 }
 
@@ -25,13 +26,17 @@ export const setTraitData = (traits: TraitDefinition[]) => {
     Object.keys(TRAIT_DATA).forEach(key => delete TRAIT_DATA[key]);
     traits.forEach(trait => {
         TRAIT_DATA[trait.id] = trait;
+        TRAIT_DATA[normalizeTraitId(trait.id)] = trait;
     });
 };
 
 // Helper to normalize trait names to IDs
 export const normalizeTraitId = (name: string): string => {
-    return name.toLowerCase().replace(/\s+/g, '_');
+    return name.trim().toLowerCase().replace(/[\s-]+/g, '_');
 }
+
+export const getTraitGlyph = (trait: TraitDefinition): string =>
+    trait.iconGlyph?.trim() || trait.name.trim().charAt(0) || '•';
 
 export const getTraitData = (name: string): TraitDefinition | null => {
     const id = normalizeTraitId(name);

@@ -1,4 +1,4 @@
-Feature Roadmap - One Piece Tactics
+Feature Roadmap - Theme Fusion Tactics (TFT)
 Purpose: Top-level implementation plan for new features, sorted by effort (simplest first).
 Created: 2026-01-21
 

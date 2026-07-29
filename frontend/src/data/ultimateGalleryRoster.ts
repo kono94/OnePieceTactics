@@ -1,4 +1,7 @@
 import type { AbilityDefinition } from '../types'
+import type { GameMode } from '../types'
+
+export type GalleryGameMode = GameMode | 'palworld'
 
 export interface UltimateGalleryUnit {
     id: string
@@ -7,6 +10,23 @@ export interface UltimateGalleryUnit {
     abilityType: AbilityDefinition['type']
     pattern: AbilityDefinition['pattern']
     abilityName: string
+    gameMode?: GalleryGameMode
+    starLevel?: number
+    traits?: string[]
+    attackAnimationKey?: string
+    abilityAnimationKey?: string
+    element?: string
+    isShowcase?: boolean
+    bespokeShowcase?: boolean
+}
+
+export function getGalleryEntryKey(unit: UltimateGalleryUnit) {
+    return [
+        unit.gameMode ?? 'onepiece',
+        unit.id,
+        unit.starLevel ?? 0,
+        unit.abilityAnimationKey ?? unit.abilityName
+    ].join(':')
 }
 
 export const ULTIMATE_GALLERY_ROSTER: UltimateGalleryUnit[] = [
