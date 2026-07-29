@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import net.lwenstrom.tft.backend.core.DataLoader;
@@ -49,6 +50,10 @@ public class Player {
     private boolean inCombat = false;
     private boolean ghost = false;
     private boolean bot = false;
+
+    @Setter(AccessLevel.NONE)
+    private boolean emergencyDropTriggered = false;
+
     private final List<PendingUpgrade> pendingUpgrades = new ArrayList<>();
 
     private record PendingUpgrade(String lineId, int starLevel) {}
@@ -106,6 +111,7 @@ public class Player {
         this.lootOrbs.clear();
         this.augmentChoices.clear();
         this.selectedAugments.clear();
+        this.emergencyDropTriggered = false;
         bench.clearAll();
         removeAllUnits();
         refreshShopFree();
@@ -339,6 +345,19 @@ public class Player {
 
     public void takeDamage(int amount) {
         this.health = Math.max(0, this.health - amount);
+    }
+
+    public boolean triggerEmergencyDropIfEligible(int previousHealth) {
+        if (emergencyDropTriggered
+                || bot
+                || ghost
+                || previousHealth <= GameConstants.EMERGENCY_DROP_HEALTH_THRESHOLD
+                || health <= 0
+                || health > GameConstants.EMERGENCY_DROP_HEALTH_THRESHOLD) {
+            return false;
+        }
+        emergencyDropTriggered = true;
+        return true;
     }
 
     private void checkLevelUp() {

@@ -236,16 +236,20 @@ public class DefaultAbilityCaster implements AbilityCaster {
             CombatStatCallback callback) {
         switch (ability.pattern()) {
             case SINGLE -> {
-                source.setShield(source.getShield() + shieldAmount);
-                callback.onShielding(source.getId(), source.getName(), source.getId(), shieldAmount);
+                var effectiveAmount = source.addShield(shieldAmount);
+                if (effectiveAmount > 0) {
+                    callback.onShielding(source.getId(), source.getName(), source.getId(), effectiveAmount);
+                }
             }
             case SURROUND, LINE ->
                 allUnits.stream()
                         .filter(u -> u.getCurrentHealth() > 0)
                         .filter(u -> CombatUtils.isAlly(source, u))
                         .forEach(u -> {
-                            u.setShield(u.getShield() + shieldAmount);
-                            callback.onShielding(source.getId(), source.getName(), u.getId(), shieldAmount);
+                            var effectiveAmount = u.addShield(shieldAmount);
+                            if (effectiveAmount > 0) {
+                                callback.onShielding(source.getId(), source.getName(), u.getId(), effectiveAmount);
+                            }
                         });
         }
     }

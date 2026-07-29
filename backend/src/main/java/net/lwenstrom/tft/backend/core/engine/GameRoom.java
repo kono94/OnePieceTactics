@@ -21,6 +21,7 @@ import net.lwenstrom.tft.backend.core.combat.BfsUnitMover;
 import net.lwenstrom.tft.backend.core.combat.DefaultAbilityCaster;
 import net.lwenstrom.tft.backend.core.combat.NearestEnemyTargetSelector;
 import net.lwenstrom.tft.backend.core.model.AugmentTier;
+import net.lwenstrom.tft.backend.core.model.EmergencyDropPayload;
 import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GamePhase;
 import net.lwenstrom.tft.backend.core.model.GameState;
@@ -61,6 +62,7 @@ public class GameRoom {
     private AugmentManager augmentManager;
     private final List<GameState.CombatEvent> lastTickEvents = new ArrayList<>();
     private final Map<String, CombatSystem.DamageEntry> currentRoundDamageLog = new ConcurrentHashMap<>();
+    private final List<PendingEmergencyDrop> pendingEmergencyDrops = new ArrayList<>();
 
     private CombatResultListener combatResultListener;
 
@@ -72,7 +74,13 @@ public class GameRoom {
                 String loserId,
                 List<String> participantIds,
                 Map<String, CombatSystem.DamageEntry> damageLog);
+
+        default void onEmergencyDrop(String roomId, EmergencyDropPayload payload) {}
     }
+
+    private record PendingEmergencyDrop(String dropId, String playerId) {}
+
+    private record OrbCell(int x, int y) {}
 
     private record BotRosterProfile(
             int maxUnits,
@@ -493,6 +501,7 @@ public class GameRoom {
                     spawnLootOrbsForPlayer(p);
                 }
             });
+            spawnPendingEmergencyDrops();
         }
 
         this.currentPhaseDuration = calculatePhaseDuration(newPhase, round);
@@ -795,34 +804,92 @@ public class GameRoom {
     }
 
     private void spawnLootOrbsForPlayer(Player player) {
-        int orbCount = GameConstants.MIN_ORB_COUNT
+        var orbCount = GameConstants.MIN_ORB_COUNT
                 + randomProvider.nextInt(GameConstants.MAX_ORB_COUNT - GameConstants.MIN_ORB_COUNT + 1);
-        for (int i = 0; i < orbCount; i++) {
-            var orbId = UUID.randomUUID().toString();
-            int x = randomProvider.nextInt(GameConstants.GRID_COLS);
-            int y = randomProvider.nextInt(GameConstants.PLAYER_ROWS);
+        for (var i = 0; i < orbCount; i++) {
+            var cell = new OrbCell(
+                    randomProvider.nextInt(GameConstants.GRID_COLS), randomProvider.nextInt(GameConstants.PLAYER_ROWS));
+            player.addLootOrb(createLootOrb(player, cell));
+        }
+    }
 
-            var type =
-                    randomProvider.nextInt(100) < GameConstants.ORB_GOLD_CHANCE_PERCENT ? LootType.GOLD : LootType.UNIT;
-            var contentId = "";
-            var amount = 0;
+    private void spawnPendingEmergencyDrops() {
+        var dropsToSpawn = new ArrayList<>(pendingEmergencyDrops);
+        pendingEmergencyDrops.clear();
 
-            if (type == LootType.GOLD) {
-                amount = rollLootGoldAmount();
-            } else {
-                var units = dataLoader.getAllUnits(gameMode);
-                var def = chooseLootUnitDefinitionForPlayer(player, units);
-                if (def.isPresent()) {
-                    contentId = def.get().id();
-                } else {
-                    type = LootType.GOLD;
-                    amount = rollLootGoldAmount();
-                }
+        dropsToSpawn.forEach(drop -> {
+            var player = players.get(drop.playerId());
+            if (player == null || player.getHealth() <= 0 || player.isBot() || player.isGhost()) {
+                return;
             }
 
-            var orb = new LootOrb(orbId, x, y, type, contentId, amount);
+            var orbCount = GameConstants.MIN_EMERGENCY_DROP_ORB_COUNT
+                    + randomProvider.nextInt(GameConstants.MAX_EMERGENCY_DROP_ORB_COUNT
+                            - GameConstants.MIN_EMERGENCY_DROP_ORB_COUNT
+                            + 1);
+            var orbs = spawnLootOrbs(player, orbCount);
+            if (combatResultListener != null) {
+                combatResultListener.onEmergencyDrop(
+                        id,
+                        new EmergencyDropPayload(
+                                drop.dropId(),
+                                drop.playerId(),
+                                round,
+                                orbs.stream().map(LootOrb::id).toList()));
+            }
+        });
+    }
+
+    private List<LootOrb> spawnLootOrbs(Player player, int requestedOrbCount) {
+        var availableCells = availableLootOrbCells(player);
+        randomProvider.shuffle(availableCells);
+
+        var orbCount = Math.min(requestedOrbCount, availableCells.size());
+        var spawnedOrbs = new ArrayList<LootOrb>(orbCount);
+        for (var i = 0; i < orbCount; i++) {
+            var cell = availableCells.get(i);
+            var orb = createLootOrb(player, cell);
             player.addLootOrb(orb);
+            spawnedOrbs.add(orb);
         }
+        return spawnedOrbs;
+    }
+
+    private List<OrbCell> availableLootOrbCells(Player player) {
+        var occupiedCells = player.getLootOrbs().stream()
+                .map(orb -> new OrbCell(orb.x(), orb.y()))
+                .collect(Collectors.toSet());
+        var availableCells = new ArrayList<OrbCell>();
+        for (var y = 0; y < GameConstants.PLAYER_ROWS; y++) {
+            for (var x = 0; x < GameConstants.GRID_COLS; x++) {
+                var cell = new OrbCell(x, y);
+                if (!occupiedCells.contains(cell)) {
+                    availableCells.add(cell);
+                }
+            }
+        }
+        return availableCells;
+    }
+
+    private LootOrb createLootOrb(Player player, OrbCell cell) {
+        var type = randomProvider.nextInt(100) < GameConstants.ORB_GOLD_CHANCE_PERCENT ? LootType.GOLD : LootType.UNIT;
+        var contentId = "";
+        var amount = 0;
+
+        if (type == LootType.GOLD) {
+            amount = rollLootGoldAmount();
+        } else {
+            var units = dataLoader.getAllUnits(gameMode);
+            var def = chooseLootUnitDefinitionForPlayer(player, units);
+            if (def.isPresent()) {
+                contentId = def.get().id();
+            } else {
+                type = LootType.GOLD;
+                amount = rollLootGoldAmount();
+            }
+        }
+
+        return new LootOrb(UUID.randomUUID().toString(), cell.x(), cell.y(), type, contentId, amount);
     }
 
     Optional<UnitDefinition> chooseLootUnitDefinitionForPlayer(Player player, List<UnitDefinition> units) {
@@ -979,8 +1046,14 @@ public class GameRoom {
         var damage = GameConstants.BASE_COMBAT_DAMAGE + winner.getBoardUnits().size() + (round / 3);
 
         if (!loser.isGhost()) {
-            loser.takeDamage((int) damage);
+            var previousHealth = loser.getHealth();
+            loser.takeDamage(damage);
             log.info("Combat ended: {} wins! {} takes {} damage", winner.getName(), loser.getName(), damage);
+
+            if (loser.triggerEmergencyDropIfEligible(previousHealth)) {
+                pendingEmergencyDrops.add(
+                        new PendingEmergencyDrop(UUID.randomUUID().toString(), loser.getId()));
+            }
 
             if (loser.getHealth() <= 0) {
                 var aliveCount = (int)

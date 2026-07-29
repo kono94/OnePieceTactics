@@ -275,6 +275,13 @@ public interface GameUnit {
 
     default void setShield(int amount) {}
 
+    default int addShield(int requested) {
+        var shieldCap = Math.min(Math.round(getMaxHealth() * 0.5f), getCurrentHealth());
+        var effectiveAmount = Math.max(0, Math.min(requested, shieldCap - getShield()));
+        setShield(getShield() + effectiveAmount);
+        return effectiveAmount;
+    }
+
     default int getDamageReduction() {
         return 0;
     }

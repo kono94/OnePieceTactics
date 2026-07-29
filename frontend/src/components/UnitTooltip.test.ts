@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import UnitTooltip from './UnitTooltip.vue'
 import type { UnitDefinition } from '../types'
+import { setTraitData } from '../data/traitData'
 
 function unitDefinition(overrides: Partial<UnitDefinition> = {}): UnitDefinition {
     return {
@@ -37,21 +38,38 @@ describe('UnitTooltip', () => {
         expect(wrapper.text()).toContain('20')
     })
 
-    it('renders role progression for evolving shop units', () => {
+    it.each([
+        [1, 'MELEE', 'range-melee'],
+        [3, 'RANGED', 'range-ranged'],
+    ])('labels range %s as %s', (range, label, badgeClass) => {
         const wrapper = mount(UnitTooltip, {
             props: {
-                unit: unitDefinition({
-                    forms: [
-                        { starLevel: 1, definitionId: 'caterpie', name: 'Caterpie', role: 'SUPPORT' },
-                        { starLevel: 2, definitionId: 'metapod', name: 'Metapod', role: 'TANK' },
-                        { starLevel: 3, definitionId: 'butterfree', name: 'Butterfree', role: 'SUPPORT' }
-                    ]
-                })
+                unit: unitDefinition({ range })
             }
         })
 
-        expect(wrapper.get('.role-progression').text()).toContain('1★ Support')
-        expect(wrapper.get('.role-progression').text()).toContain('2★ Tank')
-        expect(wrapper.get('.role-progression').text()).toContain('3★ Support')
+        expect(wrapper.get('.range-badge').text()).toBe(label)
+        expect(wrapper.get('.range-badge').classes()).toContain(badgeClass)
+        expect(wrapper.find('.role-progression').exists()).toBe(false)
+    })
+
+    it('colors known trait tags and uses the neutral fallback for unknown traits', () => {
+        setTraitData([{
+            id: 'bug',
+            name: 'Bug',
+            description: 'Bug trait',
+            effects: [],
+            type: 'type',
+            iconColor: '#22c55e',
+        }])
+        const wrapper = mount(UnitTooltip, {
+            props: {
+                unit: unitDefinition({ traits: ['Bug', 'Unknown'] })
+            }
+        })
+
+        const tags = wrapper.findAll('.trait-tag')
+        expect(tags[0].attributes('style')).toContain('rgb(34, 197, 94)')
+        expect(tags[1].attributes('style')).toContain('rgb(148, 163, 184)')
     })
 })

@@ -97,14 +97,14 @@ public class SimulationTest {
             nextPhaseMethod.setAccessible(true);
 
             // Fast forward Planning to Combat
-            testClock.advance(30000);
+            testClock.advance(room.getState().timeRemainingMs() + 1);
 
             room.tick();
             assertEquals(GamePhase.COMBAT, room.getState().phase(), "Should switch to COMBAT phase");
             assertEquals(1, room.getState().round(), "Round should still be 1 in Combat");
 
             // Fast forward Combat to Planning
-            testClock.advance(30000);
+            testClock.advance(room.getState().timeRemainingMs() + 1);
 
             room.tick();
             assertEquals(

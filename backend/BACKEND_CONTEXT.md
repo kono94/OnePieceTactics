@@ -160,7 +160,7 @@ graph TD
    - `round` increments.
    - Combat state is restored via `CombatSystem.endCombat`.
    - Players leave combat mode, pending upgrades are processed, income/XP/shop/loot/bot roster updates run.
-   - Augment offers are generated on rounds `2`, `5`, and `10` for alive players.
+   - Augment offers are generated on rounds `3`, `6`, and `11` for alive players.
    - Bots select an offered augment immediately; human choices remain in `PlayerState.augmentChoices`.
    - Duration is `BASE_PLANNING_DURATION_MS + (round - 1) * PLANNING_DURATION_INCREMENT_MS`.
 3. `COMBAT`
@@ -172,7 +172,7 @@ graph TD
    - `CombatSystem.startCombat()` applies traits and mirrors board positions into the 9x6 combat grid.
    - `AugmentManager.applyCombatEffects()` applies selected augment combat effects after combat positions/traits are initialized.
    - Each 100ms tick processes dots, stuns, abilities, attacks, mana gain, movement, death, shields, and damage logs.
-   - Max combat duration is `COMBAT_PHASE_MS` (`25000ms`).
+   - Max combat duration is `COMBAT_PHASE_MS` (`32000ms`) in every round.
 4. `END_CELEBRATION`
    - Starts when one or zero alive players remain.
    - Last survivor gets `place = 1`.
@@ -381,7 +381,7 @@ Move conventions:
 | Topic | Payload | Frequency |
 |-------|---------|-----------|
 | `/topic/room/{roomId}` | `GameState` | Every scheduled tick for every active room, and immediately after handled messages. |
-| `/topic/room/{roomId}/event` | `{type, payload}` | Currently used for `COMBAT_RESULT`. |
+| `/topic/room/{roomId}/event` | `RoomEvent<T>` | Typed `COMBAT_RESULT` and `EMERGENCY_DROP` events. |
 
 `GameState`:
 
@@ -482,6 +482,21 @@ Known event types emitted by combat code include `DAMAGE`, `SKILL`, `DEATH`, `HE
 }
 ```
 
+`EMERGENCY_DROP` is published when the pending drop spawns at the next planning phase. Its `round` is that new planning
+round:
+
+```json
+{
+  "type": "EMERGENCY_DROP",
+  "payload": {
+    "dropId": "drop-uuid",
+    "playerId": "player-uuid",
+    "round": 7,
+    "orbIds": ["orb-uuid-1", "orb-uuid-2"]
+  }
+}
+```
+
 Live `GameState.damageLog` uses the full `CombatSystem.DamageEntry` record:
 
 ```java
@@ -572,8 +587,9 @@ private AugmentManager augmentManager;
 - Loser damage is `BASE_COMBAT_DAMAGE + winner.boardUnits.size() + (round / 3)`.
 - Ghost losers take no damage.
 - Real losers at 0 health get a final `place`.
+- A surviving human crossing from above 20 health to 20 or lower queues a one-time emergency drop for the next planning phase; bots, ghosts, and lethal hits are excluded.
 - If one player remains, starts `END_CELEBRATION`.
-- Emits `COMBAT_RESULT` through the listener configured by `GameController`.
+- Emits typed room events through the listener configured by `GameController`.
 
 ---
 
@@ -619,9 +635,9 @@ Combat restrictions:
 `AugmentManager` owns offer generation, selection, instant rewards, and combat-time effects.
 
 Offer rounds:
-- Round `2`: `SILVER`
-- Round `5`: `GOLD`
-- Round `10`: `DIAMOND`
+- Round `3`: `SILVER`
+- Round `6`: `GOLD`
+- Round `11`: `DIAMOND`
 
 For each augment round, alive players receive up to 3 offers in `Player.augmentChoices`. The manager excludes already selected augment ids before shuffling candidates. Human players choose through `SELECT_AUGMENT`; bots select randomly as soon as offers are generated. If a human player still has choices when combat begins, `GameRoom.selectRandomPendingAugments()` randomly selects one before combat setup.
 
@@ -827,6 +843,10 @@ Constants:
 
 Collection is via `COLLECT_ORB`. At combat start, alive players also run `collectAllOrbs()` so unclaimed loot is picked up before board auto-fill and combat setup. Unit orbs create a 1-star unit for the player's current room mode; if the bench is full, the player gets the unit's cost as gold.
 
+Each eligible human receives at most one emergency drop per match. The drop is queued when combat damage first moves
+the player from above 20 health to a surviving health of 20 or lower, then spawns 10 to 15 normal gold/unit orbs at
+the next planning phase. Emergency orb cells are unique and exclude every orb cell already occupied for that player.
+
 ### Grid
 
 | Constant | Value | Meaning |
@@ -886,7 +906,7 @@ Access:
 Combat:
 - `MANA_PER_HIT = 10`
 - `ABILITY_COOLDOWN_MS = 1000`
-- `COMBAT_PHASE_MS = 25000`
+- `COMBAT_PHASE_MS = 32000`
 
 Economy:
 - `XP_PER_PHASE = 2`

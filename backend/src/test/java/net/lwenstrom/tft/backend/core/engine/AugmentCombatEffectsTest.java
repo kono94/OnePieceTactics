@@ -123,6 +123,18 @@ class AugmentCombatEffectsTest {
         assertEquals(114, unit.getCurrentHealth());
     }
 
+    @Test
+    void startingShieldAugmentUsesEffectiveShieldCap() {
+        var player = TestHelpers.createTestPlayer("Player");
+        player.addUnitToBoard(TestHelpers.createUnitDef("unit", "Unit", 1, 100, 10), 0, 0);
+        player.addSelectedAugment(selected("first-guard", AugmentEffectType.TEAM_STARTING_SHIELD, 125));
+        var manager = new AugmentManager(TestHelpers.createDefaultAugments(), TestHelpers.createSeededRandomProvider());
+
+        manager.applyCombatEffects(List.of(player));
+
+        assertEquals(50, player.getBoardUnits().getFirst().getShield());
+    }
+
     private UnitDefinition createDamageCaster() {
         var ability = new AbilityDefinition(
                 "Strike",

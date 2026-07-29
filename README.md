@@ -29,7 +29,7 @@ For detailed architectural information, refer to the context documents:
 - **Auto-battler mechanics**: Shop, XP, Gold (with interest), Trait Synergies, Unit Combinations
 - **Grid-based combat** with BFS pathfinding, ability casting, and directional attack animations
 - **Star-level progression** — combine 3 matching 1★ units into 1 2★, then 2 matching 2★ units into 1 3★, including Pokemon evolution forms
-- **Round-based augment choices** — players choose team-wide economy or combat bonuses on rounds 2, 5, and 10
+- **Round-based augment choices** — players choose team-wide economy or combat bonuses on rounds 3, 6, and 11
 - **Advanced ability system** — Damage, Stun, Shield, Heal, Buff with modifiers (Lifesteal, Execute, Scaling, Conditional, Knockback)
 - **Data-driven trait system** — All trait effects loaded from JSON configuration (no hardcoded logic)
 - **TFT-style shop odds** — Level-based probability distribution for unit costs (1★-5★)
@@ -38,7 +38,7 @@ For detailed architectural information, refer to the context documents:
 ### Combat & Progression
 - **Ghost/clone matchmaking** — Odd player count creates AI clones for balanced combat
 - **Player elimination** — Ranked placement system with game-ending logic
-- **Loot orbs** — Gold and unit rewards spawn after combat rounds
+- **Loot orbs** — Gold and unit rewards spawn after combat rounds, with a one-time emergency drop when a surviving human first falls to 20 health or lower
 - **Pokemon type effectiveness** — Pokemon auto attacks and damage abilities apply type matchup modifiers
 - **Role-based unit identity** — Every form is labeled Damage, Tank, or Support; Pokemon evolutions can change roles
 - **Unified DEF combat stat** — DEF mitigates attacks, abilities, and damage-over-time and can be buffed or shredded
@@ -51,7 +51,7 @@ For detailed architectural information, refer to the context documents:
 - **Star-level visual effects** — Enhanced borders and top glows for 2★ and 3★ units
 - **Shop probability tooltip** — Hover over player level to see current unit cost distribution
 - **Git-based version display** — Build metadata (tag, commit, timestamp) in bottom-left corner
-- **Smart unit tooltips** — Role badges, DEF, evolution-role previews, and star-level ability highlighting
+- **Smart unit tooltips** — Role, melee/ranged, trait-color, and DEF badges with star-level ability highlighting
 - **Player board spectating** — Click alive players in the right panel to view their board and combat from their perspective
 - **Keyboard shortcuts** — Enter key support for room creation/joining
 - **Bench reordering** — Swap and rearrange units even during combat phase
@@ -178,7 +178,7 @@ Use `GAME_MODE` or `game.mode` to choose the default lobby selection. To add a n
 | `/app/room/{id}/mode` | Client → Server | Host changes the room game mode during lobby |
 | `/app/room/{id}/action` | Client → Server | Player action (BUY, MOVE, REROLL, EXP, SELL, LOCK, COLLECT_ORB, READY_FOR_COMBAT, SELECT_AUGMENT) |
 | `/topic/room/{id}` | Server → Client | Game state broadcast (100ms) |
-| `/topic/room/{id}/event` | Server → Client | Combat result events (winner, loser, damageLog) |
+| `/topic/room/{id}/event` | Server → Client | Typed combat-result and emergency-drop events |
 
 Client actions are bound to the STOMP session that joined the room. The backend rejects actions, start requests, and mode changes that attempt to act as a different player id.
 Augment choices are included in each player's `GameState` snapshot as `augmentChoices`; selected augments are exposed as `selectedAugments`.

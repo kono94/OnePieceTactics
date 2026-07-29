@@ -10,9 +10,12 @@ import net.lwenstrom.tft.backend.core.engine.CombatSystem;
 import net.lwenstrom.tft.backend.core.engine.GameEngine;
 import net.lwenstrom.tft.backend.core.engine.GameRoom;
 import net.lwenstrom.tft.backend.core.engine.Player;
+import net.lwenstrom.tft.backend.core.model.EmergencyDropPayload;
 import net.lwenstrom.tft.backend.core.model.GameAction;
 import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GamePhase;
+import net.lwenstrom.tft.backend.core.model.RoomEvent;
+import net.lwenstrom.tft.backend.core.model.RoomEventType;
 import net.lwenstrom.tft.backend.core.model.TraitMetadata;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -68,7 +71,22 @@ public class GameController {
     }
 
     private void configureCombatResultListener(GameRoom room) {
-        room.setCombatResultListener(this::handleCombatResult);
+        room.setCombatResultListener(new GameRoom.CombatResultListener() {
+            @Override
+            public void onCombatResult(
+                    String roomId,
+                    String winnerId,
+                    String loserId,
+                    List<String> participantIds,
+                    Map<String, CombatSystem.DamageEntry> damageLog) {
+                handleCombatResult(roomId, winnerId, loserId, participantIds, damageLog);
+            }
+
+            @Override
+            public void onEmergencyDrop(String roomId, EmergencyDropPayload payload) {
+                handleEmergencyDrop(roomId, payload);
+            }
+        });
     }
 
     private void handleCombatResult(
@@ -79,8 +97,15 @@ public class GameController {
             Map<String, CombatSystem.DamageEntry> damageLog) {
         var damageMap = buildDamageMap(damageLog);
         var payload = buildCombatResultPayload(winnerId, loserId, participantIds, damageMap);
-        var event = Map.of("type", "COMBAT_RESULT", "payload", payload);
-        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/event", (Object) event);
+        publishRoomEvent(roomId, new RoomEvent<>(RoomEventType.COMBAT_RESULT, payload));
+    }
+
+    private void handleEmergencyDrop(String roomId, EmergencyDropPayload payload) {
+        publishRoomEvent(roomId, new RoomEvent<>(RoomEventType.EMERGENCY_DROP, payload));
+    }
+
+    private void publishRoomEvent(String roomId, RoomEvent<?> event) {
+        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/event", event);
     }
 
     private Map<String, Map<String, Object>> buildDamageMap(Map<String, CombatSystem.DamageEntry> damageLog) {

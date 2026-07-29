@@ -62,6 +62,16 @@ class DefenseAndRoleTest {
     }
 
     @Test
+    void shieldCapUsesLowerOfHalfMaxHealthAndCurrentHealth() {
+        var unit = new StandardGameUnit(definitionWith(UnitRole.TANK, ints(100)));
+        unit.setCurrentHealth(40);
+
+        assertEquals(40, unit.addShield(75));
+        assertEquals(40, unit.getShield());
+        assertEquals(0, unit.addShield(10));
+    }
+
+    @Test
     void temporaryDefenseAbilitiesKeepOnlyStrongestValueAndResetAfterCombat() {
         var buffAbility = ability(AbilityType.BUFF_DEF, AbilityPattern.SINGLE, 20);
         var shredAbility = ability(AbilityType.DEBUFF_DEF, AbilityPattern.SINGLE, 15);

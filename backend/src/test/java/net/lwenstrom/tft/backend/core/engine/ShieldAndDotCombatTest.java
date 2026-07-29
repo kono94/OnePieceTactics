@@ -26,14 +26,14 @@ class ShieldAndDotCombatTest {
     private final JsonMapper jsonMapper = JsonMapper.builder().build();
 
     @Test
-    void shieldAbilityGrantsShieldAndAbsorbsDamage() {
+    void shieldAbilityCapsShieldAndTracksEffectiveAmount() {
         var ability = new AbilityDefinition(
                 "Iron Defense",
                 "Gain shield",
                 AbilityType.SHIELD,
                 AbilityPattern.SINGLE,
                 List.of(1, 1, 1),
-                List.of(120, 240, 480),
+                List.of(400, 400, 400),
                 List.of());
         var shieldUnitDef = TestHelpers.createUnitDefWithAbility("shield", "Shieldmon", 1, 500, 10, ability);
         var enemyDef = TestHelpers.createUnitDef("enemy", "Enemy", 1, 500, 40);
@@ -53,12 +53,12 @@ class ShieldAndDotCombatTest {
         combatSystem.startCombat(List.of(p1, p2));
         combatSystem.simulateTick(List.of(p1, p2));
 
-        assertEquals(120, shieldUnit.getShield());
+        assertEquals(250, shieldUnit.getShield());
         var damageEntry = combatSystem.getDamageLog().get(shieldUnit.getId());
         assertNotNull(damageEntry);
-        assertEquals(120, damageEntry.shielding());
+        assertEquals(250, damageEntry.shielding());
         shieldUnit.takeDamage(80);
-        assertEquals(40, shieldUnit.getShield());
+        assertEquals(170, shieldUnit.getShield());
         assertEquals(500, shieldUnit.getCurrentHealth());
     }
 
@@ -138,12 +138,13 @@ class ShieldAndDotCombatTest {
         var combatSystem = TestHelpers.createTestCombatSystem(createTestClock());
         combatSystem.startCombat(List.of(p1, p2));
         guardian.setShieldOnDeath(true);
+        guardian.setShield(245);
         combatSystem.simulateTick(List.of(p1, p2));
 
         assertEquals(0, ally.getCurrentHealth());
         var damageEntry = combatSystem.getDamageLog().get(guardian.getId());
         assertNotNull(damageEntry);
-        assertEquals(30, damageEntry.shielding());
+        assertEquals(5, damageEntry.shielding());
     }
 
     @Test

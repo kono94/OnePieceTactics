@@ -254,7 +254,7 @@
       "description": "Water blast deals $value damage and knocks enemies back.",
       "type": "DAMAGE",
       "pattern": "SURROUND",
-      "values": [191, 346, 623],
+      "values": [220, 398, 716],
       "range": [2, 2, 2],
       "modifiers": [
         {
@@ -468,7 +468,7 @@
       "description": "Light beam pierces enemies in a line for $value damage.",
       "type": "DAMAGE",
       "pattern": "LINE",
-      "values": [644, 1109, 2086],
+      "values": [741, 1275, 2399],
       "range": [7, 7, 7]
     }
   },
@@ -493,7 +493,7 @@
       "description": "Rains magma dealing $value damage to all nearby enemies.",
       "type": "DAMAGE",
       "pattern": "SURROUND",
-      "values": [564, 1014, 1826],
+      "values": [649, 1166, 2100],
       "range": [3, 3, 3]
     }
   },
@@ -625,7 +625,7 @@
       "description": "Burning string whip deals $value damage in a line.",
       "type": "DAMAGE",
       "pattern": "LINE",
-      "values": [385, 693, 1247],
+      "values": [443, 797, 1434],
       "range": [5, 5, 5]
     }
   },
@@ -650,7 +650,7 @@
       "description": "Massive air blade deals $value damage across the battlefield.",
       "type": "DAMAGE",
       "pattern": "LINE",
-      "values": [630, 982, 1769],
+      "values": [725, 1129, 2034],
       "range": [7, 7, 7]
     }
   },
@@ -877,7 +877,7 @@
       "description": "Ignites dealing $value damage. More damage when wounded.",
       "type": "DAMAGE",
       "pattern": "SURROUND",
-      "values": [403, 725, 1304],
+      "values": [463, 834, 1500],
       "range": [2, 2, 2],
       "modifiers": [
         {
@@ -910,7 +910,7 @@
       "description": "Devastating club strike deals $value damage to all nearby and stuns.",
       "type": "DAMAGE",
       "pattern": "SURROUND",
-      "values": [341, 614, 1106],
+      "values": [392, 706, 1272],
       "range": [2, 2, 2],
       "modifiers": [
         {
@@ -1131,7 +1131,7 @@
       "description": "Steals souls dealing $value damage to all nearby enemies.",
       "type": "DAMAGE",
       "pattern": "SURROUND",
-      "values": [273, 491, 885],
+      "values": [314, 565, 1018],
       "range": [2, 2, 2],
       "modifiers": [
         {
@@ -1288,7 +1288,7 @@
       "description": "Summons storm dealing $value damage to all nearby enemies.",
       "type": "DAMAGE",
       "pattern": "SURROUND",
-      "values": [546, 942, 1695],
+      "values": [628, 1083, 1949],
       "range": [3, 3, 3]
     }
   },
@@ -1389,7 +1389,7 @@
       "description": "Blazing fist deals $value damage to all nearby enemies.",
       "type": "DAMAGE",
       "pattern": "SURROUND",
-      "values": [350, 662, 1191],
+      "values": [403, 761, 1370],
       "range": [2, 2, 2]
     }
   },
@@ -1440,7 +1440,7 @@
       "description": "Shatters air dealing $value damage to all nearby. More when wounded.",
       "type": "DAMAGE",
       "pattern": "SURROUND",
-      "values": [417, 750, 1350],
+      "values": [480, 863, 1553],
       "range": [2, 2, 2],
       "modifiers": [
         {

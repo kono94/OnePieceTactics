@@ -1,59 +1,135 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { onUnmounted, ref, watch } from 'vue'
+import type { EmergencyDropPayload } from '../types'
 
 const props = defineProps<{
-  phase: string
+  phase: string,
+  emergencyDrop?: EmergencyDropPayload | null,
+  suppressPlanningAnnouncement?: boolean
 }>()
 
 const showAnnouncement = ref(false)
 const currentText = ref('')
-const isCombat = ref(false)
+const currentSubtitle = ref('')
+const announcementMode = ref<'planning' | 'combat' | 'emergency'>('planning')
+let planningTimer: number | null = null
+let hideTimer: number | null = null
+let animationFrame: number | null = null
 
-// Watch for phase changes to trigger animations
+const clearPlanningTimer = () => {
+    if (planningTimer !== null) {
+        window.clearTimeout(planningTimer)
+        planningTimer = null
+    }
+}
+
+const clearPresentationTimers = () => {
+    if (hideTimer !== null) {
+        window.clearTimeout(hideTimer)
+        hideTimer = null
+    }
+    if (animationFrame !== null) {
+        cancelAnimationFrame(animationFrame)
+        animationFrame = null
+    }
+}
+
 watch(() => props.phase, (newPhase, oldPhase) => {
     if (newPhase === oldPhase) return
 
     if (newPhase === 'PLANNING') {
-        currentText.value = 'PLANNING PHASE'
-        isCombat.value = false
-        triggerAnimation()
+        schedulePlanningAnnouncement()
     } else if (newPhase === 'COMBAT') {
+        clearPlanningTimer()
         currentText.value = 'BATTLE START'
-        isCombat.value = true
+        currentSubtitle.value = ''
+        announcementMode.value = 'combat'
         triggerAnimation()
     } else {
-        // Other phases if any (e.g., LOBBY, END_CELEBRATION, END)
+        clearPlanningTimer()
         showAnnouncement.value = false
     }
-}, { immediate: true }) // Check immediately on load too
+}, { immediate: true })
 
-function triggerAnimation() {
+watch(() => props.suppressPlanningAnnouncement, (shouldSuppress) => {
+    if (!shouldSuppress) return
+    clearPlanningTimer()
+    if (announcementMode.value === 'planning') {
+        showAnnouncement.value = false
+    }
+})
+
+watch(() => props.emergencyDrop, (drop, previousDrop) => {
+    if (!drop || drop.dropId === previousDrop?.dropId) return
+
+    clearPlanningTimer()
+    currentText.value = 'EMERGENCY DROP'
+    currentSubtitle.value = `${drop.orbIds.length} bonus ${drop.orbIds.length === 1 ? 'orb' : 'orbs'} deployed`
+    announcementMode.value = 'emergency'
+    triggerAnimation(3800)
+}, { immediate: true })
+
+function schedulePlanningAnnouncement() {
+    clearPlanningTimer()
+    if (props.suppressPlanningAnnouncement || props.emergencyDrop) return
+
+    planningTimer = window.setTimeout(() => {
+        planningTimer = null
+        if (props.phase !== 'PLANNING' || props.suppressPlanningAnnouncement || props.emergencyDrop) return
+        currentText.value = 'PLANNING PHASE'
+        currentSubtitle.value = ''
+        announcementMode.value = 'planning'
+        triggerAnimation()
+    }, 150)
+}
+
+function triggerAnimation(duration = 3000) {
+    clearPresentationTimers()
     showAnnouncement.value = false
-    // Small delay to allow reset if rapid changes
-    requestAnimationFrame(() => {
+    animationFrame = requestAnimationFrame(() => {
+        animationFrame = null
         showAnnouncement.value = true
-        // Auto hide after animation duration
-        // Planning: 2s slide in/out
-        // Combat: 2.5s big splash
-        setTimeout(() => {
+        hideTimer = window.setTimeout(() => {
             showAnnouncement.value = false
-        }, 3000)
+            hideTimer = null
+        }, duration)
     })
 }
+
+onUnmounted(() => {
+    clearPlanningTimer()
+    clearPresentationTimers()
+})
 </script>
 
 <template>
   <div class="phase-layer">
       <transition name="phase-anim">
-          <div v-if="showAnnouncement" class="announcement-container" :class="{ 'combat-mode': isCombat }">
+          <div v-if="showAnnouncement"
+               class="announcement-container"
+               :class="`${announcementMode}-mode`"
+               role="status"
+               aria-live="assertive"
+               aria-atomic="true">
               
               <!-- Combat Visuals -->
-              <div v-if="isCombat" class="combat-wrapper">
+              <div v-if="announcementMode === 'combat'" class="combat-wrapper">
                   <div class="sword-left">⚔️</div>
                   <div class="text-content">
                       <h1 class="glitch" :data-text="currentText">{{ currentText }}</h1>
                   </div>
                   <div class="sword-right">⚔️</div>
+              </div>
+
+              <!-- Emergency Drop Visuals -->
+              <div v-else-if="announcementMode === 'emergency'" class="emergency-wrapper">
+                  <div class="emergency-beacon" aria-hidden="true">◆</div>
+                  <div class="emergency-copy">
+                      <p class="emergency-kicker">Round {{ emergencyDrop?.round }}</p>
+                      <h1>{{ currentText }}</h1>
+                      <p>{{ currentSubtitle }}</p>
+                  </div>
+                  <div class="emergency-beacon" aria-hidden="true">◆</div>
               </div>
 
               <!-- Planning Visuals -->
@@ -211,6 +287,92 @@ function triggerAnimation() {
 @keyframes slide-down {
     0% { transform: translateY(-50px); opacity: 0; }
     100% { transform: translateY(15vh); opacity: 1; } /* Position slightly down from top */
+}
+
+/* === EMERGENCY DROP STYLES === */
+.emergency-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    max-width: min(680px, calc(100vw - 40px));
+    padding: 20px 34px;
+    border: 2px solid rgba(245, 158, 11, 0.92);
+    border-radius: 18px;
+    background:
+        linear-gradient(135deg, rgba(69, 26, 3, 0.94), rgba(15, 23, 42, 0.96) 58%, rgba(112, 26, 117, 0.9));
+    box-shadow:
+        0 0 0 5px rgba(245, 158, 11, 0.12),
+        0 20px 70px rgba(0, 0, 0, 0.62),
+        0 0 42px rgba(217, 70, 239, 0.3);
+    animation: emergency-arrival 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.emergency-copy {
+    min-width: 0;
+    text-align: center;
+}
+
+.emergency-copy h1 {
+    margin: 1px 0 5px;
+    color: #fbbf24;
+    font-family: var(--app-font-family);
+    font-size: clamp(2rem, 5vw, 4.25rem);
+    font-weight: 950;
+    letter-spacing: 0.08em;
+    line-height: 0.95;
+    text-shadow: 0 0 22px rgba(245, 158, 11, 0.66);
+}
+
+.emergency-copy p {
+    margin: 0;
+    color: #fdf4ff;
+    font-size: clamp(0.85rem, 1.8vw, 1.1rem);
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.emergency-copy .emergency-kicker {
+    color: #f0abfc;
+    font-size: 0.75rem;
+}
+
+.emergency-beacon {
+    flex: 0 0 auto;
+    color: #f59e0b;
+    font-size: clamp(1.4rem, 4vw, 2.5rem);
+    filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.9));
+    animation: emergency-beacon 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes emergency-arrival {
+    0% { opacity: 0; transform: translateY(-70px) scale(0.84); }
+    65% { opacity: 1; transform: translateY(8px) scale(1.025); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes emergency-beacon {
+    from { opacity: 0.45; transform: scale(0.82) rotate(0deg); }
+    to { opacity: 1; transform: scale(1.12) rotate(45deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .phase-anim-enter-active,
+    .phase-anim-leave-active {
+        transition-duration: 0.01ms;
+    }
+
+    .combat-wrapper,
+    .sword-left,
+    .sword-right,
+    .glitch::before,
+    .glitch::after,
+    .planning-wrapper,
+    .emergency-wrapper,
+    .emergency-beacon {
+        animation: none;
+    }
 }
 
 </style>

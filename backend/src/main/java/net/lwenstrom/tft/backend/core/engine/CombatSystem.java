@@ -458,11 +458,18 @@ public class CombatSystem {
                 .forEach(u -> {
                     // grant 15% of dead unit's max health as shield
                     int shieldAmount = (int) (deadUnit.getMaxHealth() * 0.15f);
-                    u.setShield(u.getShield() + shieldAmount);
-                    accumulateShielding(u.getId(), u.getName(), u.getDefinitionId(), u.getOwnerId(), shieldAmount);
-                    recentEvents.add(
-                            new GameState.CombatEvent(currentTime, "SHIELD", u.getId(), u.getId(), shieldAmount, null));
-                    log.debug("{} receives {} shield from {}'s death", u.getName(), shieldAmount, deadUnit.getName());
+                    var effectiveAmount = u.addShield(shieldAmount);
+                    if (effectiveAmount > 0) {
+                        accumulateShielding(
+                                u.getId(), u.getName(), u.getDefinitionId(), u.getOwnerId(), effectiveAmount);
+                        recentEvents.add(new GameState.CombatEvent(
+                                currentTime, "SHIELD", u.getId(), u.getId(), effectiveAmount, null));
+                        log.debug(
+                                "{} receives {} shield from {}'s death",
+                                u.getName(),
+                                effectiveAmount,
+                                deadUnit.getName());
+                    }
                 });
     }
 

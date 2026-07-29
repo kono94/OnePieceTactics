@@ -10,7 +10,7 @@ class GameConstantsTest {
     void testCombatConstants() {
         assertEquals(10, GameConstants.MANA_PER_HIT);
         assertEquals(1000L, GameConstants.ABILITY_COOLDOWN_MS);
-        assertEquals(25000L, GameConstants.COMBAT_PHASE_MS);
+        assertEquals(32000L, GameConstants.COMBAT_PHASE_MS);
     }
 
     @Test
@@ -64,5 +64,8 @@ class GameConstantsTest {
         assertEquals(70, GameConstants.ORB_OWNED_UNIT_CHANCE_PERCENT);
         assertEquals(3, GameConstants.MIN_ORB_GOLD);
         assertEquals(8, GameConstants.MAX_ORB_GOLD);
+        assertEquals(20, GameConstants.EMERGENCY_DROP_HEALTH_THRESHOLD);
+        assertEquals(10, GameConstants.MIN_EMERGENCY_DROP_ORB_COUNT);
+        assertEquals(15, GameConstants.MAX_EMERGENCY_DROP_ORB_COUNT);
     }
 }

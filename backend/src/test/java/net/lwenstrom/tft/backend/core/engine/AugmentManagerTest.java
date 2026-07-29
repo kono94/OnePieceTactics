@@ -42,10 +42,10 @@ class AugmentManagerTest {
 
     @Test
     void roundTierMappingUsesPlannedRounds() {
-        assertEquals(AugmentTier.SILVER, AugmentManager.tierForRound(2));
-        assertEquals(AugmentTier.GOLD, AugmentManager.tierForRound(5));
-        assertEquals(AugmentTier.DIAMOND, AugmentManager.tierForRound(10));
-        assertNull(AugmentManager.tierForRound(3));
+        assertEquals(AugmentTier.SILVER, AugmentManager.tierForRound(3));
+        assertEquals(AugmentTier.GOLD, AugmentManager.tierForRound(6));
+        assertEquals(AugmentTier.DIAMOND, AugmentManager.tierForRound(11));
+        assertNull(AugmentManager.tierForRound(2));
     }
 
     @Test

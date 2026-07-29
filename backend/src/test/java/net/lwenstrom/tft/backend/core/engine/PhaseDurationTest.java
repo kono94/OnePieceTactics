@@ -96,7 +96,7 @@ public class PhaseDurationTest {
         room.tick();
 
         assertEquals(GamePhase.COMBAT, room.getState().phase());
-        assertEquals(25000, room.getState().totalPhaseDuration(), "Round 1 Combat should be 25s");
+        assertEquals(32000, room.getState().totalPhaseDuration(), "Round 1 Combat should be 32s");
 
         // Fast forward to Round 2 Planning
         fastForward();
@@ -110,7 +110,7 @@ public class PhaseDurationTest {
         fastForward();
         room.tick();
 
-        assertEquals(25000, room.getState().totalPhaseDuration(), "Round 2 Combat should be 25s");
+        assertEquals(32000, room.getState().totalPhaseDuration(), "Round 2 Combat should be 32s");
     }
 
     @Test
@@ -145,7 +145,7 @@ public class PhaseDurationTest {
         if (room.getState().phase() != GamePhase.END) {
             int round = (int) room.getState().round();
             GamePhase phase = room.getState().phase();
-            long expectedDuration = (phase == GamePhase.COMBAT) ? 25000 : 15000 + (round - 1) * 250L;
+            long expectedDuration = (phase == GamePhase.COMBAT) ? 32000 : 15000 + (round - 1) * 250L;
             assertEquals(
                     expectedDuration,
                     room.getState().totalPhaseDuration(),
@@ -155,6 +155,6 @@ public class PhaseDurationTest {
 
     private void fastForward() {
         // Use TestClock to advance time past phase end
-        testClock.advance(30000);
+        testClock.advance(33000);
     }
 }

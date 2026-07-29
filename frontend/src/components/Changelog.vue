@@ -1,24 +1,16 @@
 <script setup lang="ts">
-import { roleBalanceChangelogRows } from '../data/roleBalanceChangelog'
-
 defineOptions({
   name: 'GameChangelog'
 })
 
 defineEmits(['back'])
 
-const onePieceRoleBalanceRows = roleBalanceChangelogRows.filter((row) => row.mode === 'One Piece')
-const pokemonRoleBalanceRows = roleBalanceChangelogRows.filter((row) => row.mode === 'Pokémon')
-const roleBalanceSections = [
-  { mode: 'One Piece', rows: onePieceRoleBalanceRows },
-  { mode: 'Pokémon', rows: pokemonRoleBalanceRows }
-]
-
 const versionNextCommits = [
   { hash: 'ce65e88', title: 'Add unit roles and unified DEF while rebalancing both sets' },
   { hash: 'f618d8f', title: 'Update README simulation run counts' },
   { hash: '754a2db', title: 'Rebalance AoE abilities, progression, Pokemon traits, and augments' },
-  { hash: 'pending', title: 'Fix end celebration rendering for eliminated and winning players' }
+  { hash: 'pending', title: 'Fix end celebration rendering for eliminated and winning players' },
+  { hash: 'pending', title: 'Add emergency loot-drop presentation and clearer unit tooltip tags' }
 ]
 
 const version170Commits = [
@@ -69,12 +61,14 @@ const version160Commits = [
             Every One Piece and Pokemon unit now has a Damage, Tank, or Support identity. Pokemon evolutions can change
             roles as they upgrade, and the previously unused Armor and Magic Resist fields have been replaced by one
             functional DEF stat. Multi-target abilities are also less capable of erasing entire boards, late levels are
-            easier to reach, and combat augments compete more effectively with economy choices.
+            easier to reach, and combat augments compete more effectively with economy choices. Unit tooltips now label
+            melee and ranged attackers and color their trait tags, while low-health emergency loot drops receive a
+            dedicated outcome-aware announcement and staggered orb arrival.
           </p>
         </div>
         <article class="release-panel">
           <ul class="commit-list">
-            <li v-for="commit in versionNextCommits" :key="commit.hash">
+            <li v-for="commit in versionNextCommits" :key="`${commit.hash}-${commit.title}`">
               <span class="hash">{{ commit.hash }}</span>
               <span>{{ commit.title }}</span>
             </li>
@@ -87,46 +81,18 @@ const version160Commits = [
           </div>
           <div class="balance-block">
             <div class="balance-title">
-              <span class="tag mixed">All Units</span>
-              <h4>Complete 1.7.0 => X.X.X Unit and Form Values</h4>
+              <span class="tag mixed">Summary</span>
+              <h4>Role, Defense, and Combat Balance</h4>
             </div>
             <p>
-              Every star-level row below compares the tagged 1.7.0 value with the final role-calibrated value. Old
-              defense is shown as Armor/Magic Resist; the new value is unified DEF.
+              Unit identities changed from unlabeled forms
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value mixed">Damage, Tank, or Support</strong>, with Pokemon evolutions able to change role.
+              Armor and Magic Resist were consolidated into functional DEF, role packages were recalibrated, and area
+              damage was reduced globally with a selective premium recovery for high-cost damage units. Shielding is part
+              of this same next-version balance pass: shield amounts were reduced and capped, while shield-focused forms
+              received modest durability compensation.
             </p>
-            <details v-for="section in roleBalanceSections" :key="section.mode" class="balance-details">
-              <summary>{{ section.mode }} — {{ section.rows.length }} star-level entries</summary>
-              <div class="balance-table-wrap">
-                <table class="balance-table">
-                  <thead>
-                    <tr>
-                      <th>Unit / form</th>
-                      <th>Star</th>
-                      <th>Role</th>
-                      <th>HP</th>
-                      <th>Armor/MR => DEF</th>
-                      <th>ATK</th>
-                      <th>Mana</th>
-                      <th>Ability</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="row in section.rows" :key="`${row.unit}-${row.starLevel}`">
-                      <td>{{ row.unit }}</td>
-                      <td>{{ row.starLevel }}★</td>
-                      <td>
-                        <span class="role-value" :class="row.role.toLowerCase()">{{ row.role }}</span>
-                      </td>
-                      <td>{{ row.health }}</td>
-                      <td>{{ row.defense }}</td>
-                      <td>{{ row.attack }}</td>
-                      <td>{{ row.mana }}</td>
-                      <td>{{ row.ability }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </details>
           </div>
           <div class="balance-block">
             <div class="balance-title">
@@ -150,8 +116,7 @@ const version160Commits = [
               <strong class="value mixed">75%/60%/120%/85%</strong>. Whitebeard keeps Tank durability but retains
               <strong>100% Attack and 85% Quake damage</strong>. Fixed 5% primary-package corrections were then
               applied from the deterministic simulation report; Damage output never falls below its pre-role baseline,
-              Tank durability never falls below the 125% HP/140% DEF route, and the complete final values are listed
-              below.
+              and Tank durability never falls below the 125% HP/140% DEF route.
             </p>
             <p>
               Pokemon role-changing upgrades:
@@ -276,6 +241,71 @@ const version160Commits = [
               <span class="old-value">146/329/800</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
               <strong class="value nerf">102/230/560</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Premium Area Damage</h4>
+            </div>
+            <p>
+              Four- and five-cost DAMAGE abilities with LINE or SURROUND patterns receive a premium recovery after the
+              global area-effect nerf:
+              <span class="old-value">70%</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">80.5% effective damage</strong>. Direct damage values and their damage-over-time
+              ticks are increased by 15% only for those premium area abilities; SINGLE abilities and lower-cost units are
+              unchanged. Akainu's magma damage is
+              <span class="old-value">564/1014/1826</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">649/1166/2100</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag mixed">Mixed</span>
+              <h4>Shielding and Late-Game Durability</h4>
+            </div>
+            <p>
+              Shield ability values on shield-bearing forms:
+              <span class="old-value">100%</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value nerf">80% / 70% / 60% at 1★ / 2★ / 3★</strong>. A runtime cap now limits total shield to
+              <span class="old-value">uncapped</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value nerf">min(50% max HP, current HP)</strong>. Active shield forms receive a small
+              compensation of
+              <span class="old-value">0% max HP and 0 DEF</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">+5% max HP and +3 DEF</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag mixed">Timing</span>
+              <h4>Combat and Augment Pacing</h4>
+            </div>
+            <p>
+              Combat phase duration:
+              <span class="old-value">25 seconds</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">32 seconds</strong>. Augment offer rounds:
+              <span class="old-value">2 / 5 / 10</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value mixed">3 / 6 / 11</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">New</span>
+              <h4>Emergency Drop</h4>
+            </div>
+            <p>
+              Human players crossing the red-health threshold from
+              <span class="old-value">above 20 HP with 0 rescue drops</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">20 HP or lower with 10–15 normal gold/unit orbs</strong> once per match. The
+              drops arrive in the following planning phase with a dedicated announcement and staggered presentation.
             </p>
           </div>
           <div class="balance-block">
@@ -1849,68 +1879,6 @@ const version160Commits = [
     color: #64748b;
     font-size: 13px;
     font-weight: 900;
-}
-
-.balance-details {
-    margin-top: 14px;
-    border: 1px solid rgba(148, 163, 184, 0.2);
-    border-radius: 6px;
-    background: rgba(15, 23, 42, 0.56);
-}
-
-.balance-details summary {
-    padding: 12px 14px;
-    color: #e2e8f0;
-    font-weight: 900;
-    cursor: pointer;
-}
-
-.balance-table-wrap {
-    overflow-x: auto;
-    border-top: 1px solid rgba(148, 163, 184, 0.2);
-}
-
-.balance-table {
-    width: 100%;
-    min-width: 1120px;
-    border-collapse: collapse;
-    font-size: 12px;
-}
-
-.balance-table th,
-.balance-table td {
-    padding: 9px 10px;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
-    color: #cbd5e1;
-    text-align: left;
-    vertical-align: top;
-}
-
-.balance-table th {
-    position: sticky;
-    top: 0;
-    background: #111827;
-    color: #f8fafc;
-}
-
-.balance-table td:last-child {
-    min-width: 310px;
-}
-
-.role-value {
-    font-weight: 900;
-}
-
-.role-value.damage {
-    color: #ef4444;
-}
-
-.role-value.tank {
-    color: #3b82f6;
-}
-
-.role-value.support {
-    color: #22c55e;
 }
 
 @media (max-width: 820px) {

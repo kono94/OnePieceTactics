@@ -16,13 +16,13 @@ import org.junit.jupiter.api.Test;
 class GameRoomAugmentTest {
 
     @Test
-    void roundTwoChoicesDoNotPausePlanningAndSelectionDoesNotResetTimer() {
+    void roundThreeChoicesDoNotPausePlanningAndSelectionDoesNotResetTimer() {
         var clock = new TestClock();
         var room = createRoom(clock, TestHelpers.createDefaultAugments());
         var first = room.addPlayer("P1");
         var second = room.addPlayer("P2");
 
-        startPlanningRound(room, 2);
+        startPlanningRound(room, 3);
 
         var initialTimeRemaining = room.getState().timeRemainingMs();
 
@@ -56,7 +56,7 @@ class GameRoomAugmentTest {
         var first = room.addPlayer("P1");
         var second = room.addPlayer("P2");
 
-        startPlanningRound(room, 2);
+        startPlanningRound(room, 3);
 
         assertEquals(3, first.getAugmentChoices().size());
         assertEquals(3, second.getAugmentChoices().size());
@@ -83,7 +83,7 @@ class GameRoomAugmentTest {
         var player = room.addPlayer("P1");
         room.addPlayer("P2");
 
-        startPlanningRound(room, 2);
+        startPlanningRound(room, 3);
         var gold = player.getGold();
 
         assertFalse(room.selectAugment(player.getId(), "missing-augment"));

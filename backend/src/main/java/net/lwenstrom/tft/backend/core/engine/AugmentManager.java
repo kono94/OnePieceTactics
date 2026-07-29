@@ -23,9 +23,9 @@ public class AugmentManager {
 
     public static AugmentTier tierForRound(int round) {
         return switch (round) {
-            case 2 -> AugmentTier.SILVER;
-            case 5 -> AugmentTier.GOLD;
-            case 10 -> AugmentTier.DIAMOND;
+            case 3 -> AugmentTier.SILVER;
+            case 6 -> AugmentTier.GOLD;
+            case 11 -> AugmentTier.DIAMOND;
             default -> null;
         };
     }
@@ -147,8 +147,7 @@ public class AugmentManager {
             case TEAM_STARTING_MANA ->
                 player.getBoardUnits()
                         .forEach(unit -> unit.setMana(Math.min(unit.getMaxMana(), unit.getMana() + augment.value())));
-            case TEAM_STARTING_SHIELD ->
-                player.getBoardUnits().forEach(unit -> unit.setShield(unit.getShield() + augment.value()));
+            case TEAM_STARTING_SHIELD -> player.getBoardUnits().forEach(unit -> unit.addShield(augment.value()));
             case GOLD, XP, GOLD_PER_EMPTY_BENCH_SLOT -> {}
         }
     }

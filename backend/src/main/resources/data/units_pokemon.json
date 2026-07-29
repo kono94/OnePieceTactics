@@ -206,11 +206,11 @@
     "name": "Squirtle",
     "cost": 1,
     "role": "TANK",
-    "maxHealth": [962, 1665, 3118],
+    "maxHealth": [962, 1748, 3118],
     "maxMana": [55, 55, 55],
     "attackDamage": [31, 56, 100],
     "abilityPower": [0, 0, 0],
-    "defense": [48, 46, 48],
+    "defense": [48, 49, 48],
     "attackSpeed": [0.59, 0.59, 0.59],
     "range": [1, 1, 1],
     "traits": [
@@ -255,7 +255,7 @@
           "description": "Raises shell defenses, shielding allies for $value.",
           "type": "SHIELD",
           "pattern": "SURROUND",
-          "values": [115, 245, 512],
+          "values": [92, 172, 307],
           "range": [3, 3, 3]
         }
       },
@@ -290,11 +290,11 @@
     "name": "Caterpie",
     "cost": 1,
     "role": "SUPPORT",
-    "maxHealth": [570, 1745, 2200],
+    "maxHealth": [570, 1832, 2200],
     "maxMana": [40, 75, 50],
     "attackDamage": [26, 47, 105],
     "abilityPower": [0, 0, 0],
-    "defense": [23, 42, 23],
+    "defense": [23, 45, 23],
     "attackSpeed": [0.62, 0.62, 0.75],
     "range": [3, 3, 3],
     "traits": [
@@ -339,7 +339,7 @@
           "description": "Hardens its shell, gaining $value shield.",
           "type": "SHIELD",
           "pattern": "SINGLE",
-          "values": [164, 350, 732],
+          "values": [131, 245, 439],
           "range": [1, 1, 1]
         }
       },
@@ -369,11 +369,11 @@
     "name": "Weedle",
     "cost": 1,
     "role": "DAMAGE",
-    "maxHealth": [400, 1106, 1301],
+    "maxHealth": [400, 1161, 1301],
     "maxMana": [50, 50, 50],
     "attackDamage": [62, 74, 211],
     "abilityPower": [0, 0, 0],
-    "defense": [11, 22, 11],
+    "defense": [11, 25, 11],
     "attackSpeed": [0.76, 0.76, 0.76],
     "range": [1, 1, 1],
     "traits": [
@@ -439,7 +439,7 @@
           "description": "Fortifies its shell, gaining $value shield.",
           "type": "SHIELD",
           "pattern": "SINGLE",
-          "values": [185, 400, 850],
+          "values": [148, 280, 510],
           "range": [1, 1, 1]
         }
       },
@@ -2272,11 +2272,11 @@
     "name": "Slowpoke",
     "cost": 2,
     "role": "TANK",
-    "maxHealth": [1002, 1800, 3241],
+    "maxHealth": [1002, 1800, 3403],
     "maxMana": [60, 60, 60],
     "attackDamage": [35, 62, 111],
     "abilityPower": [0, 0, 0],
-    "defense": [54, 54, 54],
+    "defense": [54, 54, 57],
     "attackSpeed": [0.62, 0.62, 0.62],
     "range": [1, 1, 1],
     "traits": [
@@ -2342,7 +2342,7 @@
           "description": "Creates psychic terrain, shielding allies for $value.",
           "type": "SHIELD",
           "pattern": "SURROUND",
-          "values": [139, 294, 612],
+          "values": [111, 206, 367],
           "range": [3, 3, 3]
         }
       }
@@ -2354,11 +2354,11 @@
     "name": "Magnemite",
     "cost": 2,
     "role": "DAMAGE",
-    "maxHealth": [480, 956, 2750],
+    "maxHealth": [480, 956, 2888],
     "maxMana": [80, 65, 60],
     "attackDamage": [46, 82, 111],
     "abilityPower": [0, 0, 0],
-    "defense": [22, 22, 41],
+    "defense": [22, 22, 44],
     "attackSpeed": [0.65, 0.7, 0.75],
     "range": [3, 3, 3],
     "traits": [
@@ -2449,7 +2449,7 @@
           "description": "Projects a field, shielding allies for $value.",
           "type": "SHIELD",
           "pattern": "SURROUND",
-          "values": [139, 294, 805],
+          "values": [111, 206, 483],
           "range": [3, 3, 4]
         }
       }
@@ -2925,11 +2925,11 @@
     "name": "Grimer",
     "cost": 3,
     "role": "DAMAGE",
-    "maxHealth": [816, 2160, 4510],
+    "maxHealth": [816, 2268, 4510],
     "maxMana": [70, 70, 70],
     "attackDamage": [71, 84, 151],
     "abilityPower": [0, 0, 0],
-    "defense": [32, 60, 69],
+    "defense": [32, 63, 69],
     "attackSpeed": [0.65, 0.65, 0.65],
     "range": [1, 1, 1],
     "traits": [
@@ -2992,7 +2992,7 @@
           "description": "Melts into armor, shielding allies for $value.",
           "type": "SHIELD",
           "pattern": "SURROUND",
-          "values": [162, 343, 711],
+          "values": [130, 240, 427],
           "range": [3, 3, 3]
         }
       },
@@ -3549,7 +3549,7 @@
       "description": "Slashes with a leek blade for $value damage.",
       "type": "DAMAGE",
       "pattern": "LINE",
-      "values": [138, 314, 657],
+      "values": [159, 361, 756],
       "range": [4, 4, 5],
       "modifiers": [
         {
@@ -3612,13 +3612,13 @@
       "description": "Throws elemental punches for $value damage, burn, and stun.",
       "type": "DAMAGE",
       "pattern": "SURROUND",
-      "values": [146, 332, 695],
+      "values": [168, 382, 799],
       "range": [1, 2, 2],
       "modifiers": [
         {
           "type": "DOT",
           "dotType": "BURN",
-          "damagePerTick": [28, 58, 116],
+          "damagePerTick": [32, 67, 133],
           "durationSeconds": [3, 3, 4],
           "tickIntervalMs": [1000, 1000, 1000]
         },
@@ -3666,11 +3666,11 @@
     "name": "Mr. Mime",
     "cost": 4,
     "role": "SUPPORT",
-    "maxHealth": [1030, 1854, 3337],
+    "maxHealth": [1082, 1947, 3504],
     "maxMana": [120, 100, 100],
     "attackDamage": [56, 100, 180],
     "abilityPower": [0, 0, 0],
-    "defense": [43, 43, 43],
+    "defense": [46, 46, 46],
     "attackSpeed": [0.7, 0.7, 0.7],
     "range": [3, 3, 3],
     "traits": [
@@ -3681,7 +3681,7 @@
       "description": "Sets reflective walls, shielding allies for $value.",
       "type": "SHIELD",
       "pattern": "SURROUND",
-      "values": [149, 392, 811],
+      "values": [119, 274, 487],
       "range": [4, 4, 4]
     }
   },
@@ -3706,7 +3706,7 @@
       "description": "Cross-cuts enemies for $value damage.",
       "type": "DAMAGE",
       "pattern": "LINE",
-      "values": [173, 361, 756],
+      "values": [199, 415, 869],
       "range": [2, 3, 3],
       "modifiers": [
         {
@@ -3764,7 +3764,7 @@
       "description": "Charges through enemies for $value damage and knockback.",
       "type": "DAMAGE",
       "pattern": "LINE",
-      "values": [166, 377, 756],
+      "values": [191, 434, 869],
       "range": [3, 4, 5],
       "modifiers": [
         {
@@ -3896,7 +3896,7 @@
       "description": "Crashes down for $value damage and knockback.",
       "type": "DAMAGE",
       "pattern": "SURROUND",
-      "values": [109, 248, 517],
+      "values": [125, 285, 595],
       "range": [2, 2, 3],
       "modifiers": [
         {
@@ -3928,7 +3928,7 @@
       "description": "Rakes stone edges for $value damage and execute pressure.",
       "type": "DAMAGE",
       "pattern": "LINE",
-      "values": [227, 534, 1028],
+      "values": [261, 614, 1182],
       "range": [4, 5, 6],
       "modifiers": [
         {
@@ -3987,7 +3987,7 @@
       "description": "Turns the board into a thunderstorm for $value damage and stun.",
       "type": "DAMAGE",
       "pattern": "SURROUND",
-      "values": [116, 274, 564],
+      "values": [133, 315, 649],
       "range": [3, 3, 4],
       "modifiers": [
         {
@@ -4019,13 +4019,13 @@
       "description": "Unfurls burning wings for $value damage and burn.",
       "type": "DAMAGE",
       "pattern": "SURROUND",
-      "values": [153, 346, 725],
+      "values": [176, 398, 834],
       "range": [3, 3, 4],
       "modifiers": [
         {
           "type": "DOT",
           "dotType": "BURN",
-          "damagePerTick": [32, 68, 137],
+          "damagePerTick": [37, 78, 158],
           "durationSeconds": [4, 5, 6],
           "tickIntervalMs": [1000, 1000, 1000]
         }
@@ -4053,7 +4053,7 @@
       "description": "Tears through minds for $value damage, scaling with max health.",
       "type": "DAMAGE",
       "pattern": "LINE",
-      "values": [174, 394, 821],
+      "values": [200, 453, 944],
       "range": [5, 6, 7],
       "modifiers": [
         {

@@ -7,7 +7,7 @@ import TraitSidebar from './TraitSidebar.vue'
 import PlayerList from './PlayerList.vue'
 import EndScreen from './EndScreen.vue'
 import AugmentSelectionOverlay from './AugmentSelectionOverlay.vue'
-import type { AugmentOffer, GameState, GameUnit, UnitDefinition, PlayerState } from '../types'
+import type { AugmentOffer, EmergencyDropPayload, GameState, GameUnit, UnitDefinition, PlayerState } from '../types'
 import { getUnitIconPath } from '../utils/iconUtils'
 import { getRarityColor } from '../utils/colorUtils'
 import { setUnitDragPreview } from '../utils/dragPreview'
@@ -15,7 +15,10 @@ import { SHOP_ODDS } from '../data/shopOdds'
 
 const props = defineProps<{
   state: GameState | null,
-  currentPlayerName: string
+  currentPlayerName: string,
+  emergencyDrop?: EmergencyDropPayload | null,
+  queuedEmergencyDrop?: EmergencyDropPayload | null,
+  suppressPlanningAnnouncement?: boolean
 }>()
 
 const emit = defineEmits(['action', 'view-player', 'exit-game', 'abandon-game'])
@@ -449,7 +452,10 @@ watch(effectiveViewedPlayerId, (playerId) => {
 
 <template>
   <div class="game-interface">
-    <PhaseAnnouncement v-if="state" :phase="state.phase" />
+    <PhaseAnnouncement v-if="state"
+        :phase="state.phase"
+        :emergency-drop="emergencyDrop"
+        :suppress-planning-announcement="suppressPlanningAnnouncement" />
     <EndScreen v-if="showEndScreen"
                :players="allPlayers"
                :my-player-id="myPlayer?.playerId"
@@ -515,6 +521,8 @@ watch(effectiveViewedPlayerId, (playerId) => {
                 :viewed-player-id="effectiveViewedPlayerId"
                 :is-read-only="isSpectating"
                 :is-dragging-prop="isDraggingUnit"
+                :emergency-drop="emergencyDrop || queuedEmergencyDrop"
+                :emergency-drop-active="!!emergencyDrop"
                 @move="handleBoardMove" 
                 @drag-start="onGridDragStart"
                 @drag-end="onGridDragEnd"

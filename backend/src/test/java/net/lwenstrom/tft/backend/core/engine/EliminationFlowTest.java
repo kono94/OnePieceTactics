@@ -42,7 +42,7 @@ class EliminationFlowTest {
 
         // Use TestClock for deterministic phase transitions
         for (int i = 0; i < 10; i++) {
-            testClock.advance(30000); // Fast forward past phase end
+            testClock.advance(room.getState().timeRemainingMs() + 1); // Fast forward past phase end
             room.tick();
 
             if (p2.getHealth() <= 0) {
@@ -78,7 +78,7 @@ class EliminationFlowTest {
 
         // Use TestClock for deterministic phase transitions
         for (int i = 0; i < 10; i++) {
-            testClock.advance(30000);
+            testClock.advance(room.getState().timeRemainingMs() + 1);
             room.tick();
 
             long eliminated =
@@ -115,7 +115,7 @@ class EliminationFlowTest {
         room.startMatch();
 
         // Enter combat phase
-        testClock.advance(30000);
+        testClock.advance(room.getState().timeRemainingMs() + 1);
         room.tick();
 
         // Run combat simulation with multiple ticks so units can attack
@@ -125,7 +125,7 @@ class EliminationFlowTest {
         }
 
         // End combat and transition to next planning phase
-        testClock.advance(30000);
+        testClock.advance(room.getState().timeRemainingMs() + 1);
         room.tick();
 
         // Check that combat actually ended and we're back in planning
@@ -164,10 +164,10 @@ class EliminationFlowTest {
         room.startMatch();
 
         // Use TestClock for deterministic phase transitions
-        testClock.advance(30000);
+        testClock.advance(room.getState().timeRemainingMs() + 1);
         room.tick(); // To combat
 
-        testClock.advance(30000);
+        testClock.advance(room.getState().timeRemainingMs() + 1);
         room.tick(); // End combat
 
         // P2 should have taken damage (timeout damage is based on HP comparison)

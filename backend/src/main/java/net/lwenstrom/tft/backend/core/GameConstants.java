@@ -6,7 +6,7 @@ public final class GameConstants {
     public static final int MANA_PER_HIT = 10;
     public static final float MANA_ON_DIRECT_HIT_PERCENT = 0.05f;
     public static final long ABILITY_COOLDOWN_MS = 1000L;
-    public static final long COMBAT_PHASE_MS = 25000L;
+    public static final long COMBAT_PHASE_MS = 32000L;
 
     // Economy
     public static final int XP_PER_PHASE = 2;
@@ -50,6 +50,9 @@ public final class GameConstants {
     public static final int ORB_OWNED_UNIT_CHANCE_PERCENT = 70;
     public static final int MIN_ORB_GOLD = 3;
     public static final int MAX_ORB_GOLD = 8;
+    public static final int EMERGENCY_DROP_HEALTH_THRESHOLD = 20;
+    public static final int MIN_EMERGENCY_DROP_ORB_COUNT = 10;
+    public static final int MAX_EMERGENCY_DROP_ORB_COUNT = 15;
 
     private GameConstants() {}
 }

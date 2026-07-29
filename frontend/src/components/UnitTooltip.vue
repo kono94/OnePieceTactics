@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { GameUnit, UnitDefinition, UnitRole } from '../types'
+import { getTraitData } from '../data/traitData'
 
 type TooltipUnit = Partial<GameUnit & UnitDefinition> & {
     formattedAbilityDescription?: string
@@ -40,20 +41,22 @@ const stats = computed(() => {
 const starLevel = computed(() => props.unit.starLevel || 1)
 const ability = computed(() => props.unit.ability)
 const role = computed<UnitRole>(() => props.unit.role || 'DAMAGE')
+const attackStyle = computed(() => Number(stats.value.range) === 1 ? 'MELEE' : 'RANGED')
 
 const formatRole = (value: UnitRole): string =>
     value.charAt(0) + value.slice(1).toLowerCase()
 
-const roleProgression = computed(() => {
-    if (!props.unit.forms?.length) return []
+const NEUTRAL_TRAIT_COLOR = '#94a3b8'
 
-    const roles = [1, 2, 3].map((level) => {
-        const form = props.unit.forms?.find((candidate) => candidate.starLevel === level)
-        return form?.role || role.value
-    })
+const traitTagStyle = (trait: string) => {
+    const color = getTraitData(trait)?.iconColor || NEUTRAL_TRAIT_COLOR
+    const hex = color.match(/^#([0-9a-f]{6})$/i)?.[1]
+    const backgroundColor = hex
+        ? `rgba(${Number.parseInt(hex.slice(0, 2), 16)}, ${Number.parseInt(hex.slice(2, 4), 16)}, ${Number.parseInt(hex.slice(4, 6), 16)}, 0.14)`
+        : 'rgba(148, 163, 184, 0.14)'
 
-    return new Set(roles).size > 1 ? roles : []
-})
+    return { color, borderColor: color, backgroundColor }
+}
 
 const rarityColor = computed(() => {
     const cost = props.unit.cost || 1
@@ -78,14 +81,7 @@ const rarityColor = computed(() => {
       </div>
       <div class="role-section">
           <span class="role-badge" :class="`role-${role.toLowerCase()}`">{{ formatRole(role) }}</span>
-          <span v-if="roleProgression.length" class="role-progression">
-              <template v-for="(progressionRole, index) in roleProgression" :key="index">
-                  <span :class="{ current: index + 1 === starLevel }">
-                      {{ index + 1 }}★ {{ formatRole(progressionRole) }}
-                  </span>
-                  <span v-if="index < roleProgression.length - 1" class="role-arrow">→</span>
-              </template>
-          </span>
+          <span class="range-badge" :class="`range-${attackStyle.toLowerCase()}`">{{ attackStyle }}</span>
       </div>
       <div class="stats-grid">
           <div class="stat-row">
@@ -123,7 +119,7 @@ const rarityColor = computed(() => {
       </div>
 
       <div class="traits" v-if="unit.traits && unit.traits.length">
-          <span v-for="trait in unit.traits" :key="trait" class="trait-tag">{{ trait }}</span>
+          <span v-for="trait in unit.traits" :key="trait" class="trait-tag" :style="traitTagStyle(trait)">{{ trait }}</span>
       </div>
   </div>
 </template>
@@ -196,21 +192,23 @@ const rarityColor = computed(() => {
 }
 
 .role-section {
+    position: relative;
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
+    align-items: center;
+    min-height: 31px;
+    padding-right: 68px;
     margin-bottom: 8px;
 }
 
 .role-badge {
     border: 1px solid currentColor;
     border-radius: 999px;
-    padding: 2px 8px;
-    font-size: 0.7em;
+    padding: 4px 9px;
+    font-size: 0.72em;
     font-weight: 800;
     letter-spacing: 0.04em;
     text-transform: uppercase;
+    box-shadow: 0 2px 8px rgba(2, 6, 23, 0.22);
 }
 
 .role-damage {
@@ -228,21 +226,29 @@ const rarityColor = computed(() => {
     background: rgba(34, 197, 94, 0.14);
 }
 
-.role-progression {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 3px;
-    color: #94a3b8;
-    font-size: 0.68em;
+.range-badge {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    border: 0;
+    border-radius: 0;
+    padding: 3px 0;
+    font-size: 0.56em;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    opacity: 0.82;
 }
 
-.role-progression .current {
-    color: #f8fafc;
-    font-weight: 700;
+.range-melee {
+    color: #f59e0b;
+    background: transparent;
 }
 
-.role-arrow {
-    color: #64748b;
+.range-ranged {
+    color: #d946ef;
+    background: transparent;
 }
 
 .stats-grid {
@@ -297,10 +303,9 @@ const rarityColor = computed(() => {
 }
 
 .trait-tag {
-    background-color: #334155;
+    border: 1px solid currentColor;
     padding: 2px 6px;
     border-radius: 4px;
     font-size: 0.75em;
-    color: #e2e8f0;
 }
 </style>

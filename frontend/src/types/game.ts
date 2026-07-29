@@ -212,6 +212,13 @@ export interface CombatResultPayload {
     damageLog: Record<string, DamageEntry>
 }
 
+export interface EmergencyDropPayload {
+    dropId: string
+    playerId: string
+    round: number
+    orbIds: string[]
+}
+
 // ============================================================================
 // Full Game State (sent from backend every tick)
 // ============================================================================
@@ -260,6 +267,12 @@ export interface GameEvent<T = unknown> {
 export interface CombatResultEvent extends GameEvent<CombatResultPayload> {
     type: 'COMBAT_RESULT'
 }
+
+export interface EmergencyDropEvent extends GameEvent<EmergencyDropPayload> {
+    type: 'EMERGENCY_DROP'
+}
+
+export type RoomGameEvent = CombatResultEvent | EmergencyDropEvent
 
 // ============================================================================
 // Rendered State (computed for display in GameCanvas/GameInterface)

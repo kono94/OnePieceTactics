@@ -2,7 +2,7 @@
 import { computed, ref, watch, onUnmounted, onMounted } from 'vue'
 import CombatEffectsCanvas from './game/CombatEffectsCanvas.vue'
 import { getAttackConfig, getAbilityConfig } from '../data/animationConfig'
-import type { GameState, GameUnit, GamePhase, RenderedUnit, RenderedOrb, PlayerState, DisplayedUnit, CombatEvent, SelectedAugment } from '../types'
+import type { EmergencyDropPayload, GameState, GameUnit, GamePhase, RenderedUnit, RenderedOrb, PlayerState, DisplayedUnit, CombatEvent, SelectedAugment } from '../types'
 import type { NormalizedCombatVisualEvent } from '../types/combatEffects'
 import { getUnitIconPath } from '../utils/iconUtils'
 import { getRarityColor, TEAM_COLORS } from '../utils/colorUtils'
@@ -13,7 +13,9 @@ const props = defineProps<{
     actingPlayerId?: string,
     viewedPlayerId?: string,
     isReadOnly?: boolean,
-    isDraggingProp?: boolean
+    isDraggingProp?: boolean,
+    emergencyDrop?: EmergencyDropPayload | null,
+    emergencyDropActive?: boolean
 }>()
 
 const emit = defineEmits(['move', 'drag-start', 'drag-end', 'collect-orb', 'update:cell-size', 'update:is-over-grid', 'show-tooltip', 'hide-tooltip'])
@@ -94,6 +96,21 @@ const renderedOrbs = computed((): RenderedOrb[] => {
             visualY: orb.y
         }
     })
+})
+
+const emergencyOrbIndexes = computed(() => {
+    const indexes = new Map<string, number>()
+    const drop = props.emergencyDrop
+    if (!drop || drop.playerId !== props.actingPlayerId) return indexes
+
+    drop.orbIds.forEach((orbId, index) => indexes.set(orbId, index))
+    return indexes
+})
+
+const isEmergencyOrb = (orbId: string) => emergencyOrbIndexes.value.has(orbId)
+
+const emergencyOrbStyle = (orbId: string) => ({
+    '--emergency-drop-delay': `${(emergencyOrbIndexes.value.get(orbId) ?? 0) * 140}ms`,
 })
 
 const containerRef = ref<HTMLElement | null>(null)
@@ -905,12 +922,16 @@ const onOrbClick = (orbId: string) => {
                     <!-- Render Loot Orbs -->
                     <div v-for="orb in renderedOrbs" :key="orb.id"
                          class="loot-orb"
-                         :class="orb.type.toLowerCase()"
+                         :class="[orb.type.toLowerCase(), {
+                            'emergency-drop-orb': emergencyDropActive && isEmergencyOrb(orb.id),
+                            'emergency-drop-orb-pending': !emergencyDropActive && isEmergencyOrb(orb.id)
+                         }]"
                          :style="{ 
                             left: (orb.visualX * CELL_SIZE + (CELL_SIZE - (CELL_SIZE - 20))/2) + 'px', 
                             top: (orb.visualY * CELL_SIZE + (CELL_SIZE - (CELL_SIZE - 20))/2) + 'px',
                             width: (CELL_SIZE - 20) + 'px',
-                            height: (CELL_SIZE - 20) + 'px'
+                            height: (CELL_SIZE - 20) + 'px',
+                            ...emergencyOrbStyle(orb.id)
                          }"
                          @click="onOrbClick(orb.id)">
                         <div class="orb-inner">
@@ -1727,6 +1748,18 @@ const onOrbClick = (orbId: string) => {
     transform: scale(1.2);
 }
 
+.loot-orb.emergency-drop-orb {
+    animation: emergencyOrbDrop 0.9s var(--emergency-drop-delay, 0ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.loot-orb.emergency-drop-orb-pending {
+    opacity: 0;
+}
+
+.loot-orb.emergency-drop-orb .orb-inner {
+    animation: emergencyOrbFlash 1.15s var(--emergency-drop-delay, 0ms) ease-out both;
+}
+
 .orb-inner {
     position: relative;
     width: 100%;
@@ -1770,6 +1803,38 @@ const onOrbClick = (orbId: string) => {
 @keyframes orb-pulse {
     0%, 100% { transform: scale(1); opacity: 0.4; }
     50% { transform: scale(1.2); opacity: 0.8; }
+}
+
+@keyframes emergencyOrbDrop {
+    0% {
+        opacity: 0;
+        transform: translateY(-120px) scale(0.45) rotate(-24deg);
+    }
+    58% {
+        opacity: 1;
+        transform: translateY(8px) scale(1.16) rotate(4deg);
+    }
+    78% {
+        transform: translateY(-5px) scale(0.94) rotate(-2deg);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1) rotate(0deg);
+    }
+}
+
+@keyframes emergencyOrbFlash {
+    0%, 18% {
+        box-shadow: 0 0 0 rgba(245, 158, 11, 0);
+        filter: brightness(1);
+    }
+    48% {
+        box-shadow: 0 0 14px 8px rgba(245, 158, 11, 0.65), 0 0 34px rgba(217, 70, 239, 0.72);
+        filter: brightness(1.55);
+    }
+    100% {
+        filter: brightness(1);
+    }
 }
 
 /* Collection animation */
@@ -1887,6 +1952,19 @@ const onOrbClick = (orbId: string) => {
     100% {
         opacity: 0;
         transform: translate(calc(-50% + var(--spark-x)), calc(-50% + var(--spark-y))) scale(0.85);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .loot-orb,
+    .loot-orb.emergency-drop-orb,
+    .loot-orb.emergency-drop-orb .orb-inner,
+    .orb-glow,
+    .auto-pickup-effect,
+    .auto-pickup-ring,
+    .auto-pickup-spark {
+        animation: none;
+        transition: none;
     }
 }
 </style>

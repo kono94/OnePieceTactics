@@ -13,7 +13,14 @@ import VersionDisplay from './components/VersionDisplay.vue'
 import AdminAnalytics from './components/admin/AdminAnalytics.vue'
 
 import { setTraitData } from './data/traitData'
-import type { GameState, GameAction, CombatResultPayload, GameMode } from './types'
+import type {
+    CombatResultPayload,
+    EmergencyDropPayload,
+    GameAction,
+    GameMode,
+    GameState,
+    RoomGameEvent,
+} from './types'
 import {
     clearActiveRoomSession,
     createActiveRoomSession,
@@ -109,11 +116,18 @@ onMounted(async () => {
 onUnmounted(() => {
     window.removeEventListener('hashchange', updateStandaloneRoute)
     clearRestoredRoomTimeout()
+    clearEmergencyDropPresentation()
+    if (outcomeTimer !== null) window.clearTimeout(outcomeTimer)
     client.value?.deactivate()
 })
 
 const encounterResult = ref<'WON' | 'LOST' | 'DRAW' | null>(null)
+const emergencyDrop = ref<EmergencyDropPayload | null>(null)
+const pendingEmergencyDrop = ref<EmergencyDropPayload | null>(null)
+const hasQueuedEmergencyDrop = computed(() => emergencyDrop.value !== null || pendingEmergencyDrop.value !== null)
 let outcomeTimer: number | null = null
+let emergencyDropDelayTimer: number | null = null
+let emergencyDropClearTimer: number | null = null
 
 const myPlayerId = computed(() => {
     if (!gameState.value) return undefined;
@@ -197,10 +211,12 @@ const subscribeToRoom = (roomId: string) => {
     // Subscribe to events
     eventSubscription.value = client.value.subscribe(`/topic/room/${roomId}/event`, (message) => {
         try {
-            const event = JSON.parse(message.body)
+            const event = JSON.parse(message.body) as RoomGameEvent
             console.log("Received Game Event:", event)
             if (event.type === 'COMBAT_RESULT') {
                 handleCombatResult(event.payload)
+            } else if (event.type === 'EMERGENCY_DROP') {
+                handleEmergencyDrop(event.payload)
             }
         } catch (e) {
             console.error("Failed to parse event", e)
@@ -267,6 +283,19 @@ const handleCombatResult = (payload: CombatResultPayload) => {
     const wasParticipant = payload.participantIds.includes(myId)
     if (!wasParticipant) return
 
+    if (emergencyDrop.value) {
+        pendingEmergencyDrop.value = emergencyDrop.value
+        emergencyDrop.value = null
+    }
+    if (emergencyDropDelayTimer !== null) {
+        window.clearTimeout(emergencyDropDelayTimer)
+        emergencyDropDelayTimer = null
+    }
+    if (emergencyDropClearTimer !== null) {
+        window.clearTimeout(emergencyDropClearTimer)
+        emergencyDropClearTimer = null
+    }
+
     // Determine result type
     if (payload.winnerId === myId) {
         encounterResult.value = 'WON'
@@ -284,7 +313,45 @@ const handleCombatResult = (payload: CombatResultPayload) => {
     outcomeTimer = window.setTimeout(() => {
         encounterResult.value = null
         outcomeTimer = null
+        scheduleEmergencyDropPresentation()
     }, 3000)
+}
+
+const handleEmergencyDrop = (payload: EmergencyDropPayload) => {
+    if (!payload.dropId || payload.playerId !== myPlayerId.value) return
+    if (emergencyDrop.value?.dropId === payload.dropId || pendingEmergencyDrop.value?.dropId === payload.dropId) return
+
+    pendingEmergencyDrop.value = payload
+    scheduleEmergencyDropPresentation()
+}
+
+const scheduleEmergencyDropPresentation = () => {
+    if (!pendingEmergencyDrop.value || encounterResult.value) return
+    if (emergencyDropDelayTimer !== null) window.clearTimeout(emergencyDropDelayTimer)
+
+    // Combat result and emergency-drop events are delivered independently. This
+    // brief queueing window lets the outcome claim the foreground first.
+    emergencyDropDelayTimer = window.setTimeout(() => {
+        emergencyDropDelayTimer = null
+        if (!pendingEmergencyDrop.value || encounterResult.value) return
+
+        emergencyDrop.value = pendingEmergencyDrop.value
+        pendingEmergencyDrop.value = null
+        if (emergencyDropClearTimer !== null) window.clearTimeout(emergencyDropClearTimer)
+        emergencyDropClearTimer = window.setTimeout(() => {
+            emergencyDrop.value = null
+            emergencyDropClearTimer = null
+        }, 4500)
+    }, 150)
+}
+
+const clearEmergencyDropPresentation = () => {
+    if (emergencyDropDelayTimer !== null) window.clearTimeout(emergencyDropDelayTimer)
+    if (emergencyDropClearTimer !== null) window.clearTimeout(emergencyDropClearTimer)
+    emergencyDropDelayTimer = null
+    emergencyDropClearTimer = null
+    pendingEmergencyDrop.value = null
+    emergencyDrop.value = null
 }
 
 const handleCreate = (roomId: string) => {
@@ -378,6 +445,7 @@ const resetToLobby = () => {
     clearRoomSubscriptions()
     clearRestoredRoomTimeout()
     clearActiveRoomSession()
+    clearEmergencyDropPresentation()
 
     currentView.value = 'lobby'
     gameState.value = null
@@ -515,6 +583,9 @@ const applyThemeMeta = (mode: GameMode | null) => {
 	                     <GameInterface :state="gameState"
 	                                    :current-player-name="PLAYER_NAME"
 	                                    :is-connected="isConnected"
+	                                    :emergency-drop="emergencyDrop"
+	                                    :queued-emergency-drop="pendingEmergencyDrop"
+	                                    :suppress-planning-announcement="hasQueuedEmergencyDrop"
 	                                    @action="handleGameAction"
 	                                    @view-player="(playerId) => viewedPlayerId = playerId"
 	                                    @exit-game="leaveCurrentGame"

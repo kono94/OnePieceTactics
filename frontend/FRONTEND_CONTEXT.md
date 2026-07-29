@@ -196,7 +196,7 @@ client.activate()
 | Direction | Destination | Payload | Purpose |
 |-----------|------------|---------|---------|
 | **Subscribe** | `/topic/room/{roomId}` | `GameState` JSON | Full game state updates (every tick) |
-| **Subscribe** | `/topic/room/{roomId}/event` | `GameEvent` JSON | One-time events (combat results, errors) |
+| **Subscribe** | `/topic/room/{roomId}/event` | `RoomGameEvent` JSON | One-time combat-result and emergency-drop events |
 | **Publish** | `/app/create` | `{ roomId, playerName }` | Create new game room |
 | **Publish** | `/app/join` | `{ roomId, playerName }` | Join existing room |
 | **Publish** | `/app/start` | `{ roomId, playerName }` | Start game (host only) |
@@ -301,6 +301,10 @@ function triggerDeathAnimation(unit: GameUnit) {
 - Loot orbs remain backend-authoritative and are still collected through `COLLECT_ORB`.
 - `GameCanvas.vue` shows a short local pickup effect when an orb is clicked.
 - If planning transitions to combat with visible unclaimed orbs, `GameCanvas.vue` replays the latest visible orb snapshot as auto-pickup feedback because the backend collects remaining loot before combat setup.
+- `EMERGENCY_DROP` carries `{ dropId, playerId, round, orbIds }`. `App.vue` ignores drops for other players, queues the
+  local announcement behind the combat outcome, and suppresses the generic planning splash. `GameCanvas.vue` staggers
+  only the matching local orbs and keeps them hidden while spectating; reduced-motion users receive the same status text
+  without the arrival motion.
 
 **Star-Up Celebrations:**
 ```typescript
@@ -351,7 +355,8 @@ setTraitData(traits)  // Populates global TRAIT_DATA object
 - Pokemon traits use `TraitDefinition.type = 'type'` in addition to One Piece-style `origin` and `class`; `targetScope` and `effectType` are available for richer tooltip/metadata display.
 - `TraitSidebar.vue` counts unique unit lines using `lineId || definitionId || name`, so evolved Pokemon forms do not over-count the same evolution line.
 - Units expose `role: 'DAMAGE' | 'TANK' | 'SUPPORT'` and `defense`; Pokemon forms may override the base role by star level.
-- `UnitTooltip.vue` shows a red Damage, blue Tank, or green Support badge, the current DEF value, and shop-only role progression when an evolution changes role.
+- `UnitTooltip.vue` shows a red Damage, blue Tank, or green Support badge, the current DEF value, an amber MELEE or
+  fuchsia RANGED badge based on attack range, and trait tags colored with `TraitDefinition.iconColor` (neutral fallback).
 - `pokemonUltimateGalleryRoster.ts` imports `backend/src/main/resources/data/units_pokemon.json` and expands both base units and `forms` into gallery entries.
 
 
@@ -421,7 +426,7 @@ export const TEAM_COLORS = {
 
 | File | Key Exports |
 |------|------------|
-| [types/game.ts](src/types/game.ts) | `GameState`, `GameUnit`, `UnitRole`, `PlayerState`, `GameAction`, `GameEvent`, `UnitDefinition`, `ActiveTrait`, `LootOrb`, `AugmentOffer`, `SelectedAugment`, `PlanningPauseReason` |
+| [types/game.ts](src/types/game.ts) | `GameState`, `GameUnit`, `UnitRole`, `PlayerState`, `GameAction`, `RoomGameEvent`, `EmergencyDropPayload`, `UnitDefinition`, `ActiveTrait`, `LootOrb`, `AugmentOffer`, `SelectedAugment`, `PlanningPauseReason` |
 | [types/combatEffects.ts](src/types/combatEffects.ts) | `NormalizedCombatVisualEvent`, `EffectIntensity`, `RenderLayer`, canvas point contracts |
 
 **Type Sync:**  
@@ -711,15 +716,14 @@ Build-time environment variables (`VITE_GIT_TAG`, `VITE_GIT_COMMIT`) are injecte
 
 Vitest covers frontend utilities and focused components, including role badges, DEF rendering, and Pokemon role
 progression. Run the suite with `npm test`; `npm run build` performs strict TypeScript checking before bundling.
-The pending changelog imports `src/data/roleBalanceChangelog.ts`, an exhaustive 330-row 1.7.0-to-next-version
-comparison for every One Piece and Pokemon star form.
+The pending changelog summarizes balance categories and feature changes without embedding per-unit star-level tables.
 
 **Manual Testing Checklist:**
 1. **WebSocket Connection:** Verify connection indicator turns green
 2. **Room Creation/Joining:** Test with multiple browser tabs
 3. **Drag-and-Drop:** Move units between bench/board, ensure backend sync
 4. **Shop Actions:** Buy units, reroll, verify gold deduction
-5. **Augment Selection:** Reach rounds 2, 5, and 10, choose an augment, verify selected chips display for self/opponent
+5. **Augment Selection:** Reach rounds 3, 6, and 11, choose an augment, verify selected chips display for self/opponent
 6. **Loot Feedback:** Click loot orbs manually and let unclaimed orbs auto-collect when combat starts
 7. **Combat Animations:** Check attack/ability effects render correctly
 8. **Theme Switching:** Waiting-room mode change updates title, favicon, traits, icons, and CSS variables

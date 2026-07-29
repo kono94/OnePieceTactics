@@ -191,13 +191,13 @@ class OnePieceDataValidationTest {
     }
 
     @Test
-    void akainuAoeDamageIncludesRoleRebalance() throws Exception {
+    void akainuPremiumAoeDamageIncludesRecoveryBuff() throws Exception {
         var akainu = loadOnePieceUnits().stream()
                 .filter(unit -> unit.id().equals("akainu_v1"))
                 .findFirst()
                 .orElseThrow();
 
-        assertEquals(List.of(564, 1014, 1826), akainu.ability().values());
+        assertEquals(List.of(649, 1166, 2100), akainu.ability().values());
     }
 
     private List<UnitDefinition> loadOnePieceUnits() throws Exception {
