@@ -5,14 +5,13 @@ defineOptions({
 
 defineEmits(['back'])
 
-const versionNextCommits = [
+const version180Commits = [
+  { hash: '2baa71c', title: 'Retune four-cost area damage and combat-unit outliers across both sets' },
+  { hash: '99d9336', title: 'Add emergency drops, combat follow-up balance, and clearer tooltip tags' },
+  { hash: '13bdc4d', title: 'Fix end celebration rendering for eliminated and winning players' },
   { hash: 'ce65e88', title: 'Add unit roles and unified DEF while rebalancing both sets' },
   { hash: 'f618d8f', title: 'Update README simulation run counts' },
-  { hash: '754a2db', title: 'Rebalance AoE abilities, progression, Pokemon traits, and augments' },
-  { hash: 'pending', title: 'Retune four-cost area damage and targeted unit outliers' },
-  { hash: 'pending', title: 'Raise Pokemon tank and support role-balance thresholds' },
-  { hash: 'pending', title: 'Fix end celebration rendering for eliminated and winning players' },
-  { hash: 'pending', title: 'Add emergency loot-drop presentation and clearer unit tooltip tags' }
+  { hash: '754a2db', title: 'Rebalance AoE abilities, progression, Pokemon traits, and augments' }
 ]
 
 const version170Commits = [
@@ -57,8 +56,8 @@ const version160Commits = [
     <div class="release-history">
       <section class="release-section latest-release">
         <div class="release-header">
-          <p class="eyebrow">Next</p>
-          <h2>Version X.X.X</h2>
+          <p class="eyebrow">Latest</p>
+          <h2>Version 1.8.0</h2>
           <p>
             Every One Piece and Pokemon unit now has a Damage, Tank, or Support identity. Pokemon evolutions can change
             roles as they upgrade, and the previously unused Armor and Magic Resist fields have been replaced by one
@@ -70,7 +69,7 @@ const version160Commits = [
         </div>
         <article class="release-panel">
           <ul class="commit-list">
-            <li v-for="commit in versionNextCommits" :key="`${commit.hash}-${commit.title}`">
+            <li v-for="commit in version180Commits" :key="commit.hash">
               <span class="hash">{{ commit.hash }}</span>
               <span>{{ commit.title }}</span>
             </li>
@@ -528,7 +527,7 @@ const version160Commits = [
 
       <section class="release-section latest-release">
         <div class="release-header">
-          <p class="eyebrow">Latest</p>
+          <p class="eyebrow">Previous</p>
           <h2>Version 1.7.0</h2>
           <p>
             Gameplay analytics now persist anonymous match outcomes in SQLite, with a password-protected production
