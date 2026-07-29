@@ -70,3 +70,5 @@
 - The changelog should list all commits after the latest git tag under a temporary next-version heading like `Version X.X.X`.
 - Before creating a release tag, replace the temporary `Version X.X.X` heading with the actual git tag/version.
 - Balance notes must include both new and previous values (passed through) and "=>" before the new values, and should visually distinguish buffs and nerfs when shown in the changelog UI.
+- Follow the established balance-entry style: give each character or unit its own `.balance-block` with its name in the heading, and keep each old value, `=>` arrow, and new value in separate styled spans/elements. Do not combine multiple character changes into a wall of text.
+- When reformatting an existing release, change only the presentation and preserve the existing changelog entries and values; do not add new changelog items or alter balance values unless explicitly requested.

@@ -82,56 +82,157 @@ const version160Commits = [
           </div>
           <div class="balance-block">
             <div class="balance-title">
-              <span class="tag mixed">Role balance</span>
-              <h4>Pokémon Tank and Support Follow-up</h4>
+              <span class="tag buff">Buff</span>
+              <h4>Caterpie</h4>
             </div>
             <p>
-              Caterpie max HP and String Shot stun at 1★:
+              Max HP and String Shot stun at 1★:
               <span class="old-value">570 HP, 1.5 seconds</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">630 HP, 2 seconds</strong>. Metapod Harden at 2★:
+              <strong class="value buff">630 HP, 2 seconds</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Metapod</h4>
+            </div>
+            <p>
+              Harden at 2★:
               <span class="old-value">75 max mana, 400 shield</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
               <strong class="value buff">65 max mana, 650 shield</strong>. The additional shield remains self-only;
-              area-shield values are unchanged. Sandshrew and Sandslash max mana:
+              area-shield values are unchanged.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Sandshrew and Sandslash</h4>
+            </div>
+            <p>
+              Max mana:
               <span class="old-value">60/60/60</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">45/40/40</strong>. Abra Kinesis stun at 1★:
+              <strong class="value buff">45/40/40</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Abra</h4>
+            </div>
+            <p>
+              Kinesis stun at 1★:
               <span class="old-value">1 second</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
               <strong class="value buff">2 seconds</strong>.
             </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Squirtle</h4>
+            </div>
             <p>
-              Squirtle and Blastoise max HP:
-              <span class="old-value">962/3118</span>
+              Max HP:
+              <span class="old-value">962</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">1020/3400</strong>, and Blastoise Hydro Cannon damage at 3★:
+              <strong class="value buff">1020</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Blastoise</h4>
+            </div>
+            <p>
+              Max HP:
+              <span class="old-value">3118</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong class="value buff">3400</strong>. Hydro Cannon damage at 3★:
               <span class="old-value">315</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">360</strong>. Jigglypuff Sing stun at 1★:
+              <strong class="value buff">360</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Jigglypuff</h4>
+            </div>
+            <p>
+              Sing stun at 1★:
               <span class="old-value">1 second</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">1.5 seconds</strong>. Slowpoke Yawn stun at 1★:
+              <strong class="value buff">1.5 seconds</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Slowpoke</h4>
+            </div>
+            <p>
+              Yawn stun at 1★:
               <span class="old-value">1 second</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">2 seconds</strong>. Jynx Lovely Kiss stun:
+              <strong class="value buff">2 seconds</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Jynx</h4>
+            </div>
+            <p>
+              Lovely Kiss stun:
               <span class="old-value">1/1.5/2 seconds</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
               <strong class="value buff">1.5/2/2 seconds</strong>.
             </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Porygon</h4>
+            </div>
             <p>
-              Porygon Conversion max mana and DEF:
+              Conversion max mana and DEF:
               <span class="old-value">55/65/65 mana, 14/25/40 DEF</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">45/55/55 mana, 24/42/65 DEF</strong>. Articuno Blizzard stun is pulled
-              back after overshooting:
+              <strong class="value buff">45/55/55 mana, 24/42/65 DEF</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag nerf">Nerf</span>
+              <h4>Articuno</h4>
+            </div>
+            <p>
+              Blizzard stun is pulled back after overshooting:
               <span class="old-value">1.5/1.5/2.5 seconds</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value nerf">1.25/1.25/2.25 seconds</strong>. Boa Hancock Slave Arrow stun at 3★:
+              <strong class="value nerf">1.25/1.25/2.25 seconds</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag nerf">Nerf</span>
+              <h4>Boa Hancock</h4>
+            </div>
+            <p>
+              Slave Arrow stun at 3★:
               <span class="old-value">2 seconds</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
               <strong class="value nerf">1.75 seconds</strong>.
             </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Pokémon Balanced Boards</h4>
+            </div>
             <p>
               Fixed-seed Pokémon balanced-board win rate at sizes 3/4:
               <span class="old-value">47.87%/53.17%</span>
@@ -179,17 +280,84 @@ const version160Commits = [
               applied from the deterministic simulation report; Damage output never falls below its pre-role baseline,
               and Tank durability never falls below the 125% HP/140% DEF route.
             </p>
+            <p>Pokemon role-changing upgrades:</p>
             <p>
-              Pokemon role-changing upgrades:
+              <span class="character-name">Caterpie</span>
               <span class="old-value">one unlabeled identity per evolution line</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong>
-                Caterpie Support/Tank/Support, Weedle Damage/Tank/Damage, Pidgey Damage/Damage/Support, Poliwag
-                Damage/Support/Damage, Jigglypuff Support/Support/Damage, Psyduck Support/Damage/Damage, Ponyta
-                Support/Damage/Damage, Magnemite Damage/Damage/Tank, Abra Support/Damage/Damage, Machop
-                Damage/Support/Damage, Doduo Damage/Damage/Support, Grimer Damage/Tank/Tank, and Gastly
-                Damage/Support/Damage
-              </strong>.
+              <strong>Support/Tank/Support</strong>.
+            </p>
+            <p>
+              <span class="character-name">Weedle</span>
+              <span class="old-value">one unlabeled identity per evolution line</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>Damage/Tank/Damage</strong>.
+            </p>
+            <p>
+              <span class="character-name">Pidgey</span>
+              <span class="old-value">one unlabeled identity per evolution line</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>Damage/Damage/Support</strong>.
+            </p>
+            <p>
+              <span class="character-name">Poliwag</span>
+              <span class="old-value">one unlabeled identity per evolution line</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>Damage/Support/Damage</strong>.
+            </p>
+            <p>
+              <span class="character-name">Jigglypuff</span>
+              <span class="old-value">one unlabeled identity per evolution line</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>Support/Support/Damage</strong>.
+            </p>
+            <p>
+              <span class="character-name">Psyduck</span>
+              <span class="old-value">one unlabeled identity per evolution line</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>Support/Damage/Damage</strong>.
+            </p>
+            <p>
+              <span class="character-name">Ponyta</span>
+              <span class="old-value">one unlabeled identity per evolution line</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>Support/Damage/Damage</strong>.
+            </p>
+            <p>
+              <span class="character-name">Magnemite</span>
+              <span class="old-value">one unlabeled identity per evolution line</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>Damage/Damage/Tank</strong>.
+            </p>
+            <p>
+              <span class="character-name">Abra</span>
+              <span class="old-value">one unlabeled identity per evolution line</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>Support/Damage/Damage</strong>.
+            </p>
+            <p>
+              <span class="character-name">Machop</span>
+              <span class="old-value">one unlabeled identity per evolution line</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>Damage/Support/Damage</strong>.
+            </p>
+            <p>
+              <span class="character-name">Doduo</span>
+              <span class="old-value">one unlabeled identity per evolution line</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>Damage/Damage/Support</strong>.
+            </p>
+            <p>
+              <span class="character-name">Grimer</span>
+              <span class="old-value">one unlabeled identity per evolution line</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>Damage/Tank/Tank</strong>.
+            </p>
+            <p>
+              <span class="character-name">Gastly</span>
+              <span class="old-value">one unlabeled identity per evolution line</span>
+              <span class="change-arrow">&nbsp;=>&nbsp;</span>
+              <strong>Damage/Support/Damage</strong>.
             </p>
             <p>
               Fixed-seed role simulation, balanced win rate by board size 3/4/5/6/7:
@@ -237,52 +405,166 @@ const version160Commits = [
           <div class="balance-block">
             <div class="balance-title">
               <span class="tag mixed">Rework</span>
-              <h4>Role-Defining Abilities</h4>
+              <h4>Sanji</h4>
             </div>
             <p>
-              Sanji Diable Jambe:
+              Diable Jambe:
               <span class="old-value">18/31/53% team Attack Speed</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong>280/504/907 damage</strong>. Robin Clutch:
+              <strong>280/504/907 damage</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag mixed">Rework</span>
+              <h4>Robin</h4>
+            </div>
+            <p>
+              Clutch:
               <span class="old-value">350/630/1134 damage with control</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong>1/2/3 second stun</strong>. Moria Shadow Steal:
+              <strong>1/2/3 second stun</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag mixed">Rework</span>
+              <h4>Moria</h4>
+            </div>
+            <p>
+              Shadow Steal:
               <span class="old-value">220/396/712 damage</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong>10/18/30 DEF shred</strong>. Page One Spinosaurus Shield:
+              <strong>10/18/30 DEF shred</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag mixed">Rework</span>
+              <h4>Page One</h4>
+            </div>
+            <p>
+              Spinosaurus Shield:
               <span class="old-value">14/25/39% Attack</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong>12/22/35 DEF</strong>. Queen Plague Bullet:
+              <strong>12/22/35 DEF</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag mixed">Rework</span>
+              <h4>Queen</h4>
+            </div>
+            <p>
+              Plague Bullet:
               <span class="old-value">315/567/1021 damage</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong>12/22/35 DEF shred</strong>. Chess Soldiers Formation:
+              <strong>12/22/35 DEF shred</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag mixed">Rework</span>
+              <h4>Chess Soldiers</h4>
+            </div>
+            <p>
+              Formation:
               <span class="old-value">11/18/28% Attack</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong>10/18/30 DEF</strong>. Cracker Biscuit Slash:
+              <strong>10/18/30 DEF</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag mixed">Rework</span>
+              <h4>Cracker</h4>
+            </div>
+            <p>
+              Biscuit Slash:
               <span class="old-value">224/403/725 damage</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong>Biscuit Guard with 20/35/60 DEF</strong>. Jozu Diamond Defense:
+              <strong>Biscuit Guard with 20/35/60 DEF</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag mixed">Rework</span>
+              <h4>Jozu</h4>
+            </div>
+            <p>
+              Diamond Defense:
               <span class="old-value">300/540/972 healing</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
               <strong>18/32/55 DEF</strong>.
             </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag mixed">Rework</span>
+              <h4>Bulbasaur</h4>
+            </div>
             <p>
-              Bulbasaur Vine Whip:
+              Vine Whip:
               <span class="old-value">126/284/609 damage</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong>1/1/2 second line stun</strong>. Ivysaur Razor Leaf:
+              <strong>1/1/2 second line stun</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag mixed">Rework</span>
+              <h4>Ivysaur</h4>
+            </div>
+            <p>
+              Razor Leaf:
               <span class="old-value">112/252/543 damage</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong>8/16/28 DEF shred</strong>. Oddish Absorb:
+              <strong>8/16/28 DEF shred</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag mixed">Rework</span>
+              <h4>Oddish</h4>
+            </div>
+            <p>
+              Absorb:
               <span class="old-value">220/495/1060 damage</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong>healing</strong>. Vileplume Petal Dance:
+              <strong>healing</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag mixed">Rework</span>
+              <h4>Vileplume</h4>
+            </div>
+            <p>
+              Petal Dance:
               <span class="old-value">112/252/560 damage</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong>Sleep Powder with 1/1/2 second stun</strong>. Tentacool/Tentacruel:
+              <strong>Sleep Powder with 1/1/2 second stun</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag mixed">Rework</span>
+              <h4>Tentacool and Tentacruel</h4>
+            </div>
+            <p>
+              Acid Spray and Sludge Wave:
               <span class="old-value">Acid Spray and Sludge Wave damage</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong>8/18/30 DEF shred</strong>. Porygon Conversion:
+              <strong>8/18/30 DEF shred</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag mixed">Rework</span>
+              <h4>Porygon</h4>
+            </div>
+            <p>
+              Conversion:
               <span class="old-value">15/24/35% Attack Speed</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
               <strong>12/22/36 DEF</strong>.
@@ -298,7 +580,16 @@ const version160Commits = [
               <span class="old-value">100%</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
               <strong class="value nerf">70%</strong>. This applies to damage, healing, shielding, buffs, and control in
-              both modes. Golem Stealth Rock:
+              both modes.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag nerf">Nerf</span>
+              <h4>Golem</h4>
+            </div>
+            <p>
+              Stealth Rock:
               <span class="old-value">146/329/800</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
               <strong class="value nerf">102/230/560</strong>.
@@ -320,7 +611,16 @@ const version160Commits = [
               <span class="old-value">80.5% effective damage, +15%</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
               <strong class="value nerf">77% effective damage, +10%</strong>. SINGLE abilities and lower-cost units are
-              unchanged. Five-cost Akainu's magma damage remains
+              unchanged.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Akainu</h4>
+            </div>
+            <p>
+              Five-cost magma damage remains
               <span class="old-value">564/1014/1826</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
               <strong class="value buff">649/1166/2100</strong>.
@@ -347,47 +647,143 @@ const version160Commits = [
           </div>
           <div class="balance-block">
             <div class="balance-title">
-              <span class="tag mixed">Follow-up</span>
-              <h4>Simulation-Driven Unit Tuning</h4>
+              <span class="tag buff">Buff</span>
+              <h4>Caterpie</h4>
             </div>
             <p>
-              Caterpie String Shot at 1★:
+              String Shot at 1★:
               <span class="old-value">1 second</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">1.5 seconds</strong>. Metapod's self-only Harden shield at 2★:
+              <strong class="value buff">1.5 seconds</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Metapod</h4>
+            </div>
+            <p>
+              Self-only Harden shield at 2★:
               <span class="old-value">245</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">400</strong>; area shields keep their reduced values. Jynx Lovely Kiss stun:
+              <strong class="value buff">400</strong>; area shields keep their reduced values.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Jynx</h4>
+            </div>
+            <p>
+              Lovely Kiss stun:
               <span class="old-value">1/1/1 seconds</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">1/1.5/2 seconds</strong>. Porygon Conversion DEF:
+              <strong class="value buff">1/1.5/2 seconds</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Porygon</h4>
+            </div>
+            <p>
+              Conversion DEF:
               <span class="old-value">12/22/36</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">14/25/40</strong>. Tentacruel Sludge Wave DEF shred:
+              <strong class="value buff">14/25/40</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Tentacruel</h4>
+            </div>
+            <p>
+              Sludge Wave DEF shred:
               <span class="old-value">8/18/30</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">10/22/36</strong>. Articuno Blizzard stun:
+              <strong class="value buff">10/22/36</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Articuno</h4>
+            </div>
+            <p>
+              Blizzard stun:
               <span class="old-value">1/1/2 seconds</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">1.5/1.5/2.5 seconds</strong>. Gengar Dream Eater lifesteal at 3★:
+              <strong class="value buff">1.5/1.5/2.5 seconds</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag nerf">Nerf</span>
+              <h4>Gengar</h4>
+            </div>
+            <p>
+              Dream Eater lifesteal at 3★:
               <span class="old-value">75%</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
               <strong class="value nerf">50%</strong>.
             </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Boa Hancock</h4>
+            </div>
             <p>
-              Boa Hancock Slave Arrow stun:
+              Slave Arrow stun:
               <span class="old-value">1/1/1 seconds</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">1/1/2 seconds</strong>. Queen Plague Bullet DEF shred:
+              <strong class="value buff">1/1/2 seconds</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Queen</h4>
+            </div>
+            <p>
+              Plague Bullet DEF shred:
               <span class="old-value">12/22/35</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">14/25/40</strong>. Nico Robin max mana:
+              <strong class="value buff">14/25/40</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Nico Robin</h4>
+            </div>
+            <p>
+              Max mana:
               <span class="old-value">45/40/50</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">40/35/45</strong>. Moria Shadow Steal DEF shred:
+              <strong class="value buff">40/35/45</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Moria</h4>
+            </div>
+            <p>
+              Shadow Steal DEF shred:
               <span class="old-value">10/18/30</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
-              <strong class="value buff">12/21/34</strong>. Charlotte Katakuri Mochi Thrust damage:
+              <strong class="value buff">12/21/34</strong>.
+            </p>
+          </div>
+          <div class="balance-block">
+            <div class="balance-title">
+              <span class="tag buff">Buff</span>
+              <h4>Charlotte Katakuri</h4>
+            </div>
+            <p>
+              Mochi Thrust damage:
               <span class="old-value">920/1656/2981</span>
               <span class="change-arrow">&nbsp;=>&nbsp;</span>
               <strong class="value buff">966/1739/3130</strong>.
@@ -1974,6 +2370,13 @@ const version160Commits = [
 }
 
 .value {
+    font-weight: 900;
+}
+
+.character-name {
+    display: inline-block;
+    min-width: 112px;
+    color: #f8fafc;
     font-weight: 900;
 }
 
