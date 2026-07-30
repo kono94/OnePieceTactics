@@ -19,23 +19,6 @@ const displayText = computed(() => {
   return versionText.value.startsWith('v') ? versionText.value : `v${versionText.value}`
 })
 
-const formattedBuildTime = computed(() => {
-  if (!buildTime) return ''
-  try {
-    const date = new Date(buildTime)
-    return date.toLocaleString('en-US', { 
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZoneName: 'short'
-    })
-  } catch {
-    return buildTime
-  }
-})
-
 const tooltip = computed(() => {
   const parts = [`Version: ${gitTag}`]
   if (gitCommit !== 'unknown') {
@@ -51,7 +34,6 @@ const tooltip = computed(() => {
 <template>
   <div v-if="visible !== false" class="version-display" :title="tooltip">
     <div class="version">{{ displayText }}</div>
-    <div v-if="formattedBuildTime" class="build-time">{{ formattedBuildTime }}</div>
   </div>
 </template>
 
@@ -76,11 +58,8 @@ const tooltip = computed(() => {
   font-size: 0.65rem;
   color: rgba(255, 255, 255, 0.5);
   font-weight: bold;
-}
-
-.build-time {
-  font-size: 0.55rem;
-  color: rgba(255, 255, 255, 0.3);
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .version-display:hover {
@@ -92,7 +71,4 @@ const tooltip = computed(() => {
   color: rgba(255, 255, 255, 0.8);
 }
 
-.version-display:hover .build-time {
-  color: rgba(255, 255, 255, 0.6);
-}
 </style>

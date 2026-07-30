@@ -717,7 +717,7 @@ body {
 
 .changelog-dock {
   position: fixed;
-  bottom: 28px;
+  bottom: 30px;
   left: 8px;
   z-index: 10000;
   padding: 5px 8px;

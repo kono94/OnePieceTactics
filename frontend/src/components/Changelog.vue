@@ -6,6 +6,7 @@ defineOptions({
 defineEmits(['back'])
 
 const nextVersionCommits = [
+  { hash: 'working-tree', title: 'Place the changelog button above the single-line version display' },
   { hash: 'working-tree', title: 'Fix frontend container builds that consume shared backend unit definitions' },
   { hash: 'working-tree', title: 'Replace the Palworld favicon with a distinct crystal-and-gold Pal Sphere design' },
   { hash: 'working-tree', title: 'Add the remaining 11 Palworld unit portraits from batches 12–14 and the Pal Sphere favicon' },
