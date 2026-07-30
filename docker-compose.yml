@@ -24,7 +24,9 @@ services:
       - "8080"
 
   frontend:
-    build: ./frontend
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
     container_name: tft-frontend
     expose:
       - "80"

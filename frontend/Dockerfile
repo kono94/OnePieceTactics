@@ -4,10 +4,11 @@ FROM node:22-alpine AS build
 # Install git to read version info
 RUN apk add --no-cache git
 
-WORKDIR /app
-COPY package*.json ./
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
 RUN npm install
-COPY . .
+COPY frontend/ ./
+COPY backend/src/main/resources/data/ /app/backend/src/main/resources/data/
 
 # Inject git version info as build-time env vars
 ARG VITE_GIT_TAG
@@ -21,6 +22,6 @@ RUN npm run build
 
 # Production stage
 FROM nginx:alpine
-COPY --from=build /app/dist /usr/share/nginx/html
+COPY --from=build /app/frontend/dist /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

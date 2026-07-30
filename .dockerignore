@@ -1,0 +1,10 @@
+.git
+**/.git
+**/node_modules
+**/dist
+**/target
+**/coverage
+deployment/certbot
+*.db
+*.db-shm
+*.db-wal

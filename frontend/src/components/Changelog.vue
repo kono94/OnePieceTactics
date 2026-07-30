@@ -6,6 +6,7 @@ defineOptions({
 defineEmits(['back'])
 
 const nextVersionCommits = [
+  { hash: 'working-tree', title: 'Fix frontend container builds that consume shared backend unit definitions' },
   { hash: 'working-tree', title: 'Add the first 44 processed Palworld unit portraits from batches 1–11' },
   { hash: 'working-tree', title: 'Add Palworld mode planning and documentation' },
   { hash: 'working-tree', title: 'Use one star-scaled root ability per Pal with Pokemon-style trait-derived damage typing' },
@@ -66,7 +67,7 @@ const version160Commits = [
       <section class="release-section latest-release">
         <div class="release-header">
           <p class="eyebrow">Next</p>
-          <h2>Version X.X.X</h2>
+          <h2>Version 2.0.0-rc1</h2>
           <p>
             Palworld is planned as a third lobby-selectable mode with 55 Pals, nine team-wide elemental traits, 15
             augments, and one root ability per Pal whose values scale across 1★/2★/3★. Basic attacks and abilities
