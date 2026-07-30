@@ -7,6 +7,8 @@ defineEmits(['back'])
 
 const nextVersionCommits = [
   { hash: 'working-tree', title: 'Fix frontend container builds that consume shared backend unit definitions' },
+  { hash: 'working-tree', title: 'Replace the Palworld favicon with a distinct crystal-and-gold Pal Sphere design' },
+  { hash: 'working-tree', title: 'Add the remaining 11 Palworld unit portraits from batches 12–14 and the Pal Sphere favicon' },
   { hash: 'working-tree', title: 'Add the first 44 processed Palworld unit portraits from batches 1–11' },
   { hash: 'working-tree', title: 'Add Palworld mode planning and documentation' },
   { hash: 'working-tree', title: 'Use one star-scaled root ability per Pal with Pokemon-style trait-derived damage typing' },
