@@ -43,6 +43,12 @@ const modeOptions = computed((): GameMode[] => {
 
 const modeMetadata = (mode: GameMode) => getGameModeMetadata(mode)
 
+const modeDescriptions: Record<GameMode, string> = {
+    onepiece: 'Set sail with legendary pirates',
+    pokemon: 'Build a team of iconic trainers',
+    palworld: 'Explore a wild world of Pals',
+}
+
 const themeClass = computed(() => {
     return props.themeClass ?? getGameModeMetadata(props.gameState?.gameMode ?? props.defaultMode).themeClass
 })
@@ -60,9 +66,6 @@ function selectMode(mode: GameMode) {
   <div :class="['waiting-room', themeClass]">
     <div class="header">
         <h2>Lobby: {{ gameState.roomId }}</h2>
-        <div class="host-info">
-            Host: {{ gameState.hostId }}
-        </div>
     </div>
 
     <div class="player-list">
@@ -88,14 +91,24 @@ function selectMode(mode: GameMode) {
     </div>
 
     <div class="mode-panel">
-        <div class="mode-label">Theme</div>
+        <div class="mode-heading">
+            <div>
+                <div class="mode-label">Game theme</div>
+                <h3>Choose your battlefield</h3>
+                <p>Pick the world your room will play in.</p>
+            </div>
+            <div class="mode-status" :class="{ locked: !isHost }">
+                <span class="status-dot" aria-hidden="true"></span>
+                {{ isHost ? 'Host selection' : 'Host controlled' }}
+            </div>
+        </div>
         <div class="mode-control" role="group" aria-label="Select game theme">
             <button
                 v-for="mode in modeOptions"
                 :key="mode"
                 type="button"
                 class="mode-option"
-                :class="{ active: selectedMode === mode }"
+                :class="[`mode-option-${mode}`, { active: selectedMode === mode }]"
                 :aria-pressed="selectedMode === mode"
                 :aria-label="`Select ${modeMetadata(mode).label} mode`"
                 :aria-disabled="!isHost"
@@ -103,10 +116,12 @@ function selectMode(mode: GameMode) {
                 @click="selectMode(mode)"
             >
                 <span class="mode-motif" :class="`motif-${mode}`" aria-hidden="true">
-                    <span v-if="mode === 'palworld'" class="mode-motif-button" />
-                    <span v-else>{{ modeMetadata(mode).shortLabel.charAt(0) }}</span>
+                    <img v-if="mode === 'palworld'" class="mode-motif-image" src="/pal-sphere.png" alt="" />
+                    <span v-else-if="mode === 'onepiece'" class="mode-motif-star">✦</span>
                 </span>
-                <span>{{ modeMetadata(mode).label }}</span>
+                <span class="mode-name">{{ modeMetadata(mode).label }}</span>
+                <span class="mode-caption">{{ modeDescriptions[mode] }}</span>
+                <span v-if="selectedMode === mode" class="mode-check" aria-hidden="true">✓</span>
             </button>
         </div>
     </div>
@@ -126,7 +141,7 @@ function selectMode(mode: GameMode) {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 50px;
+    padding: 28px 40px 24px;
     height: 100vh;
     color: var(--room-fg);
     background: var(--room-bg);
@@ -136,7 +151,7 @@ function selectMode(mode: GameMode) {
 
 .header {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 14px;
 }
 
 .header h2 {
@@ -145,20 +160,15 @@ function selectMode(mode: GameMode) {
     color: var(--room-accent);
 }
 
-.host-info {
-    color: #94a3b8;
-    margin-top: 5px;
-}
-
 .player-list {
     width: 100%;
     max-width: 800px;
-    margin-bottom: 50px;
+    margin-bottom: 24px;
 }
 
 .player-list h3 {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
     color: var(--room-muted);
 }
 
@@ -230,52 +240,99 @@ function selectMode(mode: GameMode) {
 
 .mode-panel {
     width: 100%;
-    max-width: 420px;
+    max-width: 760px;
+    padding: 18px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+    background: rgba(9, 15, 30, 0.34);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 18px 45px rgba(2, 6, 23, 0.22);
+    backdrop-filter: blur(16px);
+}
+
+.mode-heading {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 16px 20px;
-    border-radius: 12px;
-    margin-bottom: 30px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(8px);
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 14px;
 }
 
 .mode-label {
-    font-weight: 600;
-    letter-spacing: 0.04em;
+    font-size: 0.72em;
+    font-weight: 800;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--room-muted);
-    font-size: 0.85em;
+}
+
+.mode-heading h3 {
+    margin: 3px 0 2px;
+    color: var(--room-fg);
+    font-size: 1.12em;
+}
+
+.mode-heading p {
+    margin: 0;
+    color: var(--room-muted);
+    font-size: 0.78em;
+}
+
+.mode-status {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 9px;
+    border: 1px solid rgba(74, 222, 128, 0.34);
+    border-radius: 999px;
+    background: rgba(34, 197, 94, 0.12);
+    color: #bbf7d0;
+    font-size: 0.65em;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.mode-status.locked {
+    border-color: rgba(148, 163, 184, 0.28);
+    background: rgba(148, 163, 184, 0.12);
+    color: var(--room-muted);
+}
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4ade80;
+    box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.14);
+}
+
+.locked .status-dot {
+    background: #94a3b8;
+    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
 }
 
 .mode-control {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 4px;
-    padding: 4px;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.45);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    user-select: none;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
 }
 
 .mode-option {
-    display: inline-flex;
-    min-width: 108px;
-    min-height: 44px;
-    padding: 10px 14px;
-    border-radius: 6px;
-    border: none;
-    background: transparent;
-    color: white;
-    font-size: 0.95em;
-    font-weight: 700;
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 62px;
+    padding: 10px 12px;
+    gap: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 16px;
+    background: rgba(15, 23, 42, 0.42);
+    color: var(--room-fg);
+    text-align: left;
     cursor: pointer;
-    transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+    transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
     -webkit-user-select: none;
     user-select: none;
 }
@@ -287,54 +344,105 @@ function selectMode(mode: GameMode) {
 
 .mode-option:disabled {
     cursor: default;
-    opacity: 0.9;
+}
+
+.mode-option:disabled:not(.active) {
+    opacity: 0.72;
 }
 
 .mode-motif {
     position: relative;
-    display: inline-flex;
-    width: 22px;
-    height: 22px;
+    display: flex;
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
     align-items: center;
     justify-content: center;
-    margin-right: 7px;
     border: 2px solid currentColor;
     border-radius: 50%;
-    font-size: 0.7em;
+    font-size: 1.05em;
     line-height: 1;
+    box-shadow: inset 0 0 0 5px rgba(255, 255, 255, 0.1);
 }
 
 .motif-palworld {
     overflow: hidden;
-    border-color: #173443;
-    background: linear-gradient(180deg, #ff7f6e 0 44%, #173443 44% 56%, #f5feff 56%);
-    color: #173443;
-}
-
-.mode-motif-button {
-    width: 7px;
-    height: 7px;
-    border: 2px solid #173443;
-    border-radius: 50%;
-    background: #f5feff;
+    border: none;
+    background: #86e5f3;
+    box-shadow: none;
 }
 
 .motif-onepiece {
-    color: #fbbf24;
+    border-color: #fbbf24;
+    background: radial-gradient(circle, #fef3c7 0 20%, #f59e0b 21% 38%, #172554 39% 100%);
+    color: #fff7ed;
 }
 
 .motif-pokemon {
-    color: #f97316;
+    overflow: hidden;
+    border-color: #f97316;
+    background: linear-gradient(180deg, #f97316 0 44%, #172554 44% 56%, #f8fafc 56%);
+    color: #172554;
 }
 
-.mode-option:hover {
-    background: rgba(255, 255, 255, 0.12);
+.motif-pokemon::after {
+    width: 18px;
+    height: 18px;
+    border: 4px solid #172554;
+    border-radius: 50%;
+    background: #f8fafc;
+    content: '';
+}
+
+.mode-motif-star {
+    transform: translateY(-1px);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.75);
+}
+
+.mode-motif-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.mode-name {
+    font-size: 0.95em;
+    font-weight: 800;
+}
+
+.mode-caption {
+    display: none;
+    color: var(--room-muted);
+    font-size: 0.78em;
+    line-height: 1.3;
+}
+
+.mode-check {
+    position: absolute;
+    top: 7px;
+    right: 8px;
+    display: grid;
+    width: 18px;
+    height: 18px;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--room-accent);
+    color: var(--room-accent-contrast);
+    font-size: 0.68em;
+    font-weight: 900;
+}
+
+.mode-option:hover:not(:disabled) {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.32);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .mode-option.active {
-    color: #0f172a;
-    background: var(--room-accent);
-    box-shadow: 0 0 18px rgba(255, 255, 255, 0.18);
+    border-color: var(--room-accent);
+    background: color-mix(in srgb, var(--room-accent) 16%, rgba(15, 23, 42, 0.72));
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--room-accent) 34%, transparent), 0 12px 26px rgba(2, 6, 23, 0.18);
 }
 
 .actions {
@@ -389,21 +497,21 @@ button {
 }
 
 .waiting-room.theme-palworld {
-    --pw-sky: #5bc9e8;
-    --pw-sky-deep: #1888a6;
-    --pw-teal: #187c6b;
-    --pw-leaf: #48a868;
-    --pw-sand: #f0d59a;
-    --pw-coral: #ff7f6e;
-    --pw-gold: #d9a441;
-    --pw-ink: #173443;
-    --pw-cloud: #f5feff;
-    --room-bg: linear-gradient(180deg, var(--pw-sky) 0%, #bfefff 48%, var(--pw-sand) 100%);
+    --pw-sky: #102a43;
+    --pw-sky-deep: #237b98;
+    --pw-teal: #2ab99a;
+    --pw-leaf: #4ade80;
+    --pw-sand: #30445d;
+    --pw-coral: #fb7185;
+    --pw-gold: #f3b94f;
+    --pw-ink: #e5f3f5;
+    --pw-cloud: #ecfeff;
+    --room-bg: linear-gradient(180deg, #071221 0%, #0d1c2e 52%, #15253a 100%);
     --room-fg: var(--pw-ink);
-    --room-muted: #285767;
+    --room-muted: #9db7c3;
     --room-accent: var(--pw-teal);
-    --room-accent-contrast: var(--pw-cloud);
-    --room-avatar: var(--pw-leaf);
+    --room-accent-contrast: #06151f;
+    --room-avatar: #2d9f86;
     color: var(--pw-ink);
 }
 
@@ -411,10 +519,7 @@ button {
     position: absolute;
     inset: 0 0 42%;
     z-index: -1;
-    background:
-        radial-gradient(ellipse at 16% 25%, rgba(245, 254, 255, 0.9) 0 9%, transparent 10%),
-        radial-gradient(ellipse at 80% 17%, rgba(245, 254, 255, 0.78) 0 12%, transparent 13%),
-        linear-gradient(180deg, rgba(91, 201, 232, 0.9), rgba(191, 239, 255, 0.5));
+    background: linear-gradient(180deg, rgba(16, 42, 67, 0.72), rgba(7, 18, 33, 0.18));
     content: '';
     pointer-events: none;
 }
@@ -425,18 +530,45 @@ button {
 
 .waiting-room.theme-palworld .player-card,
 .waiting-room.theme-palworld .mode-panel {
-    border-color: rgba(245, 254, 255, 0.78);
-    background: rgba(245, 254, 255, 0.78);
-    box-shadow: 0 10px 24px rgba(24, 136, 166, 0.14);
+    border-color: rgba(236, 254, 255, 0.15);
+    background: rgba(12, 29, 46, 0.76);
+    box-shadow: 0 14px 30px rgba(2, 6, 23, 0.28);
 }
 
 .waiting-room.theme-palworld .player-card.empty {
-    border-color: rgba(24, 124, 107, 0.4);
+    border-color: rgba(42, 185, 154, 0.34);
 }
 
 .waiting-room.theme-palworld .mode-control {
-    border-color: rgba(24, 124, 107, 0.35);
-    background: rgba(23, 52, 67, 0.82);
+    border: none;
+    background: transparent;
+}
+
+.waiting-room.theme-palworld .mode-option {
+    border-color: rgba(236, 254, 255, 0.14);
+    background: rgba(4, 15, 29, 0.48);
+    color: var(--pw-ink);
+}
+
+.waiting-room.theme-palworld .mode-option:hover:not(:disabled) {
+    border-color: var(--pw-teal);
+    background: rgba(42, 185, 154, 0.12);
+}
+
+.waiting-room.theme-palworld .mode-caption {
+    color: var(--room-muted);
+}
+
+.waiting-room.theme-palworld .mode-status {
+    border-color: rgba(42, 185, 154, 0.34);
+    background: rgba(42, 185, 154, 0.12);
+    color: #8ce8cf;
+}
+
+.waiting-room.theme-palworld .mode-status.locked {
+    border-color: rgba(157, 183, 195, 0.22);
+    background: rgba(157, 183, 195, 0.1);
+    color: var(--room-muted);
 }
 
 .waiting-room.theme-palworld .mode-option.active {
@@ -467,8 +599,8 @@ button {
 }
 
 .waiting-room.theme-palworld .leave-btn {
-    border-color: rgba(23, 52, 67, 0.26);
-    background: rgba(245, 254, 255, 0.65);
+    border-color: rgba(236, 254, 255, 0.18);
+    background: rgba(12, 29, 46, 0.76);
     color: var(--pw-ink);
 }
 
@@ -483,16 +615,22 @@ button {
     }
 
     .mode-panel {
+        padding: 18px;
+        border-radius: 20px;
+    }
+
+    .mode-heading {
         flex-direction: column;
-        gap: 10px;
+        gap: 12px;
     }
 
     .mode-control {
         width: 100%;
+        grid-template-columns: 1fr;
     }
 
     .mode-option {
-        flex: 1 1 120px;
+        min-height: 58px;
     }
 }
 

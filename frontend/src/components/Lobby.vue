@@ -162,21 +162,21 @@ button.secondary {
 }
 
 .lobby.theme-palworld {
-    --pw-sky: #5bc9e8;
-    --pw-sky-deep: #1888a6;
-    --pw-teal: #187c6b;
-    --pw-leaf: #48a868;
-    --pw-sand: #f0d59a;
-    --pw-coral: #ff7f6e;
-    --pw-gold: #d9a441;
-    --pw-ink: #173443;
-    --pw-cloud: #f5feff;
-    --room-bg: linear-gradient(180deg, var(--pw-sky) 0%, #bfefff 48%, var(--pw-sand) 100%);
+    --pw-sky: #102a43;
+    --pw-sky-deep: #237b98;
+    --pw-teal: #2ab99a;
+    --pw-leaf: #4ade80;
+    --pw-sand: #30445d;
+    --pw-coral: #fb7185;
+    --pw-gold: #f3b94f;
+    --pw-ink: #e5f3f5;
+    --pw-cloud: #ecfeff;
+    --room-bg: linear-gradient(180deg, #071221 0%, #0d1c2e 52%, #15253a 100%);
     --room-fg: var(--pw-ink);
-    --room-muted: #285767;
+    --room-muted: #9db7c3;
     --room-accent: var(--pw-teal);
-    --room-accent-contrast: var(--pw-cloud);
-    --room-avatar: var(--pw-leaf);
+    --room-accent-contrast: #06151f;
+    --room-avatar: #2d9f86;
 }
 
 .lobby.theme-palworld::before,
@@ -189,18 +189,13 @@ button.secondary {
 
 .lobby.theme-palworld::before {
     inset: 0 0 35%;
-    background:
-        radial-gradient(ellipse at 20% 28%, rgba(245, 254, 255, 0.9) 0 9%, transparent 10%),
-        radial-gradient(ellipse at 76% 18%, rgba(245, 254, 255, 0.78) 0 12%, transparent 13%),
-        linear-gradient(180deg, rgba(91, 201, 232, 0.9), rgba(191, 239, 255, 0.55));
+    background: linear-gradient(180deg, rgba(16, 42, 67, 0.72), rgba(7, 18, 33, 0.18));
 }
 
 .lobby.theme-palworld::after {
     inset: auto 0 0;
     height: 38%;
-    background:
-        radial-gradient(ellipse at 50% 100%, var(--pw-teal) 0 36%, transparent 37%),
-        linear-gradient(180deg, transparent 0 30%, var(--pw-sand) 31%);
+    background: linear-gradient(180deg, transparent 0 30%, var(--pw-sand) 31%);
 }
 
 .lobby.theme-palworld .title h1 {
@@ -211,25 +206,25 @@ button.secondary {
 }
 
 .lobby.theme-palworld .card {
-    border-color: rgba(245, 254, 255, 0.75);
+    border-color: rgba(236, 254, 255, 0.15);
     border-radius: 20px;
-    background: rgba(245, 254, 255, 0.86);
-    box-shadow: 0 12px 30px rgba(24, 136, 166, 0.2);
+    background: rgba(12, 29, 46, 0.82);
+    box-shadow: 0 14px 30px rgba(2, 6, 23, 0.28);
     color: var(--pw-ink);
 }
 
 .lobby.theme-palworld .card p {
-    color: #285767;
+    color: var(--room-muted);
 }
 
 .lobby.theme-palworld input {
-    border: 1px solid rgba(24, 124, 107, 0.35);
-    background: rgba(255, 255, 255, 0.92);
-    color: var(--pw-ink);
+    border: 1px solid rgba(236, 254, 255, 0.16);
+    background: rgba(4, 15, 29, 0.7);
+    color: var(--pw-cloud);
 }
 
 .lobby.theme-palworld input:focus {
-    outline: 3px solid rgba(255, 127, 110, 0.42);
+    outline: 3px solid rgba(251, 113, 133, 0.32);
     border-color: var(--pw-coral);
 }
 

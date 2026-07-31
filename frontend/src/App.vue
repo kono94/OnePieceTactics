@@ -56,7 +56,7 @@ let traitRequestGeneration = 0
 let restoredRoomTimeout: number | null = null
 
 const activeVisualMode = computed<GameMode>(() => gameState.value?.gameMode ?? defaultMode.value)
-const gameTitle = computed(() => getGameModeMetadata(activeVisualMode.value).documentTitle)
+const gameTitle = 'Theme Fusion Tactics'
 
 const restoredRoom = loadActiveRoomSession()
 const PLAYER_NAME = restoredRoom?.playerName ?? "Player_" + Math.floor(Math.random() * 10000)
