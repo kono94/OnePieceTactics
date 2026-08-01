@@ -11,11 +11,12 @@ import type { AugmentOffer, EmergencyDropPayload, GameState, GameUnit, UnitDefin
 import { getUnitIconPath } from '../utils/iconUtils'
 import { getRarityColor } from '../utils/colorUtils'
 import { setUnitDragPreview } from '../utils/dragPreview'
+import { calculateSellRefund } from '../utils/economy'
 import { SHOP_ODDS } from '../data/shopOdds'
 
 const props = defineProps<{
   state: GameState | null,
-  currentPlayerName: string,
+  currentPlayerId: string,
   emergencyDrop?: EmergencyDropPayload | null,
   queuedEmergencyDrop?: EmergencyDropPayload | null,
   suppressPlanningAnnouncement?: boolean
@@ -24,9 +25,8 @@ const props = defineProps<{
 const emit = defineEmits(['action', 'view-player', 'exit-game', 'abandon-game'])
 
 const myPlayer = computed((): PlayerState | null => {
-    if (!props.state?.players) return null
-    // Find player by name
-    return Object.values(props.state.players).find((p: PlayerState) => p.name === props.currentPlayerName) ?? null
+    if (!props.state?.players || !props.currentPlayerId) return null
+    return props.state.players[props.currentPlayerId] ?? null
 })
 
 const allPlayers = computed((): PlayerState[] => {
@@ -51,6 +51,12 @@ const isSpectating = computed(() => {
 
 const isDead = computed(() => {
     return myPlayer.value && myPlayer.value.health <= 0
+})
+
+const canManageTeam = computed(() => props.state?.phase === 'PLANNING' && !isDead.value && !isSpectating.value)
+const canManageShopAndBench = computed(() => {
+    const phase = props.state?.phase
+    return (phase === 'PLANNING' || phase === 'COMBAT') && !isDead.value && !isSpectating.value
 })
 
 const shopCards = computed((): UnitDefinition[] => {
@@ -149,17 +155,17 @@ function selectViewedPlayer(playerId: string) {
 
 
 function buyUnit(index: number) {
-    if (!myPlayer.value) return
+    if (!myPlayer.value || !canManageShopAndBench.value) return
     emit('action', { type: 'BUY', shopIndex: index, playerId: myPlayer.value.playerId })
 }
 
 function refreshShop() {
-    if (!myPlayer.value) return
+    if (!myPlayer.value || !canManageShopAndBench.value) return
     emit('action', { type: 'REROLL', playerId: myPlayer.value.playerId })
 }
 
 function buyXp() {
-    if (!myPlayer.value) return
+    if (!myPlayer.value || !canManageShopAndBench.value) return
     emit('action', { type: 'EXP', playerId: myPlayer.value.playerId })
 }
 
@@ -176,6 +182,10 @@ function cleanupBenchDragPreview() {
 }
 
 const onBenchDragStart = (evt: DragEvent, unit: GameUnit) => {
+    if (!canManageShopAndBench.value) {
+        evt.preventDefault()
+        return
+    }
     isDraggingUnit.value = true
     draggedUnit.value = unit
     // Clear hover states when drag starts
@@ -201,14 +211,11 @@ const onBenchDragEnd = () => {
 
 const onBenchDrop = (evt: DragEvent, index: number) => {
     evt.preventDefault()
+    if (!canManageShopAndBench.value) return
     dragOverBenchIndex.value = -1
     if (evt.dataTransfer) {
         const unitId = evt.dataTransfer.getData('unitId')
         if (unitId) {
-             // Move to bench slot index
-             // Note: Backend needs to handle this logically. 
-             // Ideally we distinguish bench move from board move. 
-             // If targetY is -1, it's bench.
              emit('action', { type: 'MOVE', unitId, targetX: index, targetY: -1, playerId: myPlayer.value?.playerId })
         }
     }
@@ -233,11 +240,13 @@ interface MovePayload {
 }
 
 const handleBoardMove = (movePayload: MovePayload) => {
+    if (!canManageTeam.value) return
     console.log("Emitting MOVE action", movePayload)
     emit('action', { type: 'MOVE', unitId: movePayload.unitId, targetX: movePayload.x, targetY: movePayload.y, playerId: myPlayer.value?.playerId })
 }
 
 const handleCollectOrb = (orbId: string) => {
+    if (!canManageTeam.value) return
     console.log("Emitting COLLECT_ORB action", orbId)
     emit('action', { type: 'COLLECT_ORB', orbId, playerId: myPlayer.value?.playerId })
 }
@@ -272,16 +281,8 @@ const isDraggingFromGrid = ref(false)
 const dragOverBenchIndex = ref(-1)
 const isOverGrid = ref(false)
 
-// Calculate sell value: cost × 3^(starLevel - 1)
-function calculateSellRefund(unit: GameUnit | null): number {
-    if (!unit) return 0
-    const cost = unit.cost || 1
-    const starLevel = unit.starLevel || 1
-    return cost * Math.pow(3, starLevel - 1)
-}
-
 function sellUnit(unitId: string) {
-    if (!myPlayer.value) return
+    if (!myPlayer.value || !canManageShopAndBench.value) return
     emit('action', { type: 'SELL', unitId, playerId: myPlayer.value.playerId })
 }
 
@@ -313,6 +314,7 @@ const onSellDrop = (evt: DragEvent) => {
 
 // Grid drag handlers
 const onGridDragStart = (data: { unit: GameUnit, x: number, y: number }) => {
+    if (!canManageTeam.value) return
     isDraggingUnit.value = true
     isDraggingFromGrid.value = true
     draggedUnit.value = data.unit
@@ -519,7 +521,7 @@ watch(effectiveViewedPlayerId, (playerId) => {
             <GameCanvas :state="state"
                 :acting-player-id="myPlayer?.playerId"
                 :viewed-player-id="effectiveViewedPlayerId"
-                :is-read-only="isSpectating"
+                :is-read-only="isSpectating || !canManageTeam"
                 :is-dragging-prop="isDraggingUnit"
                 :emergency-drop="emergencyDrop || queuedEmergencyDrop"
                 :emergency-drop-active="!!emergencyDrop"
@@ -575,7 +577,7 @@ watch(effectiveViewedPlayerId, (playerId) => {
                         {{ myPlayerBoardUnits.length }}/{{ myPlayer.level }}
                     </div>
                 </div>
-                <button class="xp-btn" @click="buyXp" :disabled="myPlayer.gold < 4 || myPlayer.level >= 9">
+                <button class="xp-btn" @click="buyXp" :disabled="!canManageShopAndBench || myPlayer.gold < 4 || myPlayer.level >= 9">
                     {{ myPlayer.level >= 9 ? 'MAX LEVEL' : 'XP (4g)' }}
                 </button>
             </div>
@@ -599,7 +601,7 @@ watch(effectiveViewedPlayerId, (playerId) => {
                                 class="bench-unit" 
                                 :class="{ 'star-up': isStarringUp(slot.unit.id) }"
                                 :style="{ '--rarity-color': getRarityColor(slot.unit.cost) }"
-                                draggable="true"
+                                :draggable="canManageShopAndBench"
                                 @dragstart="(e) => onBenchDragStart(e, slot.unit!)"
                                 @dragend="onBenchDragEnd"
                                 @mouseenter="(e) => handleShowTooltip((e.currentTarget as HTMLElement).getBoundingClientRect(), slot.unit!)"
@@ -632,7 +634,7 @@ watch(effectiveViewedPlayerId, (playerId) => {
 
                 <!-- Permanent Sell Zone (Below Bench) -->
                 <div class="sell-zone bench-sell-zone" 
-                     :class="{ 'active': draggedUnit, 'hovered': isSellZoneHovered }"
+                     :class="{ 'active': draggedUnit && canManageShopAndBench, 'hovered': isSellZoneHovered }"
                      @dragover="onSellDragOver"
                      @dragleave="onSellDragLeave"
                      @drop="onSellDrop">
@@ -649,7 +651,7 @@ watch(effectiveViewedPlayerId, (playerId) => {
                 <!-- Shop Cards (Top) -->
                 <div class="shop-cards">
                     <div v-for="(card, idx) in shopCards" :key="idx" class="shop-card" 
-                         :class="{ 'empty': !card, 'can-buy': card && myPlayer.gold >= card.cost, 'owned-line': card && isShopCardOwned(card), [`rarity-${card?.cost || 1}`]: card }"
+                         :class="{ 'empty': !card, 'can-buy': canManageShopAndBench && card && myPlayer.gold >= card.cost, 'owned-line': card && isShopCardOwned(card), [`rarity-${card?.cost || 1}`]: card }"
                          @click="card && buyUnit(Number(idx))"
                          @mouseenter="(e) => card ? handleShowTooltip((e.currentTarget as HTMLElement).getBoundingClientRect(), card, 'top', idx === 4 ? 'more-left' : idx === 3 ? 'left' : undefined) : null"
                          @mouseleave="handleHideTooltip">
@@ -667,7 +669,7 @@ watch(effectiveViewedPlayerId, (playerId) => {
                 
                 <!-- Refresh Button (Middle) -->
                 <div class="shop-actions">
-                    <button class="reroll-btn horizontal" @click="refreshShop" :disabled="myPlayer.gold < 2">
+                    <button class="reroll-btn horizontal" @click="refreshShop" :disabled="!canManageShopAndBench || myPlayer.gold < 2">
                         <span class="refresh-icon">⚓</span>
                         <span class="btn-text">Refresh Shop</span>
                         <span class="cost">2g</span>

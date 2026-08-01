@@ -119,14 +119,6 @@ export interface UnitDefinition {
 // Trait State
 // ============================================================================
 
-export interface ActiveTrait {
-    id: string
-    name: string
-    description: string
-    count: number // Number of units contributing
-    activeLevel: number // Which breakpoint is active
-}
-
 export interface ActiveStatusView {
     id: string
     name: string
@@ -187,7 +179,6 @@ export interface PlayerState {
     combatSide: CombatSide | null
     bench: GameUnit[]
     board: GameUnit[]
-    activeTraits: ActiveTrait[]
     shop: UnitDefinition[]
     lootOrbs: LootOrb[]
     augmentChoices: AugmentOffer[]
@@ -202,27 +193,11 @@ export interface PlayerState {
 
 export interface CombatEvent {
     timestamp: number
-    type:
-        | 'ATTACK'
-        | 'CAST'
-        | 'DAMAGE'
-        | 'SKILL'
-        | 'DEATH'
-        | 'MOVE'
-        | 'HEAL'
-        | 'SHIELD'
-        | 'STATUS_APPLY'
-        | 'STATUS_REMOVE'
-        | 'ZONE_START'
-        | 'ZONE_END'
+    type: 'DAMAGE' | 'SKILL' | 'DEATH' | 'HEAL' | 'SHIELD'
     sourceId: string
     targetId: string
     value: number
     skillName?: string
-    castId?: string
-    hitIndex?: number
-    statusId?: string
-    zoneId?: string
 }
 
 export interface DamageEntry {
@@ -254,7 +229,7 @@ export interface EmergencyDropPayload {
 
 export interface GameState {
     roomId: string
-    hostId: string
+    hostId: string | null
     phase: GamePhase
     round: number
     timeRemainingMs: number
@@ -277,11 +252,19 @@ export interface GameAction {
     type: ActionType
     playerId: string
     unitId?: string // For MOVE, SELL
-    targetX?: number // For MOVE (0-6)
-    targetY?: number // For MOVE (-1 for bench, 0-7 for board)
+    targetX?: number // MOVE: board column or target bench slot (0-8)
+    targetY?: number // MOVE: board row (0-2); -1 means targetX is a bench slot
     shopIndex?: number // For BUY (0-4)
     orbId?: string // For COLLECT_ORB
     augmentId?: string // For SELECT_AUGMENT
+}
+
+export interface RoomRequestResult {
+    accepted: boolean
+    roomId: string | null
+    playerId: string | null
+    code: string | null
+    message: string | null
 }
 
 // ============================================================================

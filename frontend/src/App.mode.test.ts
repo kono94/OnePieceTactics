@@ -68,6 +68,8 @@ describe('App game-mode bootstrap', () => {
         stomp.publish.mockClear()
         stomp.onConnect = undefined
         stomp.subscriptions.length = 0
+        localStorage.clear()
+        sessionStorage.clear()
         Object.keys(TRAIT_DATA).forEach((key) => delete TRAIT_DATA[key])
         document.head.innerHTML = '<link rel="icon" href="/favicon.svg"><link rel="icon" href="/duplicate.svg">'
         window.location.hash = ''
@@ -121,7 +123,7 @@ describe('App game-mode bootstrap', () => {
         const wrapper = mount(App)
         await vi.waitFor(() => expect(stomp.onConnect).toBeDefined())
         stomp.onConnect?.()
-        await vi.waitFor(() => expect(stomp.subscriptions).toHaveLength(2))
+        await vi.waitFor(() => expect(stomp.subscriptions).toHaveLength(3))
 
         const stateSubscription = stomp.subscriptions.find(({ destination }) => destination.endsWith('/mode-room'))
         expect(stateSubscription).toBeDefined()
@@ -135,6 +137,71 @@ describe('App game-mode bootstrap', () => {
 
         expect(TRAIT_DATA.palworld?.name).toBe('Palworld')
         expect(TRAIT_DATA.pokemon).toBeUndefined()
+        wrapper.unmount()
+    })
+
+    it('persists the server-acknowledged player id for room identity', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({
+                defaultGameMode: 'onepiece',
+                availableModes: ['onepiece', 'pokemon', 'palworld'],
+            }),
+        }))
+        sessionStorage.setItem('tactics.activeRoom', JSON.stringify({
+            roomId: 'mode-room',
+            playerName: 'DuplicateName',
+            reconnectToken: 'token',
+        }))
+        const wrapper = mount(App)
+        await vi.waitFor(() => expect(stomp.onConnect).toBeDefined())
+
+        stomp.onConnect?.()
+        await vi.waitFor(() => expect(stomp.subscriptions).toHaveLength(3))
+        const resultSubscription = stomp.subscriptions.find(({ destination }) => destination === '/user/queue/room-result')
+        resultSubscription?.callback({
+            body: JSON.stringify({
+                accepted: true,
+                roomId: 'mode-room',
+                playerId: 'server-player-id',
+                code: null,
+                message: null,
+            }),
+        })
+
+        await vi.waitFor(() => {
+            const session = JSON.parse(sessionStorage.getItem('tactics.activeRoom') || '{}')
+            expect(session.playerId).toBe('server-player-id')
+        })
+        wrapper.unmount()
+    })
+
+    it.each([
+        { inputIndex: 0, destination: '/app/create' },
+        { inputIndex: 1, destination: '/app/join' },
+    ])('normalizes room ids before publishing to $destination', async ({ inputIndex, destination }) => {
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({ defaultGameMode: 'onepiece', availableModes: ['onepiece', 'pokemon', 'palworld'] }),
+        }))
+        const wrapper = mount(App)
+        await vi.waitFor(() => expect(stomp.onConnect).toBeDefined())
+
+        stomp.onConnect?.()
+        await vi.waitFor(() => expect(wrapper.findAll('.card input')).toHaveLength(2))
+        await wrapper.findAll('.card input')[inputIndex].setValue('  canonical-room  ')
+        await wrapper.findAll('.card button')[inputIndex].trigger('click')
+
+        expect(stomp.subscriptions.map(({ destination: subscribedTo }) => subscribedTo)).toEqual(
+            expect.arrayContaining([
+                '/topic/room/canonical-room',
+                '/topic/room/canonical-room/event',
+            ])
+        )
+        const publishedRequest = stomp.publish.mock.calls.find(([request]) => request.destination === destination)?.[0]
+        expect(publishedRequest).toBeDefined()
+        expect(JSON.parse(publishedRequest.body).roomId).toBe('canonical-room')
+        expect(JSON.parse(sessionStorage.getItem('tactics.activeRoom') || '{}').roomId).toBe('canonical-room')
         wrapper.unmount()
     })
 })

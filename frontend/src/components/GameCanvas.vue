@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, onUnmounted, onMounted } from 'vue'
 import CombatEffectsCanvas from './game/CombatEffectsCanvas.vue'
-import { getAttackConfig, getAbilityConfig } from '../data/animationConfig'
+import { resolveAbilityConfig, resolveAttackConfig } from '../utils/combatAnimationConfig'
 import type { EmergencyDropPayload, GameState, GameUnit, GamePhase, RenderedUnit, RenderedOrb, PlayerState, DisplayedUnit, CombatEvent, SelectedAugment } from '../types'
 import type { NormalizedCombatVisualEvent } from '../types/combatEffects'
 import { getUnitIconPath } from '../utils/iconUtils'
@@ -547,8 +547,8 @@ function normalizeCombatEvent(
     batchSize: number
 ): NormalizedCombatVisualEvent {
     const isSkill = event.type === 'SKILL'
-    const attack = getAttackConfig(source.definitionId)
-    const ability = getAbilityConfig(source.definitionId)
+    const attack = resolveAttackConfig(props.state?.gameMode, source)
+    const ability = resolveAbilityConfig(props.state?.gameMode, source)
     const aliveUnits = renderedUnits.value.filter(unit => unit.currentHealth > 0).length
 
     return {
@@ -635,7 +635,7 @@ watch(() => props.state?.recentEvents, (newEvents) => {
                 id: nextVisualEventId++,
                 x: source.visualX * CELL_SIZE.value + CELL_SIZE.value / 2,
                 y: source.visualY * CELL_SIZE.value,
-                text: event.skillName || getAbilityConfig(source.definitionId).signature || source.activeAbility || (source.ability ? source.ability.name : 'Ability!')
+                text: event.skillName || resolveAbilityConfig(props.state?.gameMode, source).signature || source.activeAbility || (source.ability ? source.ability.name : 'Ability!')
             })
             setTimeout(() => {
                 castingAnimations.value.shift()

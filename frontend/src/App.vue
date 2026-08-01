@@ -25,6 +25,7 @@ import type {
     GameAction,
     GameMode,
     GameState,
+    RoomRequestResult,
     RoomGameEvent,
 } from './types'
 import {
@@ -32,6 +33,7 @@ import {
     createActiveRoomSession,
     getAnalyticsClientId,
     loadActiveRoomSession,
+    setActiveRoomPlayerId,
 } from './utils/clientIdentity'
 
 const isConnected = ref(false)
@@ -45,6 +47,7 @@ const defaultMode = ref<GameMode>('onepiece')
 const activeTraitMode = ref<GameMode | null>(null)
 const roomSubscription = ref<StompSubscription | null>(null)
 const eventSubscription = ref<StompSubscription | null>(null)
+const roomResultSubscription = ref<StompSubscription | null>(null)
 const isUltimateGallery = ref(false)
 const isAdminAnalytics = ref(false)
 const ultimateGalleryMode = ref<GameMode>('onepiece')
@@ -60,6 +63,7 @@ const gameTitle = 'Theme Fusion Tactics'
 
 const restoredRoom = loadActiveRoomSession()
 const PLAYER_NAME = restoredRoom?.playerName ?? "Player_" + Math.floor(Math.random() * 10000)
+const currentPlayerId = ref<string | null>(restoredRoom?.playerId ?? null)
 const analyticsClientId = getAnalyticsClientId()
 
 onMounted(async () => {
@@ -107,6 +111,7 @@ onMounted(async () => {
         onConnect: () => {
             isConnected.value = true
             console.log("Connected to WebSocket")
+            subscribeToRoomResults()
             const activeRoom = loadActiveRoomSession()
             if (activeRoom) {
                 gameState.value = null
@@ -130,6 +135,12 @@ onMounted(async () => {
             isConnected.value = false
             console.log("Disconnected")
         },
+        onStompError: (frame) => {
+            lobbyError.value = frame.headers.message || 'The server rejected the WebSocket request.'
+        },
+        onWebSocketError: () => {
+            if (pendingJoinRoomId.value) lobbyError.value = 'Unable to reach the game server.'
+        },
         reconnectDelay: 5000,
     })
     
@@ -140,6 +151,7 @@ onUnmounted(() => {
     window.removeEventListener('hashchange', updateStandaloneRoute)
     clearRestoredRoomTimeout()
     clearEmergencyDropPresentation()
+    roomResultSubscription.value?.unsubscribe()
     if (outcomeTimer !== null) window.clearTimeout(outcomeTimer)
     client.value?.deactivate()
 })
@@ -153,8 +165,7 @@ let emergencyDropDelayTimer: number | null = null
 let emergencyDropClearTimer: number | null = null
 
 const myPlayerId = computed(() => {
-    if (!gameState.value) return undefined;
-    return Object.values(gameState.value.players).find(p => p.name === PLAYER_NAME)?.playerId;
+    return currentPlayerId.value ?? undefined
 });
 
 const opponentId = computed(() => {
@@ -203,7 +214,6 @@ const subscribeToRoom = (roomId: string) => {
         try {
             gameState.value = JSON.parse(message.body)
             if (!gameState.value) return;
-            clearRestoredRoomTimeout()
             if (gameState.value.phase === 'END_CELEBRATION' || gameState.value.phase === 'END') {
                 clearActiveRoomSession()
             }
@@ -218,12 +228,6 @@ const subscribeToRoom = (roomId: string) => {
             if (activeTraitMode.value !== mode) {
                 activeTraitMode.value = mode;
                 fetchTraitsForMode(mode);
-            }
-
-            if (pendingJoinRoomId.value === roomId && !hasCurrentPlayer(gameState.value) && gameState.value.phase !== 'LOBBY') {
-                rejectPendingJoin('That game has already started.')
-            } else if (pendingJoinRoomId.value === roomId && hasCurrentPlayer(gameState.value)) {
-                pendingJoinRoomId.value = null
             }
 
         } catch (e) {
@@ -247,8 +251,26 @@ const subscribeToRoom = (roomId: string) => {
     })
 }
 
-const hasCurrentPlayer = (state: GameState) => {
-    return Object.values(state.players).some((player) => player.name === PLAYER_NAME)
+const subscribeToRoomResults = () => {
+    roomResultSubscription.value?.unsubscribe()
+    roomResultSubscription.value = client.value?.subscribe('/user/queue/room-result', (message) => {
+        try {
+            const result = JSON.parse(message.body) as RoomRequestResult
+            if (!result.accepted || !result.roomId || !result.playerId) {
+                rejectPendingJoin(result.message || 'The room request was rejected.')
+                return
+            }
+            if (pendingJoinRoomId.value && result.roomId !== pendingJoinRoomId.value) return
+
+            currentPlayerId.value = result.playerId
+            setActiveRoomPlayerId(result.roomId, result.playerId)
+            pendingJoinRoomId.value = null
+            clearRestoredRoomTimeout()
+        } catch (error) {
+            console.error('Failed to parse room result', error)
+            rejectPendingJoin('The server returned an invalid room response.')
+        }
+    }) ?? null
 }
 
 const clearRoomSubscriptions = () => {
@@ -272,6 +294,7 @@ const rejectPendingJoin = (message: string) => {
     currentRoomId.value = ''
     activeTraitMode.value = null
     viewedPlayerId.value = null
+    currentPlayerId.value = null
     lobbyError.value = message
     applyThemeMeta(defaultMode.value)
 }
@@ -283,11 +306,11 @@ const clearRestoredRoomTimeout = () => {
     }
 }
 
-const startRestoredRoomTimeout = (roomId: string) => {
+const startRestoredRoomTimeout = (roomId: string, message = 'Your previous game is no longer available.') => {
     clearRestoredRoomTimeout()
     restoredRoomTimeout = window.setTimeout(() => {
-        if (pendingJoinRoomId.value === roomId && !gameState.value) {
-            rejectPendingJoin('Your previous game is no longer available.')
+        if (pendingJoinRoomId.value === roomId) {
+            rejectPendingJoin(message)
         }
     }, 5000)
 }
@@ -295,12 +318,9 @@ const startRestoredRoomTimeout = (roomId: string) => {
 const handleCombatResult = (payload: CombatResultPayload) => {
     console.log("Handling Combat Result:", payload)
     if (!gameState.value) return
-    
-    // Find my ID
-    const myPlayerEntry = Object.values(gameState.value.players).find((p) => p.name === PLAYER_NAME)
-    if (!myPlayerEntry) return
-    
-    const myId = myPlayerEntry.playerId
+
+    const myId = currentPlayerId.value
+    if (!myId) return
     
     // Was I in this combat?
     const wasParticipant = payload.participantIds.includes(myId)
@@ -379,17 +399,23 @@ const clearEmergencyDropPresentation = () => {
 
 const handleCreate = (roomId: string) => {
     if (!client.value || !isConnected.value) return
+    const normalizedRoomId = roomId.trim()
+    if (!normalizedRoomId) {
+        lobbyError.value = 'Room ID is required.'
+        return
+    }
     lobbyError.value = ''
-    pendingJoinRoomId.value = null
-    currentRoomId.value = roomId
-    const roomSession = createActiveRoomSession(roomId, PLAYER_NAME)
+    pendingJoinRoomId.value = normalizedRoomId
+    currentPlayerId.value = null
+    currentRoomId.value = normalizedRoomId
+    const roomSession = createActiveRoomSession(normalizedRoomId, PLAYER_NAME)
     
-    subscribeToRoom(roomId)
+    subscribeToRoom(normalizedRoomId)
     
     client.value.publish({ 
         destination: '/app/create', 
         body: JSON.stringify({
-            roomId,
+            roomId: normalizedRoomId,
             playerName: PLAYER_NAME,
             analyticsClientId,
             reconnectToken: roomSession.reconnectToken,
@@ -397,21 +423,28 @@ const handleCreate = (roomId: string) => {
     })
     
     currentView.value = 'game'
+    startRestoredRoomTimeout(normalizedRoomId, 'The room could not be created.')
 }
 
 const handleJoin = (roomId: string) => {
     if (!client.value || !isConnected.value) return
+    const normalizedRoomId = roomId.trim()
+    if (!normalizedRoomId) {
+        lobbyError.value = 'Room ID is required.'
+        return
+    }
     lobbyError.value = ''
-    pendingJoinRoomId.value = roomId
-    currentRoomId.value = roomId
-    const roomSession = createActiveRoomSession(roomId, PLAYER_NAME)
+    pendingJoinRoomId.value = normalizedRoomId
+    currentPlayerId.value = null
+    currentRoomId.value = normalizedRoomId
+    const roomSession = createActiveRoomSession(normalizedRoomId, PLAYER_NAME)
     
-    subscribeToRoom(roomId)
+    subscribeToRoom(normalizedRoomId)
     
     client.value.publish({ 
         destination: '/app/join', 
         body: JSON.stringify({
-            roomId,
+            roomId: normalizedRoomId,
             playerName: PLAYER_NAME,
             analyticsClientId,
             reconnectToken: roomSession.reconnectToken,
@@ -419,6 +452,7 @@ const handleJoin = (roomId: string) => {
     })
     
     currentView.value = 'game'
+    startRestoredRoomTimeout(normalizedRoomId, 'That room did not respond.')
 }
 
 const handleGameAction = (action: GameAction) => {
@@ -485,6 +519,7 @@ const resetToLobby = () => {
     traitRequestGeneration += 1
     viewedPlayerId.value = null
     pendingJoinRoomId.value = null
+    currentPlayerId.value = null
 
     applyThemeMeta(defaultMode.value)
 }
@@ -607,7 +642,7 @@ const applyThemeMeta = (mode: GameMode) => {
              <template v-if="gameState">
                  <WaitingRoom v-if="gameState.phase === 'LOBBY'"
                               :game-state="gameState"
-                              :current-player-name="PLAYER_NAME"
+                              :current-player-id="currentPlayerId || ''"
                               :available-modes="availableModes"
                               :default-mode="defaultMode"
                               :theme-class="activeThemeClass"
@@ -618,7 +653,7 @@ const applyThemeMeta = (mode: GameMode) => {
 	                 <!-- Otherwise show GameInterface -->
 	                 <template v-else>
 	                     <GameInterface :state="gameState"
-	                                    :current-player-name="PLAYER_NAME"
+	                                    :current-player-id="currentPlayerId || ''"
 	                                    :is-connected="isConnected"
 	                                    :emergency-drop="emergencyDrop"
 	                                    :queued-emergency-drop="pendingEmergencyDrop"

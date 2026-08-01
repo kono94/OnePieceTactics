@@ -4,6 +4,7 @@ import {
     createActiveRoomSession,
     getAnalyticsClientId,
     loadActiveRoomSession,
+    setActiveRoomPlayerId,
 } from './clientIdentity'
 
 describe('client identity', () => {
@@ -27,6 +28,8 @@ describe('client identity', () => {
             reconnectToken: '10000000-0000-4000-8000-000000000001',
         })
         expect(loadActiveRoomSession()?.roomId).toBe('room-1')
+        setActiveRoomPlayerId('room-1', 'player-1')
+        expect(loadActiveRoomSession()?.playerId).toBe('player-1')
         clearActiveRoomSession()
         expect(loadActiveRoomSession()).toBeNull()
     })

@@ -24,7 +24,6 @@ function gameState(gameMode: GameState['gameMode'] = 'palworld'): GameState {
                 combatSide: null,
                 bench: [],
                 board: [],
-                activeTraits: [],
                 shop: [],
                 lootOrbs: [],
                 augmentChoices: [],
@@ -47,7 +46,7 @@ describe('WaitingRoom mode selection', () => {
         const wrapper = mount(WaitingRoom, {
             props: {
                 gameState: gameState(),
-                currentPlayerName: 'Host',
+                currentPlayerId: 'player-1',
                 availableModes: ['palworld', 'pokemon', 'onepiece'],
                 defaultMode: 'onepiece',
                 themeClass: 'theme-palworld',
@@ -68,7 +67,7 @@ describe('WaitingRoom mode selection', () => {
         const wrapper = mount(WaitingRoom, {
             props: {
                 gameState: gameState(),
-                currentPlayerName: 'Guest',
+                currentPlayerId: 'guest-player',
                 availableModes: ['onepiece', 'pokemon', 'palworld'],
                 defaultMode: 'onepiece',
             },

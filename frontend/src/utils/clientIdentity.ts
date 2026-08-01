@@ -5,6 +5,7 @@ export interface ActiveRoomSession {
     roomId: string
     playerName: string
     reconnectToken: string
+    playerId?: string
 }
 
 const randomId = () => crypto.randomUUID()
@@ -33,6 +34,12 @@ export const loadActiveRoomSession = (): ActiveRoomSession | null => {
         sessionStorage.removeItem(ACTIVE_ROOM_KEY)
         return null
     }
+}
+
+export const setActiveRoomPlayerId = (roomId: string, playerId: string) => {
+    const session = loadActiveRoomSession()
+    if (!session || session.roomId !== roomId) return
+    sessionStorage.setItem(ACTIVE_ROOM_KEY, JSON.stringify({ ...session, playerId }))
 }
 
 export const clearActiveRoomSession = () => sessionStorage.removeItem(ACTIVE_ROOM_KEY)

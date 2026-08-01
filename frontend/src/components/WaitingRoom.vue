@@ -5,7 +5,7 @@ import { getGameModeMetadata, sortGameModes } from '../data/gameModeMetadata'
 
 const props = defineProps<{
   gameState: GameState
-  currentPlayerName: string
+  currentPlayerId: string
   availableModes: GameMode[]
   defaultMode: GameMode
   themeClass?: string
@@ -14,9 +14,7 @@ const props = defineProps<{
 const emit = defineEmits(['start', 'leave', 'mode-change'])
 
 const isHost = computed(() => {
-    if (!props.gameState || !props.gameState.players) return false
-    const myPlayer = Object.values(props.gameState.players).find((p: PlayerState) => p.name === props.currentPlayerName)
-    return myPlayer && myPlayer.playerId === props.gameState.hostId
+    return props.currentPlayerId === props.gameState.hostId
 })
 
 const players = computed((): PlayerState[] => {
@@ -79,7 +77,7 @@ function selectMode(mode: GameMode) {
                 <div class="name">
                     {{ player.name }}
                     <span v-if="player.playerId === gameState.hostId" class="host-badge">HOST</span>
-                    <span v-if="player.name === currentPlayerName" class="me-badge">YOU</span>
+                    <span v-if="player.playerId === currentPlayerId" class="me-badge">YOU</span>
                 </div>
             </div>
              <!-- Empty slots -->
