@@ -6,6 +6,7 @@ defineOptions({
 defineEmits(['back'])
 
 const nextVersionCommits = [
+  { hash: '937bfaa', title: 'Upgrade CI actions to Node 24 runtimes' },
   { hash: 'd477638', title: 'Refresh architecture guides and pending release notes' },
   { hash: 'ac1da68', title: 'Use stable player identity in the frontend' },
   { hash: '3724062', title: 'Serialize room authority and accelerate resolved bot combat' },
