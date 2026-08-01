@@ -6,12 +6,11 @@ defineOptions({
 defineEmits(['back'])
 
 const nextVersionCommits = [
-  { hash: 'working-tree', title: 'Fast-forward remaining bot-only combats after all human battles resolve' },
-  {
-    hash: 'working-tree',
-    title:
-      'Harden room authority, player identity, concurrency, tests, CI, deployment settings, security defaults, and architecture guidance',
-  },
+  { hash: 'd477638', title: 'Refresh architecture guides and pending release notes' },
+  { hash: 'ac1da68', title: 'Use stable player identity in the frontend' },
+  { hash: '3724062', title: 'Serialize room authority and accelerate resolved bot combat' },
+  { hash: '7545cf4', title: 'Make game mode providers own data and bot policies' },
+  { hash: '5529eef', title: 'Harden production configuration and CI verification' },
   { hash: 'ba9706b', title: 'Refine lobby theme selection layout' },
   { hash: '69fc53c', title: 'Fix landing page footer layout' }
 ]
