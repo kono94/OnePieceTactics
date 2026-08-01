@@ -4,11 +4,13 @@
 - Start with [README.md](README.md) for project overview, quick start, architecture, and API reference.
 - Use [backend/BACKEND_CONTEXT.md](backend/BACKEND_CONTEXT.md) for backend architecture, game engine details, WebSocket contracts, and state management.
 - Use [frontend/FRONTEND_CONTEXT.md](frontend/FRONTEND_CONTEXT.md) for Vue architecture, component structure, rendering responsibilities, and frontend data flow.
+- Keep `AGENTS.md` for stable repository rules. Keep the context files focused on the current architecture, contracts, operational boundaries, and change checklists; do not use them as changelogs or duplicate source code line by line.
+- Treat files under `archive/` as historical plans, not as current implementation guidance.
 
 ## 1. Tech Stack & Environment
 - **Java**: Version 25 (Preview features enabled).
-- **Spring Boot**: Version 4+ (Latest).
-- **Frontend**: Vue.js 3 + Vite + TailwindCSS.
+- **Spring Boot**: Version 4.x as pinned in `backend/pom.xml`.
+- **Frontend**: Vue.js 3 + strict TypeScript + Vite + scoped vanilla CSS.
 - **Build**: Maven (Backend), NPM (Frontend).
 - **Containerization**: Docker & Docker Compose.
 
@@ -16,14 +18,14 @@
 
 ### Modern Syntax
 - Use `var` keyword whenever it is suitable (when using var a = new A(), or var m = List.of("d")) but not when getting something from methods that is not totally clear.
-- Prefer **Java Stream API** over imperative loops for collections processing.
+- Prefer **Java Stream API** for collection transformations when it improves clarity; keep indexed, mutation-heavy, or performance-sensitive algorithms imperative.
 - Use **Records** (`record`) for DTOs and immutable data structures.
 - Run `mvn spotless:apply` after completing a task in /backend folder to format the code
 
 ### Dependency Injection & IoC
 - **Constructor Injection ONLY**.
 - All injected fields must be `final`.
-- Use Lombok `@RequiredArgsConstructor` to generate constructors.
+- Use Lombok `@RequiredArgsConstructor` when no custom constructor logic is needed; explicit constructors are appropriate for validation or configuration conversion.
 - **Forbidden**: Field injection (`@Autowired` on fields).
 
 ### Naming & Style
@@ -42,7 +44,7 @@
 ### Clean Abstract Core
 - The core game engine **MUST** be theme-agnostic.
 - One Piece, Pokemon, and Palworld are skin/theme configurations, not hardcoded into the engine core.
-- Use generic terms like `GameUnit`, `Trait`, `Origin` in the core, and load specific data (Luffy, Pirate) from config/factories.
+- Use generic terms like `GameUnit`, `Trait`, and `GameModeProvider` in the core, and load specific data (Luffy, Pirate) from config/providers.
 
 ### State Management
 - **Backend Authority**: The Backend is the single source of truth for `GameState`.
@@ -56,14 +58,24 @@
 - Render the `GameState` received from Backend.
 - Send user actions (Move, Buy, Sell) as events to Backend.
 - Do not implement authoritative logic (e.g., verifying gold) on Frontend.
+- Keep STOMP connection, subscriptions, and publishing in `App.vue`; child components receive state through props and emit typed UI events.
+- Use server-issued player IDs for identity. Display names are presentation only.
+- Keep `frontend/src/types/game.ts` aligned with backend wire records, including nullable fields and coordinate semantics.
+
+### Frontend Coding Standards
+- Use Vue Composition API with `<script setup lang="ts">`, strict TypeScript, and typed props/emits.
+- Reuse shared DTO and domain types through `frontend/src/types`; do not create divergent component-local copies of backend contracts.
+- Put reusable pure mappings and calculations in `frontend/src/utils` or `frontend/src/data` and add colocated Vitest coverage.
+- Use scoped component CSS and existing CSS variables. Put only genuinely shared base styles in `frontend/src/style.css` or the intentional global style block in `App.vue`.
+- Follow the repository Prettier configuration (no semicolons, single quotes, 100-column target) and run `npm test`, `npm run lint`, and `npm run build` for frontend changes.
 
 ## 4. Game Mechanics Constraints
-- **Grid**: Square grid logic (Backend checks neighbors using Manhattan/Chebyshev distance as appropriate).
+- **Grid**: Each player plans on a 9×3 board; combat uses a 9×6 arena. MOVE uses x `0-8`, board y `0-2`, and y `-1` with x as the bench slot. Distance rules use Manhattan/Chebyshev distance as appropriate.
 - **Combat**: Simplified Auto-Battler mechanics (Move to nearest -> Attack).
-- **Themes**: One Piece (default), Pokemon, and Palworld; capable of hot-swapping via config.
+- **Themes**: One Piece is the initial room mode; the host can select One Piece, Pokemon, or Palworld during `LOBBY`. Do not add deployment-time mode selection or hardcode franchise behavior into the core.
 
 ## 5. Misc
-- when defining units in the .json files. When you define multiple values in an array and its just 3 numbers, keep them in one line and not multiple line
+- In unit JSON files, keep arrays of exactly three numeric values on one line.
 
 ## 6. Changelog & Release Notes
 - When adding a commit-worthy change or any balance change, also update the in-app changelog page in `frontend/src/components/Changelog.vue`.

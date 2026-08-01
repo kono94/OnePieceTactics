@@ -6,16 +6,29 @@ defineOptions({
 defineEmits(['back'])
 
 const nextVersionCommits = [
-  { hash: 'working-tree', title: 'Place the changelog button above the single-line version display' },
-  { hash: 'working-tree', title: 'Fix frontend container builds that consume shared backend unit definitions' },
-  { hash: 'working-tree', title: 'Replace the Palworld favicon with a distinct crystal-and-gold Pal Sphere design' },
-  { hash: 'working-tree', title: 'Add the remaining 11 Palworld unit portraits from batches 12–14 and the Pal Sphere favicon' },
-  { hash: 'working-tree', title: 'Add the first 44 processed Palworld unit portraits from batches 1–11' },
-  { hash: 'working-tree', title: 'Add Palworld mode planning and documentation' },
-  { hash: 'working-tree', title: 'Use one star-scaled root ability per Pal with Pokemon-style trait-derived damage typing' },
-  { hash: 'working-tree', title: 'Add 55 Palworld attack and ability previews without required JSON animation keys' },
-  { hash: 'working-tree', title: 'Externalize Pokemon affinity relationships into the shared data-driven resolver' },
-  { hash: 'working-tree', title: 'Rename the product to Theme Fusion Tactics (TFT)' }
+  { hash: 'working-tree', title: 'Fast-forward remaining bot-only combats after all human battles resolve' },
+  {
+    hash: 'working-tree',
+    title:
+      'Harden room authority, player identity, concurrency, tests, CI, deployment settings, security defaults, and architecture guidance',
+  },
+  { hash: 'ba9706b', title: 'Refine lobby theme selection layout' },
+  { hash: '69fc53c', title: 'Fix landing page footer layout' }
+]
+
+const version200rc2Commits = [
+  { hash: 'dd2bad7', title: 'Replace the Palworld favicon with a distinct crystal-and-gold Pal Sphere design' },
+  { hash: 'dd2bad7', title: 'Add the remaining 11 Palworld unit portraits from batches 12–14 and the Pal Sphere favicon' }
+]
+
+const version200rc1Commits = [
+  { hash: 'bf23b7f', title: 'Fix frontend container builds that consume shared backend unit definitions' },
+  { hash: '89a7170', title: 'Add the first 44 processed Palworld unit portraits from batches 1–11' },
+  { hash: '89a7170', title: 'Add Palworld mode planning and documentation' },
+  { hash: '89a7170', title: 'Use one star-scaled root ability per Pal with Pokemon-style trait-derived damage typing' },
+  { hash: '89a7170', title: 'Add 55 Palworld attack and ability previews without required JSON animation keys' },
+  { hash: '89a7170', title: 'Externalize Pokemon affinity relationships into the shared data-driven resolver' },
+  { hash: '89a7170', title: 'Rename the product to Theme Fusion Tactics (TFT)' }
 ]
 
 const version180Commits = [
@@ -70,14 +83,15 @@ const version160Commits = [
       <section class="release-section latest-release">
         <div class="release-header">
           <p class="eyebrow">Next</p>
-          <h2>Version 2.0.0-rc1</h2>
+          <h2>Version X.X.X</h2>
           <p>
-            Palworld is planned as a third lobby-selectable mode with 55 Pals, nine team-wide elemental traits, 15
-            augments, and one root ability per Pal whose values scale across 1★/2★/3★. Basic attacks and abilities
-            derive their offensive element from the Pal's traits using the existing Pokemon-style best-attacker-trait
-            behavior, while the traits remain the defensive elements and team synergies. The animation gallery uses
-            stable definition and ability identities for 55 attack previews and 55 ability previews; Palworld JSON
-            does not require separate basic-element, ability-element, or animation-key fields.
+            Room creation and player identity now use explicit private acknowledgements, all room mutations share one
+            serialized authority boundary, invalid phase actions are rejected by the backend, and decisive combat
+            events are retained. Room IDs now stay canonical across subscriptions and reconnect state, while production
+            fails fast without an analytics admin password. Java 25 test startup, Palworld live animations, refund
+            previews, dependency security, CI release gates, obsolete deployment-time mode selection, and the
+            backend/frontend architecture guides were also corrected. Human-involved combats now keep normal pacing;
+            once they all resolve, remaining bot-only combats are drained immediately.
           </p>
         </div>
         <article class="release-panel">
@@ -93,6 +107,46 @@ const version160Commits = [
       <section class="release-section latest-release">
         <div class="release-header">
           <p class="eyebrow">Latest</p>
+          <h2>Version 2.0.0-rc2</h2>
+          <p>
+            Completed the Palworld portrait set and replaced the temporary icon with the Pal Sphere favicon used by
+            the Palworld lobby theme.
+          </p>
+        </div>
+        <article class="release-panel">
+          <ul class="commit-list">
+            <li v-for="commit in version200rc2Commits" :key="`${commit.hash}-${commit.title}`">
+              <span class="hash">{{ commit.hash }}</span>
+              <span>{{ commit.title }}</span>
+            </li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="release-section">
+        <div class="release-header">
+          <p class="eyebrow">Previous</p>
+          <h2>Version 2.0.0-rc1</h2>
+          <p>
+            Palworld became the third lobby-selectable mode with 55 Pals, nine team-wide elemental traits, 15
+            augments, and one star-scaled root ability per Pal. Basic attacks and abilities derive their offensive
+            element from Pal traits through the shared affinity resolver, and the development gallery covers all
+            definition-based attack and root-ability previews without animation keys in backend JSON.
+          </p>
+        </div>
+        <article class="release-panel">
+          <ul class="commit-list">
+            <li v-for="commit in version200rc1Commits" :key="`${commit.hash}-${commit.title}`">
+              <span class="hash">{{ commit.hash }}</span>
+              <span>{{ commit.title }}</span>
+            </li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="release-section">
+        <div class="release-header">
+          <p class="eyebrow">Previous</p>
           <h2>Version 1.8.0</h2>
           <p>
             Every One Piece and Pokemon unit now has a Damage, Tank, or Support identity. Pokemon evolutions can change

@@ -1,6 +1,6 @@
 # Theme Fusion Tactics (TFT)
 
-**Theme Fusion Tactics (TFT)** is a browser-based **auto-battler game** inspired by Teamfight Tactics, featuring a theme-swappable engine with lobby-selectable One Piece (default), Pokemon, and Palworld modes. This project showcases a clean, production-grade architecture with real-time multiplayer via WebSockets.
+**Theme Fusion Tactics (TFT)** is a browser-based **auto-battler game** inspired by Teamfight Tactics, featuring a theme-swappable engine with lobby-selectable One Piece (default), Pokemon, and Palworld modes and real-time multiplayer via WebSockets.
 
 ![Java 25](https://img.shields.io/badge/Java-25-orange) ![Spring Boot 4](https://img.shields.io/badge/Spring%20Boot-4.1.0-green) ![Vue 3](https://img.shields.io/badge/Vue.js-3.5-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)
 
@@ -25,14 +25,14 @@ For detailed architectural information, refer to the context documents:
 ### Core Gameplay
 - **Up to 8 players** per game room (human + AI bots with adaptive shop odds)
 - **Real-time state sync** via STOMP WebSockets (100ms tick rate)
-- **Theme-agnostic core engine** — hosts choose One Piece, Pokemon, or Palworld per room in the lobby; config controls the default
+- **Theme-agnostic core engine** — hosts choose One Piece, Pokemon, or Palworld per room in the lobby
 - **Auto-battler mechanics**: Shop, XP, Gold (with interest), Trait Synergies, Unit Combinations
 - **Grid-based combat** with BFS pathfinding, ability casting, and directional attack animations
 - **Star-level progression** — combine 3 matching 1★ units into 1 2★, then 2 matching 2★ units into 1 3★, including Pokemon evolution forms
 - **Round-based augment choices** — players choose team-wide economy or combat bonuses on rounds 3, 6, and 11
 - **Advanced ability system** — Damage, Stun, Shield, Heal, Buff with modifiers (Lifesteal, Execute, Scaling, Conditional, Knockback)
-- **Data-driven trait system** — All trait effects loaded from JSON configuration (no hardcoded logic)
-- **TFT-style shop odds** — Level-based probability distribution for unit costs (1★-5★)
+- **Data-driven trait system** — Trait definitions and values are loaded from mode data; providers register their runtime effects
+- **TFT-style shop odds** — Level-based probability distribution for unit costs (1-5 gold)
 - **In-memory game state** — live matches remain memory-only; SQLite analytics persist production outcomes
 
 ### Combat & Progression
@@ -47,14 +47,14 @@ For detailed architectural information, refer to the context documents:
 - **Ability patterns** — Single-target, line, and AoE effects with range-based targeting
 
 ### UI/UX Enhancements
-- **Cost-based visual styling** — Dynamic borders and glows based on unit rarity (1★ gray → 5★ gold)
+- **Cost-based visual styling** — Dynamic borders and glows based on unit cost (1-cost gray → 5-cost gold)
 - **Star-level visual effects** — Enhanced borders and top glows for 2★ and 3★ units
 - **Shop probability tooltip** — Hover over player level to see current unit cost distribution
 - **Git-based version display** — Build metadata (tag, commit, timestamp) in bottom-left corner
 - **Smart unit tooltips** — Role, melee/ranged, trait-color, and DEF badges with star-level ability highlighting
 - **Player board spectating** — Click alive players in the right panel to view their board and combat from their perspective
 - **Keyboard shortcuts** — Enter key support for room creation/joining
-- **Bench reordering** — Swap and rearrange units even during combat phase
+- **Bench reordering** — Swap and rearrange units during planning
 - **Team-colored health bars** — Emerald for allies, red for opponents
 
 ---
@@ -84,7 +84,8 @@ For detailed architectural information, refer to the context documents:
 
 **Key Design Principles:**
 - **Backend Authority** — All game logic runs on the server; frontend is a rendering layer
-- **Theme-Agnostic Core** — `GameUnit`, `Trait`, `Origin` are generic; themes are loaded via `GameModeProvider`
+- **Theme-Agnostic Core** — `GameUnit`, `Trait`, combat strategies, and room lifecycle are generic; themes are loaded via `GameModeProvider`
+- **Serialized Room Commands** — Tick and client commands use the same per-room lock, and broadcasts serialize while holding it
 - **Testability** — Time and randomness are abstracted (`Clock`, `RandomProvider`) for deterministic testing
 - **Strategy Pattern** — Combat behaviors (`TargetSelector`, `UnitMover`, `AbilityCaster`) are injectable
 
@@ -107,7 +108,7 @@ For detailed architectural information, refer to the context documents:
 |------------|---------|---------|
 | Vue.js | 3.5 | UI framework |
 | TypeScript | 5.9 | Type-safe JavaScript |
-| Vite | 8.1 | Build tool & dev server |
+| Vite | 8.2 | Build tool & dev server |
 | @stomp/stompjs | 7.3 | WebSocket client |
 | Vanilla CSS | — | Scoped component styling |
 
@@ -131,61 +132,60 @@ For detailed architectural information, refer to the context documents:
 ```bash
 cd backend
 
-# Default lobby mode: One Piece
+# New rooms begin with One Piece; the host selects the room mode in the lobby
 mvn spring-boot:run
-
-# Or make Pokemon or Palworld the default lobby mode
-GAME_MODE=pokemon mvn spring-boot:run
-# GAME_MODE=palworld mvn spring-boot:run
 ```
 Backend runs on `http://localhost:8080`
 
 ### Run Frontend
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 Frontend runs on `http://localhost:5173` with WebSocket proxy to backend
 
 ### Run with Docker
 ```bash
-docker-compose up
+docker compose --profile dev up --build
 ```
 
 ---
 
 ## 🎮 Game Modes
 
-Rooms start with the configured default mode, then the host can switch modes in the lobby before starting the match. Changing the room mode swaps the unit set, traits, visuals, and mode-specific combat rules for that room.
+Rooms start in One Piece mode, then the host can switch modes in the lobby before starting the match. Mode selection is
+part of the room lifecycle, not a deployment setting. Changing the room mode swaps the unit set, traits, visuals, and
+mode-specific combat rules for that room.
 
-| Mode | Property Value | Data Files |
+| Mode | Mode ID | Data Files |
 |------|----------------|------------|
-| One Piece | `game.mode=onepiece` | `units_onepiece.json`, `traits_onepiece.json`, `augments_onepiece.json` |
-| Pokemon | `game.mode=pokemon` | `units_pokemon.json`, `traits_pokemon.json`, `augments_pokemon.json`, `affinities_pokemon.json` |
-| Palworld | `game.mode=palworld` | `units_palworld.json`, `traits_palworld.json`, `augments_palworld.json`, `affinities_palworld.json` |
+| One Piece | `onepiece` | `units_onepiece.json`, `traits_onepiece.json`, `augments_onepiece.json` |
+| Pokemon | `pokemon` | `units_pokemon.json`, `traits_pokemon.json`, `augments_pokemon.json`, `affinities_pokemon.json` |
+| Palworld | `palworld` | `units_palworld.json`, `traits_palworld.json`, `augments_palworld.json`, `affinities_palworld.json` |
 
-Use `GAME_MODE` or `game.mode` to choose the default lobby selection. To add a new theme, implement `GameModeProvider` and add corresponding JSON data files. See [Backend Context](backend/BACKEND_CONTEXT.md#5-game-modes-room-modes-and-data) for details.
+To add a new theme, implement `GameModeProvider` and add corresponding JSON data files. See
+[Backend Context](backend/BACKEND_CONTEXT.md#6-modes-and-data-loading) for details.
 
 ### Palworld mode architecture
 
-Palworld is the third lobby-selectable mode, not a separate combat engine. Its provider loads 55 purchasable Pal lines, nine team-wide elemental traits, 15 augments, and one root ability per Pal with star-scaled values. The shared engine supplies the Pokemon-style best-attacker-trait affinity resolver, typed composite ability effects, status lifecycle, and per-combat-pair scheduling; Palworld-specific ids stay in data and provider registration.
+Palworld is the third lobby-selectable mode, not a separate combat engine. Its provider loads 55 purchasable Pal lines, nine team-wide elemental traits, 15 augments, one affinity graph, and one root ability per Pal with star-scaled values. The shared engine supplies targeting, movement, basic attacks, ability casting, modifiers, shields, healing, damage-over-time, and combat scheduling; Palworld-specific ids remain in data and provider registration.
 
-Basic attacks, abilities, and damage-over-time effects derive their offensive element from the caster's trait list against the target's defensive trait list; dual-trait Pals use the best attacking trait for each target, matching Pokemon. No separate basic-element or ability-element fields are required. Pokemon and Palworld resolve their own data-loaded affinity graphs; One Piece has no affinity configuration and keeps neutral damage behavior. Composite abilities can select targets by generic selectors and shapes, then apply ordered damage, healing, shields, buffs, statuses, movement, multi-hit, and zone effects. Active statuses and delayed effects are authoritative backend state and are cleared with their combat context.
+Basic attacks, damage abilities, and damage-over-time effects derive their offensive element from the caster's trait list against the target's defensive trait list; dual-trait Pals use the best attacking trait for each target, matching Pokemon. Pokemon and Palworld resolve their own data-loaded affinity graphs, while One Piece has neutral damage. Abilities use the shared `AbilityDefinition` model with `SINGLE`, `LINE`, or `SURROUND` patterns and modifiers such as lifesteal, execute, scaling, conditional damage, damage-over-time, and knockback.
 
-The frontend uses a mode metadata registry for labels, title, favicon, asset folder, theme class, and gallery route. Palworld portraits resolve from `/assets/units/palworld/{definitionId}_v1.png`, with `/pal-sphere.png` as the favicon. The Palworld palette is intentionally limited to the public lobby and waiting room; the board, shop, trait sidebar, overlays, and end screen retain shared in-match chrome. Its animation gallery is available at `#/ultimate-gallery/palworld` and previews 55 definition-based attack configs plus 55 root-ability configs, reusing each ability at 1/2/3 stars with scaled values. Combat events carry stable event, cast, animation-identity, hit, status, zone, and coordinate metadata, so the renderer never guesses from display names.
+The frontend uses a mode metadata registry for labels, title, favicon, asset folder, theme class, and gallery route. Palworld portraits resolve from `/assets/units/palworld/{definitionId}_v1.png`, with `/pal-sphere.png` as the favicon. The Palworld palette is limited to the public lobby and waiting room; in-match chrome remains shared. In development builds, `#/ultimate-gallery/palworld` previews definition-based attack and root-ability configs. Live combat events contain timestamp, type, source, target, value, and skill name; Palworld animation keys are derived from the stable unit definition id and mode, never from display names.
 
 ### Palworld validation and release gates
 
 The implementation gate checks 55 lines with the required 12/13/11/12/7 cost distribution, 23/16/16 role distribution, nine elements, 15 augments, 55 attack previews, and 55 root abilities. Asset QA requires exactly 55 decodable 512×512 PNG portraits with no unexpected filenames. The focused backend/frontend gates are:
 
-- `cd backend && mvn -Dtest=PalworldDataValidationTest,DamageResolverTest,CompositeAbilityCasterTest test`
+- `cd backend && mvn -Dtest=PalworldDataValidationTest,DamageResolverTest,DefaultAbilityCasterTest test`
 - `cd backend && mvn test`
 - `cd frontend && npm test && npm run lint && npm run build`
 - `python3 scripts/validate_palworld_assets.py frontend/public/assets/units/palworld`
 - `python3 scripts/compress_images.py frontend/public/assets/units/palworld`
 
-Final release acceptance also requires deterministic 55-ability smoke coverage, Pokemon affinity parity, One Piece regression coverage, 10,000-run tuning smoke, million-run Palworld simulations, the 100,000-run role gate, manual lobby/multiplayer/reduced-motion checks, and production container smoke. The release remains `Version X.X.X` until every blocking gate passes and the release procedure explicitly promotes it to `2.0.0`.
+Expensive balance and role simulations remain opt-in. Before a release, run the full Maven/Vitest suites, asset validation, the desired simulation profiles, and a production container smoke test.
 
 ---
 
@@ -196,13 +196,17 @@ Final release acceptance also requires deterministic 55-ability smoke coverage, 
 |-------------|-----------|-------------|
 | `/app/create` | Client → Server | Create a new game room |
 | `/app/join` | Client → Server | Join an existing room |
+| `/app/leave` | Client → Server | Disconnect from a room; active-match players enter reconnect grace |
+| `/app/abandon` | Client → Server | Permanently abandon the active match |
 | `/app/start` | Client → Server | Host starts the match |
+| `/app/room/{id}/add-bot` | Client → Server | Host adds a lobby bot |
 | `/app/room/{id}/mode` | Client → Server | Host changes the room game mode during lobby |
 | `/app/room/{id}/action` | Client → Server | Player action (BUY, MOVE, REROLL, EXP, SELL, LOCK, COLLECT_ORB, READY_FOR_COMBAT, SELECT_AUGMENT) |
 | `/topic/room/{id}` | Server → Client | Game state broadcast (100ms) |
 | `/topic/room/{id}/event` | Server → Client | Typed combat-result and emergency-drop events |
+| `/user/queue/room-result` | Server → Client | Private create/join acknowledgement with player id or rejection code |
 
-Client actions are bound to the STOMP session that joined the room. The backend rejects actions, start requests, and mode changes that attempt to act as a different player id.
+Client actions are bound to the STOMP session that joined the room. The backend rejects actions, start requests, and mode changes that attempt to act as a different player id. Shop/economy controls and bench-only selling or reordering remain available during combat, while board mutations and orb collection are planning-only. Create/join failures are returned privately instead of leaving the client waiting.
 Augment choices are included in each player's `GameState` snapshot as `augmentChoices`; selected augments are exposed as `selectedAugments`.
 
 ### REST Endpoints
@@ -212,8 +216,10 @@ Augment choices are included in each player's `GameState` snapshot as `augmentCh
 | `/api/mode` | GET | Default game mode |
 | `/api/traits?mode={mode}` | GET | Trait definitions for the selected mode |
 | `/api/admin/auth/login` | POST | Exchange the configured admin password for an eight-hour bearer token |
+| `/api/admin/auth/logout` | POST | Revoke the current bearer token |
 | `/api/admin/analytics/summary` | GET | Protected aggregate gameplay analytics |
 | `/api/admin/analytics/runs` | GET | Protected, paginated player runs |
+| `/api/admin/analytics/runs/{runId}` | GET | Protected round-level detail for one player run |
 
 The production analytics dashboard is available at `/#/admin/analytics`. Match state remains backend-authoritative and
 in memory; only anonymous analytics snapshots are written to SQLite. See the deployment guide for password and storage
@@ -227,6 +233,12 @@ configuration.
 ```bash
 # Backend: Run Spotless formatter
 cd backend && mvn spotless:apply
+
+# Full backend verification and coverage report
+cd backend && mvn verify
+
+# Frontend tests and V8 coverage report
+cd frontend && npm run test:coverage
 ```
 
 ### Balance Simulation Reports
@@ -270,4 +282,4 @@ This project is for educational purposes.
 
 ---
 
-*Last updated: 2026-07-17*
+*Last updated: 2026-07-31*
