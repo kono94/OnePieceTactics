@@ -33,7 +33,6 @@ public record GameState(
             String combatSide, // "TOP" or "BOTTOM"
             List<GameUnit> bench,
             List<GameUnit> board,
-            List<Trait> activeTraits,
             List<UnitDefinition> shop,
             List<LootOrb> lootOrbs,
             List<AugmentOffer> augmentChoices,
@@ -42,7 +41,7 @@ public record GameState(
 
     public record CombatEvent(
             long timestamp,
-            String type, // DAMAGE, SKILL, DEATH, MOVE
+            String type, // DAMAGE, SKILL, DEATH, HEAL, SHIELD
             String sourceId,
             String targetId,
             int value,

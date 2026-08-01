@@ -2,6 +2,7 @@ package net.lwenstrom.tft.backend.core.engine;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import net.lwenstrom.tft.backend.core.DataLoader;
@@ -46,6 +47,10 @@ public class GameEngine {
     }
 
     public GameRoom createRoom(String id) {
+        return tryCreateRoom(id).orElseThrow(() -> new IllegalStateException("Room already exists: " + id));
+    }
+
+    public Optional<GameRoom> tryCreateRoom(String id) {
         var room = new GameRoom(
                 id,
                 dataLoader,
@@ -54,8 +59,7 @@ public class GameEngine {
                 randomProvider,
                 gameModeRegistry.getDefaultMode(),
                 analyticsRecorder);
-        rooms.put(room.getId(), room);
-        return room;
+        return rooms.putIfAbsent(room.getId(), room) == null ? Optional.of(room) : Optional.empty();
     }
 
     public GameRoom getRoom(String id) {

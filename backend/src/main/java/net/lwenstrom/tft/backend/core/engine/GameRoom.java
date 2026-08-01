@@ -22,6 +22,7 @@ import net.lwenstrom.tft.backend.core.combat.DefaultAbilityCaster;
 import net.lwenstrom.tft.backend.core.combat.NearestEnemyTargetSelector;
 import net.lwenstrom.tft.backend.core.model.AugmentTier;
 import net.lwenstrom.tft.backend.core.model.EmergencyDropPayload;
+import net.lwenstrom.tft.backend.core.model.GameAction;
 import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GamePhase;
 import net.lwenstrom.tft.backend.core.model.GameState;
@@ -38,7 +39,7 @@ public class GameRoom {
     private final String id;
     private final String analyticsMatchKey = UUID.randomUUID().toString();
     private String hostId;
-    private GameState currentState;
+    private volatile GameState currentState;
 
     private final DataLoader dataLoader;
     private final Map<String, Player> players = new ConcurrentHashMap<>();
@@ -82,18 +83,7 @@ public class GameRoom {
 
     private record OrbCell(int x, int y) {}
 
-    private record BotRosterProfile(
-            int maxUnits,
-            int guaranteedTwoStarUnits,
-            int guaranteedCheapThreeStarUnits,
-            int guaranteedMidCostThreeStarUnits,
-            int cheapTwoStarChance,
-            int cheapThreeStarChance,
-            int midCostTwoStarChance,
-            int midCostThreeStarChance,
-            int fiveCostTwoStarChance) {}
-
-    public void setCombatResultListener(CombatResultListener listener) {
+    public synchronized void setCombatResultListener(CombatResultListener listener) {
         this.combatResultListener = listener;
     }
 
@@ -162,19 +152,19 @@ public class GameRoom {
         return id;
     }
 
-    public GameMode getGameMode() {
+    public synchronized GameMode getGameMode() {
         return gameMode;
     }
 
-    public GameState getState() {
+    public synchronized GameState getState() {
         return currentState;
     }
 
-    public void refreshState() {
+    public synchronized void refreshState() {
         updateGameState(phaseEndTime - clock.currentTimeMillis());
     }
 
-    public boolean setGameMode(GameMode newMode) {
+    public synchronized boolean setGameMode(GameMode newMode) {
         if (newMode == null || newMode == gameMode || phase != GamePhase.LOBBY) {
             return false;
         }
@@ -188,23 +178,23 @@ public class GameRoom {
         return true;
     }
 
-    public boolean isEnded() {
+    public synchronized boolean isEnded() {
         return phase == GamePhase.END;
     }
 
-    public boolean canAcceptPlayers() {
+    public synchronized boolean canAcceptPlayers() {
         return phase == GamePhase.LOBBY && players.size() < GameConstants.MAX_PLAYERS;
     }
 
-    public Player addPlayer(String name) {
+    public synchronized Player addPlayer(String name) {
         return tryAddPlayer(name).orElseThrow(() -> new IllegalStateException("Room is not accepting players"));
     }
 
-    public Optional<Player> tryAddPlayer(String name) {
+    public synchronized Optional<Player> tryAddPlayer(String name) {
         return tryAddPlayer(name, null, null);
     }
 
-    public Optional<Player> tryAddPlayer(String name, String analyticsClientId, String reconnectToken) {
+    public synchronized Optional<Player> tryAddPlayer(String name, String analyticsClientId, String reconnectToken) {
         if (!canAcceptPlayers()) {
             return Optional.empty();
         }
@@ -222,7 +212,7 @@ public class GameRoom {
         return Optional.of(player);
     }
 
-    public void removePlayer(String playerId) {
+    public synchronized void removePlayer(String playerId) {
         players.remove(playerId);
         if (playerId.equals(hostId)) {
             hostId = players.isEmpty() ? null : players.keySet().iterator().next();
@@ -230,7 +220,7 @@ public class GameRoom {
         updateGameState(0);
     }
 
-    public void startMatch() {
+    public synchronized void startMatch() {
         if (phase != GamePhase.LOBBY) {
             return;
         }
@@ -245,7 +235,27 @@ public class GameRoom {
         startPhase(GamePhase.PLANNING);
     }
 
-    public Optional<Player> reconnectPlayer(String reconnectToken) {
+    public synchronized boolean startMatchForHost(String playerId) {
+        if (!isHost(playerId) || phase != GamePhase.LOBBY) {
+            return false;
+        }
+        startMatch();
+        return true;
+    }
+
+    public synchronized boolean setGameModeForHost(String playerId, GameMode newMode) {
+        return isHost(playerId) && setGameMode(newMode);
+    }
+
+    public synchronized Optional<Player> addBotForHost(String playerId) {
+        return isHost(playerId) ? addBot() : Optional.empty();
+    }
+
+    private boolean isHost(String playerId) {
+        return playerId != null && playerId.equals(hostId);
+    }
+
+    public synchronized Optional<Player> reconnectPlayer(String reconnectToken) {
         var reconnectTokenHash = hashReconnectToken(reconnectToken);
         if (reconnectTokenHash == null || phase == GamePhase.LOBBY || phase == GamePhase.END) {
             return Optional.empty();
@@ -261,7 +271,7 @@ public class GameRoom {
                 });
     }
 
-    public void disconnectPlayer(String playerId) {
+    public synchronized void disconnectPlayer(String playerId) {
         var player = players.get(playerId);
         if (player == null) {
             return;
@@ -275,7 +285,7 @@ public class GameRoom {
         }
     }
 
-    public boolean abandonPlayer(String playerId) {
+    public synchronized boolean abandonPlayer(String playerId) {
         var player = players.get(playerId);
         if (player == null || player.isBot() || player.isGhost()) {
             return false;
@@ -311,7 +321,7 @@ public class GameRoom {
         return true;
     }
 
-    public Optional<Player> addBot() {
+    public synchronized Optional<Player> addBot() {
         if (!canAcceptPlayers()) {
             return Optional.empty();
         }
@@ -326,29 +336,29 @@ public class GameRoom {
         return Optional.of(bot);
     }
 
-    public Player getPlayer(String id) {
+    public synchronized Player getPlayer(String id) {
         return players.get(id);
     }
 
-    public Collection<Player> getPlayers() {
-        return players.values();
+    public synchronized Collection<Player> getPlayers() {
+        return List.copyOf(players.values());
     }
 
-    public void moveUnit(String playerId, String unitId, int x, int y) {
+    public synchronized void moveUnit(String playerId, String unitId, int x, int y) {
         var p = players.get(playerId);
         if (p != null && (phase == GamePhase.PLANNING || phase == GamePhase.COMBAT)) {
             p.moveUnit(unitId, x, y);
         }
     }
 
-    public void collectOrb(String playerId, String orbId) {
+    public synchronized void collectOrb(String playerId, String orbId) {
         var p = players.get(playerId);
         if (p != null) {
             p.collectOrb(orbId);
         }
     }
 
-    public boolean readyForCombat(String playerId) {
+    public synchronized boolean readyForCombat(String playerId) {
         var readyPlayer = getSoloTrainingReadyPlayer();
         if (readyPlayer.isEmpty() || !readyPlayer.get().getId().equals(playerId)) {
             return false;
@@ -358,7 +368,7 @@ public class GameRoom {
         return true;
     }
 
-    public boolean selectAugment(String playerId, String augmentId) {
+    public synchronized boolean selectAugment(String playerId, String augmentId) {
         if (phase != GamePhase.PLANNING) {
             return false;
         }
@@ -373,7 +383,85 @@ public class GameRoom {
         return selected;
     }
 
-    public void tick() {
+    public synchronized boolean applyAction(String boundPlayerId, GameAction action) {
+        if (action == null
+                || action.type() == null
+                || boundPlayerId == null
+                || !boundPlayerId.equals(action.playerId())) {
+            return false;
+        }
+
+        var player = players.get(boundPlayerId);
+        if (player == null || player.getHealth() <= 0) {
+            return false;
+        }
+
+        if (action.type() == net.lwenstrom.tft.backend.core.model.ActionType.READY_FOR_COMBAT) {
+            return readyForCombat(boundPlayerId);
+        }
+        if (action.type() == net.lwenstrom.tft.backend.core.model.ActionType.SELECT_AUGMENT) {
+            return action.augmentId() != null && selectAugment(boundPlayerId, action.augmentId());
+        }
+        if (phase != GamePhase.PLANNING) {
+            return false;
+        }
+
+        var accepted =
+                switch (action.type()) {
+                    case BUY -> {
+                        if (action.shopIndex() == null) yield false;
+                        player.buyUnit(action.shopIndex());
+                        yield true;
+                    }
+                    case REROLL -> {
+                        player.refreshShop();
+                        yield true;
+                    }
+                    case EXP -> {
+                        if (player.getLevel() >= GameConstants.MAX_PLAYER_LEVEL
+                                || player.getGold() < GameConstants.XP_BUY_COST) {
+                            yield false;
+                        }
+                        player.gainGold(-GameConstants.XP_BUY_COST);
+                        player.gainXp(GameConstants.XP_BUY_AMOUNT);
+                        yield true;
+                    }
+                    case MOVE -> {
+                        if (action.unitId() == null || action.targetX() == null || action.targetY() == null)
+                            yield false;
+                        if (action.targetX() < 0
+                                || action.targetX() >= GameConstants.GRID_COLS
+                                || action.targetY() < -1
+                                || action.targetY() >= GameConstants.PLAYER_ROWS) {
+                            yield false;
+                        }
+                        player.moveUnit(action.unitId(), action.targetX(), action.targetY());
+                        yield true;
+                    }
+                    case SELL -> {
+                        if (action.unitId() == null) yield false;
+                        player.sellUnit(action.unitId(), true);
+                        yield true;
+                    }
+                    case LOCK -> {
+                        player.setShopLocked(!player.isShopLocked());
+                        yield true;
+                    }
+                    case COLLECT_ORB -> {
+                        if (action.orbId() == null) yield false;
+                        player.collectOrb(action.orbId());
+                        yield true;
+                    }
+                    case READY_FOR_COMBAT, SELECT_AUGMENT -> false;
+                };
+
+        if (accepted) {
+            updateGameState(phaseEndTime - clock.currentTimeMillis());
+        }
+        return accepted;
+    }
+
+    public synchronized void tick() {
         markAbandonedPlayers();
         if (phase == GamePhase.LOBBY || phase == GamePhase.END) {
             return;
@@ -397,18 +485,26 @@ public class GameRoom {
 
         lastTickEvents.clear();
         if (phase == GamePhase.COMBAT) {
-            var it = activeCombats.iterator();
-            while (it.hasNext()) {
-                var pair = it.next();
-                var result = combatSystem.simulateTick(pair);
-                if (result.events() != null) {
-                    lastTickEvents.addAll(result.events());
-                }
-                if (result.ended()) {
-                    handleCombatEnd(false, result, pair);
-                    it.remove();
+            var humanCombatActiveAtStart = hasHumanInvolvedCombat();
+            if (humanCombatActiveAtStart) {
+                var it = activeCombats.iterator();
+                while (it.hasNext()) {
+                    var pair = it.next();
+                    var result = combatSystem.simulateTick(pair);
+                    if (result.events() != null) {
+                        lastTickEvents.addAll(result.events());
+                    }
+                    if (result.ended()) {
+                        handleCombatEnd(false, result, pair);
+                        it.remove();
+                    }
                 }
             }
+
+            if (phase == GamePhase.COMBAT && !hasHumanInvolvedCombat()) {
+                fastForwardBotCombats(humanCombatActiveAtStart ? now + GameConstants.TICK_RATE_MS : now);
+            }
+
             currentRoundDamageLog.putAll(combatSystem.getDamageLog());
 
             // If handleCombatEnd triggered a game end, the phase is no longer COMBAT.
@@ -423,6 +519,30 @@ public class GameRoom {
         }
 
         updateGameState(phaseEndTime - now);
+    }
+
+    private void fastForwardBotCombats(long simulationStartTime) {
+        var simulationTime = simulationStartTime;
+        while (!activeCombats.isEmpty() && phase == GamePhase.COMBAT && simulationTime < phaseEndTime) {
+            var it = activeCombats.iterator();
+            while (it.hasNext()) {
+                var pair = it.next();
+                var result = combatSystem.simulateTick(pair, simulationTime);
+                if (result.ended()) {
+                    if (result.events() != null) {
+                        lastTickEvents.addAll(result.events());
+                    }
+                    handleCombatEnd(false, result, pair);
+                    it.remove();
+                }
+            }
+            simulationTime += GameConstants.TICK_RATE_MS;
+        }
+
+        if (phase == GamePhase.COMBAT) {
+            activeCombats.forEach(pair -> handleCombatEnd(true, null, pair));
+            activeCombats.clear();
+        }
     }
 
     private void nextPhase() {
@@ -600,51 +720,7 @@ public class GameRoom {
     }
 
     private BotRosterProfile getBotRosterProfile() {
-        if (gameMode == GameMode.POKEMON) {
-            return getPokemonBotRosterProfile();
-        }
-
-        if (round <= 2) {
-            return new BotRosterProfile(GameConstants.BOT_MAX_UNITS_PER_ROW, 0, 0, 0, 5, 1, 5, 0, 5);
-        }
-        if (round == 3) {
-            return new BotRosterProfile(GameConstants.BOT_MAX_UNITS_PER_ROW, 1, 0, 0, 30, 2, 30, 2, 10);
-        }
-        if (round <= 6) {
-            return new BotRosterProfile(GameConstants.BOT_MAX_UNITS_PER_ROW, 1, 0, 0, 40, 4, 35, 3, 18);
-        }
-        if (round <= 9) {
-            return new BotRosterProfile(7, 1, 0, 0, 50, 12, 42, 8, 25);
-        }
-        if (round <= 14) {
-            return new BotRosterProfile(7, 1, 2, 0, 25, 55, 50, 18, 35);
-        }
-        return new BotRosterProfile(7, 0, 2, 2, 15, 75, 35, 45, 45);
-    }
-
-    private BotRosterProfile getPokemonBotRosterProfile() {
-        if (round <= 2) {
-            return new BotRosterProfile(GameConstants.BOT_MAX_UNITS_PER_ROW, 0, 0, 0, 5, 1, 5, 0, 5);
-        }
-        if (round == 3) {
-            return new BotRosterProfile(GameConstants.BOT_MAX_UNITS_PER_ROW, 1, 0, 0, 30, 2, 30, 2, 10);
-        }
-        if (round <= 6) {
-            return new BotRosterProfile(GameConstants.BOT_MAX_UNITS_PER_ROW, 1, 0, 0, 40, 4, 35, 3, 18);
-        }
-        if (round == 7) {
-            return new BotRosterProfile(7, 1, 0, 0, 50, 12, 42, 8, 25);
-        }
-        if (round <= 9) {
-            return new BotRosterProfile(5, 1, 0, 0, 50, 12, 42, 8, 25);
-        }
-        if (round <= 14) {
-            return new BotRosterProfile(6, 1, 2, 0, 25, 55, 50, 18, 35);
-        }
-        if (round == 15) {
-            return new BotRosterProfile(6, 0, 2, 2, 15, 75, 35, 45, 45);
-        }
-        return new BotRosterProfile(7, 0, 2, 2, 15, 75, 35, 45, 45);
+        return gameModeRegistry.getProvider(gameMode).getBotRosterProfile(round);
     }
 
     private UnitDefinition rollBotUnitDefinition(
@@ -1117,6 +1193,14 @@ public class GameRoom {
 
     private List<Player> aliveHumanPlayers() {
         return humanPlayers().stream().filter(player -> player.getHealth() > 0).toList();
+    }
+
+    private boolean hasHumanInvolvedCombat() {
+        return activeCombats.stream().anyMatch(this::hasHumanParticipant);
+    }
+
+    private boolean hasHumanParticipant(List<Player> participants) {
+        return participants.stream().anyMatch(player -> !player.isBot() && !player.isGhost());
     }
 
     private static String hashReconnectToken(String reconnectToken) {

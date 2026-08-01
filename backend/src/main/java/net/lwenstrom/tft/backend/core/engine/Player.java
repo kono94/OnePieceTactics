@@ -250,6 +250,10 @@ public class Player {
         }
     }
 
+    boolean hasBenchUnit(String unitId) {
+        return unitId != null && bench.findUnit(unitId).isPresent();
+    }
+
     public int calculateSellValue(GameUnit unit) {
         var cost = unit.getCost();
         var starLevel = unit.getStarLevel();
@@ -591,7 +595,6 @@ public class Player {
                 combatSide,
                 bench.toList(),
                 new ArrayList<>(boardUnits),
-                new ArrayList<>(), // TODO: Calculate active traits
                 new ArrayList<>(shop),
                 new ArrayList<>(lootOrbs),
                 new ArrayList<>(augmentChoices),

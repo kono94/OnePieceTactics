@@ -156,6 +156,27 @@ class CombatSystemUnitTest {
     }
 
     @Test
+    void simulateTick_ReturnsEventsFromTheFinalCombatTick() {
+        var p1 = new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var p2 = new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
+        var attacker = MockUnit.create("attacker", p1.getId())
+                .withPosition(3, 0)
+                .withAttackDamage(200)
+                .withRange(1);
+        var target = MockUnit.create("target", p2.getId()).withPosition(3, 0).withHealth(100, 100);
+        target.setNextAttackTime(10_000);
+        addUnitToPlayer(p1, attacker);
+        addUnitToPlayer(p2, target);
+        combatSystem.startCombat(List.of(p1, p2));
+
+        var result = combatSystem.simulateTick(List.of(p1, p2));
+
+        assertTrue(result.ended());
+        assertTrue(result.events().stream().anyMatch(event -> event.type().equals("DAMAGE")));
+        assertTrue(result.events().stream().anyMatch(event -> event.type().equals("DEATH")));
+    }
+
+    @Test
     void testSimulateTick_BasicAttackGivesAttackerAndDefenderMana() {
         var p1 = new Player("P1", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());
         var p2 = new Player("P2", GameMode.ONEPIECE, createMockDataLoader(), createSeededRandomProvider());

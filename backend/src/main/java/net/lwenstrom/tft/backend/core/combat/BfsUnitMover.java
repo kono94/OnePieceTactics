@@ -20,7 +20,12 @@ public class BfsUnitMover implements UnitMover {
 
     @Override
     public void moveTowards(GameUnit mover, GameUnit target, List<GameUnit> allUnits) {
-        if (clock.currentTimeMillis() < mover.getNextMoveTime()) {
+        moveTowards(mover, target, allUnits, clock.currentTimeMillis());
+    }
+
+    @Override
+    public void moveTowards(GameUnit mover, GameUnit target, List<GameUnit> allUnits, long currentTime) {
+        if (currentTime < mover.getNextMoveTime()) {
             return;
         }
 
@@ -28,7 +33,7 @@ public class BfsUnitMover implements UnitMover {
 
         if (nextStep != null) {
             mover.setPosition(nextStep.x(), nextStep.y());
-            mover.setNextMoveTime(clock.currentTimeMillis() + 800);
+            mover.setNextMoveTime(currentTime + 800);
         }
     }
 

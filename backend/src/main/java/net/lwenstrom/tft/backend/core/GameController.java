@@ -2,6 +2,7 @@ package net.lwenstrom.tft.backend.core;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,6 @@ import net.lwenstrom.tft.backend.core.engine.Player;
 import net.lwenstrom.tft.backend.core.model.EmergencyDropPayload;
 import net.lwenstrom.tft.backend.core.model.GameAction;
 import net.lwenstrom.tft.backend.core.model.GameMode;
-import net.lwenstrom.tft.backend.core.model.GamePhase;
 import net.lwenstrom.tft.backend.core.model.RoomEvent;
 import net.lwenstrom.tft.backend.core.model.RoomEventType;
 import net.lwenstrom.tft.backend.core.model.TraitMetadata;
@@ -23,18 +23,20 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
-@CrossOrigin(origins = "*")
 @RestController
 @RequiredArgsConstructor
 @Slf4j
 public class GameController {
+
+    private static final int MAX_ROOM_ID_LENGTH = 32;
+    private static final int MAX_PLAYER_NAME_LENGTH = 32;
 
     private final SimpMessagingTemplate messagingTemplate;
     private final GameEngine gameEngine;
@@ -45,9 +47,7 @@ public class GameController {
     @Scheduled(fixedRate = GameConstants.TICK_RATE_MS)
     public void tick() {
         gameEngine.tick();
-        gameEngine.getActiveRooms().forEach(room -> {
-            messagingTemplate.convertAndSend("/topic/room/" + room.getId(), room.getState());
-        });
+        gameEngine.getActiveRooms().forEach(this::broadcastRoomState);
     }
 
     @GetMapping("/api/traits")
@@ -62,12 +62,29 @@ public class GameController {
     }
 
     @MessageMapping("/create")
-    public void createRoom(@Payload RoomRequest request, @Header("simpSessionId") String sessionId) {
-        var room = gameEngine.createRoom(request.roomId());
+    @SendToUser(destinations = "/queue/room-result", broadcast = false)
+    public RoomRequestResult createRoom(@Payload RoomRequest request, @Header("simpSessionId") String sessionId) {
+        var validationError = validateRoomRequest(request);
+        if (validationError.isPresent()) {
+            return RoomRequestResult.rejected(
+                    request != null ? request.roomId() : null, "INVALID_REQUEST", validationError.get());
+        }
+
+        var roomId = request.roomId().trim();
+        var room = gameEngine.tryCreateRoom(roomId).orElse(null);
+        if (room == null) {
+            return RoomRequestResult.rejected(roomId, "ROOM_EXISTS", "A room with that ID already exists.");
+        }
         configureCombatResultListener(room);
-        addPlayerForSession(
-                room, request.playerName(), request.analyticsClientId(), request.reconnectToken(), sessionId);
+        var player = addPlayerForSession(
+                        room,
+                        request.playerName().trim(),
+                        request.analyticsClientId(),
+                        request.reconnectToken(),
+                        sessionId)
+                .orElseThrow();
         broadcastRoomState(room);
+        return RoomRequestResult.accepted(roomId, player.getId());
     }
 
     private void configureCombatResultListener(GameRoom room) {
@@ -129,46 +146,48 @@ public class GameController {
                                 e.getValue().shielding())));
     }
 
-    private Map<String, Object> buildCombatResultPayload(
+    private CombatResultPayload buildCombatResultPayload(
             String winnerId, String loserId, List<String> participantIds, Map<String, Map<String, Object>> damageMap) {
-        return Map.of(
-                "winnerId",
-                winnerId != null ? winnerId : "",
-                "loserId",
-                loserId != null ? loserId : "",
-                "participantIds",
-                participantIds,
-                "damageLog",
-                damageMap);
+        return new CombatResultPayload(winnerId, loserId, participantIds, damageMap);
     }
 
     @MessageMapping("/join")
-    public void joinRoom(@Payload RoomRequest request, @Header("simpSessionId") String sessionId) {
-        var room = gameEngine.getRoom(request.roomId());
+    @SendToUser(destinations = "/queue/room-result", broadcast = false)
+    public RoomRequestResult joinRoom(@Payload RoomRequest request, @Header("simpSessionId") String sessionId) {
+        var validationError = validateRoomRequest(request);
+        if (validationError.isPresent()) {
+            return RoomRequestResult.rejected(
+                    request != null ? request.roomId() : null, "INVALID_REQUEST", validationError.get());
+        }
+
+        var roomId = request.roomId().trim();
+        var room = gameEngine.getRoom(roomId);
         if (room == null) {
-            return;
+            return RoomRequestResult.rejected(roomId, "ROOM_NOT_FOUND", "That room does not exist.");
         }
 
         var existingSessionPlayer = resolveSessionPlayer(room.getId(), sessionId);
         if (existingSessionPlayer != null) {
             broadcastRoomState(room);
-            return;
+            return RoomRequestResult.accepted(roomId, existingSessionPlayer.playerId());
         }
 
         var rejoiningPlayer = room.reconnectPlayer(request.reconnectToken());
         if (rejoiningPlayer.isPresent()) {
             bindSession(room.getId(), rejoiningPlayer.get().getId(), sessionId);
             broadcastRoomState(room);
-            return;
+            return RoomRequestResult.accepted(roomId, rejoiningPlayer.get().getId());
         }
 
-        if (!addPlayerForSession(
-                room, request.playerName(), request.analyticsClientId(), request.reconnectToken(), sessionId)) {
+        var player = addPlayerForSession(
+                room, request.playerName().trim(), request.analyticsClientId(), request.reconnectToken(), sessionId);
+        if (player.isEmpty()) {
             log.info("Rejected join for room {} because it is not accepting players.", room.getId());
-            return;
+            return RoomRequestResult.rejected(roomId, "ROOM_UNAVAILABLE", "That room is full or has already started.");
         }
 
         broadcastRoomState(room);
+        return RoomRequestResult.accepted(roomId, player.get().getId());
     }
 
     @MessageMapping("/leave")
@@ -203,31 +222,13 @@ public class GameController {
 
     @MessageMapping("/start")
     public void startRoom(@Payload RoomRequest request, @Header("simpSessionId") String sessionId) {
-        log.info("Received start request for room: {} from player: {}", request.roomId(), request.playerName());
+        if (request == null || request.roomId() == null) return;
         var room = gameEngine.getRoom(request.roomId());
-        if (room == null) {
-            log.info("Room not found.");
-            return;
-        }
+        if (room == null) return;
 
-        var player = resolveBoundPlayer(room, sessionId);
-        if (player == null) {
-            log.info("Player not found in room.");
-            return;
-        }
-
-        log.info(
-                "Found player: {} ID: {} Host ID: {}",
-                player.getName(),
-                player.getId(),
-                room.getState().hostId());
-
-        if (room.getState().hostId().equals(player.getId())) {
-            log.info("Host verified. Starting match.");
-            room.startMatch();
+        var sessionPlayer = resolveSessionPlayer(room.getId(), sessionId);
+        if (sessionPlayer != null && room.startMatchForHost(sessionPlayer.playerId())) {
             broadcastRoomState(room);
-        } else {
-            log.info("Player is not host.");
         }
     }
 
@@ -236,18 +237,10 @@ public class GameController {
         var room = gameEngine.getRoom(id);
         if (room == null) return;
 
-        var player = resolveBoundPlayer(room, sessionId);
-        if (player == null) return;
-
-        if (!room.getState().hostId().equals(player.getId())) {
-            log.info("Player is not host. Add bot denied.");
-            return;
-        }
-
-        if (room.addBot().isPresent()) {
+        var sessionPlayer = resolveSessionPlayer(room.getId(), sessionId);
+        if (sessionPlayer != null
+                && room.addBotForHost(sessionPlayer.playerId()).isPresent()) {
             broadcastRoomState(room);
-        } else {
-            log.info("Rejected add bot for room {} because it is not accepting players.", room.getId());
         }
     }
 
@@ -258,19 +251,16 @@ public class GameController {
         if (room == null) return;
 
         var sessionPlayer = resolveSessionPlayer(id, sessionId);
-        if (sessionPlayer == null || !sessionPlayer.playerId().equals(action.playerId())) {
+        if (sessionPlayer == null || action == null || !sessionPlayer.playerId().equals(action.playerId())) {
             log.warn("Rejected action for unbound or mismatched player.");
             return;
         }
 
-        var player = room.getPlayer(sessionPlayer.playerId());
-        if (player == null) {
-            log.warn("Player not found in room.");
+        if (!room.applyAction(sessionPlayer.playerId(), action)) {
+            log.warn("Rejected invalid action {} for player {}.", action.type(), sessionPlayer.playerId());
             return;
         }
 
-        processAction(room, player, action);
-        room.refreshState();
         broadcastRoomState(room);
     }
 
@@ -282,61 +272,42 @@ public class GameController {
         var room = gameEngine.getRoom(id);
         if (room == null) return;
 
-        var player = resolveBoundPlayer(room, sessionId);
-        if (player == null) return;
-
-        if (!room.getState().hostId().equals(player.getId())) {
-            log.info("Player is not host. Mode change denied.");
-            return;
-        }
-
-        if (room.setGameMode(request.gameMode())) {
+        var sessionPlayer = resolveSessionPlayer(room.getId(), sessionId);
+        if (sessionPlayer != null
+                && request != null
+                && room.setGameModeForHost(sessionPlayer.playerId(), request.gameMode())) {
             broadcastRoomState(room);
         }
     }
 
-    private void processAction(GameRoom room, Player player, GameAction action) {
-        switch (action.type()) {
-            case BUY -> player.buyUnit(action.shopIndex());
-            case REROLL -> player.refreshShop();
-            case EXP -> handleExpPurchase(player);
-            case MOVE -> handleMove(room, player, action);
-            case SELL -> handleSell(room, player, action);
-            case LOCK -> player.setShopLocked(!player.isShopLocked());
-            case COLLECT_ORB -> room.collectOrb(player.getId(), action.orbId());
-            case READY_FOR_COMBAT -> room.readyForCombat(player.getId());
-            case SELECT_AUGMENT -> room.selectAugment(player.getId(), action.augmentId());
-        }
-    }
-
-    private void handleExpPurchase(Player player) {
-        if (player.getLevel() < GameConstants.MAX_PLAYER_LEVEL && player.getGold() >= GameConstants.XP_BUY_COST) {
-            player.gainGold(-GameConstants.XP_BUY_COST);
-            player.gainXp(GameConstants.XP_BUY_AMOUNT);
-        }
-    }
-
-    private void handleMove(GameRoom room, Player player, GameAction action) {
-        var phase = room.getState().phase();
-        if (phase == GamePhase.PLANNING || phase == GamePhase.COMBAT) {
-            room.moveUnit(player.getId(), action.unitId(), action.targetX(), action.targetY());
-        }
-    }
-
-    private void handleSell(GameRoom room, Player player, GameAction action) {
-        // Allow selling bench units anytime, but board units only during PLANNING
-        player.sellUnit(action.unitId(), room.getState().phase() == GamePhase.PLANNING);
-    }
-
     private void broadcastRoomState(GameRoom room) {
-        messagingTemplate.convertAndSend("/topic/room/" + room.getId(), room.getState());
+        synchronized (room) {
+            messagingTemplate.convertAndSend("/topic/room/" + room.getId(), room.getState());
+        }
     }
 
-    private boolean addPlayerForSession(
+    private Optional<Player> addPlayerForSession(
             GameRoom room, String playerName, String analyticsClientId, String reconnectToken, String sessionId) {
         var player = room.tryAddPlayer(playerName, analyticsClientId, reconnectToken);
         player.ifPresent(p -> bindSession(room.getId(), p.getId(), sessionId));
-        return player.isPresent();
+        return player;
+    }
+
+    private Optional<String> validateRoomRequest(RoomRequest request) {
+        if (request == null || request.roomId() == null || request.roomId().isBlank()) {
+            return Optional.of("Room ID is required.");
+        }
+        var roomId = request.roomId().trim();
+        if (roomId.length() > MAX_ROOM_ID_LENGTH || !roomId.matches("[A-Za-z0-9_-]+")) {
+            return Optional.of("Room ID must use 1-32 letters, numbers, underscores, or hyphens.");
+        }
+        if (request.playerName() == null || request.playerName().isBlank()) {
+            return Optional.of("Player name is required.");
+        }
+        if (request.playerName().trim().length() > MAX_PLAYER_NAME_LENGTH) {
+            return Optional.of("Player name must be at most 32 characters.");
+        }
+        return Optional.empty();
     }
 
     private void bindSession(String roomId, String playerId, String sessionId) {
@@ -367,14 +338,6 @@ public class GameController {
         return sessionPlayer;
     }
 
-    private Player resolveBoundPlayer(GameRoom room, String sessionId) {
-        var sessionPlayer = resolveSessionPlayer(room.getId(), sessionId);
-        if (sessionPlayer == null) {
-            return null;
-        }
-        return room.getPlayer(sessionPlayer.playerId());
-    }
-
     public record RoomRequest(String roomId, String playerName, String analyticsClientId, String reconnectToken) {
         public RoomRequest(String roomId, String playerName) {
             this(roomId, playerName, null, null);
@@ -382,6 +345,19 @@ public class GameController {
     }
 
     public record ModeChangeRequest(String playerName, GameMode gameMode) {}
+
+    public record RoomRequestResult(boolean accepted, String roomId, String playerId, String code, String message) {
+        private static RoomRequestResult accepted(String roomId, String playerId) {
+            return new RoomRequestResult(true, roomId, playerId, null, null);
+        }
+
+        private static RoomRequestResult rejected(String roomId, String code, String message) {
+            return new RoomRequestResult(false, roomId, null, code, message);
+        }
+    }
+
+    public record CombatResultPayload(
+            String winnerId, String loserId, List<String> participantIds, Map<String, Map<String, Object>> damageLog) {}
 
     private record SessionPlayer(String roomId, String playerId) {}
 }

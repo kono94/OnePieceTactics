@@ -207,7 +207,10 @@ public class CombatSystem {
     }
 
     public CombatResult simulateTick(List<Player> participants) {
-        var currentTime = clock.currentTimeMillis();
+        return simulateTick(participants, clock.currentTimeMillis());
+    }
+
+    CombatResult simulateTick(List<Player> participants, long currentTime) {
         var allUnits = new ArrayList<GameUnit>();
         participants.forEach(p -> allUnits.addAll(p.getBoardUnits()));
         recentEvents.clear();
@@ -399,7 +402,7 @@ public class CombatSystem {
                         unit.setNextAttackTime(currentTime + cooldownMs);
                     }
                 } else {
-                    unitMover.moveTowards(unit, target, allUnits);
+                    unitMover.moveTowards(unit, target, allUnits, currentTime);
                 }
             }
         }
@@ -414,7 +417,8 @@ public class CombatSystem {
                     .findFirst()
                     .orElse(null);
 
-            return new CombatResult(true, winner != null ? winner.getId() : null, getDamageLog(), List.of());
+            return new CombatResult(
+                    true, winner != null ? winner.getId() : null, getDamageLog(), new ArrayList<>(recentEvents));
         }
 
         return new CombatResult(false, null, Map.of(), new ArrayList<>(recentEvents));

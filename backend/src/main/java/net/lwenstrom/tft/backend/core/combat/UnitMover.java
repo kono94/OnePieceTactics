@@ -6,4 +6,8 @@ import net.lwenstrom.tft.backend.core.model.GameUnit;
 public interface UnitMover {
 
     void moveTowards(GameUnit mover, GameUnit target, List<GameUnit> allUnits);
+
+    default void moveTowards(GameUnit mover, GameUnit target, List<GameUnit> allUnits, long currentTime) {
+        moveTowards(mover, target, allUnits);
+    }
 }

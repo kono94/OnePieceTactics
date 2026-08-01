@@ -1,6 +1,7 @@
 package net.lwenstrom.tft.backend.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -39,16 +40,18 @@ class GameControllerSessionGuardTest {
     void handleAction_AllowsOwnSessionPlayer() {
         var room = createRoomWithHost();
         var host = findPlayer(room, "Host");
+        controller.startRoom(new GameController.RoomRequest(room.getId(), "Host"), "host-session");
+        var gold = host.getGold();
+        var level = host.getLevel();
+        var xp = host.getXp();
 
         controller.handleAction(
                 room.getId(),
                 new GameAction(ActionType.EXP, host.getId(), null, null, null, null, null, null),
                 "host-session");
 
-        assertEquals(
-                GameConstants.STARTING_GOLD - GameConstants.REROLL_COST - GameConstants.XP_BUY_COST, host.getGold());
-        assertEquals(2, host.getLevel());
-        assertEquals(2, host.getXp());
+        assertEquals(gold - GameConstants.XP_BUY_COST, host.getGold());
+        assertTrue(host.getLevel() > level || host.getXp() > xp);
     }
 
     @Test
@@ -70,6 +73,77 @@ class GameControllerSessionGuardTest {
         assertEquals(0, host.getXp());
         assertEquals(guestGold, guest.getGold());
         assertEquals(0, guest.getXp());
+    }
+
+    @Test
+    void handleAction_RejectsMalformedPayload() {
+        var room = createRoomWithHost();
+        var host = findPlayer(room, "Host");
+        var gold = host.getGold();
+
+        controller.handleAction(room.getId(), null, "host-session");
+        controller.handleAction(
+                room.getId(), new GameAction(null, host.getId(), null, null, null, null, null, null), "host-session");
+        controller.handleAction(
+                room.getId(),
+                new GameAction(ActionType.BUY, host.getId(), null, null, null, null, null, null),
+                "host-session");
+
+        assertEquals(gold, host.getGold());
+    }
+
+    @Test
+    void handleAction_RejectsEconomyActionsDuringCombat() {
+        var room = createRoomWithHost();
+        var host = findPlayer(room, "Host");
+        controller.startRoom(new GameController.RoomRequest(room.getId(), "Host"), "host-session");
+        TestHelpers.setPhase(room, GamePhase.COMBAT);
+        var gold = host.getGold();
+
+        controller.handleAction(
+                room.getId(),
+                new GameAction(ActionType.EXP, host.getId(), null, null, null, null, null, null),
+                "host-session");
+
+        assertEquals(gold, host.getGold());
+    }
+
+    @Test
+    void applyAction_RejectsCoordinatesOutsideThePlanningBoardAndBenchContract() {
+        var room = createRoomWithHost();
+        var host = findPlayer(room, "Host");
+        controller.startRoom(new GameController.RoomRequest(room.getId(), "Host"), "host-session");
+
+        assertFalse(room.applyAction(
+                host.getId(), new GameAction(ActionType.MOVE, host.getId(), "unit", null, 9, 0, null, null)));
+        assertFalse(room.applyAction(
+                host.getId(), new GameAction(ActionType.MOVE, host.getId(), "unit", null, 0, 3, null, null)));
+        assertFalse(room.applyAction(
+                host.getId(), new GameAction(ActionType.MOVE, host.getId(), "unit", null, 0, -2, null, null)));
+    }
+
+    @Test
+    void createRoom_DoesNotOverwriteAnExistingRoom() {
+        var firstResult =
+                controller.createRoom(new GameController.RoomRequest("duplicate-room", "Host"), "host-session");
+        var originalRoom = gameEngine.getRoom("duplicate-room");
+
+        var secondResult =
+                controller.createRoom(new GameController.RoomRequest("duplicate-room", "Other"), "other-session");
+
+        assertTrue(firstResult.accepted());
+        assertFalse(secondResult.accepted());
+        assertEquals("ROOM_EXISTS", secondResult.code());
+        assertEquals(originalRoom, gameEngine.getRoom("duplicate-room"));
+        assertEquals(1, originalRoom.getPlayers().size());
+    }
+
+    @Test
+    void joinRoom_ReturnsAResultForMissingRoom() {
+        var result = controller.joinRoom(new GameController.RoomRequest("missing-room", "Guest"), "guest-session");
+
+        assertFalse(result.accepted());
+        assertEquals("ROOM_NOT_FOUND", result.code());
     }
 
     @Test
@@ -235,7 +309,9 @@ class GameControllerSessionGuardTest {
 
         TestHelpers.setPhase(room, GamePhase.PLANNING);
         TestHelpers.setPhase(room, GamePhase.PLANNING);
+        TestHelpers.setPhase(room, GamePhase.PLANNING);
 
+        assertFalse(host.getAugmentChoices().isEmpty());
         var augmentId = host.getAugmentChoices().get(0).id();
         controller.handleAction(
                 room.getId(),
