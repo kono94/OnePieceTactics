@@ -1,6 +1,5 @@
 package net.lwenstrom.tft.backend.analytics;
 
-import jakarta.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -9,12 +8,10 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class AdminSessionService {
     private static final long SESSION_DURATION_MILLIS = 8 * 60 * 60 * 1_000L;
     private static final long LOGIN_WINDOW_MILLIS = 15 * 60 * 1_000L;
@@ -23,18 +20,16 @@ public class AdminSessionService {
     private final SecureRandom secureRandom = new SecureRandom();
     private final Map<String, Long> sessions = new ConcurrentHashMap<>();
     private final Map<String, LoginFailures> failures = new ConcurrentHashMap<>();
+    private final String configuredPassword;
 
-    @Value("${analytics.admin.password:}")
-    private String configuredPassword;
-
-    @PostConstruct
-    void validateConfiguration() {
-        if (configuredPassword.isBlank()) {
-            throw new IllegalStateException("analytics.admin.password must not be blank");
-        }
+    public AdminSessionService(@Value("${analytics.admin.password:}") String configuredPassword) {
+        this.configuredPassword = configuredPassword;
     }
 
     public LoginResult login(String suppliedPassword, String sourceAddress) {
+        if (configuredPassword.isBlank() || suppliedPassword == null) {
+            return LoginResult.rejected();
+        }
         var now = System.currentTimeMillis();
         var retryAfter = retryAfterSeconds(sourceAddress, now);
         if (retryAfter > 0) {

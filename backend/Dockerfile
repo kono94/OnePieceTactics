@@ -16,4 +16,4 @@ ENV APP_GIT_TAG=${APP_GIT_TAG}
 ENV APP_GIT_COMMIT=${APP_GIT_COMMIT}
 ENV APP_BUILD_TIME=${APP_BUILD_TIME}
 COPY --from=build /app/target/*.jar app.jar
-ENTRYPOINT ["java","-jar","app.jar"]
+ENTRYPOINT ["java","--enable-preview","-jar","app.jar"]

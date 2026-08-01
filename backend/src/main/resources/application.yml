@@ -10,7 +10,11 @@ server:
   port: 8080
   forward-headers-strategy: framework
 
+app:
+  websocket:
+    allowed-origin-patterns: ${WEBSOCKET_ALLOWED_ORIGIN_PATTERNS:http://localhost:*,http://127.0.0.1:*}
+
 # Local development default. Production overrides this in application-prod.yml.
 analytics:
   admin:
-    password: tft123
+    password: ${ANALYTICS_ADMIN_PASSWORD:}

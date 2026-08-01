@@ -6,7 +6,7 @@ RUN apk add --no-cache git
 
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
-RUN npm install
+RUN npm ci
 COPY frontend/ ./
 COPY backend/src/main/resources/data/ /app/backend/src/main/resources/data/
 

@@ -10,7 +10,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.lwenstrom.tft.backend.core.analytics.GameplayAnalyticsRecorder;
 import net.lwenstrom.tft.backend.core.engine.Player;
@@ -25,11 +24,13 @@ import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class SqliteGameplayAnalyticsRecorder implements GameplayAnalyticsRecorder {
     private final JdbcTemplate jdbcTemplate;
     private final JsonMapper objectMapper;
     private final TransactionTemplate transactionTemplate;
+    private final String backendVersion;
+    private final String backendCommit;
+    private final String backendBuildTime;
     private final ExecutorService writeExecutor = new ThreadPoolExecutor(
             1,
             1,
@@ -39,14 +40,20 @@ public class SqliteGameplayAnalyticsRecorder implements GameplayAnalyticsRecorde
             Thread.ofVirtual().name("analytics-writer-", 0).factory(),
             new ThreadPoolExecutor.AbortPolicy());
 
-    @Value("${APP_GIT_TAG:${app.git-tag:unknown}}")
-    private String backendVersion;
-
-    @Value("${APP_GIT_COMMIT:${app.git-commit:unknown}}")
-    private String backendCommit;
-
-    @Value("${APP_BUILD_TIME:${app.build-time:unknown}}")
-    private String backendBuildTime;
+    public SqliteGameplayAnalyticsRecorder(
+            JdbcTemplate jdbcTemplate,
+            JsonMapper objectMapper,
+            TransactionTemplate transactionTemplate,
+            @Value("${APP_GIT_TAG:${app.git-tag:unknown}}") String backendVersion,
+            @Value("${APP_GIT_COMMIT:${app.git-commit:unknown}}") String backendCommit,
+            @Value("${APP_BUILD_TIME:${app.build-time:unknown}}") String backendBuildTime) {
+        this.jdbcTemplate = jdbcTemplate;
+        this.objectMapper = objectMapper;
+        this.transactionTemplate = transactionTemplate;
+        this.backendVersion = backendVersion;
+        this.backendCommit = backendCommit;
+        this.backendBuildTime = backendBuildTime;
+    }
 
     @PostConstruct
     void recoverInterruptedMatches() {

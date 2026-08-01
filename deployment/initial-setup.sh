@@ -37,7 +37,7 @@ fi
 # -----------------------------------------------------------------------------
 # Step 1: Domain
 # -----------------------------------------------------------------------------
-echo "Step 1/4: Domain"
+echo "Step 1/3: Domain"
 echo "─────────────────────────────────────────"
 read -p "Enter your domain (e.g., tft.example.com): " DOMAIN
 
@@ -50,7 +50,7 @@ fi
 # Step 2: Email for SSL
 # -----------------------------------------------------------------------------
 echo ""
-echo "Step 2/4: SSL Certificate"
+echo "Step 2/3: SSL Certificate"
 echo "─────────────────────────────────────────"
 read -p "Email for Let's Encrypt notices (optional): " EMAIL
 
@@ -60,20 +60,10 @@ if [ -z "$EMAIL" ]; then
 fi
 
 # -----------------------------------------------------------------------------
-# Step 3: Game Mode
+# Step 3: Analytics admin password
 # -----------------------------------------------------------------------------
 echo ""
-echo "Step 3/4: Game Mode"
-echo "─────────────────────────────────────────"
-echo "Available: onepiece, pokemon"
-read -p "Game mode [onepiece]: " GAME_MODE
-GAME_MODE=${GAME_MODE:-onepiece}
-
-# -----------------------------------------------------------------------------
-# Step 4: Analytics admin password
-# -----------------------------------------------------------------------------
-echo ""
-echo "Step 4/4: Analytics Admin"
+echo "Step 3/3: Analytics Admin"
 echo "─────────────────────────────────────────"
 read -r -s -p "Admin password (6+ letters, digits, dots, underscores, or hyphens): " ANALYTICS_ADMIN_PASSWORD
 echo ""
@@ -90,8 +80,8 @@ chmod 0700 /var/lib/tft/analytics
 # -----------------------------------------------------------------------------
 echo ""
 echo "Creating .env..."
-printf "DOMAIN=%s\nGAME_MODE=%s\nSPRING_PROFILES_ACTIVE=prod\nANALYTICS_ADMIN_PASSWORD=%s\n" \
-    "$DOMAIN" "$GAME_MODE" "$ANALYTICS_ADMIN_PASSWORD" > .env
+printf "DOMAIN=%s\nSPRING_PROFILES_ACTIVE=prod\nWEBSOCKET_ALLOWED_ORIGIN_PATTERNS=https://%s\nANALYTICS_ADMIN_PASSWORD=%s\n" \
+    "$DOMAIN" "$DOMAIN" "$ANALYTICS_ADMIN_PASSWORD" > .env
 chown root:docker .env
 chmod 0640 .env
 echo "✓ .env created"

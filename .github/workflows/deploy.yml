@@ -4,7 +4,11 @@ on:
     tags: [ '*' ]
 
 jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml
+
   deploy:
+    needs: verify
     runs-on: ubuntu-latest
     steps:
       - uses: appleboy/ssh-action@v1.0.3

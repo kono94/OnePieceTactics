@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteDataSource;
@@ -35,10 +34,12 @@ class SqliteGameplayAnalyticsRecorderTest {
         var jdbcTemplate = new JdbcTemplate(dataSource);
         var transactionTemplate = new TransactionTemplate(new DataSourceTransactionManager(dataSource));
         var recorder = new SqliteGameplayAnalyticsRecorder(
-                jdbcTemplate, JsonMapper.builder().build(), transactionTemplate);
-        ReflectionTestUtils.setField(recorder, "backendVersion", "1.2.3");
-        ReflectionTestUtils.setField(recorder, "backendCommit", "abc123");
-        ReflectionTestUtils.setField(recorder, "backendBuildTime", "2026-07-10T20:00:00Z");
+                jdbcTemplate,
+                JsonMapper.builder().build(),
+                transactionTemplate,
+                "1.2.3",
+                "abc123",
+                "2026-07-10T20:00:00Z");
 
         var dataLoader = TestHelpers.createMockDataLoader();
         var player = new Player(
@@ -101,7 +102,10 @@ class SqliteGameplayAnalyticsRecorderTest {
         var recorder = new SqliteGameplayAnalyticsRecorder(
                 jdbcTemplate,
                 JsonMapper.builder().build(),
-                new TransactionTemplate(new DataSourceTransactionManager(dataSource)));
+                new TransactionTemplate(new DataSourceTransactionManager(dataSource)),
+                "unknown",
+                "unknown",
+                "unknown");
         var dataLoader = TestHelpers.createMockDataLoader();
         var player = new Player("Anonymous", GameMode.ONEPIECE, dataLoader, TestHelpers.createSeededRandomProvider());
         var bot = new Player("Bot", GameMode.ONEPIECE, dataLoader, TestHelpers.createSeededRandomProvider());

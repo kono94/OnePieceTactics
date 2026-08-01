@@ -12,9 +12,9 @@ services:
         APP_BUILD_TIME: ${APP_BUILD_TIME:-unknown}
     container_name: tft-backend
     environment:
-      - GAME_MODE=${GAME_MODE}
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-dev}
       - ANALYTICS_ADMIN_PASSWORD=${ANALYTICS_ADMIN_PASSWORD:-}
+      - WEBSOCKET_ALLOWED_ORIGIN_PATTERNS=${WEBSOCKET_ALLOWED_ORIGIN_PATTERNS:-http://localhost:*,http://127.0.0.1:*}
       - APP_GIT_TAG=${APP_GIT_TAG:-dev}
       - APP_GIT_COMMIT=${APP_GIT_COMMIT:-unknown}
       - APP_BUILD_TIME=${APP_BUILD_TIME:-unknown}
