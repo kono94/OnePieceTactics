@@ -48,7 +48,7 @@ public final class TestHelpers {
             @Override
             public void registerTraitEffects(TraitManager traitManager) {}
         };
-        return new GameModeRegistry(List.of(provider), "onepiece");
+        return new GameModeRegistry(List.of(provider));
     }
 
     public static DataLoader createMockDataLoader() {
@@ -84,6 +84,11 @@ public final class TestHelpers {
             @Override
             public List<AugmentDefinition> getAugments(GameMode mode) {
                 return augments;
+            }
+
+            @Override
+            public net.lwenstrom.tft.backend.core.combat.ElementalAffinityConfig getAffinityConfig(GameMode mode) {
+                return net.lwenstrom.tft.backend.core.combat.ElementalAffinityConfig.neutral();
             }
         };
     }

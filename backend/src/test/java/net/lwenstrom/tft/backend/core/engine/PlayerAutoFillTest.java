@@ -54,7 +54,7 @@ class PlayerAutoFillTest {
             @Override
             public void registerTraitEffects(TraitManager traitManager) {}
         };
-        return new GameModeRegistry(List.of(provider), "onepiece");
+        return new GameModeRegistry(List.of(provider));
     }
 
     private UnitDefinition createDummyDef(String name) {

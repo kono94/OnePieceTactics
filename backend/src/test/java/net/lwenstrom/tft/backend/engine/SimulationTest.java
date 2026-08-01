@@ -43,7 +43,7 @@ public class SimulationTest {
                 };
 
         net.lwenstrom.tft.backend.core.GameModeRegistry registry =
-                new net.lwenstrom.tft.backend.core.GameModeRegistry(List.of(provider), "onepiece");
+                new net.lwenstrom.tft.backend.core.GameModeRegistry(List.of(provider));
 
         // Mock DataLoader
         DataLoader dataLoader = new DataLoader(
@@ -142,7 +142,7 @@ public class SimulationTest {
                     public void registerTraitEffects(net.lwenstrom.tft.backend.core.engine.TraitManager traitManager) {}
                 };
         net.lwenstrom.tft.backend.core.GameModeRegistry registry =
-                new net.lwenstrom.tft.backend.core.GameModeRegistry(List.of(provider), "onepiece");
+                new net.lwenstrom.tft.backend.core.GameModeRegistry(List.of(provider));
 
         DataLoader dataLoader = new DataLoader(
                 registry, tools.jackson.databind.json.JsonMapper.builder().build()) {

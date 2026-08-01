@@ -16,6 +16,9 @@ import net.lwenstrom.tft.backend.core.GameModeRegistry;
 import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GamePhase;
 import net.lwenstrom.tft.backend.core.random.RandomProvider;
+import net.lwenstrom.tft.backend.game.onepiece.OnePieceGameModeProvider;
+import net.lwenstrom.tft.backend.game.palworld.PalworldGameModeProvider;
+import net.lwenstrom.tft.backend.game.pokemon.PokemonGameModeProvider;
 import net.lwenstrom.tft.backend.test.TestHelpers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,7 +51,7 @@ class GameRoomBotTest {
             public void registerTraitEffects(TraitManager traitManager) {}
         };
 
-        gameModeRegistry = new GameModeRegistry(List.of(provider), "onepiece");
+        gameModeRegistry = new GameModeRegistry(List.of(provider));
         dataLoader = new DataLoader(
                 gameModeRegistry,
                 tools.jackson.databind.json.JsonMapper.builder().build());
@@ -351,26 +354,14 @@ class GameRoomBotTest {
     }
 
     private GameModeRegistry createMockRegistry(GameMode mode) {
-        GameModeProvider provider = new GameModeProvider() {
-            @Override
-            public GameMode getMode() {
-                return mode;
-            }
-
-            @Override
-            public String getUnitsPath() {
-                return "";
-            }
-
-            @Override
-            public String getTraitsPath() {
-                return "";
-            }
-
-            @Override
-            public void registerTraitEffects(TraitManager traitManager) {}
-        };
-        return new GameModeRegistry(List.of(provider), mode.getValue());
+        var jsonMapper = tools.jackson.databind.json.JsonMapper.builder().build();
+        GameModeProvider provider =
+                switch (mode) {
+                    case ONEPIECE -> new OnePieceGameModeProvider(jsonMapper);
+                    case POKEMON -> new PokemonGameModeProvider(jsonMapper);
+                    case PALWORLD -> new PalworldGameModeProvider(jsonMapper);
+                };
+        return new GameModeRegistry(List.of(provider));
     }
 
     private void refreshBotAtRound(GameRoom room, Player bot, int targetRound) {

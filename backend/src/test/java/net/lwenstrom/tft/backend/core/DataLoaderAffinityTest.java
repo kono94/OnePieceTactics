@@ -30,12 +30,10 @@ class DataLoaderAffinityTest {
 
     @Test
     void dataLoaderCachesPokemonAndPalworldAffinityConfigs() {
-        var registry = new GameModeRegistry(
-                List.of(
-                        new OnePieceGameModeProvider(jsonMapper),
-                        new PokemonGameModeProvider(jsonMapper),
-                        new PalworldGameModeProvider(jsonMapper)),
-                "pokemon");
+        var registry = new GameModeRegistry(List.of(
+                new OnePieceGameModeProvider(jsonMapper),
+                new PokemonGameModeProvider(jsonMapper),
+                new PalworldGameModeProvider(jsonMapper)));
         var dataLoader = new DataLoader(registry, jsonMapper);
 
         assertEquals(

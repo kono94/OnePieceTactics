@@ -175,7 +175,7 @@ class PalworldDataValidationTest {
     @Test
     void providerLoadsAllRevisedPalworldResources() {
         var provider = new PalworldGameModeProvider(jsonMapper);
-        var registry = new GameModeRegistry(List.of(provider), "palworld");
+        var registry = new GameModeRegistry(List.of(provider));
         var dataLoader = new DataLoader(registry, jsonMapper);
 
         assertEquals(GameMode.PALWORLD, provider.getMode());

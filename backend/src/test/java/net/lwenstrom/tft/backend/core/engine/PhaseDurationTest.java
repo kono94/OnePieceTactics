@@ -45,7 +45,7 @@ public class PhaseDurationTest {
             public void registerTraitEffects(TraitManager traitManager) {}
         };
 
-        GameModeRegistry registry = new GameModeRegistry(List.of(provider), "onepiece");
+        GameModeRegistry registry = new GameModeRegistry(List.of(provider));
         DataLoader dataLoader = new DataLoader(registry, JsonMapper.builder().build()) {
             @Override
             public List<UnitDefinition> getAllUnits(GameMode mode) {

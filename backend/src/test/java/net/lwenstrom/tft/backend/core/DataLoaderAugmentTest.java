@@ -21,7 +21,7 @@ class DataLoaderAugmentTest {
     void loadsAndValidatesModeAugments() {
         var jsonMapper = JsonMapper.builder().build();
         var registry = new GameModeRegistry(
-                List.of(new OnePieceGameModeProvider(jsonMapper), new PokemonGameModeProvider(jsonMapper)), "onepiece");
+                List.of(new OnePieceGameModeProvider(jsonMapper), new PokemonGameModeProvider(jsonMapper)));
         var dataLoader = new DataLoader(registry, jsonMapper);
 
         validate(dataLoader, GameMode.ONEPIECE);

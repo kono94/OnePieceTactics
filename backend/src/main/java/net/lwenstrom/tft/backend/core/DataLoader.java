@@ -48,8 +48,10 @@ public class DataLoader {
 
     @PostConstruct
     public void loadData() {
-        // Preload default mode for faster startup, other modes are lazy-loaded.
-        getModeData(gameModeRegistry.getDefaultMode());
+        gameModeRegistry.getAvailableModes().forEach(mode -> {
+            getModeData(mode);
+            getElementalAffinity(mode);
+        });
     }
 
     private ModeData getModeData(GameMode mode) {
@@ -61,6 +63,9 @@ public class DataLoader {
         var units = loadUnits(provider.getUnitsPath());
         var traits = loadTraits(provider.getTraitsPath());
         var augments = loadAugments(provider.getAugmentsPath());
+        if (units.isEmpty() || traits.isEmpty() || augments.isEmpty()) {
+            throw new IllegalStateException("Incomplete data for game mode: " + mode);
+        }
         return new ModeData(units, traits, augments);
     }
 
@@ -73,18 +78,13 @@ public class DataLoader {
     }
 
     private Optional<ElementalAffinityConfig> loadAffinityData(GameMode mode) {
-        try {
-            return gameModeRegistry.getProvider(mode).getAffinitiesPath().map(this::loadAffinities);
-        } catch (IllegalStateException e) {
-            return Optional.empty();
-        }
+        return gameModeRegistry.getProvider(mode).getAffinitiesPath().map(this::loadAffinities);
     }
 
     private ElementalAffinityConfig loadAffinities(String path) {
         try (var inputStream = getClass().getResourceAsStream(path)) {
             if (inputStream == null) {
-                log.warn("Could not find affinity data at {}", path);
-                return null;
+                throw new IllegalStateException("Could not find affinity data at " + path);
             }
             var config = affinityLoader.load(inputStream);
             log.info("Loaded {} elemental affinities from {}", config.elements().size(), path);
@@ -95,49 +95,40 @@ public class DataLoader {
     }
 
     private Map<String, UnitDefinition> loadUnits(String path) {
-        try {
-            var is = getClass().getResourceAsStream(path);
-            if (is != null) {
-                List<UnitDefinition> units = jsonMapper.readValue(is, new TypeReference<>() {});
-                var registry = units.stream().collect(Collectors.toMap(UnitDefinition::id, u -> u));
-                log.info("Loaded {} units from {}", registry.size(), path);
-                return registry;
-            } else {
-                log.error("Could not find units at {}", path);
-                return Map.of();
+        try (var inputStream = getClass().getResourceAsStream(path)) {
+            if (inputStream == null) {
+                throw new IllegalStateException("Could not find units at " + path);
             }
+            List<UnitDefinition> units = jsonMapper.readValue(inputStream, new TypeReference<>() {});
+            var registry = units.stream().collect(Collectors.toMap(UnitDefinition::id, unit -> unit));
+            log.info("Loaded {} units from {}", registry.size(), path);
+            return registry;
         } catch (Exception e) {
             throw new RuntimeException("Failed to load unit data: " + path, e);
         }
     }
 
     private List<TraitMetadata> loadTraits(String path) {
-        try {
-            var is = getClass().getResourceAsStream(path);
-            if (is != null) {
-                var metadata = jsonMapper.readValue(is, new TypeReference<List<TraitMetadata>>() {});
-                log.info("Loaded {} traits from {}", metadata.size(), path);
-                return metadata;
-            } else {
-                log.error("Could not find traits at {}", path);
-                return List.of();
+        try (var inputStream = getClass().getResourceAsStream(path)) {
+            if (inputStream == null) {
+                throw new IllegalStateException("Could not find traits at " + path);
             }
+            var metadata = jsonMapper.readValue(inputStream, new TypeReference<List<TraitMetadata>>() {});
+            log.info("Loaded {} traits from {}", metadata.size(), path);
+            return metadata;
         } catch (Exception e) {
             throw new RuntimeException("Failed to load trait data: " + path, e);
         }
     }
 
     private List<AugmentDefinition> loadAugments(String path) {
-        try {
-            var is = getClass().getResourceAsStream(path);
-            if (is != null) {
-                var augments = jsonMapper.readValue(is, new TypeReference<List<AugmentDefinition>>() {});
-                log.info("Loaded {} augments from {}", augments.size(), path);
-                return augments;
-            } else {
-                log.error("Could not find augments at {}", path);
-                return List.of();
+        try (var inputStream = getClass().getResourceAsStream(path)) {
+            if (inputStream == null) {
+                throw new IllegalStateException("Could not find augments at " + path);
             }
+            var augments = jsonMapper.readValue(inputStream, new TypeReference<List<AugmentDefinition>>() {});
+            log.info("Loaded {} augments from {}", augments.size(), path);
+            return augments;
         } catch (Exception e) {
             throw new RuntimeException("Failed to load augment data: " + path, e);
         }
