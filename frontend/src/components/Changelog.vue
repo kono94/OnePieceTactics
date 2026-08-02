@@ -6,6 +6,7 @@ defineOptions({
 defineEmits(['back'])
 
 const nextVersionCommits = [
+  { hash: 'pending', title: 'Automate single-flight dependency updates with Renovate' },
   { hash: '937bfaa', title: 'Upgrade CI actions to Node 24 runtimes' },
   { hash: 'd477638', title: 'Refresh architecture guides and pending release notes' },
   { hash: 'ac1da68', title: 'Use stable player identity in the frontend' },
@@ -91,7 +92,9 @@ const version160Commits = [
             fails fast without an analytics admin password. Java 25 test startup, Palworld live animations, refund
             previews, dependency security, CI release gates, obsolete deployment-time mode selection, and the
             backend/frontend architecture guides were also corrected. Human-involved combats now keep normal pacing;
-            once they all resolve, remaining bot-only combats are drained immediately.
+            once they all resolve, remaining bot-only combats are drained immediately. Renovate now processes one
+            dependency update at a time, automatically merging non-major updates only after all required checks pass
+            and leaving failures open for repair.
           </p>
         </div>
         <article class="release-panel">

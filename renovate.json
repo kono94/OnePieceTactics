@@ -1,0 +1,24 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:best-practices"],
+  "enabledManagers": ["maven", "npm", "dockerfile", "docker-compose", "github-actions"],
+  "dependencyDashboard": true,
+  "prConcurrentLimit": 1,
+  "branchConcurrentLimit": 1,
+  "automerge": false,
+  "platformAutomerge": true,
+  "automergeStrategy": "squash",
+  "packageRules": [
+    {
+      "description": "Automerge non-breaking updates after required checks pass",
+      "matchUpdateTypes": ["patch", "minor", "pin", "pinDigest", "digest", "lockFileMaintenance"],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Require dashboard approval for major updates",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    }
+  ]
+}
