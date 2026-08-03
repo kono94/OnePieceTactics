@@ -2,7 +2,7 @@ name: Renovate
 
 on:
   schedule:
-    - cron: '0 5 * * *'
+    - cron: '0 3 * * 1'
   workflow_dispatch:
 
 permissions:
@@ -23,5 +23,6 @@ jobs:
           token: ${{ secrets.RENOVATE_TOKEN }}
         env:
           LOG_LEVEL: info
+          RENOVATE_GIT_AUTHOR: 'Renovate Bot <13631970+kono94@users.noreply.github.com>'
           RENOVATE_PLATFORM: github
           RENOVATE_REPOSITORIES: ${{ github.repository }}

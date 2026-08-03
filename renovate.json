@@ -3,6 +3,7 @@
   "extends": ["config:best-practices"],
   "enabledManagers": ["maven", "npm", "dockerfile", "docker-compose", "github-actions"],
   "dependencyDashboard": true,
+  "dependencyDashboardHeader": "This issue is Renovate's weekly dependency inventory. Routine non-major updates are processed automatically one at a time. Leave major-update checkboxes unchecked and handle those upgrades in separate AI-assisted pull requests.",
   "prConcurrentLimit": 1,
   "branchConcurrentLimit": 1,
   "automerge": false,
@@ -16,7 +17,7 @@
       "automergeType": "pr"
     },
     {
-      "description": "Require dashboard approval for major updates",
+      "description": "List major updates in the dashboard for separate AI-assisted upgrades",
       "matchUpdateTypes": ["major"],
       "dependencyDashboardApproval": true
     }

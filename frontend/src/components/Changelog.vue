@@ -6,7 +6,7 @@ defineOptions({
 defineEmits(['back'])
 
 const nextVersionCommits = [
-  { hash: 'pending', title: 'Automate single-flight dependency updates with Renovate' },
+  { hash: '2133957', title: 'Automate single-flight dependency updates with Renovate' },
   { hash: '937bfaa', title: 'Upgrade CI actions to Node 24 runtimes' },
   { hash: 'd477638', title: 'Refresh architecture guides and pending release notes' },
   { hash: 'ac1da68', title: 'Use stable player identity in the frontend' },
@@ -93,8 +93,9 @@ const version160Commits = [
             previews, dependency security, CI release gates, obsolete deployment-time mode selection, and the
             backend/frontend architecture guides were also corrected. Human-involved combats now keep normal pacing;
             once they all resolve, remaining bot-only combats are drained immediately. Renovate now processes one
-            dependency update at a time, automatically merging non-major updates only after all required checks pass
-            and leaving failures open for repair.
+            routine dependency update each week, automatically merging non-major updates only after all required
+            checks pass and leaving failures open for repair. Major updates remain listed in the Dependency Dashboard
+            for separate AI-assisted migrations. Renovate commits use repository-owned, privacy-preserving attribution.
           </p>
         </div>
         <article class="release-panel">
