@@ -120,6 +120,11 @@ valid one. One Piece intentionally has no affinity file and receives a neutral r
 `UnitDefinition.lineId` is the combination identity. Optional `forms` can change definition ID, name, role, traits,
 range, and ability at higher stars while preserving the line used for upgrades.
 
+The Palworld provider loads 55 purchasable lines, nine team-wide elemental traits, 15 augments, one affinity graph,
+and one root ability per Pal with star-scaled values. Palworld-specific IDs remain in its data and provider
+registration; targeting, movement, attacks, ability casting, modifiers, shields, healing, damage-over-time, and combat
+scheduling remain shared engine responsibilities.
+
 ## 7. Transport and identity
 
 ### STOMP setup
@@ -240,7 +245,9 @@ of each generated pair is placed on `TOP`; the second is placed on `BOTTOM`. It 
 
 Abilities support `DAMAGE`, `STUN`, `HEAL`, `SHIELD`, `BUFF_ATK`, and `BUFF_SPD`; patterns are `SINGLE`, `LINE`, and
 `SURROUND`. Implemented modifiers include stun, lifesteal, execute, conditional/scaling damage, damage-over-time, and
-knockback. `DamageResolver` applies mode affinity to basic attacks, direct damage abilities, and DOT damage.
+knockback. `DamageResolver` applies mode affinity to basic attacks, direct damage abilities, and DOT damage. Pokemon
+and Palworld derive the offensive element from the caster's traits and use the best attacking trait against each target
+when a unit has two traits. Each mode resolves its own data-loaded affinity graph; One Piece remains neutral.
 
 ## 10. REST and analytics
 

@@ -6,6 +6,7 @@ defineOptions({
 defineEmits(['back'])
 
 const nextVersionCommits = [
+  { hash: 'pending', title: 'Move Palworld architecture and release details into focused documentation' },
   { hash: 'pending', title: 'Replace hosted Renovate with Codex-assisted local dependency maintenance' },
   { hash: 'pending', title: 'Upgrade ESLint 9.39.5 => 10.8.0 and TypeScript 5.9.3 => 6.0.3' },
   { hash: 'pending', title: 'Standardize frontend development and CI on Node.js 26' },

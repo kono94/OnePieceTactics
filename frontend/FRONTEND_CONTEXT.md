@@ -213,7 +213,7 @@ totals.
 ## 9. Modes, assets, and styling
 
 `data/gameModeMetadata.ts` is the presentation registry for display name, theme class, favicon, document title, and asset
-folder. Backend `gameMode` selects the runtime entry.
+folder. Backend `gameMode` selects the runtime entry. Palworld uses `/pal-sphere.png` as its favicon.
 
 Unit portrait paths:
 
@@ -239,7 +239,8 @@ pw-ability-{definitionId}
 ```
 
 `utils/combatAnimationConfig.ts` owns that translation and passes unit traits as palette context. This prevents live
-combat from falling back to legacy/default effects while the gallery appears correct.
+combat from falling back to legacy/default effects while the gallery appears correct. Animation identity comes from
+the stable mode and unit definition ID, never from a display name.
 
 `animations/renderPolicy.ts` reduces particle density and expensive effects for crowded batches and reduced-motion
 users. `CombatEffectsCanvas.vue` is the live layered renderer. `AttackAnimation.vue` has no live import and is legacy.

@@ -167,25 +167,9 @@ mode-specific combat rules for that room.
 To add a new theme, implement `GameModeProvider` and add corresponding JSON data files. See
 [Backend Context](backend/BACKEND_CONTEXT.md#6-modes-and-data-loading) for details.
 
-### Palworld mode architecture
-
-Palworld is the third lobby-selectable mode, not a separate combat engine. Its provider loads 55 purchasable Pal lines, nine team-wide elemental traits, 15 augments, one affinity graph, and one root ability per Pal with star-scaled values. The shared engine supplies targeting, movement, basic attacks, ability casting, modifiers, shields, healing, damage-over-time, and combat scheduling; Palworld-specific ids remain in data and provider registration.
-
-Basic attacks, damage abilities, and damage-over-time effects derive their offensive element from the caster's trait list against the target's defensive trait list; dual-trait Pals use the best attacking trait for each target, matching Pokemon. Pokemon and Palworld resolve their own data-loaded affinity graphs, while One Piece has neutral damage. Abilities use the shared `AbilityDefinition` model with `SINGLE`, `LINE`, or `SURROUND` patterns and modifiers such as lifesteal, execute, scaling, conditional damage, damage-over-time, and knockback.
-
-The frontend uses a mode metadata registry for labels, title, favicon, asset folder, theme class, and gallery route. Palworld portraits resolve from `/assets/units/palworld/{definitionId}_v1.png`, with `/pal-sphere.png` as the favicon. The Palworld palette is limited to the public lobby and waiting room; in-match chrome remains shared. In development builds, `#/ultimate-gallery/palworld` previews definition-based attack and root-ability configs. Live combat events contain timestamp, type, source, target, value, and skill name; Palworld animation keys are derived from the stable unit definition id and mode, never from display names.
-
-### Palworld validation and release gates
-
-The implementation gate checks 55 lines with the required 12/13/11/12/7 cost distribution, 23/16/16 role distribution, nine elements, 15 augments, 55 attack previews, and 55 root abilities. Asset QA requires exactly 55 decodable 512×512 PNG portraits with no unexpected filenames. The focused backend/frontend gates are:
-
-- `cd backend && mvn -Dtest=PalworldDataValidationTest,DamageResolverTest,DefaultAbilityCasterTest test`
-- `cd backend && mvn test`
-- `cd frontend && npm test && npm run lint && npm run build`
-- `python3 scripts/validate_palworld_assets.py frontend/public/assets/units/palworld`
-- `python3 scripts/compress_images.py frontend/public/assets/units/palworld`
-
-Expensive balance and role simulations remain opt-in. Before a release, run the full Maven/Vitest suites, asset validation, the desired simulation profiles, and a production container smoke test.
+Palworld uses the same provider-backed engine and shared in-match UI as the other modes. See the
+[backend context](backend/BACKEND_CONTEXT.md#6-modes-and-data-loading) and
+[frontend context](frontend/FRONTEND_CONTEXT.md#9-modes-assets-and-styling) for implementation details.
 
 ---
 
