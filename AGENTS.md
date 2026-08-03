@@ -84,3 +84,25 @@
 - Balance notes must include both new and previous values (passed through) and "=>" before the new values, and should visually distinguish buffs and nerfs when shown in the changelog UI.
 - Follow the established balance-entry style: give each character or unit its own `.balance-block` with its name in the heading, and keep each old value, `=>` arrow, and new value in separate styled spans/elements. Do not combine multiple character changes into a wall of text.
 - When reformatting an existing release, change only the presentation and preserve the existing changelog entries and values; do not add new changelog items or alter balance values unless explicitly requested.
+
+## 7. Manual Dependency Maintenance
+- Dependency maintenance is explicitly initiated during development. Do not add scheduled Renovate workflows, dependency-dashboard automation, or dependency automerge to GitHub.
+- Keep `renovate.json` as a local discovery configuration. Renovate's local platform is lookup-only: it inventories updates but does not edit files, create branches, or open pull requests.
+- Start dependency work from a clean, current feature branch. Never perform a dependency upgrade directly on `main`.
+- Inventory Maven, npm, Docker/Compose, and GitHub Actions updates from the repository root with `docker run --rm -e LOG_LEVEL=debug -v "$PWD:/usr/src/app:ro" -w /usr/src/app ghcr.io/renovatebot/renovate:44.8.0 --platform=local --dry-run=lookup`. The pinned container keeps Renovate's Node and tool requirements separate from the frontend runtime.
+- Start Docker Desktop before using the container command.
+
+### Non-Major Updates
+- Patch, minor, pin, digest, and lockfile updates may be handled together in one maintenance branch.
+- Review the Renovate lookup and upstream release notes, then apply updates with the native package manager or an explicit manifest edit. Renovate local lookup does not apply them.
+- For npm, update `package.json` through `npm install` with the appropriate `--save-exact` and dependency-type flag so npm regenerates `package-lock.json`. Never hand-edit the lockfile, and never use `--force` or `--legacy-peer-deps` to hide peer conflicts.
+- For Maven, update `backend/pom.xml`, run `mvn spotless:apply`, and then run `mvn -B verify` from `backend`.
+- For Docker/Compose and GitHub Actions, verify tags and digests against the official registry or upstream repository. Keep GitHub Actions pinned to complete commit SHAs with the readable version in a comment.
+- Run `npm test`, `npm run lint`, and `npm run build` from `frontend`, plus relevant container validation, before presenting the branch for review.
+
+### Major Updates
+- Handle exactly one major dependency or one tightly coupled toolchain family per branch. Never batch unrelated major upgrades.
+- Read the official release notes and migration guide before editing. Identify peer-dependency, runtime, configuration, and source migrations, then apply them as part of the same branch.
+- Regenerate all affected lockfiles with the native package manager, adapt application and build code, and run the complete backend and frontend validation suites.
+- If no compatible dependency graph exists, leave the major version unchanged and document the upstream compatibility blocker. Do not force an unsupported installation.
+- Record the completed upgrade and noteworthy migration effects in `frontend/src/components/Changelog.vue`, then submit the branch for human review and merge.

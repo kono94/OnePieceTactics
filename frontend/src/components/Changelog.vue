@@ -6,7 +6,7 @@ defineOptions({
 defineEmits(['back'])
 
 const nextVersionCommits = [
-  { hash: '2133957', title: 'Automate single-flight dependency updates with Renovate' },
+  { hash: 'pending', title: 'Replace hosted Renovate with Codex-assisted local dependency maintenance' },
   { hash: '937bfaa', title: 'Upgrade CI actions to Node 24 runtimes' },
   { hash: 'd477638', title: 'Refresh architecture guides and pending release notes' },
   { hash: 'ac1da68', title: 'Use stable player identity in the frontend' },
@@ -92,10 +92,10 @@ const version160Commits = [
             fails fast without an analytics admin password. Java 25 test startup, Palworld live animations, refund
             previews, dependency security, CI release gates, obsolete deployment-time mode selection, and the
             backend/frontend architecture guides were also corrected. Human-involved combats now keep normal pacing;
-            once they all resolve, remaining bot-only combats are drained immediately. Renovate now processes one
-            routine dependency update each week, automatically merging non-major updates only after all required
-            checks pass and leaving failures open for repair. Major updates remain listed in the Dependency Dashboard
-            for separate AI-assisted migrations. Renovate commits use repository-owned, privacy-preserving attribution.
+            once they all resolve, remaining bot-only combats are drained immediately. Hosted Renovate automation was
+            replaced by explicit Codex-assisted maintenance during development: local Renovate lookup inventories
+            available updates, routine non-major changes are applied and validated together, and major upgrades are
+            migrated one dependency or tightly coupled toolchain at a time.
           </p>
         </div>
         <article class="release-panel">
