@@ -1,0 +1,4 @@
+interface:
+  display_name: "Upgrade Major Dependency"
+  short_description: "Migrate one major dependency safely"
+  default_prompt: "Use $upgrade-major to inventory majors or migrate one named dependency."

@@ -84,3 +84,13 @@
 - Balance notes must include both new and previous values (passed through) and "=>" before the new values, and should visually distinguish buffs and nerfs when shown in the changelog UI.
 - Follow the established balance-entry style: give each character or unit its own `.balance-block` with its name in the heading, and keep each old value, `=>` arrow, and new value in separate styled spans/elements. Do not combine multiple character changes into a wall of text.
 - When reformatting an existing release, change only the presentation and preserve the existing changelog entries and values; do not add new changelog items or alter balance values unless explicitly requested.
+
+## 7. Manual Dependency Maintenance
+- Dependency maintenance is explicitly initiated during development. Do not add scheduled Renovate workflows, dependency-dashboard automation, or dependency automerge to GitHub.
+- Keep `renovate.json` as a local discovery configuration. Renovate's local platform is lookup-only: it inventories updates but does not edit files, create branches, or open pull requests.
+- Run upgrades on the branch currently checked out. Do not reset, stash, clean, or switch branches; preserve unrelated working-tree changes.
+- Inventory Maven, npm, Docker/Compose, and GitHub Actions updates from the repository root with `docker run --rm -e LOG_LEVEL=debug -v "$PWD:/usr/src/app:ro" -w /usr/src/app ghcr.io/renovatebot/renovate:44.8.0 --platform=local --dry-run=lookup`. The pinned container keeps Renovate's Node and tool requirements separate from the frontend runtime.
+- Docker is mandatory for dependency inventory. Do not substitute native Maven/npm inventory commands or ad hoc manifest inspection for the pinned Renovate lookup. If Docker reports daemon permission denied, retry the same command with the required approval; if that still fails, stop and report the blocker. Maven/npm are used only after lookup to apply Renovate's selected versions.
+- Treat patch, minor, pin, digest, and lockfile updates as routine non-major maintenance; use `$upgrade-minor` for that workflow.
+- Handle exactly one major dependency or tightly coupled toolchain family at a time; use `$upgrade-major` for that workflow.
+- Never use `--force` or `--legacy-peer-deps` to hide incompatibilities. Use the normal Maven `~/.m2` cache and request the required permission if it is not writable in the sandbox. If npm registry access is denied, retry with the required network approval. Consult authoritative release notes, update the changelog for completed upgrades, and validate before review. The skills contain the detailed package-manager and validation steps.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Upgrade Minor Dependencies"
+  short_description: "Safely apply compatible non-major updates"
+  default_prompt: "Use $upgrade-minor to update and validate all compatible non-major dependencies."

@@ -6,7 +6,8 @@ defineOptions({
 defineEmits(['back'])
 
 const nextVersionCommits = [
-  { hash: '2133957', title: 'Automate single-flight dependency updates with Renovate' },
+  { hash: 'pending', title: 'Add reusable Codex workflows for dependency upgrades' },
+  { hash: 'pending', title: 'Replace hosted Renovate with Codex-assisted local dependency maintenance' },
   { hash: '937bfaa', title: 'Upgrade CI actions to Node 24 runtimes' },
   { hash: 'd477638', title: 'Refresh architecture guides and pending release notes' },
   { hash: 'ac1da68', title: 'Use stable player identity in the frontend' },
