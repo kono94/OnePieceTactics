@@ -2,7 +2,7 @@
 
 **Theme Fusion Tactics (TFT)** is a browser-based **auto-battler game** inspired by Teamfight Tactics, featuring a theme-swappable engine with lobby-selectable One Piece (default), Pokemon, and Palworld modes and real-time multiplayer via WebSockets.
 
-![Java 25](https://img.shields.io/badge/Java-25-orange) ![Spring Boot 4](https://img.shields.io/badge/Spring%20Boot-4.1.0-green) ![Vue 3](https://img.shields.io/badge/Vue.js-3.5-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)
+![Java 25](https://img.shields.io/badge/Java-25-orange) ![Spring Boot 4](https://img.shields.io/badge/Spring%20Boot-4.1.0-green) ![Vue 3](https://img.shields.io/badge/Vue.js-3.5-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue)
 
 ![Theme Fusion Tactics Board](docs/board_preview.jpg)
 
@@ -107,7 +107,7 @@ For detailed architectural information, refer to the context documents:
 | Technology | Version | Purpose |
 |------------|---------|---------|
 | Vue.js | 3.5 | UI framework |
-| TypeScript | 5.9 | Type-safe JavaScript |
+| TypeScript | 6.0 | Type-safe JavaScript |
 | Vite | 8.2 | Build tool & dev server |
 | @stomp/stompjs | 7.3 | WebSocket client |
 | Vanilla CSS | — | Scoped component styling |
@@ -125,7 +125,7 @@ For detailed architectural information, refer to the context documents:
 
 ### Prerequisites
 - Java 25
-- Node.js 20.19+ or 22.12+ & npm
+- Node.js 26+ & npm
 - Docker (optional, for containerized deployment)
 
 ### Run Backend

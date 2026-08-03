@@ -20,14 +20,14 @@ The application supports One Piece, Pokemon, and Palworld rooms. The host can ch
 | Area | Current implementation |
 |---|---|
 | Vue | Vue 3.5 with Composition API and `<script setup>` |
-| Language | TypeScript 5.9 |
+| Language | TypeScript 6.0 |
 | Build | Vite 8.2, `vue-tsc` 3.3 |
 | Realtime | `@stomp/stompjs` 7.3 over native WebSocket |
 | Styling | Global and scoped vanilla CSS; no Tailwind or component framework |
 | Tests | Vitest 4, Vue Test Utils, jsdom, V8 coverage |
 | Routing | Manual view state plus hash routes for admin and the development gallery |
 
-Supported Node versions are encoded in `package.json`: Node 20.19-20.x or Node 22.12+.
+Supported Node versions are encoded in `package.json`: Node 26+.
 
 ## 3. Source map
 

@@ -6,8 +6,9 @@ defineOptions({
 defineEmits(['back'])
 
 const nextVersionCommits = [
-  { hash: 'pending', title: 'Add reusable Codex workflows for dependency upgrades' },
   { hash: 'pending', title: 'Replace hosted Renovate with Codex-assisted local dependency maintenance' },
+  { hash: 'pending', title: 'Upgrade ESLint 9.39.5 => 10.8.0 and TypeScript 5.9.3 => 6.0.3' },
+  { hash: 'pending', title: 'Standardize frontend development and CI on Node.js 26' },
   { hash: '937bfaa', title: 'Upgrade CI actions to Node 24 runtimes' },
   { hash: 'd477638', title: 'Refresh architecture guides and pending release notes' },
   { hash: 'ac1da68', title: 'Use stable player identity in the frontend' },
@@ -96,7 +97,10 @@ const version160Commits = [
             once they all resolve, remaining bot-only combats are drained immediately. Renovate now processes one
             routine dependency update each week, automatically merging non-major updates only after all required
             checks pass and leaving failures open for repair. Major updates remain listed in the Dependency Dashboard
-            for separate AI-assisted migrations. Renovate commits use repository-owned, privacy-preserving attribution.
+            for separate AI-assisted migrations. This maintenance inventory found no compatible non-major updates;
+            The frontend toolchain now uses ESLint 9.39.5 => 10.8.0 and TypeScript 5.9.3 => 6.0.3, and frontend
+            development, CI, and the production build image now target Node.js 26. Renovate commits use
+            repository-owned, privacy-preserving attribution.
           </p>
         </div>
         <article class="release-panel">

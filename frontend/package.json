@@ -4,7 +4,7 @@
     "private": true,
     "type": "module",
     "engines": {
-        "node": ">=20.19 <21 || >=22.12"
+        "node": ">=26"
     },
     "scripts": {
         "dev": "vite",
@@ -22,15 +22,15 @@
     },
     "devDependencies": {
         "@vitejs/plugin-vue": "6.0.8",
+        "@vitest/coverage-v8": "4.1.10",
         "@vue/eslint-config-prettier": "10.2.0",
         "@vue/eslint-config-typescript": "14.9.0",
         "@vue/test-utils": "2.4.11",
-        "@vitest/coverage-v8": "4.1.10",
-        "eslint": "9.39.5",
+        "eslint": "10.8.0",
         "eslint-plugin-vue": "10.10.0",
         "jiti": "2.7.0",
         "jsdom": "30.0.1",
-        "typescript": "5.9.3",
+        "typescript": "6.0.3",
         "vite": "8.2.0",
         "vitest": "4.1.10",
         "vue-tsc": "3.3.9"
