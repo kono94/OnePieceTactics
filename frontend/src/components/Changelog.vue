@@ -93,8 +93,9 @@ const version160Commits = [
             previews, dependency security, CI release gates, obsolete deployment-time mode selection, and the
             backend/frontend architecture guides were also corrected. Human-involved combats now keep normal pacing;
             once they all resolve, remaining bot-only combats are drained immediately. Renovate now processes one
-            dependency update at a time, automatically merging non-major updates only after all required checks pass
-            and leaving failures open for repair. Its commits use repository-owned, privacy-preserving attribution.
+            routine dependency update each week, automatically merging non-major updates only after all required
+            checks pass and leaving failures open for repair. Major updates remain listed in the Dependency Dashboard
+            for separate AI-assisted migrations. Renovate commits use repository-owned, privacy-preserving attribution.
           </p>
         </div>
         <article class="release-panel">
