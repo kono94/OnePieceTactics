@@ -20,7 +20,7 @@ Follow `AGENTS.md`, especially Manual Dependency Maintenance. Handle exactly one
 3. Determine whether a compatible stable dependency graph exists. If it does not, make no upgrade changes and report the exact upstream constraint.
 4. Upgrade the selected dependency or toolchain using its native package manager. Regenerate affected lockfiles; never hand-edit them.
 5. Apply required source, configuration, build, CI, Docker, and test migrations. Do not use `--force` or `--legacy-peer-deps`.
-6. Update `frontend/src/components/Changelog.vue` with the version transition and meaningful migration effects.
+6. Update `frontend/src/components/Changelog.vue` only after the selected dependency is actually upgraded, recording the version transition and meaningful migration effects. If no upgrade is made, do not modify the changelog.
 7. Run the complete relevant validation:
    - Backend: `mvn spotless:apply` followed by `mvn -B verify`, using the normal `~/.m2` cache and requesting the required permission if sandbox access is denied.
    - Frontend: `npm test`, `npm run lint`, and `npm run build`.

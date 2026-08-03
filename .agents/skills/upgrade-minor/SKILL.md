@@ -19,7 +19,7 @@ Follow `AGENTS.md`, especially Manual Dependency Maintenance. Treat "minor" in t
    - Preserve complete commit-SHA pinning and readable version comments for GitHub Actions.
    - Verify Docker tags and digests against official upstream sources.
 6. Never use `--force`, `--legacy-peer-deps`, or hand-edited npm lockfiles. Leave incompatible packages unchanged and report why.
-7. Update `frontend/src/components/Changelog.vue` with the completed maintenance work.
+7. Update `frontend/src/components/Changelog.vue` only when at least one dependency was actually upgraded. If lookup finds no applicable updates, do not modify the changelog.
 8. Run `mvn spotless:apply` and `mvn -B verify` from `backend` when Maven changed. Use the normal `~/.m2` cache and request the required permission if sandbox access is denied. If npm registry access is denied, retry npm with the required network approval. Run `npm test`, `npm run lint`, and `npm run build` from `frontend`. Run relevant Docker/Compose validation when container files changed.
 9. Fix failures caused by the updates while staying within non-major scope. If safe resolution requires a major upgrade, revert only that dependency's attempted changes and report the blocker.
 10. Present the changed versions, exclusions, release-note risks, and validation results. Leave changes uncommitted unless the user explicitly requests a commit.
