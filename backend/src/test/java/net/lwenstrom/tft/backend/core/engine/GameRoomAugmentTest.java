@@ -92,6 +92,31 @@ class GameRoomAugmentTest {
         assertEquals(0, player.getSelectedAugments().size());
     }
 
+    @Test
+    void soloRoundThreeAugmentSelectionPrecedesReadyForCombat() {
+        var clock = new TestClock();
+        var room = createRoom(clock, TestHelpers.createDefaultAugments());
+        var human = room.addPlayer("Human");
+
+        room.startMatch();
+        TestHelpers.setPhase(room, GamePhase.COMBAT);
+        TestHelpers.setPhase(room, GamePhase.PLANNING);
+        TestHelpers.setPhase(room, GamePhase.COMBAT);
+        TestHelpers.setPhase(room, GamePhase.PLANNING);
+
+        var playerState = room.getState().players().get(human.getId());
+        assertEquals(3, playerState.augmentChoices().size());
+        assertTrue(room.getState().planningTimerPaused());
+        assertEquals(human.getId(), room.getState().planningReadyPlayerId());
+
+        var choice = playerState.augmentChoices().getFirst().id();
+        assertTrue(room.selectAugment(human.getId(), choice));
+        assertTrue(room.getState().players().get(human.getId()).augmentChoices().isEmpty());
+
+        assertTrue(room.readyForCombat(human.getId()));
+        assertEquals(GamePhase.COMBAT, room.getState().phase());
+    }
+
     private GameRoom createRoom(TestClock clock, List<AugmentDefinition> augments) {
         var unitDef = TestHelpers.createUnitDef("unit", "Unit", 1, 100, 10);
         var dataLoader = TestHelpers.createMockDataLoader(List.of(unitDef), augments);

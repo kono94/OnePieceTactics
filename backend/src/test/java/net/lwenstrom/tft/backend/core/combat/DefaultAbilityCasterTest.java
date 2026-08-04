@@ -4,12 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.lwenstrom.tft.backend.core.engine.StandardGameUnit;
 import net.lwenstrom.tft.backend.core.model.AbilityDefinition;
 import net.lwenstrom.tft.backend.core.model.AbilityPattern;
 import net.lwenstrom.tft.backend.core.model.AbilityType;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 import net.lwenstrom.tft.backend.core.model.StunModifier;
 import net.lwenstrom.tft.backend.test.MockUnit;
+import net.lwenstrom.tft.backend.test.TestHelpers;
 import org.junit.jupiter.api.Test;
 
 class DefaultAbilityCasterTest {
@@ -138,6 +140,146 @@ class DefaultAbilityCasterTest {
                 enemies.stream()
                         .filter(enemy -> enemy.getStunSecondsRemaining() == 0)
                         .count());
+    }
+
+    @Test
+    void healAbilityEmitsPositiveCallbackForEffectiveHealing() {
+        var source = MockUnit.create("source", "P1").withHealth(60, 100).withAbility(healAbility());
+        var healingFeedback = new ArrayList<Integer>();
+        var skillFeedback = new ArrayList<String>();
+
+        new DefaultAbilityCaster()
+                .castAbility(
+                        source,
+                        List.of(source),
+                        (unit, ignored) -> source,
+                        new AbilityCaster.CombatStatCallback() {
+                            @Override
+                            public void onHealing(String unitId, String unitName, String targetId, int healing) {
+                                healingFeedback.add(healing);
+                            }
+
+                            @Override
+                            public void onSkill(String unitId, String unitName, String targetId, int value) {
+                                skillFeedback.add(targetId + ":" + value);
+                            }
+                        },
+                        0L);
+
+        assertEquals(85, source.getCurrentHealth());
+        assertEquals(List.of(25), healingFeedback);
+        assertEquals(List.of(), skillFeedback);
+    }
+
+    @Test
+    void fullHealthHealEmitsOneSkillCallbackWithoutChangingHealth() {
+        var source = MockUnit.create("source", "P1").withAbility(healAbility());
+        var healingFeedback = new ArrayList<Integer>();
+        var skillFeedback = new ArrayList<String>();
+
+        new DefaultAbilityCaster()
+                .castAbility(
+                        source,
+                        List.of(source),
+                        (unit, ignored) -> source,
+                        new AbilityCaster.CombatStatCallback() {
+                            @Override
+                            public void onHealing(String unitId, String unitName, String targetId, int healing) {
+                                healingFeedback.add(healing);
+                            }
+
+                            @Override
+                            public void onSkill(String unitId, String unitName, String targetId, int value) {
+                                skillFeedback.add(targetId + ":" + value);
+                            }
+                        },
+                        0L);
+
+        assertEquals(100, source.getCurrentHealth());
+        assertEquals(List.of(), healingFeedback);
+        assertEquals(List.of("source:0"), skillFeedback);
+    }
+
+    @Test
+    void shieldAbilityEmitsPositiveCallbackForEffectiveShielding() {
+        var source = createShieldUnit();
+        var shieldingFeedback = new ArrayList<Integer>();
+        var skillFeedback = new ArrayList<String>();
+
+        new DefaultAbilityCaster()
+                .castAbility(
+                        source,
+                        List.of(source),
+                        (unit, ignored) -> source,
+                        new AbilityCaster.CombatStatCallback() {
+                            @Override
+                            public void onShielding(String unitId, String unitName, String targetId, int shielding) {
+                                shieldingFeedback.add(shielding);
+                            }
+
+                            @Override
+                            public void onSkill(String unitId, String unitName, String targetId, int value) {
+                                skillFeedback.add(targetId + ":" + value);
+                            }
+                        },
+                        0L);
+
+        assertEquals(25, source.getShield());
+        assertEquals(List.of(25), shieldingFeedback);
+        assertEquals(List.of(), skillFeedback);
+    }
+
+    @Test
+    void shieldAtCapEmitsOneSkillCallbackWithoutChangingShield() {
+        var source = createShieldUnit();
+        source.setShield(50);
+        var shieldingFeedback = new ArrayList<Integer>();
+        var skillFeedback = new ArrayList<String>();
+
+        new DefaultAbilityCaster()
+                .castAbility(
+                        source,
+                        List.of(source),
+                        (unit, ignored) -> source,
+                        new AbilityCaster.CombatStatCallback() {
+                            @Override
+                            public void onShielding(String unitId, String unitName, String targetId, int shielding) {
+                                shieldingFeedback.add(shielding);
+                            }
+
+                            @Override
+                            public void onSkill(String unitId, String unitName, String targetId, int value) {
+                                skillFeedback.add(targetId + ":" + value);
+                            }
+                        },
+                        0L);
+
+        assertEquals(50, source.getShield());
+        assertEquals(List.of(), shieldingFeedback);
+        assertEquals(List.of(source.getId() + ":0"), skillFeedback);
+    }
+
+    private AbilityDefinition healAbility() {
+        return new AbilityDefinition(
+                "Rejuvenate",
+                "Heals.",
+                AbilityType.HEAL,
+                AbilityPattern.SINGLE,
+                List.of(1, 1, 1),
+                List.of(25, 25, 25),
+                List.of());
+    }
+
+    private StandardGameUnit createShieldUnit() {
+        var ability = new AbilityDefinition(
+                "Barrier",
+                "Shields.",
+                AbilityType.SHIELD,
+                AbilityPattern.SINGLE,
+                List.of(1, 1, 1),
+                List.of(25, 25, 25),
+                List.of());
+        return new StandardGameUnit(TestHelpers.createUnitDefWithAbility("shield", "Shield", 1, 100, 10, ability));
     }
 
     private AbilityDefinition lineDamageAbility() {

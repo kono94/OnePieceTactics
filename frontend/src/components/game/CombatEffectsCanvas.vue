@@ -1,5 +1,11 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import {
+  chooseEffectEvictionIndex,
+  getPalworldEffectPolicy,
+  getRenderEffectPriority,
+  type PalworldEffectPolicy
+} from '../../animations/palworldEffectPolicy'
 import type { GamePhase, RenderedUnit } from '../../types'
 import type { NormalizedCombatVisualEvent, RenderLayer } from '../../types/combatEffects'
 
@@ -25,6 +31,7 @@ interface EffectInstance {
   age: number
   duration: number
   simplified: boolean
+  priority: 'ability' | 'standard'
 }
 
 interface ScreenShake {
@@ -210,7 +217,7 @@ function drawEffect(effect: EffectInstance) {
       drawHeal(effect)
       break
     case 'shield':
-      drawRing(effect, '#38bdf8', '#e0f2fe')
+      drawShield(effect)
       break
     case 'death':
       drawDeath(effect)
@@ -318,6 +325,264 @@ function drawAttack(effect: EffectInstance) {
   ctx.restore()
 }
 
+type PalworldGlyph = NonNullable<NonNullable<NormalizedCombatVisualEvent['ability']>['glyph']>
+
+function drawPalworldUltimate(effect: EffectInstance, t: number, scale: number, policy: PalworldEffectPolicy) {
+  if (!ctx) return
+  const { start, end, ability } = effect.event
+  const color = ability?.color ?? '#A8A29E'
+  const secondary = ability?.secondaryColor ?? '#FAFAF9'
+  const accent = ability?.accentColor ?? secondary
+  const glyph = ability?.glyph ?? 'star'
+  const width = policy.trailWidth * scale
+  const p = pointOnLine(start, end, easeInOutCubic(Math.min(1, t * 1.18)))
+  const angle = Math.atan2(end.y - start.y, end.x - start.x)
+  const normal = { x: Math.cos(angle + Math.PI / 2), y: Math.sin(angle + Math.PI / 2) }
+  const fade = 1 - t * 0.72
+
+  drawPalworldGlyph(start.x, start.y, glyph, 10 * scale, accent, secondary, 0.48 * fade, angle)
+
+  switch (policy.geometry) {
+    case 'projectile':
+      drawTracer(start, p, color, accent, width, 0.72)
+      drawPalworldGlyph(p.x, p.y, glyph, 12 * scale, accent, secondary, 0.9 * fade, angle)
+      break
+    case 'melee':
+      drawTracer(start, p, color, accent, width, 0.65)
+      drawSlash(p.x, p.y, angle - 0.32, 58 * scale, accent, 0.86 * fade)
+      drawPalworldRingSet(end.x, end.y, policy.ringCount, color, accent, t, scale)
+      break
+    case 'line':
+      drawTracer(start, p, color, accent, width, 0.7)
+      for (let i = 0; i < 3; i += 1) {
+        drawSlash(
+          end.x + normal.x * (i - 1) * 14 * scale,
+          end.y + normal.y * (i - 1) * 14 * scale,
+          angle + (i - 1) * 0.24,
+          74 * scale,
+          i === 1 ? accent : color,
+          0.8 * fade
+        )
+      }
+      break
+    case 'cone':
+      for (let i = 0; i < 5; i += 1) {
+        const direction = angle + (i - 2) * 0.13
+        const length = distance(start, end)
+        const coneEnd = {
+          x: start.x + Math.cos(direction) * length,
+          y: start.y + Math.sin(direction) * length
+        }
+        drawTracer(
+          start,
+          pointOnLine(start, coneEnd, Math.min(1, t * 1.25)),
+          i % 2 ? accent : color,
+          secondary,
+          width * (i === 2 ? 1.15 : 0.58),
+          0.38 * fade
+        )
+      }
+      drawArcWave(end.x, end.y, (28 + 48 * t) * scale, accent, 0.5 * fade)
+      break
+    case 'dash':
+      drawTracer(start, p, color, accent, width * 1.2, 0.8)
+      drawSlash(p.x, p.y, angle, 62 * scale, secondary, 0.78 * fade)
+      drawPalworldGlyph(p.x, p.y, glyph, 12 * scale, accent, secondary, 0.88 * fade, angle)
+      break
+    case 'chain': {
+      let previous = start
+      for (let i = 1; i <= policy.projectileCount; i += 1) {
+        const target = pointOnLine(start, end, i / policy.projectileCount)
+        drawLightning(previous, target, color, accent, 0.72 * fade)
+        drawPalworldGlyph(target.x, target.y, glyph, 9 * scale, accent, secondary, 0.8 * fade, angle)
+        previous = target
+      }
+      break
+    }
+    case 'multiShot':
+      for (let i = 0; i < policy.projectileCount; i += 1) {
+        const offset = (i - (policy.projectileCount - 1) / 2) * 13 * scale
+        const from = {
+          x: start.x + normal.x * offset * 0.25,
+          y: start.y + normal.y * offset * 0.25
+        }
+        const to = { x: end.x + normal.x * offset, y: end.y + normal.y * offset }
+        const point = pointOnLine(from, to, easeOutCubic(Math.min(1, t * 1.22)))
+        drawTracer(from, point, i % 2 ? color : accent, secondary, width * 0.62, 0.58 * fade)
+        drawPalworldGlyph(point.x, point.y, glyph, 8 * scale, accent, secondary, 0.72 * fade, angle)
+      }
+      break
+    case 'radius':
+      glowCircle(end.x, end.y, (40 + 48 * Math.sin(t * Math.PI)) * scale, color, 0.3 * fade)
+      drawPalworldRingSet(end.x, end.y, policy.ringCount, color, accent, t, scale)
+      break
+    case 'aura':
+      drawAura(start.x, start.y, color, accent, t, scale)
+      drawPalworldRingSet(start.x, start.y, policy.ringCount, accent, secondary, t, scale * 0.78)
+      drawPalworldGlyph(start.x, start.y, glyph, 15 * scale, accent, secondary, 0.9 * fade, t * Math.PI)
+      break
+    case 'heal':
+      drawHealingBloom(end.x, end.y, color, accent, t, scale)
+      drawPalworldRingSet(end.x, end.y, policy.ringCount, accent, secondary, t, scale * 0.84)
+      drawPalworldGlyph(end.x, end.y, glyph, 14 * scale, accent, secondary, 0.92 * fade, t * Math.PI)
+      break
+    case 'shield':
+      drawDiamondGuard(end.x, end.y, color, accent, t, scale * 1.1)
+      drawPalworldRingSet(end.x, end.y, policy.ringCount, accent, secondary, t, scale)
+      drawPalworldGlyph(end.x, end.y, glyph, 14 * scale, accent, secondary, 0.9 * fade, t * Math.PI)
+      break
+    case 'control':
+      drawDottedLink(start, end, accent, 0.42 * fade, scale)
+      drawPalworldRingSet(end.x, end.y, policy.ringCount, color, accent, t, scale * 0.92)
+      for (let i = 0; i < policy.projectileCount; i += 1) {
+        const point = pointOnLine(start, end, (i + 1) / (policy.projectileCount + 1))
+        drawHexShard(point.x, point.y, t * 2 + i, 9 * scale, accent, 0.7 * fade)
+      }
+      break
+    case 'meteor':
+      for (let i = 0; i < policy.projectileCount; i += 1) {
+        const offset = (i - (policy.projectileCount - 1) / 2) * 22 * scale
+        const target = { x: end.x + offset, y: end.y + Math.sin(i * 1.7) * 15 * scale }
+        const source = { x: target.x - normal.x * 90 * scale, y: target.y - 120 * scale }
+        const point = pointOnLine(source, target, easeInOutCubic(Math.min(1, t * 1.35)))
+        drawTracer(source, point, color, accent, width * 0.72, 0.64 * fade)
+        drawPalworldGlyph(point.x, point.y, glyph, 10 * scale, accent, secondary, 0.85 * fade, angle)
+      }
+      drawPalworldRingSet(end.x, end.y, policy.ringCount, color, accent, t, scale)
+      break
+    case 'zone':
+      drawAura(end.x, end.y, color, accent, t, scale * 1.15)
+      drawPalworldRingSet(end.x, end.y, policy.ringCount, accent, secondary, t, scale)
+      for (let i = 0; i < policy.projectileCount + policy.ringCount; i += 1) {
+        const localAngle = t * 2 + i * 0.72
+        const radius = (24 + (i % 4) * 14 + 34 * t) * scale
+        drawPalworldGlyph(
+          end.x + Math.cos(localAngle) * radius,
+          end.y + Math.sin(localAngle) * radius * 0.62,
+          glyph,
+          7 * scale,
+          accent,
+          secondary,
+          0.62 * fade,
+          localAngle
+        )
+      }
+      break
+    case 'beam':
+      drawBeam(start, p, color, accent, width)
+      drawPalworldGlyph(p.x, p.y, glyph, 11 * scale, accent, secondary, 0.86 * fade, angle)
+      break
+    case 'whirlwind':
+      drawStorm(end.x, end.y, color, accent, t, scale * 1.15)
+      for (let i = 0; i < policy.projectileCount; i += 1) {
+        const localAngle = t * Math.PI * 3 + i * (Math.PI * 2 / policy.projectileCount)
+        const radius = (24 + 54 * t) * scale
+        const point = {
+          x: end.x + Math.cos(localAngle) * radius,
+          y: end.y + Math.sin(localAngle) * radius * 0.66
+        }
+        drawTracer(point, end, color, accent, width * 0.42, 0.42 * fade)
+        drawPalworldGlyph(point.x, point.y, glyph, 9 * scale, accent, secondary, 0.78 * fade, localAngle)
+      }
+      drawPalworldRingSet(end.x, end.y, policy.ringCount, accent, secondary, t, scale)
+      break
+    case 'bubble':
+      drawTracer(start, p, color, accent, width * 0.7, 0.42 * fade)
+      for (let i = 0; i < policy.projectileCount; i += 1) {
+        const local = (t * 1.2 + i / policy.projectileCount) % 1
+        const point = pointOnLine(start, end, local)
+        drawBubble(
+          point.x,
+          point.y + Math.sin(local * Math.PI * 2 + i) * 24 * scale,
+          (7 + (i % 3) * 3) * scale,
+          i % 2 ? accent : color,
+          0.7 * fade
+        )
+      }
+      drawPalworldRingSet(end.x, end.y, policy.ringCount, accent, secondary, t, scale * 0.8)
+      break
+    case 'diagnostic':
+      drawTracer(start, p, '#FF00FF', accent, width, 0.9)
+      drawImpactFlash(end.x, end.y, 38 * scale, '#FF00FF', accent, fade)
+      break
+  }
+
+  if (t > 0.5) drawImpactFlash(end.x, end.y, 24 * scale, color, accent, (1 - t) * 1.2)
+}
+
+function drawPalworldRingSet(
+  x: number,
+  y: number,
+  count: number,
+  color: string,
+  accent: string,
+  t: number,
+  scale: number
+) {
+  for (let i = 0; i < count; i += 1) {
+    drawImpactRing(
+      x,
+      y,
+      (18 + i * 17 + 54 * t) * scale,
+      i % 2 ? accent : color,
+      (1 - t) * (0.86 - i * 0.08)
+    )
+  }
+}
+
+function drawPalworldGlyph(
+  x: number,
+  y: number,
+  glyph: PalworldGlyph,
+  size: number,
+  color: string,
+  secondary: string,
+  alpha: number,
+  angle: number
+) {
+  switch (glyph) {
+    case 'leaf':
+      drawLeaf(x, y, angle, size, color, alpha)
+      break
+    case 'ember':
+      drawFlameTongue(x, y, angle, size * 2.2, color, secondary, alpha)
+      break
+    case 'drop':
+      drawBubble(x, y, size * 0.72, color, alpha)
+      break
+    case 'bolt':
+      drawLightning({ x: x - size, y: y - size }, { x: x + size, y: y + size }, color, secondary, alpha)
+      break
+    case 'snow':
+      drawIceShard(x, y, angle, size * 2.2, secondary, alpha)
+      drawIceShard(x, y, angle + Math.PI / 2, size * 1.7, color, alpha * 0.8)
+      break
+    case 'rock':
+      drawRockShard(x, y, angle, size * 1.3, color, alpha)
+      break
+    case 'void':
+      drawSoulFlame(x, y, color, alpha, size / 10)
+      break
+    case 'dragon':
+      drawDragonClaw(x, y, angle, size * 2, secondary, color, alpha)
+      break
+    case 'heart':
+      drawHeart(x, y, size * 1.45, color, alpha)
+      break
+    case 'bubble':
+      drawBubble(x, y, size, secondary, alpha)
+      break
+    case 'spore':
+      glowCircle(x, y, size * 1.6, color, alpha * 0.45)
+      drawPetal(x, y, angle, size, secondary, alpha)
+      break
+    case 'star':
+      drawStar(x, y, color, alpha)
+      drawStar(x + Math.cos(angle) * size, y + Math.sin(angle) * size, secondary, alpha * 0.72)
+      break
+  }
+}
+
 function drawUltimate(effect: EffectInstance) {
   if (!ctx) return
   const t = progress(effect)
@@ -325,6 +590,7 @@ function drawUltimate(effect: EffectInstance) {
   const color = ability?.color ?? '#fbbf24'
   const secondary = ability?.secondaryColor ?? '#ffffff'
   const style = ability?.effectStyle ?? 'DEFAULT'
+  const palPolicy = getPalworldEffectPolicy(ability)
   const premiumScale = effect.event.source.cost >= 5 ? 1.45 : effect.event.source.cost >= 4 ? 1.22 : 1
   const starScale = (1 + (starLevel - 1) * 0.28) * premiumScale
   const p = pointOnLine(start, end, easeInOutCubic(Math.min(1, t * 1.12)))
@@ -333,7 +599,9 @@ function drawUltimate(effect: EffectInstance) {
   ctx.globalCompositeOperation = 'lighter'
   ctx.lineCap = 'round'
 
-  if (drawNamedUltimate(effect, t, starScale)) {
+  if (palPolicy) {
+    drawPalworldUltimate(effect, t, starScale, palPolicy)
+  } else if (drawNamedUltimate(effect, t, starScale)) {
     // Character-specific renderer handled it.
   } else if (style.startsWith('POKEMON_')) {
     drawPokemonUltimate(effect, t, starScale)
@@ -419,6 +687,19 @@ function drawRing(effect: EffectInstance, color: string, secondary: string) {
 
 function drawHeal(effect: EffectInstance) {
   const t = progress(effect)
+  const palPolicy = getPalworldEffectPolicy(effect.event.ability)
+  if (palPolicy) {
+    drawPalworldUltimate(effect, t, 1 + effect.event.starLevel * 0.16, palPolicy)
+    drawImpactFlash(
+      effect.event.end.x,
+      effect.event.end.y,
+      22 + 18 * (1 - t),
+      effect.event.ability?.color ?? '#22c55e',
+      effect.event.ability?.accentColor ?? '#dcfce7',
+      0.72 * (1 - t)
+    )
+    return
+  }
   if (!isMajorHealingEvent(effect.event)) {
     drawMinorHeal(effect.event.end.x, effect.event.end.y, t)
     return
@@ -442,6 +723,24 @@ function drawHeal(effect: EffectInstance) {
   }
 }
 
+function drawShield(effect: EffectInstance) {
+  const t = progress(effect)
+  const palPolicy = getPalworldEffectPolicy(effect.event.ability)
+  if (palPolicy) {
+    drawPalworldUltimate(effect, t, 1 + effect.event.starLevel * 0.16, palPolicy)
+    drawImpactFlash(
+      effect.event.end.x,
+      effect.event.end.y,
+      24 + 18 * (1 - t),
+      effect.event.ability?.color ?? '#38bdf8',
+      effect.event.ability?.accentColor ?? '#e0f2fe',
+      0.76 * (1 - t)
+    )
+    return
+  }
+  drawRing(effect, '#38bdf8', '#e0f2fe')
+}
+
 function drawDeath(effect: EffectInstance) {
   const t = progress(effect)
   drawImpactRing(effect.event.end.x, effect.event.end.y, 18 + 78 * t, '#f8fafc', 1 - t)
@@ -453,25 +752,34 @@ function processEvent(event: NormalizedCombatVisualEvent) {
   const crowded = event.crowded || activeUnits >= 12 || event.batchSize > 6
   const simplified = crowded && event.type === 'DAMAGE'
 
-  if (effects.length >= MAX_ACTIVE_EFFECTS) effects.splice(0, effects.length - MAX_ACTIVE_EFFECTS + 1)
-
   if (event.type === 'SKILL') {
     const premiumDuration = event.source.cost >= 5 ? 360 : event.source.cost >= 4 ? 220 : 0
-    addEffect('ultimate', 'over-unit', event, 900 + Math.min(2, event.starLevel) * 130 + premiumDuration, crowded)
+    const durationScale = getPalworldEffectPolicy(event.ability)?.durationScale ?? event.ability?.durationScale ?? 1
+    addEffect(
+      'ultimate',
+      'over-unit',
+      event,
+      (900 + Math.min(2, event.starLevel) * 130 + premiumDuration) * durationScale,
+      crowded
+    )
     spawnUltimateParticles(event, crowded)
     const costShake = event.source.cost >= 5 ? 1.35 : event.source.cost >= 4 ? 1.15 : 1
     shake((event.ability?.screenShake ?? 4) * costShake, event.starLevel >= 3 ? 620 : 420, crowded)
   } else if (isHealingEvent(event)) {
     const majorHeal = isMajorHealingEvent(event)
-    addEffect('heal', 'over-unit', event, majorHeal ? 860 : 360, false)
+    const durationScale = getPalworldEffectPolicy(event.ability)?.durationScale ?? 1
+    addEffect('heal', 'over-unit', event, (majorHeal ? 860 : 360) * durationScale, false)
     if (majorHeal) spawnHealingParticles(event, crowded)
   } else if (event.type === 'DAMAGE' && event.value > 0) {
     addEffect('attack', 'trail', event, simplified ? 360 : 520, simplified)
     addEffect('impact', 'impact', event, 420, simplified)
     spawnAttackParticles(event, simplified)
   } else if (event.type === 'SHIELD') {
-    addEffect('shield', 'impact', event, 720, false)
-    spawnBurst(event.end.x, event.end.y, '#38bdf8', '#e0f2fe', 16, 'impact', 0.55)
+    const durationScale = getPalworldEffectPolicy(event.ability)?.durationScale ?? 1
+    addEffect('shield', 'impact', event, 720 * durationScale, false)
+    const color = event.ability?.color ?? '#38bdf8'
+    const accent = event.ability?.accentColor ?? event.ability?.secondaryColor ?? '#e0f2fe'
+    spawnBurst(event.end.x, event.end.y, color, accent, 16, 'impact', 0.55)
   } else if (event.type === 'DEATH') {
     addEffect('death', 'over-unit', event, 720, false)
     spawnBurst(event.end.x, event.end.y, '#ef4444', '#f8fafc', crowded ? 18 : 34, 'over-unit', 1.1)
@@ -486,10 +794,19 @@ function isHealingEvent(event: NormalizedCombatVisualEvent) {
 }
 
 function isMajorHealingEvent(event: NormalizedCombatVisualEvent) {
-  return event.source.ability?.type === 'HEAL' || event.ability?.effectStyle === 'CHOPPER_HEAL'
+  return (
+    event.source.ability?.type === 'HEAL' ||
+    event.ability?.effectStyle === 'CHOPPER_HEAL' ||
+    Boolean(getPalworldEffectPolicy(event.ability))
+  )
 }
 
 function addEffect(kind: EffectInstance['kind'], layer: RenderLayer, event: NormalizedCombatVisualEvent, duration: number, simplified: boolean) {
+  const priority = getRenderEffectPriority(event.type)
+  const evictionIndex = chooseEffectEvictionIndex(effects, priority, MAX_ACTIVE_EFFECTS)
+  if (evictionIndex < 0 && effects.length >= MAX_ACTIVE_EFFECTS) return
+  if (evictionIndex >= 0) effects.splice(evictionIndex, 1)
+
   effects.push({
     id: nextEffectId++,
     layer,
@@ -497,7 +814,8 @@ function addEffect(kind: EffectInstance['kind'], layer: RenderLayer, event: Norm
     event,
     age: 0,
     duration,
-    simplified
+    simplified,
+    priority
   })
 }
 
@@ -510,19 +828,46 @@ function spawnAttackParticles(event: NormalizedCombatVisualEvent, simplified: bo
 }
 
 function spawnUltimateParticles(event: NormalizedCombatVisualEvent, crowded: boolean) {
+  const palPolicy = getPalworldEffectPolicy(event.ability)
   const premiumScale = event.source.cost >= 5 ? 1.45 : event.source.cost >= 4 ? 1.22 : 1
   const scale = (event.ability?.particleScale ?? 1) * (1 + (event.starLevel - 1) * 0.35) * premiumScale * (crowded ? 0.7 : 1)
-  const count = Math.round(56 * scale)
+  const count = Math.round(
+    (42 + (palPolicy?.projectileCount ?? 1) * 5 + (palPolicy?.ringCount ?? 1) * 4) * scale
+  )
   const color = event.ability?.color ?? '#fbbf24'
-  const secondary = event.ability?.secondaryColor ?? '#ffffff'
+  const secondary = event.ability?.accentColor ?? event.ability?.secondaryColor ?? '#ffffff'
   spawnLineParticles(event.start, event.end, color, secondary, Math.round(count * 0.45), 'trail', 0.68, MAX_ULT_PARTICLES)
   spawnBurst(event.end.x, event.end.y, color, secondary, Math.round(count * 0.65), 'over-unit', 1, MAX_ULT_PARTICLES)
 }
 
 function spawnHealingParticles(event: NormalizedCombatVisualEvent, crowded: boolean) {
-  const scale = (1 + (event.starLevel - 1) * 0.22) * (crowded ? 0.7 : 1)
-  spawnBurst(event.end.x, event.end.y, '#22c55e', '#dcfce7', Math.round(30 * scale), 'over-unit', 0.58, MAX_ULT_PARTICLES)
-  spawnBurst(event.end.x, event.end.y, '#86efac', '#ffffff', Math.round(16 * scale), 'impact', 0.35, MAX_ULT_PARTICLES)
+  const palPolicy = getPalworldEffectPolicy(event.ability)
+  const scale =
+    (event.ability?.particleScale ?? 1) *
+    (1 + (event.starLevel - 1) * 0.22) *
+    (crowded ? 0.7 : 1)
+  const color = event.ability?.color ?? '#22c55e'
+  const accent = event.ability?.accentColor ?? event.ability?.secondaryColor ?? '#dcfce7'
+  spawnBurst(
+    event.end.x,
+    event.end.y,
+    color,
+    accent,
+    Math.round((30 + (palPolicy?.ringCount ?? 1) * 4) * scale),
+    'over-unit',
+    0.58,
+    MAX_ULT_PARTICLES
+  )
+  spawnBurst(
+    event.end.x,
+    event.end.y,
+    accent,
+    '#ffffff',
+    Math.round(16 * scale),
+    'impact',
+    0.35,
+    MAX_ULT_PARTICLES
+  )
 }
 
 function spawnLineParticles(

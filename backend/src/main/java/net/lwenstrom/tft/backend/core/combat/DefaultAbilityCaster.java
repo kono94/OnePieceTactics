@@ -166,26 +166,36 @@ public class DefaultAbilityCaster implements AbilityCaster {
                     var effectiveHeal = healUnit(target, finalHeal);
                     if (effectiveHeal > 0) {
                         callback.onHealing(source.getId(), source.getName(), target.getId(), effectiveHeal);
+                    } else {
+                        callback.onSkill(source.getId(), source.getName(), target.getId(), 0);
                     }
                 }
             }
             case SURROUND, LINE -> {
                 // Heal all allies on board
-                allUnits.stream()
+                var targets = allUnits.stream()
                         .filter(u -> u.getCurrentHealth() > 0)
                         .filter(u -> CombatUtils.isAlly(source, u))
-                        .forEach(u -> {
-                            var effectiveHeal = healUnit(u, finalHeal);
-                            if (effectiveHeal > 0) {
-                                callback.onHealing(source.getId(), source.getName(), u.getId(), effectiveHeal);
-                            }
-                        });
+                        .toList();
+                var hasPositiveEffect = false;
+                for (var target : targets) {
+                    var effectiveHeal = healUnit(target, finalHeal);
+                    if (effectiveHeal > 0) {
+                        hasPositiveEffect = true;
+                        callback.onHealing(source.getId(), source.getName(), target.getId(), effectiveHeal);
+                    }
+                }
+                if (!hasPositiveEffect) {
+                    callback.onSkill(source.getId(), source.getName(), source.getId(), 0);
+                }
             }
             default -> {
                 // Default: heal self
                 var effectiveHeal = healUnit(source, finalHeal);
                 if (effectiveHeal > 0) {
                     callback.onHealing(source.getId(), source.getName(), source.getId(), effectiveHeal);
+                } else {
+                    callback.onSkill(source.getId(), source.getName(), source.getId(), 0);
                 }
             }
         }
@@ -252,18 +262,27 @@ public class DefaultAbilityCaster implements AbilityCaster {
                 var effectiveAmount = source.addShield(shieldAmount);
                 if (effectiveAmount > 0) {
                     callback.onShielding(source.getId(), source.getName(), source.getId(), effectiveAmount);
+                } else {
+                    callback.onSkill(source.getId(), source.getName(), source.getId(), 0);
                 }
             }
-            case SURROUND, LINE ->
-                allUnits.stream()
+            case SURROUND, LINE -> {
+                var targets = allUnits.stream()
                         .filter(u -> u.getCurrentHealth() > 0)
                         .filter(u -> CombatUtils.isAlly(source, u))
-                        .forEach(u -> {
-                            var effectiveAmount = u.addShield(shieldAmount);
-                            if (effectiveAmount > 0) {
-                                callback.onShielding(source.getId(), source.getName(), u.getId(), effectiveAmount);
-                            }
-                        });
+                        .toList();
+                var hasPositiveEffect = false;
+                for (var target : targets) {
+                    var effectiveAmount = target.addShield(shieldAmount);
+                    if (effectiveAmount > 0) {
+                        hasPositiveEffect = true;
+                        callback.onShielding(source.getId(), source.getName(), target.getId(), effectiveAmount);
+                    }
+                }
+                if (!hasPositiveEffect) {
+                    callback.onSkill(source.getId(), source.getName(), source.getId(), 0);
+                }
+            }
         }
     }
 

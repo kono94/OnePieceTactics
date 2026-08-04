@@ -200,6 +200,8 @@ the safety boundary.
 
 - Projects a 9×3 planning board into the local half of a 9×6 arena.
 - During combat, renders the viewed player and current opponent and flips top-side coordinates as needed.
+- Rejects invalid authoritative board coordinates and reconciles transient render history after the page returns to the
+  foreground so stale unit positions cannot survive a suspended layout.
 - Renders only the acting player's loot orbs and disables interaction while spectating.
 - Normalizes backend events into `NormalizedCombatVisualEvent` objects consumed by `CombatEffectsCanvas`.
 - Preserves short-lived previous/dying unit state so final events can animate after a unit leaves the snapshot.
@@ -244,6 +246,8 @@ the stable mode and unit definition ID, never from a display name.
 
 `animations/renderPolicy.ts` reduces particle density and expensive effects for crowded batches and reduced-motion
 users. `CombatEffectsCanvas.vue` is the live layered renderer. `AttackAnimation.vue` has no live import and is legacy.
+Palworld `PAL_*` families are interpreted by that live renderer; family configuration controls geometry, duration,
+projectile and ring counts, trail width, glyphs, and accents rather than serving as gallery-only metadata.
 
 The `#/ultimate-gallery/{mode}` route is development-only. `UltimateGallery.vue` and some gallery roster files are
 excluded from `tsconfig.build.json`; do not document the gallery as a production feature.

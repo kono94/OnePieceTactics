@@ -7,6 +7,7 @@ import type { NormalizedCombatVisualEvent } from '../types/combatEffects'
 import { getUnitIconPath } from '../utils/iconUtils'
 import { getRarityColor, TEAM_COLORS } from '../utils/colorUtils'
 import { setUnitDragPreview } from '../utils/dragPreview'
+import { isBenchCoordinate, projectBoardCoordinate, type BoardProjectionPhase } from '../utils/boardProjection'
 
 const props = defineProps<{
     state: GameState | null,
@@ -26,6 +27,23 @@ const GRID_COLS = 9
 const PLAYER_ROWS = 3 // Height of one player's board (half of arena)
 const GRID_GUTTER = 6 // Space between cells and board border to prevent clipping
 
+const reportedInvalidCoordinateKeys = new Set<string>()
+
+function reportInvalidCoordinate(unit: GameUnit, phase: BoardProjectionPhase) {
+    if (!import.meta.env.DEV) return
+
+    const key = `${phase}:${unit.id}:${unit.x}:${unit.y}`
+    if (reportedInvalidCoordinateKeys.has(key)) return
+
+    reportedInvalidCoordinateKeys.add(key)
+    console.warn('[GameCanvas] Ignoring invalid authoritative unit coordinates', {
+        unitId: unit.id,
+        phase,
+        x: unit.x,
+        y: unit.y
+    })
+}
+
 const currentViewedPlayerId = computed(() => props.viewedPlayerId || props.actingPlayerId)
 const isHomeView = computed(() => !!props.actingPlayerId && currentViewedPlayerId.value === props.actingPlayerId)
 
@@ -33,9 +51,10 @@ const renderedUnits = computed((): RenderedUnit[] => {
     const state = props.state
     const viewedId = currentViewedPlayerId.value
     if (!state || !state.players || !viewedId) return []
-    let allUnits: RenderedUnit[] = []
+    const allUnits: RenderedUnit[] = []
     
     const isCombat = state.phase === 'COMBAT'
+    const projectionPhase: BoardProjectionPhase = isCombat ? 'COMBAT' : 'PLANNING'
     const viewedPlayer = state.players[viewedId]
     const shouldFlip = isCombat && viewedPlayer?.combatSide === 'TOP'
     const opponentId = isCombat ? state.matchups?.[viewedId] : null
@@ -53,30 +72,25 @@ const renderedUnits = computed((): RenderedUnit[] => {
 
         const board = player.boardUnits || player.board
         if (board) {
-            allUnits = allUnits.concat(board
-                .filter((u: GameUnit) => u.x >= 0 && u.y >= 0 && u.currentHealth > 0)
-                .map((u: GameUnit): RenderedUnit => {
-                    let visualX = u.x;
-                    let visualY = u.y;
-                    
-                    if (isCombat) {
-                        if (shouldFlip) {
-                            visualX = u.x;
-                            visualY = (GRID_ROWS - 1) - u.y;
-                        }
-                    } else {
-                        visualY = u.y + PLAYER_ROWS;
-                    }
-                    
-                    return {
-                        ...u,
-                        visualX,
-                        visualY,
-                        ownerId: player.playerId,
-                        isMine: player.playerId === viewedId,
-                        image: getUnitIconPath(u.definitionId, props.state?.gameMode)
-                    }
-                }))
+            board.forEach((u: GameUnit) => {
+                if (!isCombat && isBenchCoordinate(u.x, u.y)) return
+
+                const projection = projectBoardCoordinate(u.x, u.y, projectionPhase, shouldFlip)
+                if (!projection) {
+                    reportInvalidCoordinate(u, projectionPhase)
+                    return
+                }
+                if (u.currentHealth <= 0) return
+
+                allUnits.push({
+                    ...u,
+                    visualX: projection.x,
+                    visualY: projection.y,
+                    ownerId: player.playerId,
+                    isMine: player.playerId === viewedId,
+                    image: getUnitIconPath(u.definitionId, props.state?.gameMode)
+                })
+            })
         }
     })
     return allUnits
@@ -135,6 +149,33 @@ const updateCellSize = () => {
 }
 
 let resizeObserver: ResizeObserver | null = null
+let foregroundRecoveryFrames: number[] = []
+
+function cancelForegroundRecovery() {
+    foregroundRecoveryFrames.forEach((frame) => window.cancelAnimationFrame(frame))
+    foregroundRecoveryFrames = []
+}
+
+function scheduleForegroundRecovery() {
+    cancelForegroundRecovery()
+
+    const firstFrame = window.requestAnimationFrame(() => {
+        foregroundRecoveryFrames = foregroundRecoveryFrames.filter((frame) => frame !== firstFrame)
+        const secondFrame = window.requestAnimationFrame(() => {
+            foregroundRecoveryFrames = foregroundRecoveryFrames.filter((frame) => frame !== secondFrame)
+            updateCellSize()
+            reconcileCombatRenderState()
+        })
+        foregroundRecoveryFrames.push(secondFrame)
+    })
+    foregroundRecoveryFrames.push(firstFrame)
+}
+
+const onVisibilityChange = () => {
+    if (document.visibilityState === 'visible') scheduleForegroundRecovery()
+}
+
+const onPageShow = () => scheduleForegroundRecovery()
 
 onMounted(() => {
     updateCellSize()
@@ -144,10 +185,15 @@ onMounted(() => {
     if (containerRef.value) {
         resizeObserver.observe(containerRef.value)
     }
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    window.addEventListener('pageshow', onPageShow)
 })
 
 onUnmounted(() => {
     cleanupBoardDragPreview()
+    cancelForegroundRecovery()
+    document.removeEventListener('visibilitychange', onVisibilityChange)
+    window.removeEventListener('pageshow', onPageShow)
     if (resizeObserver) {
         resizeObserver.disconnect()
     }
@@ -450,6 +496,7 @@ const deathTimers = ref<number[]>([])
 onUnmounted(() => {
     deathTimers.value.forEach(timer => clearTimeout(timer))
     deathAnimationTimers.value.forEach(timer => clearTimeout(timer))
+    transientAnimationTimers.value.forEach(timer => clearTimeout(timer))
 })
 
 // ========== STAR-UP CELEBRATION SYSTEM ==========
@@ -467,6 +514,15 @@ interface FloatingText {
 }
 const castingAnimations = ref<FloatingText[]>([])
 const floatingHeals = ref<FloatingText[]>([])
+const transientAnimationTimers = ref<number[]>([])
+
+function scheduleTransientAnimationCleanup(callback: () => void, duration: number) {
+    const timer = window.setTimeout(() => {
+        transientAnimationTimers.value = transientAnimationTimers.value.filter((item) => item !== timer)
+        callback()
+    }, duration)
+    transientAnimationTimers.value.push(timer)
+}
 
 function clearCombatVisualState() {
     prevHealthMap.value = {}
@@ -481,6 +537,8 @@ function clearCombatVisualState() {
     castingUnits.value = new Set()
     castingAnimations.value = []
     floatingHeals.value = []
+    transientAnimationTimers.value.forEach(timer => clearTimeout(timer))
+    transientAnimationTimers.value = []
     lastProcessedEventTime.value = 0
 }
 
@@ -507,6 +565,21 @@ function findNearestEnemy(unit: RenderedUnit, allUnits: RenderedUnit[]): Rendere
 const prevUnitsMap = ref<Map<string, RenderedUnit>>(new Map())
 const prevPhase = ref<GamePhase | undefined | null>(null)
 const lastProcessedEventTime = ref(0)
+
+function reconcileCombatRenderState() {
+    clearCombatVisualState()
+    prevPhase.value = props.state?.phase
+
+    if (props.state?.phase !== 'COMBAT') return
+
+    renderedUnits.value.forEach((unit) => {
+        prevUnitsMap.value.set(unit.id, { ...unit })
+    })
+    lastProcessedEventTime.value = (props.state.recentEvents ?? []).reduce(
+        (latest, event) => Math.max(latest, event.timestamp),
+        0
+    )
+}
 
 const unitsById = computed(() => {
     const map = new Map<string, RenderedUnit>()
@@ -610,7 +683,7 @@ watch(() => props.state?.recentEvents, (newEvents) => {
                     y: target.visualY * CELL_SIZE.value + 10,
                     text: `+${healAmount}`
                 })
-                setTimeout(() => {
+                scheduleTransientAnimationCleanup(() => {
                     floatingHeals.value = floatingHeals.value.filter(h => h.id !== healId)
                 }, 1000)
             }
@@ -631,14 +704,15 @@ watch(() => props.state?.recentEvents, (newEvents) => {
             if (isHealingSkill) addTimedFeedback(hitFlashUnits, target.id, 420)
             
             // Floating text for skill
+            const animationId = nextVisualEventId++
             castingAnimations.value.push({
-                id: nextVisualEventId++,
+                id: animationId,
                 x: source.visualX * CELL_SIZE.value + CELL_SIZE.value / 2,
                 y: source.visualY * CELL_SIZE.value,
                 text: event.skillName || resolveAbilityConfig(props.state?.gameMode, source).signature || source.activeAbility || (source.ability ? source.ability.name : 'Ability!')
             })
-            setTimeout(() => {
-                castingAnimations.value.shift()
+            scheduleTransientAnimationCleanup(() => {
+                castingAnimations.value = castingAnimations.value.filter((animation) => animation.id !== animationId)
             }, 1000)
             if (isHealingSkill) {
                 const healAmount = Math.abs(event.value)
@@ -649,7 +723,7 @@ watch(() => props.state?.recentEvents, (newEvents) => {
                     y: target.visualY * CELL_SIZE.value + 10,
                     text: `+${healAmount}`
                 })
-                setTimeout(() => {
+                scheduleTransientAnimationCleanup(() => {
                     floatingHeals.value = floatingHeals.value.filter(h => h.id !== healId)
                 }, 1000)
             }
@@ -664,7 +738,7 @@ watch(() => props.state?.recentEvents, (newEvents) => {
                 y: target.visualY * CELL_SIZE.value + 10,
                 text: `+${healAmount}`
             })
-            setTimeout(() => {
+            scheduleTransientAnimationCleanup(() => {
                 floatingHeals.value = floatingHeals.value.filter(h => h.id !== healId)
             }, 1000)
         } else if (event.type === 'SHIELD') {
