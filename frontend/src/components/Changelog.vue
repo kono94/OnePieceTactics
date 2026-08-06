@@ -6,6 +6,7 @@ defineOptions({
 defineEmits(['back'])
 
 const nextVersionCommits = [
+  { hash: 'pending', title: 'Allow shop economy and bench management during combat' },
   { hash: 'pending', title: 'Add final-composition analytics with selectable build-cohort filters' },
   { hash: 'pending', title: 'Move Palworld architecture and release details into focused documentation' },
   { hash: 'pending', title: 'Replace hosted Renovate with Codex-assisted local dependency maintenance' },
@@ -106,6 +107,8 @@ const version160Commits = [
             Final deployed boards are now captured once per human run, and the protected analytics dashboard can compare
             unit presence across isolated mode/version/commit cohorts with historical-image fallbacks and filter using
             all distinct modes, versions, commits, build cohorts, and anonymous player IDs in the selected date range.
+            Combat now accepts the shop, XP, reroll, lock, and bench-management actions already exposed by the UI while
+            continuing to reject board mutations and orb collection.
           </p>
         </div>
         <article class="release-panel">

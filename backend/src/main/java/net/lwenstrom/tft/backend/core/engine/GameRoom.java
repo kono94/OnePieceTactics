@@ -347,7 +347,8 @@ public class GameRoom {
 
     public synchronized void moveUnit(String playerId, String unitId, int x, int y) {
         var p = players.get(playerId);
-        if (p != null && (phase == GamePhase.PLANNING || phase == GamePhase.COMBAT)) {
+        if (p != null
+                && (phase == GamePhase.PLANNING || (phase == GamePhase.COMBAT && y == -1 && p.hasBenchUnit(unitId)))) {
             p.moveUnit(unitId, x, y);
         }
     }
@@ -403,7 +404,10 @@ public class GameRoom {
         if (action.type() == net.lwenstrom.tft.backend.core.model.ActionType.SELECT_AUGMENT) {
             return action.augmentId() != null && selectAugment(boundPlayerId, action.augmentId());
         }
-        if (phase != GamePhase.PLANNING) {
+        if (phase != GamePhase.PLANNING && phase != GamePhase.COMBAT) {
+            return false;
+        }
+        if (phase == GamePhase.COMBAT && !isAllowedDuringCombat(player, action)) {
             return false;
         }
 
@@ -441,7 +445,7 @@ public class GameRoom {
                     }
                     case SELL -> {
                         if (action.unitId() == null) yield false;
-                        player.sellUnit(action.unitId(), true);
+                        player.sellUnit(action.unitId(), phase == GamePhase.PLANNING);
                         yield true;
                     }
                     case LOCK -> {
@@ -460,6 +464,19 @@ public class GameRoom {
             updateGameState(phaseEndTime - clock.currentTimeMillis());
         }
         return accepted;
+    }
+
+    private boolean isAllowedDuringCombat(Player player, GameAction action) {
+        return switch (action.type()) {
+            case BUY, REROLL, EXP, LOCK -> true;
+            case MOVE ->
+                action.unitId() != null
+                        && action.targetY() != null
+                        && action.targetY() == -1
+                        && player.hasBenchUnit(action.unitId());
+            case SELL -> action.unitId() != null && player.hasBenchUnit(action.unitId());
+            case COLLECT_ORB, READY_FOR_COMBAT, SELECT_AUGMENT -> false;
+        };
     }
 
     public synchronized void tick() {

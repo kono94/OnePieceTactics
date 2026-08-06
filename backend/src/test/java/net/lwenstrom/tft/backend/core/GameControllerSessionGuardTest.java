@@ -93,19 +93,62 @@ class GameControllerSessionGuardTest {
     }
 
     @Test
-    void handleAction_RejectsEconomyActionsDuringCombat() {
+    void handleAction_AllowsBuyingAndEconomyActionsDuringCombat() {
         var room = createRoomWithHost();
         var host = findPlayer(room, "Host");
         controller.startRoom(new GameController.RoomRequest(room.getId(), "Host"), "host-session");
         TestHelpers.setPhase(room, GamePhase.COMBAT);
-        var gold = host.getGold();
+        host.setGold(20);
+        var shopUnit = host.getShop().getFirst();
+        var level = host.getLevel();
+        var xp = host.getXp();
 
+        controller.handleAction(
+                room.getId(),
+                new GameAction(ActionType.BUY, host.getId(), null, null, null, null, 0, null),
+                "host-session");
         controller.handleAction(
                 room.getId(),
                 new GameAction(ActionType.EXP, host.getId(), null, null, null, null, null, null),
                 "host-session");
+        controller.handleAction(
+                room.getId(),
+                new GameAction(ActionType.REROLL, host.getId(), null, null, null, null, null, null),
+                "host-session");
+        controller.handleAction(
+                room.getId(),
+                new GameAction(ActionType.LOCK, host.getId(), null, null, null, null, null, null),
+                "host-session");
 
-        assertEquals(gold, host.getGold());
+        assertEquals(shopUnit.id(), host.getBench().getFirst().getDefinitionId());
+        assertTrue(host.getShop().stream().allMatch(java.util.Objects::nonNull));
+        assertTrue(host.isShopLocked());
+        assertEquals(20 - shopUnit.cost() - GameConstants.XP_BUY_COST - GameConstants.REROLL_COST, host.getGold());
+        assertTrue(host.getLevel() > level || host.getXp() > xp);
+    }
+
+    @Test
+    void applyAction_RestrictsCombatMovementAndSellingToBenchUnits() {
+        var room = createRoomWithHost();
+        var host = findPlayer(room, "Host");
+        controller.startRoom(new GameController.RoomRequest(room.getId(), "Host"), "host-session");
+        host.setGold(20);
+        TestHelpers.setPhase(room, GamePhase.COMBAT);
+        assertTrue(room.applyAction(
+                host.getId(), new GameAction(ActionType.BUY, host.getId(), null, null, null, null, 0, null)));
+        var benchUnit = host.getBench().getFirst();
+
+        assertFalse(room.applyAction(
+                host.getId(),
+                new GameAction(ActionType.MOVE, host.getId(), benchUnit.getId(), null, 0, 0, null, null)));
+        assertTrue(room.applyAction(
+                host.getId(),
+                new GameAction(ActionType.MOVE, host.getId(), benchUnit.getId(), null, 1, -1, null, null)));
+        assertEquals(benchUnit.getId(), host.getBench().get(1).getId());
+        assertTrue(room.applyAction(
+                host.getId(),
+                new GameAction(ActionType.SELL, host.getId(), benchUnit.getId(), null, null, null, null, null)));
+        assertNull(host.getBench().get(1));
     }
 
     @Test
