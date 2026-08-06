@@ -5,6 +5,7 @@ import type {
     AnalyticsRunFilters,
     AnalyticsRunsPage,
     AnalyticsSummary,
+    AnalyticsUnitPresenceResponse,
 } from '../types/analytics'
 
 const SESSION_KEY = 'tactics.analytics.adminSession'
@@ -66,6 +67,13 @@ export const getRuns = (token: string, filters: AnalyticsRunFilters, signal?: Ab
 export const getRun = (token: string, runId: string, signal?: AbortSignal) =>
     request<AnalyticsRunDetail>(
         `/api/admin/analytics/runs/${encodeURIComponent(runId)}`,
+        { signal },
+        token,
+    )
+
+export const getUnitPresence = (token: string, filters: AnalyticsFilters, signal?: AbortSignal) =>
+    request<AnalyticsUnitPresenceResponse>(
+        `/api/admin/analytics/unit-presence?${queryString(filters)}`,
         { signal },
         token,
     )

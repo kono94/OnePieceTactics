@@ -255,8 +255,13 @@ excluded from `tsconfig.build.json`; do not document the gallery as a production
 ## 11. Admin analytics
 
 `#/admin/analytics` renders `AdminAnalytics.vue` without starting the game WebSocket. `analyticsClient.ts` handles login,
-bearer token storage for the current tab, summary queries, paginated run queries, run detail, and logout. The admin REST
-API is protected by the backend; frontend route hiding is not security.
+bearer token storage for the current tab, summary queries, paginated run queries, final-composition unit-presence
+comparisons, run detail, and logout. The dashboard defaults to completed, non-abandoned runs and exposes exact mode,
+version, commit, placement, completion, abandonment, and anonymous-player filters. Mode, version, commit, build-cohort,
+and anonymous-player selections come from all distinct values in the summary date range. `FinalCompositionStrip.vue` renders
+captured empty boards separately from unavailable legacy snapshots, with mode-aware portraits, star/item badges, and a
+placeholder when historical assets are missing. The admin REST API is protected by the backend; frontend route hiding
+is not security.
 
 ## 12. Build, test, and deploy
 

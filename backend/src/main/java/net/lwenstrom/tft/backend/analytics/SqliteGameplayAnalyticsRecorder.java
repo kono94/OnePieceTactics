@@ -182,18 +182,50 @@ public class SqliteGameplayAnalyticsRecorder implements GameplayAnalyticsRecorde
     }
 
     @Override
+    public void playerPlacementFinalized(String roomId, int finalRound, long occurredAt, Player player) {
+        if (player == null || player.isBot() || player.isGhost()) {
+            return;
+        }
+        var snapshot = new PlayerResult(
+                player.getId(), player.getPlace(), player.getHealth(), finalRound, serializeBoard(player));
+        enqueue(
+                "capture final board",
+                () -> jdbcTemplate.update(
+                        "UPDATE analytics_player_run SET placement_finalized_at = COALESCE(placement_finalized_at, ?),"
+                                + " final_board_json = COALESCE(final_board_json, ?),"
+                                + " final_placement = COALESCE(final_placement, ?),"
+                                + " final_health = COALESCE(final_health, ?),"
+                                + " final_round = COALESCE(final_round, ?) WHERE player_id = ?"
+                                + " AND match_id = (SELECT id FROM analytics_match WHERE room_id = ?)",
+                        occurredAt,
+                        snapshot.boardJson(),
+                        snapshot.placement(),
+                        snapshot.health(),
+                        snapshot.finalRound(),
+                        snapshot.playerId(),
+                        roomId));
+    }
+
+    @Override
     public void matchCompleted(String roomId, int finalRound, long occurredAt, List<Player> players) {
         var results = humanPlayers(players).stream()
-                .map(player -> new PlayerResult(player.getId(), player.getPlace(), player.getHealth()))
+                .map(player -> new PlayerResult(
+                        player.getId(), player.getPlace(), player.getHealth(), finalRound, serializeBoard(player)))
                 .toList();
         enqueue("complete match", () -> {
             results.forEach(player -> jdbcTemplate.update(
-                    "UPDATE analytics_player_run SET status = 'COMPLETED', final_placement = ?, final_health = ?,"
-                            + " final_round = ? WHERE player_id = ?"
+                    "UPDATE analytics_player_run SET status = 'COMPLETED',"
+                            + " final_placement = COALESCE(final_placement, ?),"
+                            + " final_health = COALESCE(final_health, ?),"
+                            + " final_round = COALESCE(final_round, ?),"
+                            + " placement_finalized_at = COALESCE(placement_finalized_at, ?),"
+                            + " final_board_json = COALESCE(final_board_json, ?) WHERE player_id = ?"
                             + " AND match_id = (SELECT id FROM analytics_match WHERE room_id = ?)",
                     player.placement(),
                     player.health(),
                     finalRound,
+                    occurredAt,
+                    player.boardJson(),
                     player.playerId(),
                     roomId));
             jdbcTemplate.update(
@@ -260,7 +292,11 @@ public class SqliteGameplayAnalyticsRecorder implements GameplayAnalyticsRecorde
 
     private String serializeBoard(Player player) {
         var units = player.getBoardUnits().stream()
-                .map(unit -> new BoardUnit(unit.getDefinitionId(), unit.getLineId(), unit.getStarLevel()))
+                .map(unit -> new BoardUnit(
+                        unit.getDefinitionId(),
+                        unit.getLineId(),
+                        unit.getStarLevel(),
+                        unit.getItems().stream().map(item -> item.getId()).toList()))
                 .toList();
         return toJson(units);
     }
@@ -296,7 +332,7 @@ public class SqliteGameplayAnalyticsRecorder implements GameplayAnalyticsRecorde
         }
     }
 
-    private record BoardUnit(String definitionId, String lineId, int starLevel) {}
+    private record BoardUnit(String definitionId, String lineId, int starLevel, List<String> itemIds) {}
 
     private record Augment(String id, String tier) {}
 
@@ -307,5 +343,5 @@ public class SqliteGameplayAnalyticsRecorder implements GameplayAnalyticsRecorde
 
     private record ResolvedRound(String playerId, int health, String outcome, String opponentType) {}
 
-    private record PlayerResult(String playerId, Integer placement, int health) {}
+    private record PlayerResult(String playerId, Integer placement, int health, int finalRound, String boardJson) {}
 }

@@ -23,11 +23,14 @@ public class AdminAnalyticsController {
     ResponseEntity<AdminAnalyticsRepository.Summary> summary(
             @RequestParam(required = false) String from,
             @RequestParam(required = false) String to,
-            @RequestParam(required = false) String mode) {
+            @RequestParam(required = false) String mode,
+            @RequestParam(required = false) String backendVersion,
+            @RequestParam(required = false) String backendCommit) {
         var range = range(from, to);
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.noStore())
-                .body(repository.summary(range.from(), range.to(), mode(mode)));
+                .body(repository.summary(
+                        range.from(), range.to(), mode(mode), text(backendVersion), text(backendCommit)));
     }
 
     @GetMapping("/runs")
@@ -35,12 +38,19 @@ public class AdminAnalyticsController {
             @RequestParam(required = false) String from,
             @RequestParam(required = false) String to,
             @RequestParam(required = false) String mode,
+            @RequestParam(required = false) String backendVersion,
+            @RequestParam(required = false) String backendCommit,
+            @RequestParam(required = false) Integer placement,
+            @RequestParam(required = false) Boolean completed,
             @RequestParam(required = false) String analyticsClientId,
             @RequestParam(required = false) Boolean abandoned,
             @RequestParam(required = false) String cursor,
             @RequestParam(defaultValue = "50") int size) {
         if (size < 1 || size > 100) {
             throw badRequest("size must be between 1 and 100");
+        }
+        if (placement != null && (placement < 1 || placement > 8)) {
+            throw badRequest("placement must be between 1 and 8");
         }
         var range = range(from, to);
         AdminAnalyticsRepository.Cursor decodedCursor = null;
@@ -54,7 +64,31 @@ public class AdminAnalyticsController {
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.noStore())
                 .body(repository.runs(
-                        range.from(), range.to(), mode(mode), analyticsClientId, abandoned, decodedCursor, size));
+                        range.from(),
+                        range.to(),
+                        mode(mode),
+                        text(backendVersion),
+                        text(backendCommit),
+                        placement,
+                        completed,
+                        analyticsClientId,
+                        abandoned,
+                        decodedCursor,
+                        size));
+    }
+
+    @GetMapping("/unit-presence")
+    ResponseEntity<AdminAnalyticsRepository.UnitPresenceResponse> unitPresence(
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to,
+            @RequestParam(required = false) String mode,
+            @RequestParam(required = false) String backendVersion,
+            @RequestParam(required = false) String backendCommit) {
+        var range = range(from, to);
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .body(repository.unitPresence(
+                        range.from(), range.to(), mode(mode), text(backendVersion), text(backendCommit)));
     }
 
     @GetMapping("/runs/{runId}")
@@ -83,11 +117,18 @@ public class AdminAnalyticsController {
         if (mode == null || mode.isBlank()) {
             return null;
         }
-        try {
-            return GameMode.valueOf(mode.toUpperCase()).name();
-        } catch (IllegalArgumentException exception) {
-            throw badRequest("mode is invalid");
-        }
+        var normalized = mode.replace("_", "");
+        return java.util.Arrays.stream(GameMode.values())
+                .filter(candidate -> candidate.name().equalsIgnoreCase(mode)
+                        || candidate.getValue().equalsIgnoreCase(mode)
+                        || candidate.name().replace("_", "").equalsIgnoreCase(normalized))
+                .map(Enum::name)
+                .findFirst()
+                .orElseThrow(() -> badRequest("mode is invalid"));
+    }
+
+    private String text(String value) {
+        return value == null || value.isBlank() ? null : value;
     }
 
     private ResponseStatusException badRequest(String message) {

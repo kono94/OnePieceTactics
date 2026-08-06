@@ -88,8 +88,35 @@ class GameRoomAnalyticsLifecycleTest {
 
         assertTrue(player.isAbandoned());
         assertEquals(List.of(player.getId()), recorder.abandonedPlayerIds);
+        assertTrue(recorder.placementFinalizations.isEmpty());
         assertTrue(room.reconnectPlayer("secret-token").isPresent());
         assertTrue(player.isAbandoned());
+    }
+
+    @Test
+    void explicitAbandonmentFinalizesImmediately() {
+        var player = room.tryAddPlayer("First", "browser-1", "secret-token").orElseThrow();
+        room.tryAddPlayer("Second", "browser-2", "other-token").orElseThrow();
+        room.startMatch();
+
+        assertTrue(room.abandonPlayer(player.getId()));
+
+        assertEquals(List.of(new PlacementFinalization(player.getId(), 1)), recorder.placementFinalizations);
+    }
+
+    @Test
+    void explicitAbandonmentAfterGraceStillFinalizesImmediately() {
+        var player = room.tryAddPlayer("First", "browser-1", "secret-token").orElseThrow();
+        room.tryAddPlayer("Second", "browser-2", "other-token").orElseThrow();
+        room.startMatch();
+        room.disconnectPlayer(player.getId());
+        clock.advance(60_000L);
+        room.tick();
+
+        assertTrue(room.abandonPlayer(player.getId()));
+
+        assertEquals(List.of(player.getId()), recorder.abandonedPlayerIds);
+        assertEquals(List.of(new PlacementFinalization(player.getId(), 1)), recorder.placementFinalizations);
     }
 
     @Test
@@ -111,13 +138,31 @@ class GameRoomAnalyticsLifecycleTest {
 
         assertEquals(GamePhase.END_CELEBRATION, room.getState().phase());
         assertEquals(8, player.getPlace());
+        assertEquals(List.of(new PlacementFinalization(player.getId(), 1)), recorder.placementFinalizations);
         assertEquals(1, recorder.matchCompletions);
+    }
+
+    @Test
+    void finalizesTheLastPlayerAsWinner() throws Exception {
+        var winner = room.tryAddPlayer("Winner", "browser-1", "token-1").orElseThrow();
+        room.startMatch();
+        room.getPlayers().stream()
+                .filter(player -> !player.getId().equals(winner.getId()))
+                .forEach(player -> player.setHealth(0));
+        var checkGameEnd = GameRoom.class.getDeclaredMethod("checkAndTriggerGameEnd");
+        checkGameEnd.setAccessible(true);
+
+        checkGameEnd.invoke(room);
+
+        assertEquals(1, winner.getPlace());
+        assertEquals(List.of(new PlacementFinalization(winner.getId(), 1)), recorder.placementFinalizations);
     }
 
     private static final class RecordingAnalyticsRecorder implements GameplayAnalyticsRecorder {
         private final List<List<Player>> matchStarts = new ArrayList<>();
         private final List<RoundStart> roundStarts = new ArrayList<>();
         private final List<String> abandonedPlayerIds = new ArrayList<>();
+        private final List<PlacementFinalization> placementFinalizations = new ArrayList<>();
         private int matchCompletions;
 
         @Override
@@ -136,10 +181,17 @@ class GameRoomAnalyticsLifecycleTest {
         }
 
         @Override
+        public void playerPlacementFinalized(String roomId, int finalRound, long occurredAt, Player player) {
+            placementFinalizations.add(new PlacementFinalization(player.getId(), finalRound));
+        }
+
+        @Override
         public void matchCompleted(String roomId, int finalRound, long occurredAt, List<Player> players) {
             matchCompletions++;
         }
     }
 
     private record RoundStart(int round, List<Player> players) {}
+
+    private record PlacementFinalization(String playerId, int finalRound) {}
 }

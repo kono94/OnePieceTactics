@@ -3,7 +3,9 @@ package net.lwenstrom.tft.backend.analytics;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import java.util.Map;
 import net.lwenstrom.tft.backend.core.engine.Player;
+import net.lwenstrom.tft.backend.core.model.GameItem;
 import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.test.TestHelpers;
 import org.flywaydb.core.Flyway;
@@ -52,14 +54,24 @@ class SqliteGameplayAnalyticsRecorderTest {
         var bot = new Player("Bot", GameMode.ONEPIECE, dataLoader, TestHelpers.createSeededRandomProvider());
         bot.setBot(true);
         player.addUnitToBoard(TestHelpers.createDefaultUnitDef(), 0, 0, 1);
+        player.getBoardUnits().getFirst().getItems().add(new TestItem("item-1"));
+        var fallbackPlayer = new Player(
+                "Fallback",
+                GameMode.ONEPIECE,
+                dataLoader,
+                TestHelpers.createSeededRandomProvider(),
+                "browser-fallback",
+                "fallback-hash");
 
-        recorder.matchStarted("match-key", GameMode.ONEPIECE, 1_000, List.of(player));
+        recorder.matchStarted("match-key", GameMode.ONEPIECE, 1_000, List.of(player, fallbackPlayer));
         recorder.roundStarted("match-key", 1, 1_100, List.of(player));
         player.takeDamage(12);
         recorder.combatResolved("match-key", 1, 1_200, player.getId(), bot.getId(), false, List.of(player, bot));
         recorder.playerAbandoned("match-key", player.getId(), 1_250);
         player.setPlace(1);
-        recorder.matchCompleted("match-key", 1, 1_300, List.of(player));
+        fallbackPlayer.setPlace(2);
+        recorder.playerPlacementFinalized("match-key", 4, 1_275, player);
+        recorder.matchCompleted("match-key", 9, 1_300, List.of(player, fallbackPlayer));
         recorder.awaitPendingWrites();
 
         assertThat(jdbcTemplate.queryForObject(
@@ -73,6 +85,18 @@ class SqliteGameplayAnalyticsRecorderTest {
                         Integer.class))
                 .isEqualTo(1);
         assertThat(jdbcTemplate.queryForObject(
+                        "SELECT final_round FROM analytics_player_run WHERE analytics_client_id = 'browser-123'",
+                        Integer.class))
+                .isEqualTo(4);
+        assertThat(jdbcTemplate.queryForObject(
+                        "SELECT final_health FROM analytics_player_run WHERE analytics_client_id = 'browser-123'",
+                        Integer.class))
+                .isEqualTo(88);
+        assertThat(jdbcTemplate.queryForObject(
+                        "SELECT final_round FROM analytics_player_run WHERE analytics_client_id = 'browser-fallback'",
+                        Integer.class))
+                .isEqualTo(9);
+        assertThat(jdbcTemplate.queryForObject(
                         "SELECT abandoned_at FROM analytics_player_run WHERE analytics_client_id = 'browser-123'",
                         Long.class))
                 .isEqualTo(1_250L);
@@ -84,7 +108,17 @@ class SqliteGameplayAnalyticsRecorderTest {
                 .isEqualTo("BOT");
         assertThat(jdbcTemplate.queryForObject("SELECT board_json FROM analytics_player_round", String.class))
                 .contains("\"definitionId\":\"test-unit-1\"")
-                .contains("\"starLevel\":1");
+                .contains("\"starLevel\":1")
+                .contains("\"itemIds\":[\"item-1\"]");
+        assertThat(jdbcTemplate.queryForObject(
+                        "SELECT placement_finalized_at FROM analytics_player_run WHERE analytics_client_id = 'browser-123'",
+                        Long.class))
+                .isEqualTo(1_275L);
+        assertThat(jdbcTemplate.queryForObject(
+                        "SELECT final_board_json FROM analytics_player_run WHERE analytics_client_id = 'browser-123'",
+                        String.class))
+                .contains("\"definitionId\":\"test-unit-1\"")
+                .contains("\"itemIds\":[\"item-1\"]");
     }
 
     @Test
@@ -120,5 +154,128 @@ class SqliteGameplayAnalyticsRecorderTest {
 
         assertThat(jdbcTemplate.queryForObject("SELECT opponent_type FROM analytics_player_round", String.class))
                 .isEqualTo("BOT");
+    }
+
+    @Test
+    void firstFinalCompositionWinsAndCapturedEmptyBoardIsNotMissing() throws Exception {
+        var sqliteConfig = new SQLiteConfig();
+        sqliteConfig.enforceForeignKeys(true);
+        var dataSource = new SQLiteDataSource(sqliteConfig);
+        dataSource.setUrl("jdbc:sqlite:" + temporaryDirectory.resolve("final-board.db"));
+        Flyway.configure()
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .load()
+                .migrate();
+        var jdbcTemplate = new JdbcTemplate(dataSource);
+        var recorder = new SqliteGameplayAnalyticsRecorder(
+                jdbcTemplate,
+                JsonMapper.builder().build(),
+                new TransactionTemplate(new DataSourceTransactionManager(dataSource)),
+                "1.0.0",
+                "commit-a",
+                "build");
+        var dataLoader = TestHelpers.createMockDataLoader();
+        var player = new Player("Anonymous", GameMode.ONEPIECE, dataLoader, TestHelpers.createSeededRandomProvider());
+
+        recorder.matchStarted("empty-board", GameMode.ONEPIECE, 1_000, List.of(player));
+        player.setHealth(0);
+        player.setPlace(8);
+        recorder.playerPlacementFinalized("empty-board", 2, 1_100, player);
+        player.addUnitToBoard(TestHelpers.createDefaultUnitDef(), 0, 0, 1);
+        player.setPlace(7);
+        recorder.playerPlacementFinalized("empty-board", 3, 1_200, player);
+        recorder.awaitPendingWrites();
+
+        assertThat(jdbcTemplate.queryForObject(
+                        "SELECT placement_finalized_at FROM analytics_player_run WHERE player_id = ?",
+                        Long.class,
+                        player.getId()))
+                .isEqualTo(1_100L);
+        assertThat(jdbcTemplate.queryForObject(
+                        "SELECT final_board_json FROM analytics_player_run WHERE player_id = ?",
+                        String.class,
+                        player.getId()))
+                .isEqualTo("[]");
+        assertThat(jdbcTemplate.queryForObject(
+                        "SELECT final_placement FROM analytics_player_run WHERE player_id = ?",
+                        Integer.class,
+                        player.getId()))
+                .isEqualTo(8);
+        assertThat(jdbcTemplate.queryForObject(
+                        "SELECT final_round FROM analytics_player_run WHERE player_id = ?",
+                        Integer.class,
+                        player.getId()))
+                .isEqualTo(2);
+
+        recorder.recoverInterruptedMatches();
+
+        assertThat(jdbcTemplate.queryForObject(
+                        "SELECT status FROM analytics_player_run WHERE player_id = ?", String.class, player.getId()))
+                .isEqualTo("INTERRUPTED");
+        assertThat(jdbcTemplate.queryForObject(
+                        "SELECT final_board_json FROM analytics_player_run WHERE player_id = ?",
+                        String.class,
+                        player.getId()))
+                .isEqualTo("[]");
+    }
+
+    @Test
+    void v3BackfillsTheLastRoundAndLeavesItemIdsOptionalForLegacyBoards() throws Exception {
+        var sqliteConfig = new SQLiteConfig();
+        sqliteConfig.enforceForeignKeys(true);
+        var dataSource = new SQLiteDataSource(sqliteConfig);
+        dataSource.setUrl("jdbc:sqlite:" + temporaryDirectory.resolve("backfill.db"));
+        Flyway.configure()
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .target("2")
+                .load()
+                .migrate();
+        var jdbcTemplate = new JdbcTemplate(dataSource);
+        jdbcTemplate.update(
+                "INSERT INTO analytics_match (id, room_id, mode, started_at, status) VALUES ('match', 'room', 'ONEPIECE', 1, 'COMPLETED')");
+        jdbcTemplate.update(
+                "INSERT INTO analytics_player_run (id, match_id, player_id, started_at, final_round, status)"
+                        + " VALUES ('run', 'match', 'player', 1, 99, 'COMPLETED')");
+        jdbcTemplate.update(
+                "INSERT INTO analytics_player_round (id, run_id, round_number, captured_at, pre_health, gold, player_level, xp, board_json, augments_json)"
+                        + " VALUES ('round', 'run', 6, 6000, 50, 10, 3, 2, '[{\"definitionId\":\"legacy-unit\",\"lineId\":\"legacy-line\",\"starLevel\":2}]', '[]')");
+
+        Flyway.configure()
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .load()
+                .migrate();
+
+        assertThat(jdbcTemplate.queryForObject("SELECT final_round FROM analytics_player_run", Integer.class))
+                .isEqualTo(6);
+        assertThat(jdbcTemplate.queryForObject("SELECT placement_finalized_at FROM analytics_player_run", Long.class))
+                .isEqualTo(6000L);
+        assertThat(jdbcTemplate.queryForObject("SELECT final_board_json FROM analytics_player_run", String.class))
+                .contains("legacy-unit")
+                .doesNotContain("itemIds");
+    }
+
+    private record TestItem(String id) implements GameItem {
+        @Override
+        public String getId() {
+            return id;
+        }
+
+        @Override
+        public String getName() {
+            return id;
+        }
+
+        @Override
+        public String getDescription() {
+            return id;
+        }
+
+        @Override
+        public Map<String, Integer> getStatBonuses() {
+            return Map.of();
+        }
     }
 }

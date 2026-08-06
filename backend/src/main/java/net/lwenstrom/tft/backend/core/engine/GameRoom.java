@@ -302,6 +302,7 @@ public class GameRoom {
                     .count();
             player.setHealth(0);
             player.setPlace((int) remainingAlivePlayers + 1);
+            finalizePlayerPlacement(player);
         }
         player.setDisconnectedAt(null);
         player.setReconnectTokenHash(null);
@@ -586,6 +587,7 @@ public class GameRoom {
             if (alivePlayers.size() <= 1) {
                 if (alivePlayers.size() == 1) {
                     alivePlayers.get(0).setPlace(1);
+                    finalizePlayerPlacement(alivePlayers.get(0));
                 }
                 log.info("Game ending: only {} player(s) remaining", alivePlayers.size());
                 startPhase(GamePhase.END_CELEBRATION);
@@ -1138,6 +1140,7 @@ public class GameRoom {
                 var aliveCount = (int)
                         players.values().stream().filter(p -> p.getHealth() > 0).count();
                 loser.setPlace(aliveCount + 1);
+                finalizePlayerPlacement(loser);
             }
         } else {
             log.info("Combat ended: {} wins against ghost of {}! No damage taken.", winner.getName(), loser.getName());
@@ -1154,6 +1157,7 @@ public class GameRoom {
         if (alivePlayers.size() <= 1) {
             if (alivePlayers.size() == 1) {
                 alivePlayers.get(0).setPlace(1);
+                finalizePlayerPlacement(alivePlayers.get(0));
             }
             startPhase(GamePhase.END_CELEBRATION);
         }
@@ -1166,7 +1170,10 @@ public class GameRoom {
         humanPlayers().stream()
                 .filter(player -> player.getHealth() <= 0)
                 .filter(player -> player.getPlace() == null)
-                .forEach(player -> player.setPlace((int) alivePlayers + 1));
+                .forEach(player -> {
+                    player.setPlace((int) alivePlayers + 1);
+                    finalizePlayerPlacement(player);
+                });
         startPhase(GamePhase.END_CELEBRATION);
     }
 
@@ -1228,6 +1235,14 @@ public class GameRoom {
         } catch (RuntimeException exception) {
             log.error("Gameplay analytics recording failed for room {}", id, exception);
         }
+    }
+
+    private void finalizePlayerPlacement(Player player) {
+        if (player == null || player.isBot() || player.isGhost()) {
+            return;
+        }
+        recordAnalytics(() -> analyticsRecorder.playerPlacementFinalized(
+                analyticsMatchKey, round, clock.currentTimeMillis(), player));
     }
 
     private void notifyCombatResult(

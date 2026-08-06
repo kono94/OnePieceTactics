@@ -19,6 +19,7 @@ class AdminAnalyticsRepositoryTest {
 
     private JdbcTemplate jdbcTemplate;
     private AdminAnalyticsRepository repository;
+    private long insertedAt;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -35,6 +36,7 @@ class AdminAnalyticsRepositoryTest {
         jdbcTemplate = new JdbcTemplate(dataSource);
         repository =
                 new AdminAnalyticsRepository(jdbcTemplate, JsonMapper.builder().build());
+        insertedAt = 1;
     }
 
     @Test
@@ -63,6 +65,167 @@ class AdminAnalyticsRepositoryTest {
                 .extracting(AdminAnalyticsRepository.RunSummary::runId)
                 .containsExactly("run-1");
         assertThat(repository.runDetail("run-2").rounds()).hasSize(1);
+    }
+
+    @Test
+    void comparesUnitPresenceWithinIndependentBuildCohortsAndDeduplicatesBoards() {
+        insertPresenceRun(
+                "presence-top",
+                1,
+                "[{\"definitionId\":\"unit-a\",\"lineId\":\"line-a\",\"starLevel\":2,\"itemIds\":[]},{\"definitionId\":\"unit-a\",\"lineId\":\"line-a\",\"starLevel\":1,\"itemIds\":[]},{\"definitionId\":\"unit-b\",\"lineId\":\"line-b\",\"starLevel\":1,\"itemIds\":[\"item-1\"]}]");
+        insertPresenceRun(
+                "presence-bottom",
+                5,
+                "[{\"definitionId\":\"unit-a\",\"lineId\":\"line-a\",\"starLevel\":1,\"itemIds\":[]}]");
+
+        var response = repository.unitPresence(0, 10_000, null, "version-a", "commit-a");
+
+        assertThat(response.cohorts()).hasSize(1);
+        var cohort = response.cohorts().getFirst();
+        assertThat(cohort.mode()).isEqualTo("pokemon");
+        assertThat(cohort.topFourRuns()).isEqualTo(1);
+        assertThat(cohort.bottomFourRuns()).isEqualTo(1);
+        assertThat(cohort.lowSample()).isTrue();
+        assertThat(cohort.units())
+                .extracting(AdminAnalyticsRepository.UnitPresence::definitionId)
+                .containsExactly("unit-a", "unit-b");
+        assertThat(cohort.units().getFirst().topFourCount()).isEqualTo(1);
+        assertThat(cohort.units().getFirst().bottomFourCount()).isEqualTo(1);
+    }
+
+    @Test
+    void filtersRunsByBuildPlacementCompletionAndAbandonment() {
+        insertPresenceRun(
+                "matching-run",
+                1,
+                "[{\"definitionId\":\"unit-a\",\"lineId\":\"line-a\",\"starLevel\":1}]",
+                "POKEMON",
+                "version-a",
+                "commit-a",
+                "COMPLETED",
+                false);
+        insertPresenceRun("wrong-placement", 5, "[]", "POKEMON", "version-a", "commit-a", "COMPLETED", false);
+        insertPresenceRun("interrupted-run", 1, "[]", "POKEMON", "version-a", "commit-a", "INTERRUPTED", false);
+        insertPresenceRun("abandoned-run", 1, "[]", "POKEMON", "version-a", "commit-a", "COMPLETED", true);
+
+        var completed = repository.runs(0, 10_000, "POKEMON", "version-a", "commit-a", 1, true, null, false, null, 100);
+        var interrupted =
+                repository.runs(0, 10_000, "pokemon", "version-a", "commit-a", 1, false, null, false, null, 100);
+
+        assertThat(completed.items())
+                .extracting(AdminAnalyticsRepository.RunSummary::runId)
+                .containsExactly("matching-run");
+        assertThat(interrupted.items())
+                .extracting(AdminAnalyticsRepository.RunSummary::runId)
+                .containsExactly("interrupted-run");
+    }
+
+    @Test
+    void isolatesUnknownBuildsAndExcludesDiagnosticRunsFromPresence() {
+        insertPresenceRun(
+                "unknown-top",
+                1,
+                "[{\"definitionId\":\"unknown-unit\",\"lineId\":\"unknown-line\",\"starLevel\":1}]",
+                "ONEPIECE",
+                null,
+                "",
+                "COMPLETED",
+                false);
+        insertPresenceRun(
+                "known-top",
+                1,
+                "[{\"definitionId\":\"known-unit\",\"lineId\":\"known-line\",\"starLevel\":1}]",
+                "ONEPIECE",
+                "version-a",
+                "commit-a",
+                "COMPLETED",
+                false);
+        insertPresenceRun(
+                "unknown-abandoned",
+                5,
+                "[{\"definitionId\":\"excluded-unit\",\"lineId\":\"excluded-line\",\"starLevel\":1}]",
+                "ONEPIECE",
+                null,
+                null,
+                "COMPLETED",
+                true);
+        insertPresenceRun(
+                "unknown-interrupted",
+                5,
+                "[{\"definitionId\":\"interrupted-unit\",\"lineId\":\"interrupted-line\",\"starLevel\":1}]",
+                "ONEPIECE",
+                null,
+                null,
+                "INTERRUPTED",
+                false);
+
+        var response = repository.unitPresence(0, 10_000, "onepiece", "unknown", "unknown");
+
+        assertThat(response.cohorts()).hasSize(1);
+        assertThat(response.cohorts().getFirst().backendVersion()).isEqualTo("unknown");
+        assertThat(response.cohorts().getFirst().backendCommit()).isEqualTo("unknown");
+        assertThat(response.cohorts().getFirst().units())
+                .extracting(AdminAnalyticsRepository.UnitPresence::definitionId)
+                .containsExactly("unknown-unit");
+    }
+
+    @Test
+    void ranksMatureCohortsByPresenceDelta() {
+        for (var index = 0; index < 20; index++) {
+            insertPresenceRun(
+                    "mature-top-" + index,
+                    1,
+                    "[{\"definitionId\":\"unit-a\",\"lineId\":\"line-a\",\"starLevel\":1},"
+                            + "{\"definitionId\":\"unit-b\",\"lineId\":\"line-b\",\"starLevel\":1}]",
+                    "PALWORLD",
+                    "version-mature",
+                    "commit-mature",
+                    "COMPLETED",
+                    false);
+            var bottomBoard =
+                    index < 10 ? "[{\"definitionId\":\"unit-b\",\"lineId\":\"line-b\",\"starLevel\":1}]" : "[]";
+            insertPresenceRun(
+                    "mature-bottom-" + index,
+                    5,
+                    bottomBoard,
+                    "PALWORLD",
+                    "version-mature",
+                    "commit-mature",
+                    "COMPLETED",
+                    false);
+        }
+
+        var cohort = repository
+                .unitPresence(0, 10_000, "palworld", "version-mature", "commit-mature")
+                .cohorts()
+                .getFirst();
+
+        assertThat(cohort.lowSample()).isFalse();
+        assertThat(cohort.topFourRuns()).isEqualTo(20);
+        assertThat(cohort.bottomFourRuns()).isEqualTo(20);
+        assertThat(cohort.units())
+                .extracting(AdminAnalyticsRepository.UnitPresence::definitionId)
+                .containsExactly("unit-a", "unit-b");
+        assertThat(cohort.units().getFirst().deltaPercentagePoints()).isEqualTo(100);
+    }
+
+    @Test
+    void exposesAllDateRangeFilterOptionsRegardlessOfActiveBuildFilters() {
+        insertPresenceRun("pokemon-run", 1, "[]", "POKEMON", "version-a", "commit-a", "COMPLETED", false);
+        insertPresenceRun("one-piece-run", 2, "[]", "ONE_PIECE", null, "", "COMPLETED", false);
+
+        var summary = repository.summary(0, 10_000, "POKEMON", "version-a", "commit-a");
+
+        assertThat(summary.gamesStarted()).isEqualTo(1);
+        assertThat(summary.buildCohorts())
+                .extracting(
+                        AdminAnalyticsRepository.BuildCohort::mode,
+                        AdminAnalyticsRepository.BuildCohort::backendVersion,
+                        AdminAnalyticsRepository.BuildCohort::backendCommit)
+                .containsExactlyInAnyOrder(
+                        org.assertj.core.groups.Tuple.tuple("pokemon", "version-a", "commit-a"),
+                        org.assertj.core.groups.Tuple.tuple("onepiece", "unknown", "unknown"));
+        assertThat(summary.anonymousPlayerIds()).containsExactly("browser-one-piece-run", "browser-pokemon-run");
     }
 
     private void insertCompletedRun(
@@ -97,5 +260,49 @@ class AdminAnalyticsRepositoryTest {
                 startedAt + 10,
                 outcome,
                 opponentType);
+    }
+
+    private void insertPresenceRun(String runId, int placement, String boardJson) {
+        insertPresenceRun(runId, placement, boardJson, "POKEMON", "version-a", "commit-a", "COMPLETED", false);
+    }
+
+    private void insertPresenceRun(
+            String runId,
+            int placement,
+            String boardJson,
+            String mode,
+            String backendVersion,
+            String backendCommit,
+            String status,
+            boolean abandoned) {
+        var matchId = "match-" + runId;
+        var startedAt = insertedAt++;
+        jdbcTemplate.update(
+                "INSERT INTO analytics_match"
+                        + " (id, room_id, mode, backend_version, backend_commit, started_at, ended_at, final_round, status)"
+                        + " VALUES (?, ?, ?, ?, ?, ?, ?, 4, ?)",
+                matchId,
+                UUID.randomUUID().toString(),
+                mode,
+                backendVersion,
+                backendCommit,
+                startedAt,
+                startedAt + 100,
+                status);
+        jdbcTemplate.update(
+                "INSERT INTO analytics_player_run"
+                        + " (id, match_id, player_id, analytics_client_id, started_at, abandoned_at, final_placement, final_health,"
+                        + " final_round, placement_finalized_at, final_board_json, status)"
+                        + " VALUES (?, ?, ?, ?, ?, ?, ?, 10, 4, ?, ?, ?)",
+                runId,
+                matchId,
+                UUID.randomUUID().toString(),
+                "browser-" + runId,
+                startedAt,
+                abandoned ? startedAt + 25 : null,
+                placement,
+                startedAt + 50,
+                boardJson,
+                status);
     }
 }

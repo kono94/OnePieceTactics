@@ -264,14 +264,25 @@ Admin endpoints:
 - `GET /api/admin/analytics/summary`
 - `GET /api/admin/analytics/runs`
 - `GET /api/admin/analytics/runs/{runId}`
+- `GET /api/admin/analytics/unit-presence`
 
 Admin login issues an opaque eight-hour bearer token and rate-limits failed attempts by source address. A blank admin
 password safely disables login in development. A production-scoped startup validator rejects a missing or blank
 `ANALYTICS_ADMIN_PASSWORD`, including an empty value supplied by Docker Compose. Build tag, commit, and timestamp are
 constructor-injected into analytics rows.
 
-The recorder stores match/run/round snapshots asynchronously in SQLite. Flyway owns the schema. Startup recovery marks
-previously `STARTED` rows as `INTERRUPTED`.
+The recorder stores match/run/round snapshots asynchronously in SQLite. Each human run has one first-wins final-board
+snapshot of deployed `definitionId`, `lineId`, `starLevel`, and `itemIds`; captured `[]` is distinct from a null legacy
+snapshot. Placement finalization is routed through `GameRoom` for combat elimination, explicit abandonment,
+last-player resolution, and winner placement; disconnect grace records abandonment without finalizing placement.
+Completion supplies a non-overwriting fallback and interruption recovery retains any snapshot. Flyway V3 backfills the
+last recorded round where available and corrects player final rounds to their last recorded round.
+
+The unit-presence endpoint filters to completed, non-abandoned human runs with a final board, then groups independently
+by canonical mode, backend version, and commit. It deduplicates definitions within each board, compares placements 1–4
+against 5–8, and uses low-sample frequency ordering until both groups reach 20 runs.
+The summary response also returns all distinct build cohorts and anonymous player IDs in the requested date range,
+independently of active mode/version/commit filters, so the dashboard can keep complete filter selections available.
 
 ## 11. Test strategy
 

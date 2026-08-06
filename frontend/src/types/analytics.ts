@@ -22,6 +22,15 @@ export interface AnalyticsSummary {
     placementDistribution: Record<string, number>
     outcomeDistribution: Record<string, number>
     botRoundOutcomes: AnalyticsBotRoundOutcome[]
+    buildCohorts: AnalyticsBuildCohort[]
+    anonymousPlayerIds: string[]
+}
+
+export interface AnalyticsBuildCohort {
+    mode: string
+    backendVersion: string
+    backendCommit: string
+    runs: number
 }
 
 export interface AnalyticsRunSummary {
@@ -29,12 +38,16 @@ export interface AnalyticsRunSummary {
     matchId: string
     anonymousPlayerId: string
     mode: string
+    backendVersion: string
+    backendCommit: string
     startedAt: string
     status: AnalyticsRunStatus
     abandonedAt: string | null
     finalPlacement: number | null
     finalRound: number | null
     finalHealth: number | null
+    placementFinalizedAt: string | null
+    finalComposition: AnalyticsBoardUnit[] | null
     wins: number
     losses: number
     draws: number
@@ -44,6 +57,7 @@ export interface AnalyticsBoardUnit {
     definitionId: string
     lineId: string
     starLevel: number
+    itemIds: string[]
 }
 
 export interface AnalyticsAugment {
@@ -80,13 +94,40 @@ export interface AnalyticsFilters {
     from: string
     to: string
     mode?: string
+    backendVersion?: string
+    backendCommit?: string
 }
 
 export interface AnalyticsRunFilters extends AnalyticsFilters {
     analyticsClientId?: string
     abandoned?: boolean
+    placement?: number
+    completed?: boolean
     cursor?: string
     size?: number
+}
+
+export interface AnalyticsUnitPresence {
+    definitionId: string
+    topFourCount: number
+    topFourRate: number
+    bottomFourCount: number
+    bottomFourRate: number
+    deltaPercentagePoints: number
+}
+
+export interface AnalyticsUnitPresenceCohort {
+    mode: string
+    backendVersion: string
+    backendCommit: string
+    topFourRuns: number
+    bottomFourRuns: number
+    lowSample: boolean
+    units: AnalyticsUnitPresence[]
+}
+
+export interface AnalyticsUnitPresenceResponse {
+    cohorts: AnalyticsUnitPresenceCohort[]
 }
 
 export interface AdminSession {

@@ -6,6 +6,7 @@ defineOptions({
 defineEmits(['back'])
 
 const nextVersionCommits = [
+  { hash: 'pending', title: 'Add final-composition analytics with selectable build-cohort filters' },
   { hash: 'pending', title: 'Move Palworld architecture and release details into focused documentation' },
   { hash: 'pending', title: 'Replace hosted Renovate with Codex-assisted local dependency maintenance' },
   { hash: 'pending', title: 'Upgrade ESLint 9.39.5 => 10.8.0 and TypeScript 5.9.3 => 6.0.3' },
@@ -102,6 +103,9 @@ const version160Commits = [
             The frontend toolchain now uses ESLint 9.39.5 => 10.8.0 and TypeScript 5.9.3 => 6.0.3, and frontend
             development, CI, and the production build image now target Node.js 26. Renovate commits use
             repository-owned, privacy-preserving attribution.
+            Final deployed boards are now captured once per human run, and the protected analytics dashboard can compare
+            unit presence across isolated mode/version/commit cohorts with historical-image fallbacks and filter using
+            all distinct modes, versions, commits, build cohorts, and anonymous player IDs in the selected date range.
           </p>
         </div>
         <article class="release-panel">

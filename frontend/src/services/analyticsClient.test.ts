@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { clearAdminSession, getRuns, loadAdminSession, login, saveAdminSession } from './analyticsClient'
+import { clearAdminSession, getRuns, getUnitPresence, loadAdminSession, login, saveAdminSession } from './analyticsClient'
 
 describe('analytics client', () => {
     beforeEach(() => {
@@ -51,5 +51,22 @@ describe('analytics client', () => {
         })
 
         expect(fetchMock.mock.calls[0][0]).toContain('analyticsClientId=browser-123')
+    })
+
+    it('requests unit presence with an exact build cohort', async () => {
+        const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+            new Response(JSON.stringify({ cohorts: [] }), { status: 200 }),
+        )
+
+        await getUnitPresence('token', {
+            from: '2026-07-01T00:00:00.000Z',
+            to: '2026-07-11T00:00:00.000Z',
+            mode: 'pokemon',
+            backendVersion: '2.0.0',
+            backendCommit: 'abc123',
+        })
+
+        expect(fetchMock.mock.calls[0][0]).toContain('backendVersion=2.0.0')
+        expect(fetchMock.mock.calls[0][0]).toContain('backendCommit=abc123')
     })
 })

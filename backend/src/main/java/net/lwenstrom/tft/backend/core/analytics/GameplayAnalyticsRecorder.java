@@ -22,5 +22,7 @@ public interface GameplayAnalyticsRecorder {
 
     default void playerAbandoned(String roomId, String playerId, long occurredAt) {}
 
+    default void playerPlacementFinalized(String roomId, int finalRound, long occurredAt, Player player) {}
+
     default void matchCompleted(String roomId, int finalRound, long occurredAt, List<Player> players) {}
 }
