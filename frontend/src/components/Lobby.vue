@@ -24,9 +24,6 @@ defineEmits(['create', 'join'])
     <div class="title">
         <h1>{{ props.title }}</h1>
         <p class="subtitle">Create or join a tactics room</p>
-        <div v-if="props.themeClass === 'theme-palworld'" class="pal-sphere" aria-hidden="true">
-            <span class="pal-sphere-button" />
-        </div>
     </div>
     <div v-if="props.error" class="lobby-error">{{ props.error }}</div>
     
@@ -161,111 +158,6 @@ button.secondary {
     color: #888;
 }
 
-.lobby.theme-palworld {
-    --pw-sky: #102a43;
-    --pw-sky-deep: #237b98;
-    --pw-teal: #2ab99a;
-    --pw-leaf: #4ade80;
-    --pw-sand: #30445d;
-    --pw-coral: #fb7185;
-    --pw-gold: #f3b94f;
-    --pw-ink: #e5f3f5;
-    --pw-cloud: #ecfeff;
-    --room-bg: linear-gradient(180deg, #071221 0%, #0d1c2e 52%, #15253a 100%);
-    --room-fg: var(--pw-ink);
-    --room-muted: #9db7c3;
-    --room-accent: var(--pw-teal);
-    --room-accent-contrast: #06151f;
-    --room-avatar: #2d9f86;
-}
-
-.lobby.theme-palworld::before,
-.lobby.theme-palworld::after {
-    position: absolute;
-    z-index: 0;
-    content: '';
-    pointer-events: none;
-}
-
-.lobby.theme-palworld::before {
-    inset: 0 0 35%;
-    background: linear-gradient(180deg, rgba(16, 42, 67, 0.72), rgba(7, 18, 33, 0.18));
-}
-
-.lobby.theme-palworld::after {
-    inset: auto 0 0;
-    height: 38%;
-    background: linear-gradient(180deg, transparent 0 30%, var(--pw-sand) 31%);
-}
-
-.lobby.theme-palworld .title h1 {
-    color: var(--pw-ink);
-    background: linear-gradient(90deg, var(--pw-teal), var(--pw-sky-deep));
-    background-clip: text;
-    -webkit-background-clip: text;
-}
-
-.lobby.theme-palworld .card {
-    border-color: rgba(236, 254, 255, 0.15);
-    border-radius: 20px;
-    background: rgba(12, 29, 46, 0.82);
-    box-shadow: 0 14px 30px rgba(2, 6, 23, 0.28);
-    color: var(--pw-ink);
-}
-
-.lobby.theme-palworld .card p {
-    color: var(--room-muted);
-}
-
-.lobby.theme-palworld input {
-    border: 1px solid rgba(236, 254, 255, 0.16);
-    background: rgba(4, 15, 29, 0.7);
-    color: var(--pw-cloud);
-}
-
-.lobby.theme-palworld input:focus {
-    outline: 3px solid rgba(251, 113, 133, 0.32);
-    border-color: var(--pw-coral);
-}
-
-.lobby.theme-palworld button {
-    background: var(--pw-teal);
-    color: var(--pw-cloud);
-}
-
-.lobby.theme-palworld button:hover:not(:disabled) {
-    background: var(--pw-leaf);
-}
-
-.lobby.theme-palworld button.secondary {
-    background: var(--pw-coral);
-    color: var(--pw-ink);
-}
-
-.pal-sphere {
-    position: absolute;
-    top: 0;
-    right: -58px;
-    width: 72px;
-    height: 72px;
-    border: 4px solid var(--pw-ink);
-    border-radius: 50%;
-    background: linear-gradient(180deg, var(--pw-coral) 0 46%, var(--pw-ink) 46% 54%, var(--pw-cloud) 54%);
-    box-shadow: 0 6px 0 rgba(217, 164, 65, 0.8);
-}
-
-.pal-sphere-button {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 18px;
-    height: 18px;
-    border: 4px solid var(--pw-ink);
-    border-radius: 50%;
-    background: var(--pw-cloud);
-    transform: translate(-50%, -50%);
-}
-
 @media (max-width: 720px) {
     .actions {
         flex-direction: column;
@@ -278,11 +170,6 @@ button.secondary {
         width: 100%;
     }
 
-    .pal-sphere {
-        right: -26px;
-        width: 56px;
-        height: 56px;
-    }
 }
 
 @media (prefers-reduced-motion: reduce) {

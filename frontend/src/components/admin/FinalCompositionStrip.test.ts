@@ -18,7 +18,6 @@ describe('FinalCompositionStrip', () => {
     it.each([
         ['onepiece', '/assets/units/onepiece/test-unit.png'],
         ['pokemon', '/assets/units/pokemon/test-unit.png'],
-        ['palworld', '/assets/units/palworld/test-unit_v1.png'],
     ])('renders portraits for %s', (mode, expectedPath) => {
         const board = mount(FinalCompositionStrip, {
             props: {

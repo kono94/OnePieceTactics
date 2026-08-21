@@ -14,7 +14,6 @@ import net.lwenstrom.tft.backend.core.combat.ElementalAffinityConfig;
 import net.lwenstrom.tft.backend.core.combat.TargetSelector;
 import net.lwenstrom.tft.backend.core.combat.UnitMover;
 import net.lwenstrom.tft.backend.core.model.DotEffect;
-import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GameState;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 import net.lwenstrom.tft.backend.core.random.DefaultRandomProvider;
@@ -51,7 +50,6 @@ public class CombatSystem {
                 unitMover,
                 abilityCaster,
                 new DefaultRandomProvider(),
-                GameMode.ONEPIECE,
                 ElementalAffinityConfig.neutral());
     }
 
@@ -69,7 +67,6 @@ public class CombatSystem {
                 unitMover,
                 abilityCaster,
                 randomProvider,
-                GameMode.ONEPIECE,
                 ElementalAffinityConfig.neutral());
     }
 
@@ -80,7 +77,6 @@ public class CombatSystem {
             UnitMover unitMover,
             AbilityCaster abilityCaster,
             RandomProvider randomProvider,
-            GameMode mode,
             ElementalAffinityConfig affinityConfig) {
         this.traitManager = traitManager;
         this.clock = clock;
@@ -88,35 +84,12 @@ public class CombatSystem {
         this.unitMover = unitMover;
         this.abilityCaster = abilityCaster;
         this.randomProvider = randomProvider;
-        configureAffinity(mode, affinityConfig);
-    }
-
-    public CombatSystem(
-            TraitManager traitManager,
-            Clock clock,
-            TargetSelector targetSelector,
-            UnitMover unitMover,
-            AbilityCaster abilityCaster,
-            RandomProvider randomProvider,
-            ElementalAffinityConfig affinityConfig) {
-        this(
-                traitManager,
-                clock,
-                targetSelector,
-                unitMover,
-                abilityCaster,
-                randomProvider,
-                GameMode.PALWORLD,
-                affinityConfig);
-    }
-
-    public void configureAffinity(GameMode mode, ElementalAffinityConfig affinityConfig) {
-        this.damageResolver = new DamageResolver(mode, affinityConfig);
-        this.abilityCaster.setDamageResolver(this.damageResolver);
+        configureAffinity(affinityConfig);
     }
 
     public void configureAffinity(ElementalAffinityConfig affinityConfig) {
-        configureAffinity(damageResolver == null ? GameMode.ONEPIECE : damageResolver.mode(), affinityConfig);
+        this.damageResolver = new DamageResolver(affinityConfig);
+        this.abilityCaster.setDamageResolver(this.damageResolver);
     }
 
     private void accumulateDamage(String unitId, String unitName, String defId, String ownerId, int damage) {

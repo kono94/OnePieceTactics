@@ -3,13 +3,12 @@ package net.lwenstrom.tft.backend.core.combat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
-import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.test.MockUnit;
 import org.junit.jupiter.api.Test;
 
 class PokemonAffinityParityTest {
     private final DamageResolver resolver =
-            new DamageResolver(GameMode.POKEMON, new ElementalAffinityLoader().load("/data/affinities_pokemon.json"));
+            new DamageResolver(new ElementalAffinityLoader().load("/data/affinities_pokemon.json"));
 
     @Test
     void preservesSingleTypeTraitDerivedParity() {

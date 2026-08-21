@@ -42,3 +42,22 @@ export function getAttackParticleBudget(
 export function prefersReducedMotion() {
     return typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
 }
+
+export type RenderEffectPriority = 'ability' | 'standard'
+
+export function getRenderEffectPriority(type: string): RenderEffectPriority {
+    return type === 'SKILL' || type === 'HEAL' || type === 'SHIELD' ? 'ability' : 'standard'
+}
+
+export function chooseEffectEvictionIndex(
+    effects: readonly { priority: RenderEffectPriority }[],
+    incomingPriority: RenderEffectPriority,
+    maxEffects: number,
+) {
+    if (effects.length < maxEffects) return -1
+
+    const standardIndex = effects.findIndex((effect) => effect.priority === 'standard')
+    if (standardIndex >= 0) return standardIndex
+
+    return incomingPriority === 'ability' && effects.length > 0 ? 0 : -1
+}

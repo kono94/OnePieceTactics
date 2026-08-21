@@ -6,8 +6,7 @@ import java.util.Arrays;
 
 public enum GameMode {
     ONEPIECE("onepiece"),
-    POKEMON("pokemon"),
-    PALWORLD("palworld");
+    POKEMON("pokemon");
 
     private final String value;
 
@@ -22,9 +21,12 @@ public enum GameMode {
 
     @JsonCreator
     public static GameMode fromString(String value) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("Game mode is required");
+        }
         return Arrays.stream(GameMode.values())
-                .filter(mode -> mode.value.equalsIgnoreCase(value))
+                .filter(mode -> mode.value.equalsIgnoreCase(value.trim()))
                 .findFirst()
-                .orElse(ONEPIECE);
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported game mode: " + value));
     }
 }

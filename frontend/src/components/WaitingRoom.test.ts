@@ -3,9 +3,9 @@ import { describe, expect, it } from 'vitest'
 import WaitingRoom from './WaitingRoom.vue'
 import type { GameState } from '../types'
 
-function gameState(gameMode: GameState['gameMode'] = 'palworld'): GameState {
+function gameState(gameMode: GameState['gameMode'] = 'pokemon'): GameState {
     return {
-        roomId: 'pal-room',
+        roomId: 'mode-room',
         hostId: 'player-1',
         phase: 'LOBBY',
         round: 1,
@@ -42,25 +42,25 @@ function gameState(gameMode: GameState['gameMode'] = 'palworld'): GameState {
 }
 
 describe('WaitingRoom mode selection', () => {
-    it('renders all three modes and emits Palworld for the host', async () => {
+    it('renders both modes and emits the selected mode for the host', async () => {
         const wrapper = mount(WaitingRoom, {
             props: {
                 gameState: gameState(),
                 currentPlayerId: 'player-1',
-                availableModes: ['palworld', 'pokemon', 'onepiece'],
+                availableModes: ['pokemon', 'onepiece'],
                 defaultMode: 'onepiece',
-                themeClass: 'theme-palworld',
+                themeClass: 'theme-onepiece',
             },
         })
 
         const modeButtons = wrapper.findAll('.mode-option')
-        expect(modeButtons).toHaveLength(3)
-        expect(modeButtons.map((button) => button.find('span.mode-motif + span').text())).toEqual(['One Piece', 'Pokemon', 'Palworld'])
-        expect(wrapper.find('.waiting-room').classes()).toContain('theme-palworld')
+        expect(modeButtons).toHaveLength(2)
+        expect(modeButtons.map((button) => button.find('span.mode-name').text())).toEqual(['One Piece', 'Pokemon'])
+        expect(wrapper.find('.waiting-room').classes()).toContain('theme-onepiece')
 
         await modeButtons[0].trigger('click')
-        await modeButtons[2].trigger('click')
-        expect(wrapper.emitted('mode-change')).toEqual([['onepiece'], ['palworld']])
+        await modeButtons[1].trigger('click')
+        expect(wrapper.emitted('mode-change')).toEqual([['onepiece'], ['pokemon']])
     })
 
     it('keeps mode choices visible but disabled for non-hosts', () => {
@@ -68,13 +68,13 @@ describe('WaitingRoom mode selection', () => {
             props: {
                 gameState: gameState(),
                 currentPlayerId: 'guest-player',
-                availableModes: ['onepiece', 'pokemon', 'palworld'],
+                availableModes: ['onepiece', 'pokemon'],
                 defaultMode: 'onepiece',
             },
         })
 
         expect(wrapper.findAll('.mode-option').every((button) => button.attributes('disabled') !== undefined)).toBe(true)
-        expect(wrapper.find('.mode-option.active').text()).toContain('Palworld')
+        expect(wrapper.find('.mode-option.active').text()).toContain('Pokemon')
         expect(wrapper.emitted('mode-change')).toBeUndefined()
     })
 })

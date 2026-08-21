@@ -224,7 +224,6 @@ public final class TestHelpers {
                 new BfsUnitMover(clock),
                 new DefaultAbilityCaster(),
                 createSeededRandomProvider(),
-                GameMode.POKEMON,
                 new ElementalAffinityLoader().load("/data/affinities_pokemon.json"));
     }
 

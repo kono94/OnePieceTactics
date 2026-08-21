@@ -36,7 +36,7 @@ watch(
 const modeOptions = computed((): GameMode[] => {
     return props.availableModes && props.availableModes.length > 0
         ? sortGameModes(props.availableModes)
-        : ['onepiece', 'pokemon', 'palworld']
+        : ['onepiece', 'pokemon']
 })
 
 const modeMetadata = (mode: GameMode) => getGameModeMetadata(mode)
@@ -44,7 +44,6 @@ const modeMetadata = (mode: GameMode) => getGameModeMetadata(mode)
 const modeDescriptions: Record<GameMode, string> = {
     onepiece: 'Set sail with legendary pirates',
     pokemon: 'Build a team of iconic trainers',
-    palworld: 'Explore a wild world of Pals',
 }
 
 const themeClass = computed(() => {
@@ -114,8 +113,7 @@ function selectMode(mode: GameMode) {
                 @click="selectMode(mode)"
             >
                 <span class="mode-motif" :class="`motif-${mode}`" aria-hidden="true">
-                    <img v-if="mode === 'palworld'" class="mode-motif-image" src="/pal-sphere.png" alt="" />
-                    <span v-else-if="mode === 'onepiece'" class="mode-motif-star">✦</span>
+                    <span v-if="mode === 'onepiece'" class="mode-motif-star">✦</span>
                 </span>
                 <span class="mode-name">{{ modeMetadata(mode).label }}</span>
                 <span class="mode-caption">{{ modeDescriptions[mode] }}</span>
@@ -313,7 +311,7 @@ function selectMode(mode: GameMode) {
 
 .mode-control {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
 }
 
@@ -363,13 +361,6 @@ function selectMode(mode: GameMode) {
     box-shadow: inset 0 0 0 5px rgba(255, 255, 255, 0.1);
 }
 
-.motif-palworld {
-    overflow: hidden;
-    border: none;
-    background: #86e5f3;
-    box-shadow: none;
-}
-
 .motif-onepiece {
     border-color: #fbbf24;
     background: radial-gradient(circle, #fef3c7 0 20%, #f59e0b 21% 38%, #172554 39% 100%);
@@ -395,13 +386,6 @@ function selectMode(mode: GameMode) {
 .mode-motif-star {
     transform: translateY(-1px);
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.75);
-}
-
-.mode-motif-image {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
 }
 
 .mode-name {
@@ -492,114 +476,6 @@ button {
     0% { opacity: 0.6; }
     50% { opacity: 1; }
     100% { opacity: 0.6; }
-}
-
-.waiting-room.theme-palworld {
-    --pw-sky: #102a43;
-    --pw-sky-deep: #237b98;
-    --pw-teal: #2ab99a;
-    --pw-leaf: #4ade80;
-    --pw-sand: #30445d;
-    --pw-coral: #fb7185;
-    --pw-gold: #f3b94f;
-    --pw-ink: #e5f3f5;
-    --pw-cloud: #ecfeff;
-    --room-bg: linear-gradient(180deg, #071221 0%, #0d1c2e 52%, #15253a 100%);
-    --room-fg: var(--pw-ink);
-    --room-muted: #9db7c3;
-    --room-accent: var(--pw-teal);
-    --room-accent-contrast: #06151f;
-    --room-avatar: #2d9f86;
-    color: var(--pw-ink);
-}
-
-.waiting-room.theme-palworld::before {
-    position: absolute;
-    inset: 0 0 42%;
-    z-index: -1;
-    background: linear-gradient(180deg, rgba(16, 42, 67, 0.72), rgba(7, 18, 33, 0.18));
-    content: '';
-    pointer-events: none;
-}
-
-.waiting-room.theme-palworld .header h2 {
-    color: var(--pw-teal);
-}
-
-.waiting-room.theme-palworld .player-card,
-.waiting-room.theme-palworld .mode-panel {
-    border-color: rgba(236, 254, 255, 0.15);
-    background: rgba(12, 29, 46, 0.76);
-    box-shadow: 0 14px 30px rgba(2, 6, 23, 0.28);
-}
-
-.waiting-room.theme-palworld .player-card.empty {
-    border-color: rgba(42, 185, 154, 0.34);
-}
-
-.waiting-room.theme-palworld .mode-control {
-    border: none;
-    background: transparent;
-}
-
-.waiting-room.theme-palworld .mode-option {
-    border-color: rgba(236, 254, 255, 0.14);
-    background: rgba(4, 15, 29, 0.48);
-    color: var(--pw-ink);
-}
-
-.waiting-room.theme-palworld .mode-option:hover:not(:disabled) {
-    border-color: var(--pw-teal);
-    background: rgba(42, 185, 154, 0.12);
-}
-
-.waiting-room.theme-palworld .mode-caption {
-    color: var(--room-muted);
-}
-
-.waiting-room.theme-palworld .mode-status {
-    border-color: rgba(42, 185, 154, 0.34);
-    background: rgba(42, 185, 154, 0.12);
-    color: #8ce8cf;
-}
-
-.waiting-room.theme-palworld .mode-status.locked {
-    border-color: rgba(157, 183, 195, 0.22);
-    background: rgba(157, 183, 195, 0.1);
-    color: var(--room-muted);
-}
-
-.waiting-room.theme-palworld .mode-option.active {
-    color: var(--pw-ink);
-    background: var(--pw-sand);
-    border: 1px solid var(--pw-teal);
-    box-shadow: 0 0 0 2px var(--pw-coral), 0 0 16px rgba(217, 164, 65, 0.55);
-}
-
-.waiting-room.theme-palworld .mode-option.active .motif-palworld {
-    border-color: var(--pw-coral);
-}
-
-.waiting-room.theme-palworld .host-badge {
-    background: var(--pw-gold);
-    color: var(--pw-ink);
-}
-
-.waiting-room.theme-palworld .me-badge {
-    background: var(--pw-leaf);
-    color: var(--pw-ink);
-}
-
-.waiting-room.theme-palworld .start-btn {
-    background: var(--pw-teal);
-    color: var(--pw-cloud);
-    box-shadow: 0 0 20px rgba(24, 124, 107, 0.3);
-}
-
-.waiting-room.theme-palworld .leave-btn {
-    border-color: rgba(236, 254, 255, 0.18);
-    background: rgba(12, 29, 46, 0.76);
-    color: var(--pw-ink);
 }
 
 @media (max-width: 720px) {

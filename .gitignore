@@ -12,5 +12,5 @@ deployment/certbot/
 backend/data/*
 !backend/data/.gitkeep
 
-# Palworld generated batch scratch grids
-frontend/public/assets/units/palworld/_generated_batches/
+# Generated unit batch scratch grids
+frontend/public/assets/units/*/_generated_batches/

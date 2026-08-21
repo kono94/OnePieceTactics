@@ -1,6 +1,6 @@
 # Theme Fusion Tactics (TFT)
 
-**Theme Fusion Tactics (TFT)** is a browser-based **auto-battler game** inspired by Teamfight Tactics, featuring a theme-swappable engine with lobby-selectable One Piece (default), Pokemon, and Palworld modes and real-time multiplayer via WebSockets.
+**Theme Fusion Tactics (TFT)** is a browser-based **auto-battler game** inspired by Teamfight Tactics, featuring a theme-swappable engine with lobby-selectable One Piece (default) and Pokemon modes and real-time multiplayer via WebSockets.
 
 ![Java 25](https://img.shields.io/badge/Java-25-orange) ![Spring Boot 4](https://img.shields.io/badge/Spring%20Boot-4.1.0-green) ![Vue 3](https://img.shields.io/badge/Vue.js-3.5-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue)
 
@@ -25,7 +25,7 @@ For detailed architectural information, refer to the context documents:
 ### Core Gameplay
 - **Up to 8 players** per game room (human + AI bots with adaptive shop odds)
 - **Real-time state sync** via STOMP WebSockets (100ms tick rate)
-- **Theme-agnostic core engine** — hosts choose One Piece, Pokemon, or Palworld per room in the lobby
+- **Theme-agnostic core engine** — hosts choose One Piece or Pokemon per room in the lobby
 - **Auto-battler mechanics**: Shop, XP, Gold (with interest), Trait Synergies, Unit Combinations
 - **Grid-based combat** with BFS pathfinding, ability casting, and directional attack animations
 - **Star-level progression** — combine 3 matching 1★ units into 1 2★, then 2 matching 2★ units into 1 3★, including Pokemon evolution forms
@@ -39,7 +39,7 @@ For detailed architectural information, refer to the context documents:
 - **Ghost/clone matchmaking** — Odd player count creates AI clones for balanced combat
 - **Player elimination** — Ranked placement system with game-ending logic
 - **Loot orbs** — Gold and unit rewards spawn after combat rounds, with a one-time emergency drop when a surviving human first falls to 20 health or lower
-- **Data-loaded elemental combat** — Pokemon and Palworld auto attacks and damage abilities derive their offensive element from traits using the best-attacker-trait rule and mode-owned affinity data; One Piece remains neutral
+- **Data-loaded elemental combat** — Pokemon auto attacks and damage abilities derive their offensive element from traits using the best-attacker-trait rule and mode-owned affinity data; One Piece remains neutral
 - **Role-based unit identity** — Every form is labeled Damage, Tank, or Support; Pokemon evolutions can change roles
 - **Unified DEF combat stat** — DEF mitigates attacks, abilities, and damage-over-time and can be buffed or shredded
 - **Tabbed damage report** — Post-combat tracking for your units vs opponent with visual damage bars
@@ -154,7 +154,7 @@ docker compose --profile dev up --build
 
 ## 🎮 Game Modes
 
-Rooms start in One Piece mode, then the host can switch modes in the lobby before starting the match. Mode selection is
+Rooms start in One Piece mode, then the host can switch to Pokemon in the lobby before starting the match. Mode selection is
 part of the room lifecycle, not a deployment setting. Changing the room mode swaps the unit set, traits, visuals, and
 mode-specific combat rules for that room.
 
@@ -162,14 +162,10 @@ mode-specific combat rules for that room.
 |------|----------------|------------|
 | One Piece | `onepiece` | `units_onepiece.json`, `traits_onepiece.json`, `augments_onepiece.json` |
 | Pokemon | `pokemon` | `units_pokemon.json`, `traits_pokemon.json`, `augments_pokemon.json`, `affinities_pokemon.json` |
-| Palworld | `palworld` | `units_palworld.json`, `traits_palworld.json`, `augments_palworld.json`, `affinities_palworld.json` |
 
 To add a new theme, implement `GameModeProvider` and add corresponding JSON data files. See
 [Backend Context](backend/BACKEND_CONTEXT.md#6-modes-and-data-loading) for details.
 
-Palworld uses the same provider-backed engine and shared in-match UI as the other modes. See the
-[backend context](backend/BACKEND_CONTEXT.md#6-modes-and-data-loading) and
-[frontend context](frontend/FRONTEND_CONTEXT.md#9-modes-assets-and-styling) for implementation details.
 
 ---
 

@@ -177,7 +177,7 @@ class AdminAnalyticsRepositoryTest {
                     1,
                     "[{\"definitionId\":\"unit-a\",\"lineId\":\"line-a\",\"starLevel\":1},"
                             + "{\"definitionId\":\"unit-b\",\"lineId\":\"line-b\",\"starLevel\":1}]",
-                    "PALWORLD",
+                    "POKEMON",
                     "version-mature",
                     "commit-mature",
                     "COMPLETED",
@@ -188,7 +188,7 @@ class AdminAnalyticsRepositoryTest {
                     "mature-bottom-" + index,
                     5,
                     bottomBoard,
-                    "PALWORLD",
+                    "POKEMON",
                     "version-mature",
                     "commit-mature",
                     "COMPLETED",
@@ -196,7 +196,7 @@ class AdminAnalyticsRepositoryTest {
         }
 
         var cohort = repository
-                .unitPresence(0, 10_000, "palworld", "version-mature", "commit-mature")
+                .unitPresence(0, 10_000, "pokemon", "version-mature", "commit-mature")
                 .cohorts()
                 .getFirst();
 

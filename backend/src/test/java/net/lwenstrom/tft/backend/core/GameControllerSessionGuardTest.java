@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
@@ -18,6 +19,7 @@ import net.lwenstrom.tft.backend.test.TestHelpers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 class GameControllerSessionGuardTest {
 
@@ -236,6 +238,13 @@ class GameControllerSessionGuardTest {
                 room.getId(), new GameController.ModeChangeRequest("Host", GameMode.POKEMON), "guest-session");
 
         assertEquals(GameMode.ONEPIECE, room.getState().gameMode());
+    }
+
+    @Test
+    void getTraitsRejectsUnsupportedModesWithBadRequest() {
+        var exception = assertThrows(ResponseStatusException.class, () -> controller.getTraits("unsupported-mode"));
+
+        assertEquals(400, exception.getStatusCode().value());
     }
 
     @Test

@@ -1,28 +1,17 @@
 package net.lwenstrom.tft.backend.core.combat;
 
 import java.util.List;
-import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GameUnit;
 
 public final class DamageResolver {
-    private final GameMode mode;
     private final ElementalAffinityConfig affinityConfig;
 
     public DamageResolver() {
-        this(GameMode.ONEPIECE, ElementalAffinityConfig.neutral());
+        this(ElementalAffinityConfig.neutral());
     }
 
     public DamageResolver(ElementalAffinityConfig affinityConfig) {
-        this(GameMode.PALWORLD, affinityConfig);
-    }
-
-    public DamageResolver(GameMode mode, ElementalAffinityConfig affinityConfig) {
-        this.mode = mode == null ? GameMode.ONEPIECE : mode;
         this.affinityConfig = affinityConfig == null ? ElementalAffinityConfig.neutral() : affinityConfig;
-    }
-
-    public GameMode mode() {
-        return mode;
     }
 
     public ElementalAffinityConfig affinityConfig() {

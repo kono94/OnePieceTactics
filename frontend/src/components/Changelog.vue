@@ -8,7 +8,7 @@ defineEmits(['back'])
 const nextVersionCommits = [
   { hash: 'pending', title: 'Allow shop economy and bench management during combat' },
   { hash: 'pending', title: 'Add final-composition analytics with selectable build-cohort filters' },
-  { hash: 'pending', title: 'Move Palworld architecture and release details into focused documentation' },
+  { hash: 'pending', title: 'Remove retired mode assets, animation paths, and unsupported wire modes' },
   { hash: 'pending', title: 'Replace hosted Renovate with Codex-assisted local dependency maintenance' },
   { hash: 'pending', title: 'Upgrade ESLint 9.39.5 => 10.8.0 and TypeScript 5.9.3 => 6.0.3' },
   { hash: 'pending', title: 'Standardize frontend development and CI on Node.js 26' },
@@ -22,17 +22,8 @@ const nextVersionCommits = [
   { hash: '69fc53c', title: 'Fix landing page footer layout' }
 ]
 
-const version200rc2Commits = [
-  { hash: 'dd2bad7', title: 'Replace the Palworld favicon with a distinct crystal-and-gold Pal Sphere design' },
-  { hash: 'dd2bad7', title: 'Add the remaining 11 Palworld unit portraits from batches 12–14 and the Pal Sphere favicon' }
-]
-
 const version200rc1Commits = [
   { hash: 'bf23b7f', title: 'Fix frontend container builds that consume shared backend unit definitions' },
-  { hash: '89a7170', title: 'Add the first 44 processed Palworld unit portraits from batches 1–11' },
-  { hash: '89a7170', title: 'Add Palworld mode planning and documentation' },
-  { hash: '89a7170', title: 'Use one star-scaled root ability per Pal with Pokemon-style trait-derived damage typing' },
-  { hash: '89a7170', title: 'Add 55 Palworld attack and ability previews without required JSON animation keys' },
   { hash: '89a7170', title: 'Externalize Pokemon affinity relationships into the shared data-driven resolver' },
   { hash: '89a7170', title: 'Rename the product to Theme Fusion Tactics (TFT)' }
 ]
@@ -89,12 +80,12 @@ const version160Commits = [
       <section class="release-section latest-release">
         <div class="release-header">
           <p class="eyebrow">Next</p>
-          <h2>Version X.X.X</h2>
+          <h2>Version 2.0.0-rc5</h2>
           <p>
             Room creation and player identity now use explicit private acknowledgements, all room mutations share one
             serialized authority boundary, invalid phase actions are rejected by the backend, and decisive combat
             events are retained. Room IDs now stay canonical across subscriptions and reconnect state, while production
-            fails fast without an analytics admin password. Java 25 test startup, Palworld live animations, refund
+            fails fast without an analytics admin password. Java 25 test startup, refund
             previews, dependency security, CI release gates, obsolete deployment-time mode selection, and the
             backend/frontend architecture guides were also corrected. Human-involved combats now keep normal pacing;
             once they all resolve, remaining bot-only combats are drained immediately. Renovate now processes one
@@ -121,34 +112,14 @@ const version160Commits = [
         </article>
       </section>
 
-      <section class="release-section latest-release">
-        <div class="release-header">
-          <p class="eyebrow">Latest</p>
-          <h2>Version 2.0.0-rc2</h2>
-          <p>
-            Completed the Palworld portrait set and replaced the temporary icon with the Pal Sphere favicon used by
-            the Palworld lobby theme.
-          </p>
-        </div>
-        <article class="release-panel">
-          <ul class="commit-list">
-            <li v-for="commit in version200rc2Commits" :key="`${commit.hash}-${commit.title}`">
-              <span class="hash">{{ commit.hash }}</span>
-              <span>{{ commit.title }}</span>
-            </li>
-          </ul>
-        </article>
-      </section>
-
       <section class="release-section">
         <div class="release-header">
           <p class="eyebrow">Previous</p>
           <h2>Version 2.0.0-rc1</h2>
           <p>
-            Palworld became the third lobby-selectable mode with 55 Pals, nine team-wide elemental traits, 15
-            augments, and one star-scaled root ability per Pal. Basic attacks and abilities derive their offensive
-            element from Pal traits through the shared affinity resolver, and the development gallery covers all
-            definition-based attack and root-ability previews without animation keys in backend JSON.
+            Pokemon affinity relationships were externalized into the shared data-driven resolver, while the product
+            was renamed to Theme Fusion Tactics (TFT) and frontend container builds were aligned with shared backend
+            unit definitions.
           </p>
         </div>
         <article class="release-panel">

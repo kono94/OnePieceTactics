@@ -18,6 +18,7 @@ import net.lwenstrom.tft.backend.core.model.RoomEvent;
 import net.lwenstrom.tft.backend.core.model.RoomEventType;
 import net.lwenstrom.tft.backend.core.model.TraitMetadata;
 import org.springframework.context.event.EventListener;
+import org.springframework.http.HttpStatus;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -28,6 +29,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 @RestController
@@ -52,7 +54,12 @@ public class GameController {
 
     @GetMapping("/api/traits")
     public List<TraitMetadata> getTraits(@RequestParam(required = false) String mode) {
-        var resolvedMode = mode != null ? GameMode.fromString(mode) : gameModeRegistry.getDefaultMode();
+        GameMode resolvedMode;
+        try {
+            resolvedMode = mode != null ? GameMode.fromString(mode) : gameModeRegistry.getDefaultMode();
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "mode is invalid", exception);
+        }
         return dataLoader.getTraitMetadata(resolvedMode);
     }
 

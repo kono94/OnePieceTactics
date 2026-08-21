@@ -75,12 +75,12 @@ describe('App game-mode bootstrap', () => {
         window.location.hash = ''
     })
 
-    it('applies the configured Palworld title and favicon without duplicate icon links', async () => {
+    it('ignores unsupported configured modes and applies the supported default metadata', async () => {
         vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
             ok: true,
             json: async () => ({
-                defaultGameMode: 'palworld',
-                availableModes: ['palworld', 'onepiece', 'pokemon'],
+                defaultGameMode: 'retired-mode',
+                availableModes: ['retired-mode', 'onepiece', 'pokemon'],
             }),
         }))
 
@@ -92,27 +92,27 @@ describe('App game-mode bootstrap', () => {
         const wrapper = mount(App)
         await vi.waitFor(() => expect(stomp.activate).toHaveBeenCalled())
 
-        expect(document.title).toBe('Theme Fusion Tactics — Palworld')
+        expect(document.title).toBe('Theme Fusion Tactics — One Piece')
         expect(document.querySelectorAll('link[rel="icon"]')).toHaveLength(1)
-        expect(document.querySelector('link[rel="icon"]')?.getAttribute('href')).toBe('/pal-sphere.png')
+        expect(document.querySelector('link[rel="icon"]')?.getAttribute('href')).toBe('/favicon.svg')
         wrapper.unmount()
     })
 
     it('ignores a stale trait response after switching modes', async () => {
         let resolvePokemon!: (response: unknown) => void
-        let resolvePalworld!: (response: unknown) => void
+        let resolveOnepiece!: (response: unknown) => void
         const pokemonResponse = new Promise((resolve) => { resolvePokemon = resolve })
-        const palworldResponse = new Promise((resolve) => { resolvePalworld = resolve })
+        const onepieceResponse = new Promise((resolve) => { resolveOnepiece = resolve })
 
         vi.stubGlobal('fetch', vi.fn((request: string) => {
             if (request === '/api/config') {
                 return Promise.resolve({
                     ok: true,
-                    json: async () => ({ defaultGameMode: 'onepiece', availableModes: ['onepiece', 'pokemon', 'palworld'] }),
+                    json: async () => ({ defaultGameMode: 'onepiece', availableModes: ['onepiece', 'pokemon'] }),
                 })
             }
             if (request.includes('mode=pokemon')) return pokemonResponse
-            return palworldResponse
+            return onepieceResponse
         }))
 
         sessionStorage.setItem('tactics.activeRoom', JSON.stringify({
@@ -128,15 +128,53 @@ describe('App game-mode bootstrap', () => {
         const stateSubscription = stomp.subscriptions.find(({ destination }) => destination.endsWith('/mode-room'))
         expect(stateSubscription).toBeDefined()
         stateSubscription?.callback({ body: JSON.stringify(roomState('pokemon')) })
-        stateSubscription?.callback({ body: JSON.stringify(roomState('palworld')) })
+        stateSubscription?.callback({ body: JSON.stringify(roomState('onepiece')) })
 
-        resolvePalworld({ ok: true, json: async () => traits('Palworld') })
-        await vi.waitFor(() => expect(TRAIT_DATA.palworld?.name).toBe('Palworld'))
+        resolveOnepiece({ ok: true, json: async () => traits('One Piece') })
+        await vi.waitFor(() => expect(TRAIT_DATA.one_piece?.name).toBe('One Piece'))
         resolvePokemon({ ok: true, json: async () => traits('Pokemon') })
         await Promise.resolve()
 
-        expect(TRAIT_DATA.palworld?.name).toBe('Palworld')
+        expect(TRAIT_DATA.one_piece?.name).toBe('One Piece')
         expect(TRAIT_DATA.pokemon).toBeUndefined()
+        wrapper.unmount()
+    })
+
+    it('returns to the lobby when a room state contains an unsupported mode', async () => {
+        const fetchMock = vi.fn((request: string) => {
+            if (request === '/api/config') {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => ({ defaultGameMode: 'onepiece', availableModes: ['onepiece', 'pokemon'] }),
+                })
+            }
+            return Promise.resolve({ ok: true, json: async () => traits('Pokemon') })
+        })
+        vi.stubGlobal('fetch', fetchMock)
+
+        sessionStorage.setItem('tactics.activeRoom', JSON.stringify({
+            roomId: 'mode-room',
+            playerName: 'ModeTester',
+            reconnectToken: 'token',
+        }))
+        const wrapper = mount(App)
+        await vi.waitFor(() => expect(stomp.onConnect).toBeDefined())
+        stomp.onConnect?.()
+        await vi.waitFor(() => expect(stomp.subscriptions).toHaveLength(3))
+
+        const stateSubscription = stomp.subscriptions.find(({ destination }) => destination.endsWith('/mode-room'))
+        expect(stateSubscription).toBeDefined()
+        stateSubscription?.callback({ body: JSON.stringify(roomState('pokemon')) })
+        stateSubscription?.callback({
+            body: JSON.stringify({ ...roomState('pokemon'), gameMode: 'retired-mode' }),
+        })
+
+        await vi.waitFor(() => expect(wrapper.find('.lobby-error').text()).toContain(
+            'Unsupported game mode received from server: retired-mode',
+        ))
+        expect(wrapper.find('.lobby').exists()).toBe(true)
+        expect(fetchMock.mock.calls.some(([request]) => String(request).includes('mode=retired-mode'))).toBe(false)
+        expect(sessionStorage.getItem('tactics.activeRoom')).toBeNull()
         wrapper.unmount()
     })
 
@@ -145,7 +183,7 @@ describe('App game-mode bootstrap', () => {
             ok: true,
             json: async () => ({
                 defaultGameMode: 'onepiece',
-                availableModes: ['onepiece', 'pokemon', 'palworld'],
+                availableModes: ['onepiece', 'pokemon'],
             }),
         }))
         sessionStorage.setItem('tactics.activeRoom', JSON.stringify({
@@ -182,7 +220,7 @@ describe('App game-mode bootstrap', () => {
     ])('normalizes room ids before publishing to $destination', async ({ inputIndex, destination }) => {
         vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
             ok: true,
-            json: async () => ({ defaultGameMode: 'onepiece', availableModes: ['onepiece', 'pokemon', 'palworld'] }),
+            json: async () => ({ defaultGameMode: 'onepiece', availableModes: ['onepiece', 'pokemon'] }),
         }))
         const wrapper = mount(App)
         await vi.waitFor(() => expect(stomp.onConnect).toBeDefined())

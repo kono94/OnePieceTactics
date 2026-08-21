@@ -35,17 +35,6 @@ export const GAME_MODE_METADATA: Record<GameMode, GameModeMetadata> = {
         galleryPath: '#/ultimate-gallery/pokemon',
         order: 2,
     },
-    palworld: {
-        id: 'palworld',
-        label: 'Palworld',
-        shortLabel: 'Palworld',
-        documentTitle: 'Theme Fusion Tactics — Palworld',
-        favicon: '/pal-sphere.png',
-        unitAssetFolder: 'palworld',
-        themeClass: 'theme-palworld',
-        galleryPath: '#/ultimate-gallery/palworld',
-        order: 3,
-    },
 }
 
 const SUPPORTED_GAME_MODES = Object.keys(GAME_MODE_METADATA) as GameMode[]

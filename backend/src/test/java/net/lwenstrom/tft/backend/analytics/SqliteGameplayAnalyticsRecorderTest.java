@@ -257,6 +257,76 @@ class SqliteGameplayAnalyticsRecorderTest {
                 .doesNotContain("itemIds");
     }
 
+    @Test
+    void latestMigrationPurgesUnsupportedModeAnalyticsAndChildren() throws Exception {
+        var sqliteConfig = new SQLiteConfig();
+        sqliteConfig.enforceForeignKeys(true);
+        var dataSource = new SQLiteDataSource(sqliteConfig);
+        dataSource.setUrl("jdbc:sqlite:" + temporaryDirectory.resolve("unsupported-modes.db"));
+        Flyway.configure()
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .target("3")
+                .load()
+                .migrate();
+        var jdbcTemplate = new JdbcTemplate(dataSource);
+        jdbcTemplate.update("INSERT INTO analytics_match (id, room_id, mode, started_at, status)"
+                + " VALUES ('legacy-match', 'legacy-room', 'legacy-mode', 1, 'COMPLETED')");
+        jdbcTemplate.update("INSERT INTO analytics_match (id, room_id, mode, started_at, status)"
+                + " VALUES ('future-match', 'future-room', 'future-mode', 2, 'COMPLETED')");
+        jdbcTemplate.update("INSERT INTO analytics_match (id, room_id, mode, started_at, status)"
+                + " VALUES ('onepiece-match', 'onepiece-room', 'ONEPIECE', 3, 'COMPLETED')");
+        jdbcTemplate.update("INSERT INTO analytics_match (id, room_id, mode, started_at, status)"
+                + " VALUES ('pokemon-match', 'pokemon-room', 'POKEMON', 4, 'COMPLETED')");
+        jdbcTemplate.update("INSERT INTO analytics_player_run (id, match_id, player_id, started_at, status)"
+                + " VALUES ('legacy-run', 'legacy-match', 'legacy-player', 1, 'COMPLETED')");
+        jdbcTemplate.update("INSERT INTO analytics_player_run (id, match_id, player_id, started_at, status)"
+                + " VALUES ('future-run', 'future-match', 'future-player', 2, 'COMPLETED')");
+        jdbcTemplate.update("INSERT INTO analytics_player_run (id, match_id, player_id, started_at, status)"
+                + " VALUES ('onepiece-run', 'onepiece-match', 'onepiece-player', 3, 'COMPLETED')");
+        jdbcTemplate.update("INSERT INTO analytics_player_run (id, match_id, player_id, started_at, status)"
+                + " VALUES ('pokemon-run', 'pokemon-match', 'pokemon-player', 4, 'COMPLETED')");
+        jdbcTemplate.update(
+                "INSERT INTO analytics_player_round (id, run_id, round_number, captured_at, pre_health, gold,"
+                        + " player_level, xp, board_json, augments_json)"
+                        + " VALUES ('legacy-round', 'legacy-run', 1, 1, 100, 0, 1, 0, '[]', '[]')");
+        jdbcTemplate.update(
+                "INSERT INTO analytics_player_round (id, run_id, round_number, captured_at, pre_health, gold,"
+                        + " player_level, xp, board_json, augments_json)"
+                        + " VALUES ('future-round', 'future-run', 1, 2, 100, 0, 1, 0, '[]', '[]')");
+        jdbcTemplate.update(
+                "INSERT INTO analytics_player_round (id, run_id, round_number, captured_at, pre_health, gold,"
+                        + " player_level, xp, board_json, augments_json)"
+                        + " VALUES ('onepiece-round', 'onepiece-run', 1, 3, 100, 0, 1, 0, '[]', '[]')");
+        jdbcTemplate.update(
+                "INSERT INTO analytics_player_round (id, run_id, round_number, captured_at, pre_health, gold,"
+                        + " player_level, xp, board_json, augments_json)"
+                        + " VALUES ('pokemon-round', 'pokemon-run', 1, 4, 100, 0, 1, 0, '[]', '[]')");
+
+        Flyway.configure()
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .load()
+                .migrate();
+
+        assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM analytics_match", Integer.class))
+                .isEqualTo(2);
+        assertThat(jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM analytics_match WHERE mode = 'ONEPIECE'", Integer.class))
+                .isEqualTo(1);
+        assertThat(jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM analytics_match WHERE mode = 'POKEMON'", Integer.class))
+                .isEqualTo(1);
+        assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM analytics_player_run", Integer.class))
+                .isEqualTo(2);
+        assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM analytics_player_round", Integer.class))
+                .isEqualTo(2);
+        assertThat(jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM analytics_player_round WHERE run_id IN ('onepiece-run', 'pokemon-run')",
+                        Integer.class))
+                .isEqualTo(2);
+    }
+
     private record TestItem(String id) implements GameItem {
         @Override
         public String getId() {

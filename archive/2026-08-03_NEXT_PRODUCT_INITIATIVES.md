@@ -82,7 +82,7 @@ dashboard should always display sample sizes and avoid presenting tiny samples a
 
 - Every completed human run has exactly one final-composition snapshot.
 - An administrator can visually identify a final board without reading unit ids.
-- Palworld, Pokemon, and One Piece results can be compared without mixing game versions.
+- Pokemon and One Piece results can be compared without mixing game versions.
 - Storage growth stays proportional to completed human runs, not match duration or tick count.
 
 ## 4. Initiative 2 — Lobby invitations
@@ -216,13 +216,13 @@ movement history is required.
 - New players can understand how to obtain, inspect, and equip an item without external documentation.
 - Items create meaningful placement decisions rather than automatic best-in-slot assignments.
 - Final-board analytics can reveal item concentration and outliers without new event tracking.
-- No single item or item/unit pairing dominates across all three modes.
+- No single item or item/unit pairing dominates across both modes.
 
 ## 7. Initiative 5 — Distinct mode identities
 
 ### Product goal
 
-A player should notice a meaningful strategic difference between One Piece, Pokemon, and Palworld even if all names and
+A player should notice a meaningful strategic difference between One Piece and Pokemon even if all names and
 art were temporarily hidden. Shared fundamentals—shop, economy, board, stars, phases, and backend authority—should remain
 familiar so each mode does not become a separate game.
 
@@ -236,7 +236,6 @@ Candidate identities for design validation are:
 - **One Piece — Captain and crew:** designate or develop a captain whose crew relationships shape team bonuses.
 - **Pokemon — evolution mastery:** make evolution timing, form identity, or type adaptation a more deliberate decision
   beyond the existing automatic star upgrade.
-- **Palworld — active partner:** designate one Pal as a partner that enhances its signature contribution to the team.
 
 These are product directions, not locked mechanics. Each requires a short rules proposal and playtest before approval.
 
@@ -250,10 +249,9 @@ These are product directions, not locked mechanics. Each requires a short rules 
 
 ### Recommended rollout
 
-Define all three identity contracts before releasing the first one. Prototype the Palworld partner direction first
-because Palworld is the newest and currently relies most heavily on the shared elemental structure. Use that prototype
-to validate the generic product shape, then deliver equivalent signature depth for the other modes in the same release
-window or behind an explicit experimental flag.
+Define both identity contracts before releasing the first one. Prototype each direction in turn to validate the generic
+product shape, then deliver equivalent signature depth for the other mode in the same release window or behind an
+explicit experimental flag.
 
 ### Success signals
 
@@ -282,7 +280,7 @@ rare items, or mode-specific item variants.
 
 ### Stage D — Establish mode identity
 
-Approve one signature-rule contract for every mode, validate the Palworld prototype, and release balanced mode identities
+Approve one signature-rule contract for every mode, validate both prototypes, and release balanced mode identities
 without weakening the theme-agnostic core.
 
 ## 9. Cross-initiative guardrails

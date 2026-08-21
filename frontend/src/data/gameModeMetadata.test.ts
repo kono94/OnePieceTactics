@@ -6,8 +6,8 @@ import {
 } from './gameModeMetadata'
 
 describe('game mode metadata', () => {
-    it('describes all three modes in lobby order', () => {
-        expect(sortGameModes(['palworld', 'onepiece', 'pokemon'])).toEqual(['onepiece', 'pokemon', 'palworld'])
+    it('describes both modes in lobby order', () => {
+        expect(sortGameModes(['pokemon', 'onepiece'])).toEqual(['onepiece', 'pokemon'])
         expect(getGameModeMetadata('onepiece')).toMatchObject({
             label: 'One Piece',
             documentTitle: 'Theme Fusion Tactics — One Piece',
@@ -26,21 +26,12 @@ describe('game mode metadata', () => {
             galleryPath: '#/ultimate-gallery/pokemon',
             order: 2,
         })
-        expect(getGameModeMetadata('palworld')).toMatchObject({
-            label: 'Palworld',
-            documentTitle: 'Theme Fusion Tactics — Palworld',
-            favicon: '/pal-sphere.png',
-            unitAssetFolder: 'palworld',
-            themeClass: 'theme-palworld',
-            galleryPath: '#/ultimate-gallery/palworld',
-            order: 3,
-        })
     })
 
     it('accepts only exact gallery routes for supported modes', () => {
         expect(parseGalleryModeHash('#/ultimate-gallery/onepiece')).toBe('onepiece')
         expect(parseGalleryModeHash('#/ultimate-gallery/pokemon')).toBe('pokemon')
-        expect(parseGalleryModeHash('#/ultimate-gallery/palworld')).toBe('palworld')
+        expect(parseGalleryModeHash('#/ultimate-gallery/retired-mode')).toBeNull()
         expect(parseGalleryModeHash('#/ultimate-gallery/unknown')).toBeNull()
         expect(parseGalleryModeHash('#/ultimate-gallery/pokemon/extra')).toBeNull()
         expect(parseGalleryModeHash('#/ultimate-gallery')).toBeNull()

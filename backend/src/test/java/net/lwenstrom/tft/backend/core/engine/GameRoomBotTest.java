@@ -17,7 +17,6 @@ import net.lwenstrom.tft.backend.core.model.GameMode;
 import net.lwenstrom.tft.backend.core.model.GamePhase;
 import net.lwenstrom.tft.backend.core.random.RandomProvider;
 import net.lwenstrom.tft.backend.game.onepiece.OnePieceGameModeProvider;
-import net.lwenstrom.tft.backend.game.palworld.PalworldGameModeProvider;
 import net.lwenstrom.tft.backend.game.pokemon.PokemonGameModeProvider;
 import net.lwenstrom.tft.backend.test.TestHelpers;
 import org.junit.jupiter.api.BeforeEach;
@@ -359,7 +358,6 @@ class GameRoomBotTest {
                 switch (mode) {
                     case ONEPIECE -> new OnePieceGameModeProvider(jsonMapper);
                     case POKEMON -> new PokemonGameModeProvider(jsonMapper);
-                    case PALWORLD -> new PalworldGameModeProvider(jsonMapper);
                 };
         return new GameModeRegistry(List.of(provider));
     }

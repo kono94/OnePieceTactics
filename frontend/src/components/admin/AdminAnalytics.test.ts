@@ -45,12 +45,6 @@ describe('AdminAnalytics', () => {
                             backendCommit: 'abc123',
                             runs: 1,
                         },
-                        {
-                            mode: 'palworld',
-                            backendVersion: 'unknown',
-                            backendCommit: 'unknown',
-                            runs: 2,
-                        },
                     ],
                     anonymousPlayerIds: ['browser-1', 'browser-2'],
                 })
@@ -126,18 +120,15 @@ describe('AdminAnalytics', () => {
         expect(wrapper.text()).toContain('Low sample: advantage ranking is suppressed')
         expect(wrapper.findAll('#analytics-mode option').map((option) => option.text())).toEqual([
             'All modes',
-            'palworld',
             'pokemon',
         ])
         expect(wrapper.findAll('#analytics-version option').map((option) => option.text())).toEqual([
             'All versions',
             '2.0.0',
-            'unknown',
         ])
         expect(wrapper.findAll('#analytics-commit option').map((option) => option.text())).toEqual([
             'All commits',
             'abc123',
-            'unknown',
         ])
         expect(wrapper.findAll('#analytics-player option').map((option) => option.text())).toEqual([
             'All players',

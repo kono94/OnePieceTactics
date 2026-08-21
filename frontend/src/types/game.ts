@@ -9,7 +9,7 @@
 
 export type GamePhase = 'LOBBY' | 'PLANNING' | 'COMBAT' | 'END_CELEBRATION' | 'END'
 
-export type GameMode = 'onepiece' | 'pokemon' | 'palworld'
+export type GameMode = 'onepiece' | 'pokemon'
 
 export type UnitRole = 'DAMAGE' | 'TANK' | 'SUPPORT'
 

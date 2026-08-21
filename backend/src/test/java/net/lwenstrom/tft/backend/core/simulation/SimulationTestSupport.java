@@ -5,7 +5,6 @@ import net.lwenstrom.tft.backend.core.DataLoader;
 import net.lwenstrom.tft.backend.core.GameModeProvider;
 import net.lwenstrom.tft.backend.core.GameModeRegistry;
 import net.lwenstrom.tft.backend.game.onepiece.OnePieceGameModeProvider;
-import net.lwenstrom.tft.backend.game.palworld.PalworldGameModeProvider;
 import net.lwenstrom.tft.backend.game.pokemon.PokemonGameModeProvider;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -15,10 +14,8 @@ final class SimulationTestSupport {
 
     static Fixture createFixture() {
         var jsonMapper = JsonMapper.builder().build();
-        List<GameModeProvider> providers = List.of(
-                new OnePieceGameModeProvider(jsonMapper),
-                new PokemonGameModeProvider(jsonMapper),
-                new PalworldGameModeProvider(jsonMapper));
+        List<GameModeProvider> providers =
+                List.of(new OnePieceGameModeProvider(jsonMapper), new PokemonGameModeProvider(jsonMapper));
         var registry = new GameModeRegistry(providers);
         var dataLoader = new DataLoader(registry, jsonMapper);
         dataLoader.loadData();

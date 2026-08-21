@@ -1,7 +1,7 @@
 import type { AbilityDefinition } from '../types'
 import type { GameMode } from '../types'
 
-export type GalleryGameMode = GameMode | 'palworld'
+export type GalleryGameMode = GameMode
 
 export interface UltimateGalleryUnit {
     id: string

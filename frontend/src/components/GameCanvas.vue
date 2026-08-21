@@ -620,8 +620,8 @@ function normalizeCombatEvent(
     batchSize: number
 ): NormalizedCombatVisualEvent {
     const isSkill = event.type === 'SKILL'
-    const attack = resolveAttackConfig(props.state?.gameMode, source)
-    const ability = resolveAbilityConfig(props.state?.gameMode, source)
+    const attack = resolveAttackConfig(source)
+    const ability = resolveAbilityConfig(source)
     const aliveUnits = renderedUnits.value.filter(unit => unit.currentHealth > 0).length
 
     return {
@@ -709,7 +709,7 @@ watch(() => props.state?.recentEvents, (newEvents) => {
                 id: animationId,
                 x: source.visualX * CELL_SIZE.value + CELL_SIZE.value / 2,
                 y: source.visualY * CELL_SIZE.value,
-                text: event.skillName || resolveAbilityConfig(props.state?.gameMode, source).signature || source.activeAbility || (source.ability ? source.ability.name : 'Ability!')
+                text: event.skillName || resolveAbilityConfig(source).signature || source.activeAbility || (source.ability ? source.ability.name : 'Ability!')
             })
             scheduleTransientAnimationCleanup(() => {
                 castingAnimations.value = castingAnimations.value.filter((animation) => animation.id !== animationId)

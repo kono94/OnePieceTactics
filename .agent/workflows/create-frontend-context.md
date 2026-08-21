@@ -26,7 +26,7 @@ Analyze the current Vue.js 3 codebase and generate a comprehensive `FRONTEND_CON
     - **Component Style**: Determine if the project uses `<script setup>`, Options API, or Composition API.
     - **Data Flow**: Explain how data moves from the API/Backend -> State -> Components.
     - **Logic Sharing**: Check for the use of Composables (hooks) vs Utility functions.
-    - **Game Modes & Assets**: Explain how One Piece/Pokemon/Palworld modes influence title/favicon, trait loading, icon paths, unit assets, and gallery data.
+    - **Game Modes & Assets**: Explain how One Piece/Pokemon modes influence title/favicon, trait loading, icon paths, unit assets, and gallery data.
     - **Combat Visuals**: Cover the combat animation pipeline, including event normalization, `CombatEffectsCanvas`, `AttackAnimation`, and the standalone ultimate gallery route.
 
 ## Output Requirements (The `FRONTEND_CONTEXT.md` File in the /frontend folder)

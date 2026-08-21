@@ -41,7 +41,7 @@ const gameState = ref<GameState | null>(null)
 const client = ref<Client | null>(null)
 const currentView = ref<'lobby' | 'game' | 'changelog'>('lobby')
 const currentRoomId = ref('')
-const fallbackModes = sortGameModes(['onepiece', 'pokemon', 'palworld'])
+const fallbackModes = sortGameModes(['onepiece', 'pokemon'])
 const availableModes = ref<GameMode[]>(fallbackModes)
 const defaultMode = ref<GameMode>('onepiece')
 const activeTraitMode = ref<GameMode | null>(null)
@@ -195,6 +195,20 @@ const showVersion = computed(() => {
     return currentView.value === 'lobby' || gameState.value?.phase === 'LOBBY';
 });
 
+const parseGameStateMessage = (body: string): GameState => {
+    const candidate: unknown = JSON.parse(body)
+    if (!candidate || typeof candidate !== 'object' || !('gameMode' in candidate)) {
+        throw new Error('Unsupported game mode received from server: missing')
+    }
+
+    const mode = (candidate as { gameMode?: unknown }).gameMode
+    if (!isGameMode(mode)) {
+        throw new Error(`Unsupported game mode received from server: ${String(mode)}`)
+    }
+
+    return candidate as GameState
+}
+
 
 const subscribeToRoom = (roomId: string) => {
     if (!client.value || !isConnected.value) return
@@ -212,8 +226,7 @@ const subscribeToRoom = (roomId: string) => {
     // Subscribe to state updates
     roomSubscription.value = client.value.subscribe(`/topic/room/${roomId}`, (message) => {
         try {
-            gameState.value = JSON.parse(message.body)
-            if (!gameState.value) return;
+            gameState.value = parseGameStateMessage(message.body)
             if (gameState.value.phase === 'END_CELEBRATION' || gameState.value.phase === 'END') {
                 clearActiveRoomSession()
             }
@@ -231,7 +244,11 @@ const subscribeToRoom = (roomId: string) => {
             }
 
         } catch (e) {
-            console.error("Failed to parse game state", e)
+            if (e instanceof Error && e.message.startsWith('Unsupported game mode received from server:')) {
+                rejectPendingJoin(e.message)
+            } else {
+                console.error("Failed to parse game state", e)
+            }
         }
     })
 
@@ -293,6 +310,7 @@ const rejectPendingJoin = (message: string) => {
     gameState.value = null
     currentRoomId.value = ''
     activeTraitMode.value = null
+    traitRequestGeneration += 1
     viewedPlayerId.value = null
     currentPlayerId.value = null
     lobbyError.value = message

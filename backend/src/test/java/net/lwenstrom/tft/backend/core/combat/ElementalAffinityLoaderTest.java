@@ -12,10 +12,10 @@ class ElementalAffinityLoaderTest {
             new ElementalAffinityLoader(JsonMapper.builder().build());
 
     @Test
-    void loadsThePalworldAffinityGraph() {
-        var config = loader.load("/data/affinities_palworld.json");
+    void loadsThePokemonAffinityGraph() {
+        var config = loader.load("/data/affinities_pokemon.json");
 
-        assertEquals(9, config.elements().size());
+        assertEquals(18, config.elements().size());
         assertEquals(1.2, config.strongMultiplier());
         assertEquals(0.8, config.resistedMultiplier());
         assertEquals(1.2, config.multiplier("fire", List.of("grass")));

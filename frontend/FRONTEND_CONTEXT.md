@@ -13,7 +13,7 @@ The frontend is a rendering and command client for the backend-authoritative gam
 as visible units, trait counts, animation parameters, and labels. It must not decide whether a purchase, movement,
 upgrade, augment, or combat result is valid.
 
-The application supports One Piece, Pokemon, and Palworld rooms. The host can change mode while the room is in `LOBBY`.
+The application supports One Piece and Pokemon rooms. The host can change mode while the room is in `LOBBY`.
 
 ## 2. Stack
 
@@ -51,13 +51,13 @@ src/
 │       ├── DamageReport.vue        combat statistics
 │       ├── OutcomeOverlay.vue      short win/loss/draw overlay
 │       └── UltimateGallery.vue     development-only animation gallery
-├── animations/                     mode-aware attack/ability registries and render policy
+├── animations/                     shared animation render policy and gallery registry
 ├── data/                           mode metadata, shop odds, trait cache, gallery rosters
 ├── services/analyticsClient.ts     admin REST client/token handling
 ├── types/                          backend DTO mirrors and render-only types
 └── utils/
     ├── clientIdentity.ts           analytics id and per-tab reconnect session
-    ├── combatAnimationConfig.ts    live mode-aware animation lookup
+    ├── combatAnimationConfig.ts    live shared animation lookup
     ├── economy.ts                  backend-aligned sell preview
     ├── dragPreview.ts              drag image support
     └── iconUtils.ts                mode-aware asset paths
@@ -150,7 +150,7 @@ interface GameState {
   matchups: Record<string, string>
   recentEvents: CombatEvent[]
   damageLog: Record<string, DamageEntry>
-  gameMode: 'onepiece' | 'pokemon' | 'palworld'
+  gameMode: 'onepiece' | 'pokemon'
   planningTimerPaused: boolean
   planningReadyPlayerId: string | null
   planningPauseReason: 'AUGMENT_SELECTION' | 'SOLO_READY' | null
@@ -178,7 +178,7 @@ onto one half of the 9×6 combat canvas.
 
 - Uses `currentPlayerId === gameState.hostId` for host controls.
 - Marks the current user by player ID, not name.
-- Shows backend-configured mode choices in stable One Piece/Pokemon/Palworld order.
+- Shows backend-configured mode choices in stable One Piece/Pokemon order.
 - Emits mode selection, start, and leave; it does not publish STOMP directly.
 
 ### `GameInterface.vue`
@@ -215,13 +215,12 @@ totals.
 ## 9. Modes, assets, and styling
 
 `data/gameModeMetadata.ts` is the presentation registry for display name, theme class, favicon, document title, and asset
-folder. Backend `gameMode` selects the runtime entry. Palworld uses `/pal-sphere.png` as its favicon.
+folder. Backend `gameMode` selects the runtime entry.
 
 Unit portrait paths:
 
 - One Piece: `/assets/units/onepiece/{definitionId}.png`
 - Pokemon: `/assets/units/pokemon/{definitionId}.png`
-- Palworld: `/assets/units/palworld/{definitionId}_v1.png`
 
 The public lobby and waiting room use mode themes. In-match components intentionally use shared generic chrome.
 
@@ -230,24 +229,15 @@ are scoped. `AGENTS.md` must remain aligned with this and should not describe Ta
 
 ## 10. Animation system
 
-`data/animationConfig.ts` retains legacy One Piece/Pokemon lookup overloads and delegates mode-aware lookups to
-`animations/registry.ts`.
+`data/animationConfig.ts` owns the shared One Piece/Pokemon attack and ability lookup tables. Animation identity comes
+from the stable mode and unit definition ID, never from a display name.
 
-Live Palworld combat must use:
-
-```text
-pw-attack-{definitionId}
-pw-ability-{definitionId}
-```
-
-`utils/combatAnimationConfig.ts` owns that translation and passes unit traits as palette context. This prevents live
-combat from falling back to legacy/default effects while the gallery appears correct. Animation identity comes from
-the stable mode and unit definition ID, never from a display name.
+`utils/combatAnimationConfig.ts` resolves the shared animation configuration for live units.
 
 `animations/renderPolicy.ts` reduces particle density and expensive effects for crowded batches and reduced-motion
 users. `CombatEffectsCanvas.vue` is the live layered renderer. `AttackAnimation.vue` has no live import and is legacy.
-Palworld `PAL_*` families are interpreted by that live renderer; family configuration controls geometry, duration,
-projectile and ring counts, trail width, glyphs, and accents rather than serving as gallery-only metadata.
+Family configuration controls geometry, duration, projectile and ring counts, trail width, glyphs, and accents rather
+than serving as gallery-only metadata.
 
 The `#/ultimate-gallery/{mode}` route is development-only. `UltimateGallery.vue` and some gallery roster files are
 excluded from `tsconfig.build.json`; do not document the gallery as a production feature.
@@ -288,7 +278,7 @@ Current focused tests cover:
 - restored-room timeout/admin bootstrap;
 - player-ID component behavior and end celebration;
 - augment/phase presentation;
-- animation registry completeness and live Palworld lookup;
+- shared animation configuration and live mode lookup;
 - sell-refund parity;
 - client identity persistence;
 - analytics client behavior and utility functions.

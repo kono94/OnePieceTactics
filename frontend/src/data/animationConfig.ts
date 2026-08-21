@@ -1,9 +1,6 @@
 // Animation configuration for attack and ability effects
 // Pattern = shape (SINGLE, LINE, SURROUND), styling comes from this config
 
-import { getAbilityConfig as getRegistryAbilityConfig, getAttackConfig as getRegistryAttackConfig } from '../animations/registry'
-import type { AnimationGameMode, PalworldAnimationContext } from '../animations/types'
-
 export type AttackType =
     | 'punch'
     | 'slash'
@@ -31,13 +28,6 @@ export type AttackType =
     | 'forcePalm'
     | 'dragonSpark'
     | 'metalSpark'
-    | 'claw'
-    | 'bite'
-    | 'peck'
-    | 'horn'
-    | 'spear'
-    | 'wing'
-    | 'bubble'
 
 export interface AttackAnimationConfig {
     type: AttackType
@@ -118,24 +108,6 @@ export type AbilityEffectStyle =
     | 'POKEMON_FIGHTING_COMBO'
     | 'POKEMON_FLYING_GUST'
     | 'POKEMON_STEEL_FIELD'
-    | 'PAL_PROJECTILE'
-    | 'PAL_MELEE_BURST'
-    | 'PAL_LINE_CUT'
-    | 'PAL_CONE_BREATH'
-    | 'PAL_DASH'
-    | 'PAL_CHAIN'
-    | 'PAL_MULTI_SHOT'
-    | 'PAL_RADIUS_BURST'
-    | 'PAL_AURA_BUFF'
-    | 'PAL_HEAL_BLOOM'
-    | 'PAL_SHIELD_FIELD'
-    | 'PAL_CONTROL_FIELD'
-    | 'PAL_METEOR_RAIN'
-    | 'PAL_PERSISTENT_ZONE'
-    | 'PAL_BEAM'
-    | 'PAL_WHIRLWIND'
-    | 'PAL_BUBBLE_FIELD'
-    | 'PAL_DIAGNOSTIC'
 
 export interface AbilityAnimationConfig {
     color: string
@@ -148,7 +120,6 @@ export interface AbilityAnimationConfig {
     projectileCount?: number
     ringCount?: number
     trailWidth?: number
-    glyph?: 'leaf' | 'ember' | 'drop' | 'bolt' | 'snow' | 'rock' | 'void' | 'dragon' | 'star' | 'heart' | 'bubble' | 'spore'
     animationKey?: string
     element?: string
     accentColor?: string
@@ -617,16 +588,10 @@ function getLegacyAbilityConfig(definitionId: string): AbilityAnimationConfig {
     }
 }
 
-export function getAttackConfig(definitionId: string): AttackAnimationConfig
-export function getAttackConfig(gameMode: AnimationGameMode, attackAnimationKey: string, context?: PalworldAnimationContext): AttackAnimationConfig
-export function getAttackConfig(modeOrDefinitionId: string, attackAnimationKey?: string, context?: PalworldAnimationContext): AttackAnimationConfig {
-    if (attackAnimationKey !== undefined) return getRegistryAttackConfig(modeOrDefinitionId as AnimationGameMode, attackAnimationKey, context)
-    return getLegacyAttackConfig(modeOrDefinitionId)
+export function getAttackConfig(definitionId: string): AttackAnimationConfig {
+    return getLegacyAttackConfig(definitionId)
 }
 
-export function getAbilityConfig(definitionId: string): AbilityAnimationConfig
-export function getAbilityConfig(gameMode: AnimationGameMode, abilityAnimationKey: string, context?: PalworldAnimationContext): AbilityAnimationConfig
-export function getAbilityConfig(modeOrDefinitionId: string, abilityAnimationKey?: string, context?: PalworldAnimationContext): AbilityAnimationConfig {
-    if (abilityAnimationKey !== undefined) return getRegistryAbilityConfig(modeOrDefinitionId as AnimationGameMode, abilityAnimationKey, context)
-    return getLegacyAbilityConfig(modeOrDefinitionId)
+export function getAbilityConfig(definitionId: string): AbilityAnimationConfig {
+    return getLegacyAbilityConfig(definitionId)
 }

@@ -12,6 +12,5 @@ export function getUnitIconPath(definitionId: string | null | undefined, gameMod
     }
 
     const metadata = getGameModeMetadata(gameMode)
-    const filename = gameMode === 'palworld' ? `${definitionId}_v1.png` : `${definitionId}.png`
-    return `/assets/units/${metadata.unitAssetFolder}/${filename}`
+    return `/assets/units/${metadata.unitAssetFolder}/${definitionId}.png`
 }

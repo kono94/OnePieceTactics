@@ -122,7 +122,6 @@ public class GameRoom {
                 new BfsUnitMover(clock),
                 new DefaultAbilityCaster(),
                 randomProvider,
-                this.gameMode,
                 dataLoader.getAffinityConfig(this.gameMode));
         this.augmentManager = new AugmentManager(dataLoader.getAugments(this.gameMode), randomProvider);
 
@@ -171,7 +170,7 @@ public class GameRoom {
         this.gameMode = newMode;
         traitManager.clearEffects();
         gameModeRegistry.getProvider(newMode).registerTraitEffects(traitManager);
-        combatSystem.configureAffinity(newMode, dataLoader.getAffinityConfig(newMode));
+        combatSystem.configureAffinity(dataLoader.getAffinityConfig(newMode));
         augmentManager = new AugmentManager(dataLoader.getAugments(newMode), randomProvider);
         players.values().forEach(p -> p.resetForMode(newMode));
         updateGameState(0);
